@@ -36,6 +36,20 @@ jobs:
         with:
           path: dist
 
+  # End-to-end checks in Chromium, Firefox and WebKit. Reported, but they don't hold back a deploy.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm test:e2e
+
   deploy:
     if: github.event_name != 'pull_request'
     needs: build

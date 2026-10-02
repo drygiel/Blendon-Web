@@ -288,7 +288,7 @@ export function Hero() {
 
       <header className={styles.header}>
         <a className={styles.homeLink} href="#top" aria-label="Blendon home">
-          <img src={wordmark} alt="Blendon" width={1200} height={239} />
+          <img src={wordmark} alt="Blendon" width={602} height={120} />
         </a>
         <nav className={styles.nav} aria-label="Main">
           {NAV.map(([href, label]) => (
