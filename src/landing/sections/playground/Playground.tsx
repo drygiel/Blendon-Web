@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './Playground.module.scss';
+import { WindowSlot } from './WindowSlot.tsx';
 
-/** Section 05: the settings window, rendered by the caller. */
-export function Playground({ children }: { children?: ReactNode }) {
+/** Section 05: the settings window, live. */
+export function Playground() {
   return (
     <Section id="playground">
       <SectionIntro eyebrow="05 / PLAYGROUND" title="Try every setting before you buy." />
@@ -12,7 +12,7 @@ export function Playground({ children }: { children?: ReactNode }) {
         sliders, rebind keys, search, and hover any label for its tooltip. Nothing here touches a Scene view, and
         changes live only in this tab.
       </p>
-      {children}
+      <WindowSlot />
     </Section>
   );
 }
