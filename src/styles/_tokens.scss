@@ -1,0 +1,12 @@
+// Landing palette and type, mirrored as CSS custom properties so components can read them at runtime too.
+:root {
+  --bg: #0c0e12;
+  --text: #f4f2ee;
+  --text-muted: #a9aeb6;
+  --accent: #f2a33a;
+  --accent-hover: #ffc061;
+
+  --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
