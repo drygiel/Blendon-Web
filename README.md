@@ -30,6 +30,20 @@ React 19, TypeScript (strict), Vite, SCSS (CSS Modules), Vitest, Playwright, ESL
 
 Playwright needs its browsers once: `pnpm exec playwright install`.
 
+## Settings window data
+
+The site shows Blendon's settings window, rebuilt from the plugin itself. `pnpm sync` reads the plugin this repository
+is mounted in (`../`, or `BLENDON_DIR`):
+
+- `Editor/**/*Settings.cs` - each page's `DrawSettings` code, turned into the window's layout
+- `Editor/Icons` - tooltip images, page header images and Blendon's own icons
+- `Metadata~/PlaygroundRef` - labels, tooltips, defaults and constants plus the Editor's built-in icons, dumped from
+  the Unity Editor (`model*.json`, `ui/`)
+- `Metadata~/Video` - the feature clips
+
+It writes `src/generated/window-data.json` and `public/plugin/`. Both are committed, so CI never needs the plugin.
+Run it after changing the plugin's settings pages, then commit the result.
+
 ## Deployment
 
 Every push to `main` runs `.github/workflows/deploy.yml`: checks, build, then deploy to GitHub Pages. Pull requests only
