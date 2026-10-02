@@ -1,0 +1,9 @@
+@use 'tokens' as *;
+
+.lead {
+  margin: 18px 0 0;
+  max-width: 720px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: $text-3;
+}

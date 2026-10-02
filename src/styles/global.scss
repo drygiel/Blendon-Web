@@ -1,19 +1,39 @@
-@use 'tokens';
+@use 'tokens' as *;
 
 html {
-  background: var(--bg);
+  background: $bg;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
+  background: $bg;
+  color: $text;
+  font-family: $font-body;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-.placeholder {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 120px 28px;
+a {
+  color: $accent;
+
+  &:hover {
+    color: $accent-light;
+  }
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid $accent;
+  outline-offset: 3px;
 }

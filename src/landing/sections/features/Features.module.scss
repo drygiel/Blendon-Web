@@ -1,0 +1,101 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.section {
+  padding-top: 120px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 36px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 1px solid $border-2;
+  background: $surface-3;
+  color: $text-2;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.count {
+  @include mono;
+  font-size: 12px;
+  color: $text-4;
+}
+
+.tabOn {
+  border-color: $accent-light;
+  background: $accent;
+  color: #141414;
+
+  .count {
+    color: #5a3a0e;
+  }
+}
+
+.explorer {
+  @include columns(minmax(0, 380px) minmax(0, 1fr), 28px);
+  align-items: start;
+  margin-top: 24px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player {
+  border: 1px solid $border-2;
+  border-radius: 16px;
+  overflow: hidden;
+  background: $surface-3;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #2a2d33;
+}
+
+.caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 8px;
+}
+
+.title {
+  @include display;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.keys {
+  gap: 6px;
+  font-size: 13px;
+}
+
+.desc {
+  margin: 0;
+  padding: 0 24px 24px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #b9bec6;
+  max-width: 680px;
+}

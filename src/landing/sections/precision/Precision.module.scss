@@ -1,0 +1,123 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.split {
+  @include columns(minmax(0, 1fr) minmax(0, 1fr), 56px);
+  align-items: center;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sequence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepLabel {
+  @include caption(11px, 0.14em, $text-dim);
+}
+
+.arrow {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  color: #5a606b;
+  font-size: 20px;
+}
+
+.panel {
+  border: 1px solid $border-2;
+  border-radius: 16px;
+  background: $surface-2;
+  overflow: hidden;
+}
+
+.panelHead {
+  @include caption(12px, 0.14em, $text-4);
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid $border;
+}
+
+.readout {
+  color: $info;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid $hairline;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @include below($bp-small) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+.rowKeys {
+  flex-wrap: nowrap;
+  font-size: 13px;
+}
+
+.rowText {
+  font-size: 15px;
+  line-height: 1.5;
+  color: $text-2;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 16px;
+  margin-top: 56px;
+}
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardKeys {
+  gap: 6px;
+  font-size: 13px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardText {
+  font-size: 14px;
+  line-height: 1.55;
+  color: $text-3;
+}

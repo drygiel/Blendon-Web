@@ -1,0 +1,152 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.explorer {
+  @include columns(minmax(0, 380px) minmax(0, 1fr), 28px);
+  align-items: center;
+  margin-top: 40px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stage {
+  position: relative;
+  border: 1px solid $border-2;
+  border-radius: 16px;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, #1a1e26 0%, $surface-2 100%);
+  overflow: hidden;
+  padding: 28px 16px;
+}
+
+.pie {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1 / 0.86;
+  margin: 0 auto;
+}
+
+.ring,
+.dir {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 76px;
+  height: 76px;
+  margin-left: -38px;
+  margin-top: -38px;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+.ring {
+  border: 14px solid #22252b;
+  box-shadow:
+    0 0 0 1px $border-strong,
+    inset 0 0 0 1px $border-strong;
+}
+
+.dir {
+  border: 14px solid transparent;
+  border-left-color: $blue;
+  transition:
+    transform 0.18s ease-out,
+    opacity 0.18s;
+}
+
+.title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -64px);
+  font-size: 13px;
+  font-weight: 500;
+  color: #aeb3bb;
+  white-space: nowrap;
+}
+
+.item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 13px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  border: 1px solid $border-strong;
+  background: #262930;
+  color: $text;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.num {
+  font-weight: 500;
+  color: $text-3;
+}
+
+.active {
+  background: $blue;
+  border-color: $blue-light;
+
+  .num {
+    color: #dce6f7;
+  }
+}
+
+.hot {
+  background: #4a505b;
+  border-color: #7a818d;
+}
+
+.disabled {
+  background: #1b1d22;
+  border-color: #2a2d33;
+  color: #6b717b;
+
+  .num {
+    color: #555a63;
+  }
+}
+
+.note {
+  @include caption(12px, 0.06em, $text-4);
+  margin: 8px 0 0;
+  text-align: center;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardText {
+  font-size: 14px;
+  line-height: 1.55;
+  color: $text-3;
+}

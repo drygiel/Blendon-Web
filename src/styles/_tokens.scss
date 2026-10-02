@@ -1,12 +1,41 @@
-// Landing palette and type, mirrored as CSS custom properties so components can read them at runtime too.
-:root {
-  --bg: #0c0e12;
-  --text: #f4f2ee;
-  --text-muted: #a9aeb6;
-  --accent: #f2a33a;
-  --accent-hover: #ffc061;
+// Landing palette, type and breakpoints. Components pull these in with `@use 'tokens' as *;`.
 
-  --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
-}
+$bg: #0c0e12;
+$surface: #101216;
+$surface-2: #111318;
+$surface-3: #14171c;
+$surface-raised: #1c2027;
+$border: #23262d;
+$border-2: #2a2e36;
+$border-strong: #3a3f4a;
+$hairline: #1c1f25;
+
+$text: #f4f2ee;
+$text-2: #c9cdd4;
+$text-3: #a9aeb6;
+$text-4: #8c9199;
+$text-dim: #868c95;
+
+$accent: #f2a33a;
+$accent-hover: #ffb24f;
+$accent-light: #ffc061;
+$accent-shadow: #b8641a;
+$blue: #4a7fd0;
+$blue-light: #6e9be0;
+$info: #6fa8f0;
+
+$font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+$font-display: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+$font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+$page-max: 1240px;
+$page-pad: 28px;
+
+// Breakpoints, as max-widths.
+$bp-wide: 1259px;
+$bp-md: 1179px;
+$bp-tablet: 999px;
+$bp-two-col: 900px;
+$bp-nav: 899px;
+$bp-phone: 759px;
+$bp-small: 600px;

@@ -1,0 +1,50 @@
+@use 'tokens' as *;
+
+@mixin below($width) {
+  @media (max-width: $width) {
+    @content;
+  }
+}
+
+@mixin mono {
+  font-family: $font-mono;
+}
+
+@mixin display {
+  font-family: $font-display;
+}
+
+/// A page-width section with the standard top spacing.
+@mixin section($top: 140px) {
+  max-width: $page-max;
+  margin: 0 auto;
+  padding: $top $page-pad 0;
+  box-sizing: border-box;
+}
+
+/// Small mono caption in tracked capitals.
+@mixin caption($size: 12px, $tracking: 0.14em, $color: $text-4) {
+  @include mono;
+  font-size: $size;
+  letter-spacing: $tracking;
+  color: $color;
+}
+
+/// A bordered card on the dark surface.
+@mixin card($pad: 22px, $radius: 14px) {
+  padding: $pad;
+  border: 1px solid $border;
+  border-radius: $radius;
+  background: $surface;
+}
+
+/// A two-column grid that stacks at tablet width.
+@mixin columns($template, $gap) {
+  display: grid;
+  grid-template-columns: $template;
+  gap: $gap;
+
+  @include below($bp-two-col) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
