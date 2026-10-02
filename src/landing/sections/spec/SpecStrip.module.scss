@@ -1,0 +1,34 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.strip {
+  @include section(24px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 1px;
+  background: $border;
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.cell {
+  background: #0f1115;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  @include caption(12px, 0.14em, $accent);
+}
+
+.text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: $text-2;
+}

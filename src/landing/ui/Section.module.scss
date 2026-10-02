@@ -1,0 +1,33 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.section {
+  @include section;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 760px;
+}
+
+.eyebrow {
+  @include caption(12px, 0.16em, $accent);
+}
+
+.title {
+  @include display;
+  margin: 0;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.lead {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: $text-3;
+}

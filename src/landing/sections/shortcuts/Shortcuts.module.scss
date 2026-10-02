@@ -1,0 +1,75 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 700px;
+}
+
+.preset {
+  @include caption(12px, 0.08em, $text-4);
+}
+
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr));
+  gap: 0 40px;
+  margin-top: 36px;
+  border-top: 1px solid $border;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 54px;
+  padding: 8px 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid $hairline;
+}
+
+.action {
+  font-size: 15px;
+  color: $text-2;
+}
+
+.dragging {
+  @include mono;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: $surface;
+  font-size: 13px;
+  color: $text-3;
+}
+
+.draggingLabel {
+  color: $accent;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+.draggingText {
+  margin-right: 10px;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}

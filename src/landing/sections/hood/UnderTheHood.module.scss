@@ -1,0 +1,38 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.card {
+  @include card(26px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.label {
+  @include caption(12px, 0.14em, $text-4);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: $text-2;
+}
+
+.code {
+  @include mono;
+  font-size: 13px;
+  color: $text;
+}

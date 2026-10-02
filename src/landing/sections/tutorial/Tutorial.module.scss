@@ -1,0 +1,79 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.split {
+  @include columns(minmax(0, 1fr) minmax(0, 1fr), 56px);
+  align-items: center;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stats {
+  @include mono;
+  display: flex;
+  gap: 28px;
+  margin-top: 4px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statValue {
+  font-size: 34px;
+  font-weight: 700;
+  color: $text;
+}
+
+.statLabel {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: $text-4;
+}
+
+.media {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  border: 1px solid $border-2;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #2a2d33;
+  max-width: 560px;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.chapters {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 10px 24px;
+
+  li {
+    display: flex;
+    gap: 12px;
+    font-size: 15px;
+    color: $text-2;
+  }
+}
+
+.chapterNum {
+  @include mono;
+  color: $accent;
+}

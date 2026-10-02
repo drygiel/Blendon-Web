@@ -1,0 +1,53 @@
+@use 'tokens' as *;
+
+.footer {
+  border-top: 1px solid $hairline;
+  padding: 32px $page-pad 40px;
+  box-sizing: border-box;
+}
+
+.inner {
+  max-width: $page-max - 2 * $page-pad;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.legal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.owner {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text;
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: $text-4;
+  max-width: 520px;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 14px;
+
+  a {
+    color: #c3c7ce;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}

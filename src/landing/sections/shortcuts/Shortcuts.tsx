@@ -1,0 +1,48 @@
+import { Fragment } from 'react';
+import { SHORTCUTS } from '../../data/content.ts';
+import { KeyCap, Keys } from '../../ui/KeyCap.tsx';
+import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
+import styles from './Shortcuts.module.scss';
+
+const WHILE_DRAGGING = [
+  [['X', 'Y', 'Z'], 'constrain'],
+  [['0–9'], 'type a value'],
+  [['Enter', 'LMB'], 'confirm'],
+  [['Esc', 'RMB'], 'cancel'],
+] as const;
+
+export function Shortcuts() {
+  return (
+    <Section id="shortcuts">
+      <div className={styles.head}>
+        <div className={styles.intro}>
+          <Eyebrow>07 / SHORTCUTS</Eyebrow>
+          <SectionTitle>Every default, on one sheet.</SectionTitle>
+          <Lead>All of them rebindable from Blendon&apos;s settings window or Unity&apos;s Edit → Shortcuts.</Lead>
+        </div>
+        <span className={styles.preset}>Blendon keyboard preset</span>
+      </div>
+
+      <div className={styles.sheet}>
+        {SHORTCUTS.map(([action, keys]) => (
+          <div key={action} className={styles.row}>
+            <span className={styles.action}>{action}</span>
+            <Keys tokens={keys} end />
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.dragging}>
+        <span className={styles.draggingLabel}>WHILE DRAGGING</span>
+        {WHILE_DRAGGING.map(([keys, text]) => (
+          <Fragment key={text}>
+            {keys.map((k) => (
+              <KeyCap key={k}>{k}</KeyCap>
+            ))}
+            <span className={styles.draggingText}>{text}</span>
+          </Fragment>
+        ))}
+      </div>
+    </Section>
+  );
+}
