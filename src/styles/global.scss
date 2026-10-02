@@ -1,0 +1,19 @@
+@use 'tokens';
+
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.placeholder {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 120px 28px;
+}
