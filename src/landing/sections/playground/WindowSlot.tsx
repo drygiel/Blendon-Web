@@ -8,6 +8,8 @@ const PlaygroundWindow = lazy(() => import('../../../window/PlaygroundWindow.tsx
 export function WindowSlot() {
   const ref = useRef<HTMLDivElement>(null);
   const near = useInView(ref, { margin: '1200px', once: true });
-  const placeholder = <div className={styles.placeholder} aria-busy="true" aria-label="Loading the settings window" />;
+  const placeholder = (
+    <div className={styles.placeholder} role="status" aria-busy="true" aria-label="Loading the settings window" />
+  );
   return <div ref={ref}>{near ? <Suspense fallback={placeholder}>{<PlaygroundWindow />}</Suspense> : placeholder}</div>;
 }
