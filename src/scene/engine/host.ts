@@ -176,6 +176,36 @@ export class SceneHost {
     ev.mousePosition = this.lastMouse ?? Vector2.zero;
     ev.modifiers = this.currentModifiers();
     this.runPass(ev);
+    this.drawNotification(ctx);
+  }
+
+  /** SceneView.ShowNotification: centred, fading out over its last half second. */
+  private drawNotification(ctx: CanvasRenderingContext2D) {
+    const n = this.view.notification;
+    if (!n) return;
+    const left = n.until - performance.now() / 1000;
+    if (left <= 0) {
+      this.view.notification = null;
+      return;
+    }
+    const a = Math.min(1, left / 0.5);
+    ctx.save();
+    ctx.font = '600 20px Inter, system-ui, sans-serif';
+    const w = ctx.measureText(n.text).width + 40;
+    const r = this.view.position;
+    const x = (r.width - w) / 2,
+      y = r.height / 2 - 24;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(30,30,30,0.85)';
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, 48, 6);
+    ctx.fill();
+    ctx.fillStyle = '#e6e6e6';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(n.text, r.width / 2, y + 24);
+    ctx.restore();
+    this.requestFrame();
   }
 
   /** Objects Handles.DrawOutline asked for this frame (box select highlight). */
