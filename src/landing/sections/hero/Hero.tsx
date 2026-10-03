@@ -9,6 +9,7 @@ const NAV = [
   ['#precision', 'Precision'],
   ['#pies', 'Pie menus'],
   ['#setup', 'Setup'],
+  ['#try', 'Try it'],
   ['#shortcuts', 'Shortcuts'],
   ['#playground', 'Playground'],
 ] as const;
