@@ -53,6 +53,9 @@ interface Model2 {
   known: {
     row: { BlendonId: string; BlendonLabel: string; UnityLabel: string; Key: string; Tooltip: string };
     unityText: string;
+    /** Where each side's command moves when it gives the key up. */
+    unityMove: string;
+    blendonMove: string;
   }[];
   featureTips: Record<string, DumpTip | null>;
 }
@@ -66,6 +69,7 @@ interface Model3 {
     enabled: boolean;
     filled: number;
     desc: string;
+    tipGet: DumpTip;
     tipRow: DumpTip;
   }[];
   extras: {
@@ -437,23 +441,6 @@ const FRAME_INFO: Record<string, [string, string]> = {
 };
 
 // BlendonMove per resolution (ShortcutProfileSetup.Resolutions), keyed by Blendon label.
-const BLENDON_MOVE: Record<string, string> = {
-  Grab: 'Shift+G',
-  'Grab Rotate': 'Shift+R',
-  'Grab Scale': 'Alt+S',
-  'View Back': 'Ctrl+Num 5',
-  'View Left': 'Ctrl+Num 6',
-  'Quick Roll': 'Ctrl+Shift+Mouse 2',
-  'View Pie': 'Ctrl+`',
-  'Draw Mode Pie': 'Alt+Z',
-  'Tools Pie': 'Alt+Q',
-  'Vertex Snap': 'Alt+V',
-  'Pick Virtual Pivot': 'Alt+Shift+V',
-  'Context Menu': '',
-  'Orbit Selected': 'Ctrl+Mouse 2',
-  'Camera Pan': 'Alt+Mouse 2',
-};
-
 const TIP_TITLE = (title: string, body: string) => '<size=14><b>' + title + '</b></size>\n' + body;
 const PRESET_NOTE = '\n\n<size=9><color=#92929A>Asks before applying. Switches Blendon on if it is off</color></size>';
 const LEFT_OFF = '\n\n<size=9><b><color=#92929A>LEFT OFF</color></b></size>\n';
@@ -762,8 +749,8 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     ul: k.row.UnityLabel,
     key: k.row.Key,
     tip: k.row.Tooltip,
-    uMove: k.unityText,
-    bMove: BLENDON_MOVE[k.row.BlendonLabel] ?? '',
+    uMove: k.unityMove,
+    bMove: k.blendonMove,
   }));
   const known = Object.fromEntries(
     contested.map((c) => [c.bid, { ul: c.ul, key: c.key, uMove: c.uMove, bMove: c.bMove }]),
@@ -791,6 +778,10 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     filled: p.filled,
     desc: p.desc,
     tipRow: { t: p.tipRow.text, i: p.tipRow.image },
+    // The Overview's card for the pie (OverviewTips.Pie): the pie's own card, noting where a click goes.
+    tipOverview: p.tipGet.text
+      ? { t: p.tipGet.text + (C['OverviewTips.PieNote'] ?? ''), i: p.tipGet.image }
+      : { t: '', i: '' },
   }));
   const featureTips: Record<string, Tip> = {};
   for (const [k, v] of Object.entries(M2.featureTips)) if (v) featureTips[k] = { t: v.text, i: v.image };

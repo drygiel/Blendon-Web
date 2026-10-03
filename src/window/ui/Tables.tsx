@@ -59,7 +59,9 @@ export function FeaturePie({ it }: { it: ItemOf<'fpie'> }) {
   const on = app.pieOn(pie.id);
   const live = featureOn && on;
   const binding = app.shortcut(pie.sid);
-  const tip = useTip(pie.tipRow.t ? pie.tipRow : { t: pie.desc + '\n\nClick to edit this menu.', native: true });
+  const tip = useTip(
+    pie.tipOverview.t ? pie.tipOverview : { t: pie.desc + '\n\nClick to edit this menu.', native: true },
+  );
   return (
     <div className={itemBase(app, it).cls}>
       <div className={'fr' + (it.stripe % 2 ? ' odd' : '') + ' sub'}>
@@ -94,8 +96,12 @@ export function FeatureShortcut({ it }: { it: ItemOf<'fsub'> }) {
   const enabled = app.pageEnabled(it.page);
   const binding = app.shortcut(it.sid);
   const sh = D.shortcuts[it.sid];
-  const hint = HINT('Click to open this shortcut on the Keyboard page');
-  const tip = useTip(sh?.t ? { t: sh.t + hint, i: sh.i } : { t: `One of ${page.label}'s keys.${hint}` });
+  // A shortcut's own card already ends on the Keyboard page note (OverviewTips.Shortcut).
+  const tip = useTip(
+    sh?.t
+      ? { t: sh.t, i: sh.i }
+      : { t: `One of ${page.label}'s keys.${HINT('Click to open this shortcut on the Keyboard page')}` },
+  );
   return (
     <div className={itemBase(app, it).cls}>
       <div className={'fr' + (it.stripe % 2 ? ' odd' : '') + ' sub'}>
