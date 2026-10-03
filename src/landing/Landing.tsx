@@ -7,6 +7,7 @@ import { PromoVideo } from './sections/video/PromoVideo.tsx';
 import { PieMenus } from './sections/pies/PieMenus.tsx';
 import { Playground } from './sections/playground/Playground.tsx';
 import { Precision } from './sections/precision/Precision.tsx';
+import { SceneSection } from './sections/scene/SceneSection.tsx';
 import { Setup } from './sections/setup/Setup.tsx';
 import { Shortcuts } from './sections/shortcuts/Shortcuts.tsx';
 import { SpecStrip } from './sections/spec/SpecStrip.tsx';
@@ -22,6 +23,7 @@ export function Landing() {
         <Precision />
         <PieMenus />
         <Setup />
+        <SceneSection />
         <Playground />
         <Tutorial />
         <Shortcuts />

@@ -1,0 +1,34 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.lead {
+  margin: 18px 0 0;
+  max-width: 720px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: $text-3;
+}
+
+// The reference capture's proportions; the view keeps them as the page narrows.
+.slot {
+  position: relative;
+  margin-top: 56px;
+  aspect-ratio: 993 / 644;
+  max-height: 760px;
+  border: 1px solid #191919;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+
+  @include below($bp-phone) {
+    margin-left: -$page-pad;
+    margin-right: -$page-pad;
+    border-radius: 0;
+  }
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  background: #474747;
+}
