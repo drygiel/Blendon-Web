@@ -52,3 +52,10 @@ test('answers window-only actions with the demo note', async ({ page }) => {
   await win.getByRole('button', { name: 'Window menu' }).click();
   await expect(win.locator('.dlg .dtt')).toHaveText('Demo only');
 });
+
+test('opens the manual from the Overview', async ({ page }) => {
+  const win = await openWindow(page);
+  const popup = page.waitForEvent('popup');
+  await win.getByText('Blendon manual (PDF)').click();
+  expect((await popup).url()).toMatch(/Blendon_Manual\.pdf$/);
+});

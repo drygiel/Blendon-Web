@@ -41,8 +41,9 @@ is mounted in (`../`, or `BLENDON_DIR`):
 - `Metadata~/PlaygroundRef` - labels, tooltips, defaults and constants plus the Editor's built-in icons, dumped from
   the Unity Editor (`model*.json`, `ui/`)
 - `Metadata~/Video` - the feature clips
+- `Documentation/Blendon_Manual.pdf` - the manual the page links to
 
-It writes `src/generated/window-data.json` and `public/plugin/`. Both are committed, so CI never needs the plugin.
+It writes `src/generated/window-data.json`, `public/plugin/` and `public/docs/`. Both are committed, so CI never needs the plugin.
 Run it after changing the plugin's settings pages, then commit the result.
 
 ### Refreshing the Unity dump

@@ -1,4 +1,5 @@
 import wordmark from '../../../assets/landing/wordmark.png';
+import { MANUAL_URL } from '../../../lib/links.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import styles from './FinalCta.module.scss';
 
@@ -11,7 +12,7 @@ export function FinalCta() {
         <h2 className={styles.title}>Make the Scene view move the way your hands already do.</h2>
         <div className={styles.actions}>
           <ButtonLink href="#get">Get Blendon · [YOUR PRICE]</ButtonLink>
-          <ButtonLink href="#get" variant="secondary">
+          <ButtonLink href={MANUAL_URL} variant="secondary" newTab>
             Read the manual (PDF)
           </ButtonLink>
         </div>

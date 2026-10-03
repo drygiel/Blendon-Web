@@ -14,7 +14,18 @@ test.afterEach(() => {
 
 test('renders every section', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toContainText('rewired for Blender hands.');
-  for (const id of ['features', 'precision', 'pies', 'setup', 'playground', 'tutorial', 'shortcuts', 'hood', 'get']) {
+  for (const id of [
+    'features',
+    'precision',
+    'pies',
+    'setup',
+    'playground',
+    'tutorial',
+    'shortcuts',
+    'hood',
+    'video',
+    'get',
+  ]) {
     await expect(page.locator(`#${id}`)).toBeAttached();
   }
 });
@@ -41,4 +52,26 @@ test('settings carousel steps and wraps', async ({ page }) => {
     'aria-current',
     'true',
   );
+});
+
+test('manual links open the PDF in a new tab', async ({ page, request }) => {
+  const links = page.getByRole('link', { name: /manual \(PDF\)/i });
+  await expect(links).toHaveCount(2);
+  for (const link of await links.all()) {
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('href', /Blendon_Manual\.pdf$/);
+  }
+  const href = await links.first().getAttribute('href');
+  const res = await request.get(href ?? '');
+  expect(res.ok()).toBe(true);
+  expect(res.headers()['content-type']).toContain('pdf');
+});
+
+test('promo video loads the player only when asked', async ({ page }) => {
+  // The tests stay offline: YouTube answers with blanks.
+  await page.route(/youtube-nocookie\.com|ytimg\.com/, (route) => route.fulfill({ status: 200, body: '' }));
+  const video = page.locator('#video');
+  await expect(video.locator('iframe')).toHaveCount(0);
+  await video.getByRole('button', { name: /Play Blendon/ }).click();
+  await expect(video.locator('iframe')).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/hrjcGZ32UHI\?autoplay=1/);
 });

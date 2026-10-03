@@ -1,8 +1,9 @@
+import { MANUAL_URL, NEW_TAB } from '../../../lib/links.ts';
 import styles from './Footer.module.scss';
 
 const LINKS = [
   ['#playground', 'Playground'],
-  ['#get', 'Manual (PDF)'],
+  [MANUAL_URL, 'Manual (PDF)'],
   ['#get', 'Changelog'],
   ['#get', 'Support [SUPPORT_URL]'],
 ] as const;
@@ -20,7 +21,7 @@ export function Footer() {
         </div>
         <nav className={styles.nav} aria-label="Footer">
           {LINKS.map(([href, label]) => (
-            <a key={label} href={href}>
+            <a key={label} href={href} {...(href === MANUAL_URL && NEW_TAB)}>
               {label}
             </a>
           ))}

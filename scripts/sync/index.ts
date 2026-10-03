@@ -1,7 +1,8 @@
-// `pnpm sync`: regenerates src/generated/window-data.json and public/plugin/ from the Blendon
+// `pnpm sync`: regenerates src/generated/window-data.json, public/plugin/ and public/docs/ from the Blendon
 // plugin this repository is mounted in (../ by default, or BLENDON_DIR).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { MANUAL_FILE } from '../../src/lib/paths.ts';
 import { writeAssets } from './assets.ts';
 import { buildWindowData } from './window-data.ts';
 
@@ -17,7 +18,8 @@ const paths = {
 
 console.log('Reading Blendon from', plugin);
 const { data, assets } = buildWindowData(paths);
-const count = await writeAssets(assets, join(root, 'public'), ['plugin']);
+assets.push({ kind: 'copy', src: join(plugin, 'Documentation', 'Blendon_Manual.pdf'), out: MANUAL_FILE });
+const count = await writeAssets(assets, join(root, 'public'), ['plugin', 'docs']);
 
 const outDir = join(root, 'src', 'generated');
 mkdirSync(outDir, { recursive: true });
