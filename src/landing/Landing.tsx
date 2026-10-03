@@ -3,6 +3,7 @@ import { Features } from './sections/features/Features.tsx';
 import { Footer } from './sections/footer/Footer.tsx';
 import { Hero } from './sections/hero/Hero.tsx';
 import { UnderTheHood } from './sections/hood/UnderTheHood.tsx';
+import { PromoVideo } from './sections/video/PromoVideo.tsx';
 import { PieMenus } from './sections/pies/PieMenus.tsx';
 import { Playground } from './sections/playground/Playground.tsx';
 import { Precision } from './sections/precision/Precision.tsx';
@@ -25,6 +26,7 @@ export function Landing() {
         <Tutorial />
         <Shortcuts />
         <UnderTheHood />
+        <PromoVideo />
         <FinalCta />
       </main>
       <Footer />
