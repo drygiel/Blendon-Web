@@ -8413,6 +8413,10 @@
    "tipRow": {
     "t": "<size=14><b>Draw Mode</b></size>\nSwitch how the <b><color=#3DB892>Scene View</color></b> draws the scene.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Wireframe</b>, <b>Unlit</b>, <b>Shaded</b>, <b>Wireframe Shaded</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Z</color></b>, Blender's key.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
     "i": "Tips/PieMenus/DrawMode.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Draw Mode</b></size>\nSwitch how the <b><color=#3DB892>Scene View</color></b> draws the scene.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Wireframe</b>, <b>Unlit</b>, <b>Shaded</b>, <b>Wireframe Shaded</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Z</color></b>, Blender's key.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
+    "i": "Tips/PieMenus/DrawMode.png"
    }
   },
   {
@@ -8425,6 +8429,10 @@
    "desc": "Blender's Shift+A menu: create a common GameObject without leaving the viewport",
    "tipRow": {
     "t": "<size=14><b>Add Object</b></size>\nCreate a common object right where the cursor is.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Cube</b>, <b>Empty</b>, <b>Sphere</b>, <b>Camera</b>, <b>Cylinder</b>, <b>Light</b>, <b>Particle System</b>, <b>Plane</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Shift + A</color></b>, Blender's key.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
+    "i": "Tips/PieMenus/AddObject.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Add Object</b></size>\nCreate a common object right where the cursor is.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Cube</b>, <b>Empty</b>, <b>Sphere</b>, <b>Camera</b>, <b>Cylinder</b>, <b>Light</b>, <b>Particle System</b>, <b>Plane</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Shift + A</color></b>, Blender's key.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
     "i": "Tips/PieMenus/AddObject.png"
    }
   },
@@ -8439,6 +8447,10 @@
    "tipRow": {
     "t": "<size=14><b>Snapping</b></size>\nSwitch Unity's snapping on and off, the same toggles the <b><color=#3DB892>Scene View</color></b> toolbar shows.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Incremental</b>, <b>Angle</b>, <b>Scale</b>, <b>Grid</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Shift + S</color></b>, Blender's key.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
     "i": "Tips/PieMenus/Snapping.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Snapping</b></size>\nSwitch Unity's snapping on and off, the same toggles the <b><color=#3DB892>Scene View</color></b> toolbar shows.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Incremental</b>, <b>Angle</b>, <b>Scale</b>, <b>Grid</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Shift + S</color></b>, Blender's key.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
+    "i": "Tips/PieMenus/Snapping.png"
    }
   },
   {
@@ -8451,6 +8463,10 @@
    "desc": "Blender's Comma menu: switch the gizmo's orientation between Global, Local and Grid",
    "tipRow": {
     "t": "<size=14><b>Orientation</b></size>\nPick which axes the gizmo follows.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Global</b> - the world's axes\n<b>Local</b> - the object's own axes\n<b>Grid</b> - the grid's axes\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>,</color></b> (comma), Blender's key.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
+    "i": "Tips/PieMenus/Orientation.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Orientation</b></size>\nPick which axes the gizmo follows.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Global</b> - the world's axes\n<b>Local</b> - the object's own axes\n<b>Grid</b> - the grid's axes\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>,</color></b> (comma), Blender's key.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
     "i": "Tips/PieMenus/Orientation.png"
    }
   },
@@ -8465,6 +8481,10 @@
    "tipRow": {
     "t": "<size=14><b>Pivot Point</b></size>\nPick what a multi-object selection turns and scales around.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Center</b>, <b>Median</b>, <b>Active</b>, <b>Pivot</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>.</color></b> (period), Blender's key.\n\n<size=9><color=#92929A>Median and Active need the <b><color=#4FA8E8>Pivot Point Menu</color></b> on the All Tools page</color></size>\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
     "i": "Tips/PieMenus/PivotPoint.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Pivot Point</b></size>\nPick what a multi-object selection turns and scales around.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Center</b>, <b>Median</b>, <b>Active</b>, <b>Pivot</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>.</color></b> (period), Blender's key.\n\n<size=9><color=#92929A>Median and Active need the <b><color=#4FA8E8>Pivot Point Menu</color></b> on the All Tools page</color></size>\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
+    "i": "Tips/PieMenus/PivotPoint.png"
    }
   },
   {
@@ -8477,6 +8497,10 @@
    "desc": "Blender's Alt+G/R/S menu: reset the selection's position, rotation or scale",
    "tipRow": {
     "t": "<size=14><b>Reset</b></size>\nPut the selection's position, rotation or scale back to rest.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Position</b> - to zero\n<b>Rotation</b> - to none\n<b>Scale</b> - to one\n<b>All</b> - the three at once\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>/</color></b>, for Blender's <b><color=#D98E38>Alt + G / R / S</color></b>.\n\n<size=9><color=#92929A>Resets the local transform, so a child returns to its parent's origin</color></size>\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
+    "i": "Tips/PieMenus/Reset.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Reset</b></size>\nPut the selection's position, rotation or scale back to rest.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Position</b> - to zero\n<b>Rotation</b> - to none\n<b>Scale</b> - to one\n<b>All</b> - the three at once\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>/</color></b>, for Blender's <b><color=#D98E38>Alt + G / R / S</color></b>.\n\n<size=9><color=#92929A>Resets the local transform, so a child returns to its parent's origin</color></size>\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
     "i": "Tips/PieMenus/Reset.png"
    }
   },
@@ -8491,6 +8515,10 @@
    "tipRow": {
     "t": "<size=14><b>View</b></size>\nThe numpad's camera moves, under the mouse.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Left</b>, <b>Top</b>, <b>Right</b>, <b>Bottom</b>, <b>Front</b>, <b>Back</b>, <b>Perspective / Orthographic</b>, <b>Camera</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>`</color></b> (backtick), Blender's key.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
     "i": "Tips/PieMenus/View.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>View</b></size>\nThe numpad's camera moves, under the mouse.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Left</b>, <b>Top</b>, <b>Right</b>, <b>Bottom</b>, <b>Front</b>, <b>Back</b>, <b>Perspective / Orthographic</b>, <b>Camera</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>`</color></b> (backtick), Blender's key.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
+    "i": "Tips/PieMenus/View.png"
    }
   },
   {
@@ -8503,6 +8531,10 @@
    "desc": "Unity's own View, Move, Rotate, Scale, Rect, Transform, Edit Collider and Create Spline tools, without leaving the viewport",
    "tipRow": {
     "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Edit Box Collider</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
+    "i": "Tips/PieMenus/Tools.png"
+   },
+   "tipOverview": {
+    "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Edit Box Collider</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
     "i": "Tips/PieMenus/Tools.png"
    }
   }

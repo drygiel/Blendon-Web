@@ -138,7 +138,10 @@ export interface PieInfo {
   enabled: boolean;
   filled: number;
   desc: string;
+  /** The card on the Pie Menus page's row. */
   tipRow: Tip;
+  /** The card on the Overview's row. */
+  tipOverview: Tip;
 }
 
 export interface SceneMenuExtra {

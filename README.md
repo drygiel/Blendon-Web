@@ -13,7 +13,8 @@ React 19, TypeScript (strict), Vite, SCSS (CSS Modules), Vitest, Playwright, ESL
 ## Requirements
 
 - Node 24 LTS (see `.nvmrc`; Node 22.12+ also works)
-- pnpm, pinned in `package.json` - run `corepack enable` once and the right version is used automatically
+- pnpm 12, pinned in `package.json` - run `corepack enable` once and the right version is used automatically. An
+  older pnpm rewrites `pnpm-lock.yaml` in its own format, which CI then rejects.
 
 ## Scripts
 
@@ -44,10 +45,39 @@ is mounted in (`../`, or `BLENDON_DIR`):
 It writes `src/generated/window-data.json` and `public/plugin/`. Both are committed, so CI never needs the plugin.
 Run it after changing the plugin's settings pages, then commit the result.
 
+### Refreshing the Unity dump
+
+`Metadata~/PlaygroundRef` holds what only a running Editor can answer: labels, tooltips and defaults resolved through
+the settings classes, the shortcut tables, the pie menus, and the built-in icons. When those change:
+
+1. Copy `tools/unity/BlendonWebExport.cs` into any `Editor` folder of the Unity project.
+2. Run **Tools > Blendon > Export Web Data**. It rewrites `Metadata~/PlaygroundRef` (`model*.json`, `ui/`).
+3. Delete the copied script, then run `pnpm sync` and commit.
+
+The exporter reads Blendon only through reflection, so it compiles in any assembly and changes no settings.
+
+## Layout
+
+| Path                      | Contents                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `src/landing/`            | The landing page: one folder per section under `sections/`, shared bits in `ui/` |
+| `src/window/`             | The settings window, loaded as its own chunk when its section comes near         |
+| `src/window/core/`        | Layout builder, settings model and helpers - plain TypeScript, unit-tested       |
+| `src/window/gizmo/`       | The 3D gizmo preview, a port of the plugin's `GizmoPreview` to canvas            |
+| `src/window/styles/`      | The window's styles, scoped under `.uw`                                          |
+| `src/generated/`          | `pnpm sync` output                                                               |
+| `scripts/sync/`           | `pnpm sync`: reads the plugin's C# sources and the Unity dump                    |
+| `tools/unity/`            | The Unity-side exporter for `Metadata~/PlaygroundRef`                            |
+| `tests/unit`, `tests/e2e` | Vitest and Playwright suites                                                     |
+
+Animations stop under `prefers-reduced-motion`: the hero holds still, clips don't autoplay and the gizmo preview
+stops turning.
+
 ## Deployment
 
 Every push to `main` runs `.github/workflows/deploy.yml`: checks, build, then deploy to GitHub Pages. Pull requests only
-run the checks.
+run the checks. A separate job runs the end-to-end tests in Chromium, Firefox and WebKit; it reports failures but does
+not hold back a deploy.
 
 One-time repository setup: **Settings > Pages > Build and deployment > Source: GitHub Actions**.
 
