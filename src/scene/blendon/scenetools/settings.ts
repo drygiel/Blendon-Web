@@ -113,3 +113,66 @@ export const BoxSelectSettings = {
     return sBool(B + 'HierarchyKeys', true);
   },
 };
+
+export const SceneMenuEditActions = { IconRow: 0, List: 1 } as const;
+
+const M = 'SceneMenuSettings.';
+export const SceneMenuSettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool(M + 'Enabled', true);
+  },
+  get EditActions() {
+    return sEnum(M + 'EditActions', ['IconRow', 'List'], SceneMenuEditActions.IconRow);
+  },
+  get SearchField() {
+    return sBool(M + 'SearchField', true);
+  },
+  get ClassicMenuRow() {
+    return sBool(M + 'ClassicMenuRow', true);
+  },
+  get AddObject() {
+    return sBool(M + 'AddObject', true);
+  },
+  get RepeatLast() {
+    return sBool(M + 'RepeatLast', true);
+  },
+  get FrameSelected() {
+    return sBool(M + 'FrameSelected', false);
+  },
+  get SnapToFloor() {
+    return sBool(M + 'SnapToFloor', true);
+  },
+  get ResetTransform() {
+    return sBool(M + 'ResetTransform', false);
+  },
+  get AlignToActive() {
+    return sBool(M + 'AlignToActive', true);
+  },
+  get TransformClipboard() {
+    return sBool(M + 'TransformClipboard', true);
+  },
+  get TransformClipboardInline() {
+    return sBool(M + 'TransformClipboardInline', true);
+  },
+  get HideAndShow() {
+    return sBool(M + 'HideAndShow', true);
+  },
+  get HideAndShowInline() {
+    return sBool(M + 'HideAndShowInline', true);
+  },
+  get SelectRelated() {
+    return sBool(M + 'SelectRelated', false);
+  },
+  get SelectRelatedInline() {
+    return sBool(M + 'SelectRelatedInline', true);
+  },
+  get Grouping() {
+    return sBool(M + 'Grouping', false);
+  },
+  get GroupingInline() {
+    return sBool(M + 'GroupingInline', true);
+  },
+  get ExtraOrderText() {
+    return sStr(M + 'ExtraOrderText', '');
+  },
+};

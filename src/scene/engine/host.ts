@@ -419,8 +419,12 @@ export class SceneHost {
       { passive: false },
     );
 
+    // A text field on the view (the context menu's search) types; the view gets nothing of it.
+    const typing = (e: KeyboardEvent) =>
+      e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+
     on(focusRoot, 'keydown', (e) => {
-      if (!this.active) return;
+      if (!this.active || typing(e)) return;
       this.syncModifiers(e);
       const ev = this.keyEvent(EventType.KeyDown, e);
       if (passThrough(e)) return;
@@ -441,7 +445,7 @@ export class SceneHost {
     });
 
     on(focusRoot, 'keyup', (e) => {
-      if (!this.active) return;
+      if (!this.active || typing(e)) return;
       this.syncModifiers(e);
       const ev = this.keyEvent(EventType.KeyUp, e);
       if (ev.keyCode === KeyCode.None) return;

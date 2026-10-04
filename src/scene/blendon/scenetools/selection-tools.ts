@@ -78,6 +78,19 @@ export const HierarchyWalk = {
     if (!lead && active && next.includes(active)) lead = active;
     commit(next, lead, down ? 'Select Children' : 'Select Parent');
   },
+
+  /** The selection and everything below it. */
+  applySubtree() {
+    const selected = Selection.gameObjects;
+    if (selected.length === 0) return;
+    const next: GameObject[] = [];
+    for (const go of selected)
+      for (const t of go.transform.walk()) if (!next.includes(t.gameObject)) next.push(t.gameObject);
+    commit(next, Selection.activeGameObject, 'Select Hierarchy');
+  },
+
+  canStepDown: () => Selection.gameObjects.some((go) => go.transform.children.length > 0),
+  canStepUp: () => Selection.gameObjects.some((go) => !!go.transform.parent),
 };
 
 // Further than this between press and release is a drag, not a click.

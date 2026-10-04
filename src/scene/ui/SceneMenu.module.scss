@@ -1,0 +1,278 @@
+// SceneMenuTheme: Blender's dark menu in Unity's editor font.
+$back: #1b1b1b;
+$outline: #5c5c5c;
+$hover: #4772b3;
+$text: #e0e0e0;
+$hint: #8c8c8c;
+$hint-hover: #d6e2f5;
+$label: #7a7a7a;
+$rule: rgba(255, 255, 255, 0.08);
+$font: Inter, system-ui, sans-serif;
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  font-family: $font;
+  user-select: none;
+}
+
+.panel {
+  position: absolute;
+  box-sizing: border-box;
+  background: $back;
+  border: 1px solid $outline;
+  border-radius: 3px;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 8px;
+  border-bottom: 1px solid $rule;
+}
+
+.titleIcon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 700;
+  color: $text;
+}
+
+.renamable {
+  cursor: text;
+}
+
+.search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  background: #111;
+
+  img {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    opacity: 0.55;
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: $text;
+    font: 400 12px $font;
+    caret-color: #71a0e6;
+
+    &::placeholder {
+      color: $hint;
+    }
+  }
+}
+
+.rename {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  border: 1px solid #71a0e6;
+  border-radius: 2px;
+  outline: 0;
+  background: #111;
+  color: $text;
+  font: 400 12px $font;
+  caret-color: #71a0e6;
+
+  &::selection {
+    background: $hover;
+  }
+}
+
+.body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
+
+.separator {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  height: 1px;
+  background: $rule;
+}
+
+.section {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: $label;
+}
+
+.item {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+  border-radius: 2px;
+  font-size: 12px;
+  color: $text;
+  white-space: nowrap;
+}
+
+.selected {
+  background: $hover;
+  color: #fff;
+
+  .hint,
+  .crumb,
+  .arrow {
+    color: $hint-hover;
+  }
+}
+
+.quiet .label {
+  color: $hint;
+}
+
+.selected.quiet .label {
+  color: #fff;
+}
+
+.disabled {
+  opacity: 0.38;
+}
+
+.gutter {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+.glyph {
+  display: block;
+  flex: none;
+}
+
+.crumb {
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  color: $hint;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.hint {
+  flex: none;
+  margin-left: 18px;
+  font-size: 11px;
+  color: $hint;
+}
+
+.arrow {
+  flex: none;
+  display: grid;
+  margin-left: 18px;
+  color: $hint;
+}
+
+.quickButton,
+.inlineButton {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  color: $text;
+}
+
+.inlineButton {
+  gap: 6px;
+  padding: 0 6px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.hot {
+  background: $hover;
+  color: #fff;
+}
+
+.hotOff {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.thumb {
+  position: absolute;
+  right: 4px;
+  width: 3px;
+  border-radius: 1.5px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.tooltip {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid $outline;
+  border-radius: 2px;
+  background: #0e0e0e;
+  font-size: 12px;
+  color: $text;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tooltipHint {
+  font-size: 11px;
+  color: $hint;
+}

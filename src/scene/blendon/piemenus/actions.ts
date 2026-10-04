@@ -219,6 +219,11 @@ export const SpawnPlacement = {
     PieMenu.opened.add((view, guiPoint) => (spawnPoint = resolveSpawn(view, guiPoint)));
   },
 
+  /** Aims the next creation at a point of a menu that is not a pie, the context menu's own cursor. */
+  aim(view: SceneView, guiPoint: Vector2) {
+    spawnPoint = resolveSpawn(view, guiPoint);
+  },
+
   /** Creation and placement are one undo step, so one Ctrl+Z removes the object. */
   create(name: string, mesh: PrimitiveType | null) {
     const scene = Scene.current;
