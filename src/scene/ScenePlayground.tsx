@@ -8,6 +8,7 @@ import { SceneHost } from './engine/host.ts';
 import { Prefs } from './unity/editor.ts';
 import { Chrome } from './ui/Chrome.tsx';
 import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
+import { SceneMenuView } from './ui/SceneMenuView.tsx';
 import { TutorialCard } from './ui/TutorialCard.tsx';
 import type { PivotPointApi } from './ui/pivot.ts';
 import styles from './ui/Scene.module.scss';
@@ -64,6 +65,7 @@ export default function ScenePlayground({ onActiveChange }: Props) {
       {host && <Chrome host={host} pivot={pivotPoint} />}
       {host && <OrientationOverlay host={host} />}
       {host && <TutorialCard host={host} />}
+      {host && <SceneMenuView host={host} />}
     </div>
   );
 }

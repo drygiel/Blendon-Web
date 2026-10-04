@@ -295,8 +295,8 @@ export class GameObject {
   get visible() {
     const isolated = this.scene.isolated;
     if (isolated && !isolated.has(this)) return false;
-    for (let t: Transform | null = this.transform; t; t = t.parent) if (t.gameObject.hidden) return false;
-    return this.activeInHierarchy;
+    // Scene visibility is per object: hiding with descendants marks each of them.
+    return !this.hidden && this.activeInHierarchy;
   }
 }
 
@@ -372,4 +372,45 @@ export const SceneVisibilityManager = {
     scene.isolated = null;
     scene.hierarchyChanged();
   },
+  hide(objects: GameObject[], includeDescendants: boolean) {
+    setHidden(objects, includeDescendants, true);
+  },
+  show(objects: GameObject[], includeDescendants: boolean) {
+    setHidden(objects, includeDescendants, false);
+  },
+  hideAll() {
+    if (Scene.current) setHidden([...Scene.current.allObjects()], false, true);
+  },
+  showAll() {
+    if (Scene.current) setHidden([...Scene.current.allObjects()], false, false);
+  },
 };
+
+function setHidden(objects: GameObject[], includeDescendants: boolean, hidden: boolean) {
+  for (const go of objects)
+    if (includeDescendants) for (const t of go.transform.walk()) t.gameObject.hidden = hidden;
+    else go.hidden = hidden;
+  Scene.current?.hierarchyChanged();
+}
+
+/** Object.Instantiate for a scene object: a deep copy under the given parent, placed after the source. */
+export function instantiate(source: GameObject, name: string, parent: Transform | null = source.transform.parent) {
+  const copy = (src: GameObject, under: Transform | null, label: string): GameObject => {
+    const go = new GameObject(src.scene, label, under);
+    go.mesh = src.mesh;
+    go.color = src.color;
+    go.pickable = src.pickable;
+    go.hidden = src.hidden;
+    go.activeSelf = src.activeSelf;
+    go.transform.restore(src.transform.snapshot());
+    for (const c of src.transform.children) copy(c.gameObject, go.transform, c.gameObject.name);
+    return go;
+  };
+  const go = copy(source, parent, name);
+  // Unity puts a duplicate right below its source in the Hierarchy.
+  const list = parent ? parent.children : source.scene.roots;
+  list.splice(list.indexOf(go.transform), 1);
+  list.splice(list.indexOf(source.transform) + 1, 0, go.transform);
+  source.scene.hierarchyChanged();
+  return go;
+}

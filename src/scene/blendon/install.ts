@@ -22,6 +22,8 @@ import { IsolateView } from './scenetools/isolate-view.ts';
 import { ClickSelectParent, HierarchyWalk } from './scenetools/selection-tools.ts';
 import { SnapToFloor } from './scenetools/snap-to-floor.ts';
 import { SceneTutorialCard } from './tutorial/scene-tutorial.ts';
+import { EditorEdit } from './scenetools/scene-menu/editor-menu.ts';
+import { SceneMenu } from './scenetools/scene-menu/scene-menu.ts';
 
 let installed = false;
 
@@ -71,6 +73,8 @@ export function installBlendon() {
   for (const tool of [FrameSelected, IsolateView, SnapToFloor, SelectionHistory, ViewHistory, HierarchyWalk])
     tool.install();
   ClickSelectParent.install();
+  EditorEdit.install();
+  SceneMenu.install();
   SceneTutorialCard.install();
   // Last, so an open menu draws over every gizmo.
   PieMenus.install();

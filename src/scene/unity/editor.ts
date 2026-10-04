@@ -209,6 +209,8 @@ interface Snapshot {
   transforms: Map<Transform, { state: TransformState; parent: Transform | null; index: number }>;
   objects: Map<GameObject, { hidden: boolean; active: boolean; name: string }>;
   created: GameObject[];
+  /** Objects destroyed in the group, with where they sat, so undo can put them back. */
+  destroyed: { go: GameObject; parent: Transform | null; index: number }[];
   selection: { objects: GameObject[]; active: GameObject | null } | null;
 }
 
@@ -219,7 +221,13 @@ interface UndoGroup {
   after: Snapshot | null;
 }
 
-const emptySnapshot = (): Snapshot => ({ transforms: new Map(), objects: new Map(), created: [], selection: null });
+const emptySnapshot = (): Snapshot => ({
+  transforms: new Map(),
+  objects: new Map(),
+  created: [],
+  destroyed: [],
+  selection: null,
+});
 
 let scene: Scene | null = null;
 let groupCounter = 1;
@@ -247,6 +255,11 @@ function applySnapshot(s: Snapshot, undoingCreation: boolean) {
       if (undoingCreation) scene.destroy(go);
       else scene.revive(go, go.transform.parent, Infinity);
     }
+  if (s.destroyed.length && scene)
+    for (const d of undoingCreation ? [...s.destroyed].reverse() : s.destroyed) {
+      if (undoingCreation) scene.revive(d.go, d.parent, d.index);
+      else scene.destroy(d.go);
+    }
   if (s.selection) Selection.set(s.selection.objects, s.selection.active, false);
 }
 
@@ -256,6 +269,7 @@ function captureLike(s: Snapshot): Snapshot {
   for (const t of s.transforms.keys()) out.transforms.set(t, captureTransform(t));
   for (const o of s.objects.keys()) out.objects.set(o, { hidden: o.hidden, active: o.activeSelf, name: o.name });
   out.created = s.created;
+  out.destroyed = s.destroyed;
   if (s.selection) out.selection = { objects: Selection.objects, active: Selection.activeGameObject };
   return out;
 }
@@ -303,6 +317,20 @@ export const Undo = {
     ensureOpen(name).before.created.push(go);
   },
 
+  /** Destroys an object so that undo brings it back where it was. */
+  destroyObjectImmediate(go: GameObject) {
+    const t = go.transform;
+    const index = t.parent ? t.parent.children.indexOf(t) : go.scene.roots.indexOf(t);
+    ensureOpen('Destroy ' + go.name).before.destroyed.push({ go, parent: t.parent, index });
+    go.scene.destroy(go);
+    if (Selection.objects.includes(go))
+      Selection.set(
+        Selection.objects.filter((o) => o !== go),
+        Selection.activeGameObject === go ? null : Selection.activeGameObject,
+        false,
+      );
+  },
+
   setTransformParent(t: Transform, parent: Transform | null, name: string) {
     Undo.recordObject(t, name);
     t.setParent(parent, true);
@@ -342,6 +370,7 @@ export const Undo = {
         if (!target.before.transforms.has(k)) target.before.transforms.set(k, v);
       for (const [k, v] of g.before.objects) if (!target.before.objects.has(k)) target.before.objects.set(k, v);
       target.before.created.push(...g.before.created);
+      target.before.destroyed.push(...g.before.destroyed);
       if (!target.before.selection && g.before.selection) target.before.selection = g.before.selection;
     }
     target.id = currentGroup;
