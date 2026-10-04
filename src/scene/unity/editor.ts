@@ -62,7 +62,7 @@ export const EditorApplication = {
 export const Tool = { None: -1, View: 0, Move: 1, Rotate: 2, Scale: 3, Rect: 4, Transform: 5, Custom: 6 } as const;
 export type Tool = (typeof Tool)[keyof typeof Tool];
 export const PivotMode = { Center: 0, Pivot: 1 } as const;
-export const PivotRotation = { Local: 0, Global: 1 } as const;
+export const PivotRotation = { Local: 0, Global: 1, Grid: 2 } as const;
 
 const toolListeners = new Set<Callback>();
 
@@ -118,6 +118,7 @@ export const Tools = {
 
   get handleRotation(): Quaternion {
     const active = Selection.activeTransform;
+    if (Tools.pivotRotation === PivotRotation.Grid) return EditorSnapSettings.gridRotation;
     return Tools.pivotRotation === PivotRotation.Local && active ? active.rotation : Quaternion.identity;
   },
 
@@ -409,22 +410,29 @@ export const EditorSnapSettings = {
   gridSize: new Vector3(1, 1, 1),
   gridPosition: Vector3.zero,
   gridRotation: Quaternion.identity,
-  /** The toolbar's grid snapping toggle. */
+  /** The toolbar's grid snapping toggle; it snaps only while snapping as a whole is on. */
   gridSnapEnabled: false,
   angleSnapEnabled: false,
   scaleSnapEnabled: false,
-  /** Whether the action key (Ctrl/Cmd) is held right now - Unity's incremental snap. */
-  get incrementalSnapActive() {
-    return heldModifiers.action;
-  },
-  get gridSnapActive() {
-    return EditorSnapSettings.gridSnapEnabled !== heldModifiers.action;
-  },
+  /** The persistent snapping toggle, before the action key inverts it. */
+  snapToggle: false,
+  /** Snapping right now: the toggle, inverted while the action key (Ctrl/Cmd) is held. */
   get snapEnabled() {
-    return EditorSnapSettings.gridSnapEnabled;
+    return EditorSnapSettings.snapToggle !== heldModifiers.action;
   },
   set snapEnabled(v: boolean) {
-    EditorSnapSettings.gridSnapEnabled = v;
+    EditorSnapSettings.snapToggle = v;
+  },
+  // The grid only snaps a handle that is aligned with it.
+  get gridSnapActive() {
+    return (
+      EditorSnapSettings.snapEnabled &&
+      EditorSnapSettings.gridSnapEnabled &&
+      Tools.pivotRotation !== PivotRotation.Local
+    );
+  },
+  get incrementalSnapActive() {
+    return EditorSnapSettings.snapEnabled && !EditorSnapSettings.gridSnapActive;
   },
 };
 

@@ -8,7 +8,9 @@ const ScenePlayground = lazy(() => import('../../../scene/ScenePlayground.tsx'))
 export function SceneSlot() {
   const ref = useRef<HTMLDivElement>(null);
   const near = useInView(ref, { margin: '1200px', once: true });
-  const placeholder = <div className={styles.placeholder} role="status" aria-busy="true" aria-label="Loading the Scene view" />;
+  const placeholder = (
+    <div className={styles.placeholder} role="status" aria-busy="true" aria-label="Loading the Scene view" />
+  );
   return (
     <div ref={ref} className={styles.slot}>
       {near ? <Suspense fallback={placeholder}>{<ScenePlayground />}</Suspense> : placeholder}
