@@ -460,7 +460,14 @@ export class SceneHost {
 
     on(focusRoot, 'focusin', () => this.setActive(true));
     on(focusRoot, 'focusout', (e) => {
-      if (!focusRoot.contains(e.relatedTarget as Node | null)) this.setActive(false);
+      if (focusRoot.contains(e.relatedTarget as Node | null)) return;
+      // A focused field removed with the overlay it sat in (the menu's search giving way to its
+      // rename box) drops the focus to nowhere for a moment; only a focus that stays gone counts.
+      if (e.relatedTarget === null)
+        requestAnimationFrame(() => {
+          if (!focusRoot.contains(document.activeElement)) this.setActive(false);
+        });
+      else this.setActive(false);
     });
     on(window, 'blur', () => this.setActive(false));
   }

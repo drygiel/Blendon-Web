@@ -5,6 +5,9 @@ export type SharedValue = string | number | boolean;
 export interface SettingsReader {
   val(key: string): SharedValue | undefined;
   shortcut(id: string): string;
+  /** Which side keeps the contested keys: 'Blendon' moves the Editor's commands aside. */
+  kbSide(): string;
+  pieOn(pieId: string): boolean;
 }
 
 let reader: SettingsReader | null = null;

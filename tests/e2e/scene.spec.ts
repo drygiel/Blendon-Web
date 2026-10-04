@@ -284,3 +284,68 @@ test('the reset button starts the tutorial over', async ({ page }) => {
   await page.getByRole('button', { name: 'Reset the scene and every setting' }).click();
   await expect(view.getByText('Navigating the View')).toBeVisible();
 });
+
+test('renames the selection from the context menu', async ({ page }) => {
+  const view = await openScene(page);
+  const at = await pagePointOf(page, 'Cube');
+  await page.mouse.click(at.x, at.y, { button: 'right' });
+  await view.getByLabel('Rename', { exact: true }).click();
+  const field = view.getByLabel('New name');
+  await expect(field).toBeFocused();
+  await field.fill('Crate');
+  await field.press('Enter');
+  await expect.poll(() => selectionNames(page)).toEqual(['Crate']);
+});
+
+test('the menu search box follows its setting', async ({ page }) => {
+  const view = await openScene(page);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.getByRole('button', { name: 'Context Menu', exact: true }).click();
+  await win.getByRole('button', { name: 'Search Field', exact: true }).click();
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  const box = (await view.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3, { button: 'right' });
+  const search = view.getByLabel('Search the menu');
+  await expect(search).toBeFocused();
+  await expect(search).not.toBeVisible();
+  // What is typed goes nowhere: the menu stays unfiltered.
+  await page.keyboard.type('snap');
+  await expect(view.getByText('Copy Transform', { exact: true })).toBeVisible();
+});
+
+test("the window's Start Over brings the tutorial back", async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Skip the tutorial' }).click();
+  await view.getByRole('button', { name: 'Skip Tutorial' }).click();
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.getByRole('button', { name: /Start Over/ }).click();
+  await win.getByRole('dialog').getByRole('button', { name: 'Start Over', exact: true }).click();
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await expect(view.getByText('Navigating the View')).toBeVisible();
+});
+
+test('the first press of a key the Editor gave up explains it once', async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Skip the tutorial' }).click();
+  await view.getByRole('button', { name: 'Skip Tutorial' }).click();
+  await view.focus();
+  for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
+  const card = view.getByText('Blendon owns this shortcut now');
+  await expect(card).toBeVisible();
+  await expect(view.getByText('Cycle Tool Modes')).toBeVisible();
+  await view.getByRole('button', { name: 'Open in Blendon' }).click();
+  await expect(page.locator('#try .uw [data-hl="true"]')).toBeVisible();
+  await expect(card).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
+  await page.waitForTimeout(800);
+  await expect(card).toHaveCount(0);
+});
+
+test('says the Playground is a demo', async ({ page }) => {
+  await expect(page.locator('#try').getByRole('note')).toContainText('Demo only');
+  await page.goto('playground/');
+  await expect(page.getByRole('banner').getByRole('note')).toContainText('Demo only');
+});

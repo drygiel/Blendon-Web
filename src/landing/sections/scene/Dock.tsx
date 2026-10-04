@@ -77,7 +77,7 @@ export function Dock({ page = false }: { page?: boolean }) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // The page's Playground links open the Blendon tab.
+  // The page's Playground links, and a shortcut tip's "Open in Blendon", open the Blendon tab.
   useEffect(() => {
     const fromHash = () => {
       if (location.hash === '#playground') setActive('blendon');
@@ -85,11 +85,14 @@ export function Dock({ page = false }: { page?: boolean }) {
     const onClick = (e: MouseEvent) => {
       if ((e.target as Element | null)?.closest?.('a[href="#playground"]')) setActive('blendon');
     };
+    const toKeyboard = () => setActive('blendon');
     fromHash();
     window.addEventListener('hashchange', fromHash);
+    window.addEventListener('blendon:open-keyboard', toKeyboard);
     document.addEventListener('click', onClick);
     return () => {
       window.removeEventListener('hashchange', fromHash);
+      window.removeEventListener('blendon:open-keyboard', toKeyboard);
       document.removeEventListener('click', onClick);
     };
   }, []);

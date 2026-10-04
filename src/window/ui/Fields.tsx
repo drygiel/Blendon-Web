@@ -310,7 +310,7 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
     if (b) app.setShortcut(id, b);
   };
   return (
-    <div className={base.cls} onContextMenu={base.onContextMenu}>
+    <div className={base.cls} onContextMenu={base.onContextMenu} data-hl={base.hl}>
       <i className="mk" style={base.markStyle} hidden={!base.mark} />
       <div className="lbl" {...tip}>
         {indent(it.label)}

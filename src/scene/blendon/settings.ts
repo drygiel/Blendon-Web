@@ -57,4 +57,7 @@ export const GeneralSettings = {
   get ShowTutorial() {
     return sBool('GeneralSettings.ShowTutorial', true);
   },
+  get ShowShortcutTips() {
+    return sBool('GeneralSettings.ShowShortcutTips', true);
+  },
 };

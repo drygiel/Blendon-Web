@@ -255,12 +255,12 @@ export const Theme = {
 
 /** Unity's own context menu (the classic one): plain rows, no icons, the Editor's metrics at 100 %. */
 export const NativeTheme = {
-  RowHeight: 26,
-  SeparatorHeight: 11,
+  RowHeight: 22,
+  SeparatorHeight: 9,
   PadY: 3,
-  TextX: 41,
-  RightPad: 30,
-  HintGap: 40,
+  TextX: 34,
+  RightPad: 24,
+  HintGap: 32,
   ArrowSize: 12,
   MinWidth: 200,
   FlyoutOverlap: 4,
@@ -309,7 +309,7 @@ const Fonts: Record<Font, string> = {
   hint: '400 11px Inter, system-ui, sans-serif',
   label: '400 11px Inter, system-ui, sans-serif',
   title: '700 12px Inter, system-ui, sans-serif',
-  native: '400 13px "Segoe UI", Inter, system-ui, sans-serif',
+  native: '400 12px "Segoe UI", Inter, system-ui, sans-serif',
 };
 
 export function measure(text: string, font: Font) {

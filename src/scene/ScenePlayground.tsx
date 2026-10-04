@@ -11,6 +11,7 @@ import { Chrome } from './ui/Chrome.tsx';
 import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
 import { SceneOverlays, TopStripHeight, useOverlays } from './ui/overlays.ts';
 import { SceneMenuView } from './ui/SceneMenuView.tsx';
+import { ShortcutTipCard } from './ui/ShortcutTipCard.tsx';
 import { TutorialCard } from './ui/TutorialCard.tsx';
 import type { PivotPointApi } from './ui/pivot.ts';
 import styles from './ui/Scene.module.scss';
@@ -48,11 +49,19 @@ export default function ScenePlayground({ onActiveChange }: Props) {
         const p = D.props[key];
         return p?.d;
       };
+      const pieOf = new Map(D.pies.map((p) => [p.sid, p.id]));
       // The settings window's values once its tab has loaded, the defaults until then.
       Prefs.source = {
         val: (key) => SharedSettings.reader?.val(key) ?? val(key),
         // Only Blendon's own shortcuts are in the window; Unity's (Undo, the tool keys) keep their defaults.
-        shortcut: (id) => (id in D.shortcuts ? (SharedSettings.reader?.shortcut(id) ?? D.shortcuts[id].d) : undefined),
+        // A pie switched off in the window gives its key back.
+        shortcut: (id) => {
+          if (!(id in D.shortcuts)) return undefined;
+          const r = SharedSettings.reader;
+          const pie = pieOf.get(id);
+          if (pie && r && !r.pieOn(pie)) return '';
+          return r?.shortcut(id) ?? D.shortcuts[id].d;
+        },
       };
       h = new SceneHost(canvasRef.current, frameRef.current);
       h.listeners.onActiveChange = (a) => activeCb.current?.(a);
@@ -100,6 +109,7 @@ export default function ScenePlayground({ onActiveChange }: Props) {
       <div className={styles.viewport} style={{ top: overlays.topStrip ? TopStripHeight : 0 }}>
         <div ref={canvasRef} className={styles.canvas} />
         {host && <TutorialCard host={host} />}
+        {host && <ShortcutTipCard host={host} />}
         {host && <SceneMenuView host={host} />}
       </div>
       {host && <Chrome host={host} pivot={pivotPoint} />}

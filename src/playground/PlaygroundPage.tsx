@@ -19,6 +19,9 @@ export function PlaygroundPage() {
             Back to the Blendon page
           </a>
           <span className={styles.spacer} />
+          <span className={styles.warn} role="note">
+            <strong>Demo only:</strong> some features may not work properly or be unavailable in the browser.
+          </span>
           <button type="button" className={styles.close} onClick={() => setHeader(false)} aria-label="Hide this bar">
             <svg viewBox="0 0 12 12" width={12} height={12} aria-hidden="true">
               <path d="M2 2l8 8M10 2l-8 8" />
