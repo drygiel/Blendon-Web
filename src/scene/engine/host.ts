@@ -60,6 +60,8 @@ export class SceneHost {
   private dpr = 1;
   active = false;
   listeners: HostListeners = {};
+  /** Called after every frame, for overlays that mirror the view. */
+  readonly frameListeners = new Set<() => void>();
   /** Where the canvases live and the mouse is read. */
   readonly root: HTMLElement;
   /** What holds keyboard focus: the whole frame, overlays included. */
@@ -132,6 +134,7 @@ export class SceneHost {
     const animating = this.view.tick(dt);
     this.repaint();
     this.listeners.onFrame?.();
+    for (const f of this.frameListeners) f();
     if (this.dirty || animating || EditorApplication.busy) this.requestFrame();
     else this.lastFrame = 0;
   }
