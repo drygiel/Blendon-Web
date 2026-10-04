@@ -4,6 +4,7 @@ import { EditorApplication } from '../../unity/editor.ts';
 import { Mathf, Vector2 } from '../../unity/math.ts';
 import type { SceneView } from '../../unity/sceneview.ts';
 import { SceneTutorial } from '../foundation.ts';
+import { reducedMotion } from '../navigation/camera.ts';
 import { PieLayout } from './layout.ts';
 import { PieMenuData, RadialDirections } from './model.ts';
 import { PieMenuStyles } from './renderer.ts';
@@ -58,7 +59,7 @@ export class PieMenuController {
 
   get unfold() {
     const timeout = PieMenuSettings.AnimationTimeout;
-    return timeout <= 0 ? 1 : Mathf.Clamp01((now() - this.openedAt) / timeout);
+    return timeout <= 0 || reducedMotion() ? 1 : Mathf.Clamp01((now() - this.openedAt) / timeout);
   }
 
   get isAnimating() {

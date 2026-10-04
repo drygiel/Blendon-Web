@@ -6,6 +6,7 @@ import type { Transform } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
 import { EditorRaycastUtility, SceneTutorial } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
+import { reducedMotion } from '../navigation/camera.ts';
 import { SnapDirection, SnapToFloorSettings } from './settings.ts';
 
 const ShortcutId = 'Blendon/Snap To Floor';
@@ -59,6 +60,12 @@ function animate(target: Transform, from: Vector3, to: Vector3) {
   Undo.undoRedoPerformed.add(stop);
 }
 
+// Demo only: the scene has no floor mesh, so the grid plane stands in for the one a level would have.
+function gridFloor(ray: Ray) {
+  if (ray.direction.y >= 0 || ray.origin.y <= 0) return null;
+  return { point: ray.getPoint(-ray.origin.y / ray.direction.y), normal: Vector3.up };
+}
+
 export const SnapToFloor = {
   ShortcutId,
   Settings: SnapToFloorSettings,
@@ -85,7 +92,8 @@ export const SnapToFloor = {
     for (const go of Selection.gameObjects) {
       const t = go.transform;
       // From slightly behind the pivot, so a surface level with it still registers; never itself.
-      const hit = EditorRaycastUtility.raycast(new Ray(t.position.sub(dir.mul(0.1)), dir), [t]);
+      const ray = new Ray(t.position.sub(dir.mul(0.1)), dir);
+      const hit = EditorRaycastUtility.raycast(ray, [t]) ?? gridFloor(ray);
       if (!hit) continue;
       const start = t.position;
       Undo.recordObject(t, 'Snap to Floor');
@@ -96,7 +104,7 @@ export const SnapToFloor = {
       const end = hit.point.sub(dir.mul(contact + s.SurfaceOffset));
       t.position = end;
       SceneTutorial.reportShortcut(ShortcutId);
-      if (s.AnimationEnabled) pending.push([t, start, end]);
+      if (s.AnimationEnabled && !reducedMotion()) pending.push([t, start, end]);
     }
     // The undo entry already holds the destination; only now may the bounce rewind the transform.
     for (const [t, from, to] of pending) {
