@@ -1,11 +1,12 @@
 // The browser Scene view: an engine host on a canvas, Blendon installed into it, Unity's chrome on top.
 import { useEffect, useRef, useState } from 'react';
+import { SharedSettings } from '../lib/shared-settings.ts';
 import { loadWindowData, D } from '../window/data/store.ts';
 import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import { installBlendon } from './blendon/install.ts';
 import { buildDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
-import { Prefs } from './unity/editor.ts';
+import { Prefs, ShortcutManager } from './unity/editor.ts';
 import { Chrome } from './ui/Chrome.tsx';
 import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
 import { SceneMenuView } from './ui/SceneMenuView.tsx';
@@ -44,7 +45,12 @@ export default function ScenePlayground({ onActiveChange }: Props) {
         const p = D.props[key];
         return p?.d;
       };
-      Prefs.source = { val, shortcut: (id) => D.shortcuts[id]?.d };
+      // The settings window's values once it has loaded further down the page, the defaults until then.
+      Prefs.source = {
+        val: (key) => SharedSettings.reader?.val(key) ?? val(key),
+        // Only Blendon's own shortcuts are in the window; Unity's (Undo, the tool keys) keep their defaults.
+        shortcut: (id) => (id in D.shortcuts ? (SharedSettings.reader?.shortcut(id) ?? D.shortcuts[id].d) : undefined),
+      };
       h = new SceneHost(canvasRef.current, frameRef.current);
       h.listeners.onActiveChange = (a) => activeCb.current?.(a);
       installBlendon();
@@ -58,6 +64,19 @@ export default function ScenePlayground({ onActiveChange }: Props) {
       h?.dispose();
     };
   }, []);
+
+  // A setting changed in the window: rebindings, switched-off features and the overlays all follow.
+  const [, setSettingsTick] = useState(0);
+  useEffect(
+    () =>
+      SharedSettings.subscribe(() => {
+        ShortcutManager.invalidate();
+        Prefs.changed();
+        host?.requestFrame();
+        setSettingsTick((t) => t + 1);
+      }),
+    [host],
+  );
 
   return (
     <div ref={frameRef} className={styles.frame} aria-label="Unity Scene view running Blendon" role="application">

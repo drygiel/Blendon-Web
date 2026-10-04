@@ -5,6 +5,7 @@ import '@fontsource/inter/700.css';
 import './styles/window.scss';
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { cx } from '../lib/cx.ts';
+import { SharedSettings } from '../lib/shared-settings.ts';
 import { useReducedMotion } from '../lib/hooks.ts';
 import { iconVars } from './core/icons.ts';
 import { layoutWindow } from './core/layout.ts';
@@ -58,6 +59,9 @@ export default function PlaygroundWindow() {
   const L = layoutWindow(app);
   const vars = useMemo(() => iconVars(), []);
   const reduced = useReducedMotion();
+
+  // The Scene view above reads the window's values; every change is published to it.
+  useEffect(() => SharedSettings.publish({ val: (k) => app.val(k), shortcut: (id) => app.shortcut(id) }), [app]);
 
   const latest = useRef({ app, reduced });
   useLayoutEffect(() => {
