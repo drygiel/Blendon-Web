@@ -1,10 +1,9 @@
-// The landing's Playground: the settings window with its width presets. Loaded as a chunk of its
-// own, together with the generated window data.
+// The landing's settings window, filling its pane of the Try It dock. Loaded as a chunk of its own,
+// together with the generated window data.
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/700.css';
 import './styles/window.scss';
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { cx } from '../lib/cx.ts';
 import { SharedSettings } from '../lib/shared-settings.ts';
 import { useReducedMotion } from '../lib/hooks.ts';
 import { iconVars } from './core/icons.ts';
@@ -18,7 +17,8 @@ import { SettingsWindow } from './ui/Window.tsx';
 
 await loadWindowData();
 
-const WIDTHS = [1280, 1100, 900, 640];
+// Dev hook for side-by-side checks against Unity captures: ?w=1100&h=740&page=OrbitSelected&yaw=0
+const DEV_SIZE = new URLSearchParams(location.search).has('w');
 
 /** GizmoPreview's heartbeat: at most 30 repaints a second; the spin advances only while a live card is on screen. */
 function drawGizmos(app: WindowModel, now: number, spin: boolean) {
@@ -53,7 +53,7 @@ function drawGizmos(app: WindowModel, now: number, spin: boolean) {
 }
 
 export default function PlaygroundWindow() {
-  const [state, update] = useReducer(reduce, D.initial, initialState);
+  const [state, update] = useReducer(reduce, D.initial, (i) => ({ ...initialState(i), docked: !DEV_SIZE }));
   const [inst] = useState(newInstance);
   const app = useMemo(() => new WindowModel(state, inst, update), [state, inst]);
   const L = layoutWindow(app);
@@ -69,7 +69,6 @@ export default function PlaygroundWindow() {
   });
 
   useEffect(() => {
-    // Dev hook for side-by-side checks against Unity captures: ?w=1100&h=740&page=OrbitSelected&yaw=0
     const q = new URLSearchParams(location.search);
     const yaw = q.get('yaw');
     if (yaw) latest.current.app.fixGizmoYaw(Number(yaw));
@@ -114,26 +113,9 @@ export default function PlaygroundWindow() {
     };
   }, [inst]);
 
-  const hostW = state.hostW ?? 1100;
-  const current = state.winW ?? Math.min(1100, hostW);
   return (
-    <>
-      <div className={cx(styles.sizes, hostW < 640 && styles.none)}>
-        <span className={styles.label}>Window width</span>
-        {WIDTHS.map((w) => (
-          <button
-            key={w}
-            className={cx(styles.width, current === w && styles.selected, w > hostW && styles.unavailable)}
-            onClick={() => update({ winW: w })}
-          >
-            {w}
-          </button>
-        ))}
-        <span className={cx(styles.label, styles.hint)}>or drag the corner of the window</span>
-      </div>
-      <div className={styles.host} ref={app.attach('host')}>
-        <SettingsWindow app={app} L={L} iconVars={vars} />
-      </div>
-    </>
+    <div className={DEV_SIZE ? styles.host : styles.docked} ref={app.attach('host')}>
+      <SettingsWindow app={app} L={L} iconVars={vars} />
+    </div>
   );
 }

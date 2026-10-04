@@ -237,7 +237,7 @@ export const SceneTutorialCard = {
   report: (signal: string) => Reports.report(signal),
 
   install() {
-    // Blendon's settings are the window further down the page; using it is opening them.
+    // Blendon's settings are the Blendon tab beside the Scene view; showing or using it is opening them.
     window.addEventListener('blendon:settings-opened', () => Reports.report('SettingsOpened'));
     Reports.listen((r) => {
       if (!SceneTutorialCard.active) return;

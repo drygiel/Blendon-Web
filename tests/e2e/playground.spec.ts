@@ -3,8 +3,9 @@ import { expect, type Page, test } from '@playwright/test';
 let errors: string[] = [];
 
 async function openWindow(page: Page) {
-  await page.locator('#playground').scrollIntoViewIfNeeded();
-  const win = page.locator('#playground .uw');
+  await page.locator('#try').scrollIntoViewIfNeeded();
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
   await expect(win).toBeVisible();
   return win;
 }
@@ -49,7 +50,7 @@ test('edits values and resets them', async ({ page }) => {
 
 test('answers window-only actions with the demo note', async ({ page }) => {
   const win = await openWindow(page);
-  await win.getByRole('button', { name: 'Window menu' }).click();
+  await win.getByText('Unity Preferences > Shortcuts').click();
   await expect(win.locator('.dlg .dtt')).toHaveText('Demo only');
 });
 

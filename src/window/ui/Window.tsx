@@ -424,7 +424,9 @@ function WindowFrame({ app, L, iconVars }: WindowProps) {
   });
   return (
     <div
-      className={'uw' + (L.collapsed ? ' collapsed' : '') + (L.searching ? ' searching' : '')}
+      className={
+        'uw' + (L.collapsed ? ' collapsed' : '') + (L.searching ? ' searching' : '') + (st.docked ? ' docked' : '')
+      }
       ref={app.attach('win')}
       style={winStyle}
       onMouseDown={() => app.dismissTip()}
@@ -527,7 +529,7 @@ function WindowFrame({ app, L, iconVars }: WindowProps) {
         </div>
       </div>
       <Overlays />
-      <div className="grip" onPointerDown={(e) => app.gripDrag(e)} aria-hidden="true" />
+      {!st.docked && <div className="grip" onPointerDown={(e) => app.gripDrag(e)} aria-hidden="true" />}
       {st.resizing && (
         <div className="sizetag">
           {L.winW} × {L.winH}

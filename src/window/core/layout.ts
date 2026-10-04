@@ -55,8 +55,9 @@ export function layoutWindow(app: WindowModel): WindowLayout {
   const winW = clamp(st.winW ?? Math.min(1100, hostW), Math.min(isPhone ? 320 : 567, hostW), hostW);
   const winH = st.winH ?? (isPhone ? 640 : 740);
   // The window frame has a 1px border, so the editor area is 2px smaller than the frame.
-  const innerW = winW - 2;
-  const bodyH = winH - 2 - M.tabH;
+  const frame = st.docked ? 0 : 2;
+  const innerW = winW - frame;
+  const bodyH = winH - frame - (st.docked ? 0 : M.tabH);
   const collapsed = app.sideCollapsedNow();
 
   // Sidebar

@@ -18,7 +18,7 @@ export function PromoVideo() {
   return (
     <Section id="video">
       <SectionIntro
-        eyebrow="10 / VIDEO"
+        eyebrow="09 / VIDEO"
         title="See it in motion."
         lead="A short tour of Blendon in the Unity 6 Scene view."
       />
