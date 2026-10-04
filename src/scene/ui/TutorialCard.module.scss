@@ -1,0 +1,364 @@
+// The tutorial card in Blendon's notice palette (Palette.Notice*, Tutorial*), sizes in Unity points.
+$fill: rgba(33, 33, 36, 0.97);
+$border: rgba(255, 255, 255, 0.13);
+$rule: rgba(255, 255, 255, 0.08);
+$subtitle: rgba(255, 255, 255, 0.52);
+$progress: #ed8c26;
+$done: #52d973;
+$font: Inter, system-ui, sans-serif;
+
+.card {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: $fill;
+  border: 1px solid $border;
+  border-radius: 6px;
+  color: #fff;
+  font-family: $font;
+  user-select: none;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.header,
+.pillBody {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  box-sizing: border-box;
+  padding: 0 60px 0 12px;
+  cursor: move;
+}
+
+.header {
+  height: 45px;
+  padding-top: 1px;
+}
+
+.pillBody {
+  height: 100%;
+}
+
+.badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  img {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.text {
+  min-width: 0;
+}
+
+.title,
+.subtitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.title {
+  height: 15px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+.subtitle {
+  height: 13px;
+  font-size: 10px;
+  line-height: 13px;
+  color: $subtitle;
+}
+
+.buttons {
+  position: absolute;
+  top: 9px;
+  right: 12px;
+  display: flex;
+  gap: 2px;
+
+  .pill & {
+    top: 9px;
+  }
+}
+
+.glyph {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: #808080;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.09);
+
+    svg {
+      stroke: #fff;
+    }
+  }
+}
+
+.close:hover {
+  background: #7a4d4a;
+}
+
+.segments {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+  padding: 0 12px;
+
+  i {
+    flex: 1;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .segDone {
+    background: rgba(237, 140, 38, 0.55);
+  }
+
+  .segCurrent {
+    background: $progress;
+  }
+}
+
+.rule {
+  flex: none;
+  height: 1px;
+  background: $rule;
+}
+
+.window {
+  flex: none;
+  margin: 5px 0 7px;
+  overflow: hidden;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 27px;
+  padding: 0 12px;
+}
+
+// The task being asked for: a rail in the progress colour and a faint wash behind the row.
+.current {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 0 2px;
+    background: rgba(255, 255, 255, 0.045);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    background: $progress;
+  }
+}
+
+.box {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-right: 9px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #0f2417;
+}
+
+.boxCurrent {
+  border-color: $progress;
+}
+
+.boxDone {
+  border-color: $done;
+  background: $done;
+}
+
+.task {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.hint {
+  box-sizing: border-box;
+  padding: 0 12px 8px 35px;
+  font-size: 10px;
+  line-height: 13px;
+  color: $subtitle;
+}
+
+.caps {
+  position: relative;
+  flex: none;
+  display: flex;
+  gap: 4px;
+  max-width: 42%;
+  margin-left: 14px;
+}
+
+.cap {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  height: 16px;
+  min-width: 12px;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  font-family: Consolas, Menlo, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dim {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+// The mouse picture, cropped to its content and tinted like the text beside it.
+.mouse {
+  display: block;
+  width: 9px;
+  height: 13px;
+  mask-size: 13px 13px;
+  mask-position: left center;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 13px 13px;
+  -webkit-mask-position: left center;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  margin-top: auto;
+  padding: 0 12px;
+  border-top: 1px solid $rule;
+  font-size: 10px;
+  color: $subtitle;
+}
+
+.complete {
+  color: $done;
+}
+
+.next {
+  width: 138px;
+  height: 21px;
+  border: 0;
+  border-radius: 6.5px;
+  background: #46607c;
+  color: #fff;
+  font: 400 11px $font;
+  cursor: pointer;
+
+  &:hover {
+    background: #597089;
+  }
+
+  &:active {
+    background: #3c5269;
+  }
+}
+
+.confirm {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: $fill;
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(255, 255, 255, 0.78);
+
+  b {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #fff;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  button {
+    height: 21px;
+    padding: 0 12px;
+    border: 1px solid #303030;
+    border-radius: 3px;
+    background: #585858;
+    color: #eee;
+    font: 400 11px $font;
+    cursor: pointer;
+
+    &:hover {
+      background: #676767;
+    }
+  }
+
+  .danger {
+    background: #7a4d4a;
+
+    &:hover {
+      background: #8c5753;
+    }
+  }
+}

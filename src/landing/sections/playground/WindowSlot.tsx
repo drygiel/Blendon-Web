@@ -11,5 +11,11 @@ export function WindowSlot() {
   const placeholder = (
     <div className={styles.placeholder} role="status" aria-busy="true" aria-label="Loading the settings window" />
   );
-  return <div ref={ref}>{near ? <Suspense fallback={placeholder}>{<PlaygroundWindow />}</Suspense> : placeholder}</div>;
+  // The Scene view tutorial's "Open Blendon's settings" task: using this window is opening them.
+  const opened = () => window.dispatchEvent(new Event('blendon:settings-opened'));
+  return (
+    <div ref={ref} onPointerDownCapture={opened}>
+      {near ? <Suspense fallback={placeholder}>{<PlaygroundWindow />}</Suspense> : placeholder}
+    </div>
+  );
 }
