@@ -2,6 +2,7 @@
 // rows as SceneMenuPaint draws them. Pointer input is handed back to the model in view points.
 import { useSyncExternalStore, type KeyboardEvent, type PointerEvent, type ReactNode, type WheelEvent } from 'react';
 import { MenuField, SceneMenu } from '../blendon/scenetools/scene-menu/scene-menu.ts';
+import { SceneMenuSettings } from '../blendon/scenetools/settings.ts';
 import {
   quickRect,
   inlineRect,
@@ -225,6 +226,7 @@ function Row({
                   .filter(Boolean)
                   .join(' ')}
                 style={{ left: r.x, top: r.y, width: r.width, height: r.height }}
+                aria-label={node.label}
               >
                 <NodeIcon node={node} />
               </span>
@@ -281,6 +283,7 @@ function Tooltip({ panel, quick }: { panel: MenuPanel; quick: MenuNode[] }) {
 export function SceneMenuView({ host }: { host: SceneHost }) {
   useSyncExternalStore(SceneMenu.subscribe, () => SceneMenu.version);
   const session = SceneMenu.session;
+  const searchOn = SceneMenuSettings.SearchField;
   if (!session) return null;
 
   const local = (e: { clientX: number; clientY: number; currentTarget: Element }) => {
@@ -337,6 +340,7 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
                 {MenuField.renaming ? (
                   <input
                     className={styles.rename}
+                    aria-label="New name"
                     value={MenuField.rename}
                     autoFocus
                     spellCheck={false}
@@ -357,15 +361,20 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
                     >
                       {session.title}
                     </span>
-                    <label className={styles.search} style={{ width: Theme.SearchWidth, height: Theme.SearchHeight }}>
+                    {/* Hidden rather than gone when switched off: the field still holds the keyboard, so the
+                        Editor's shortcuts stay quiet under the menu, but what is typed goes nowhere. */}
+                    <label
+                      className={styles.search + (searchOn ? '' : ' ' + styles.searchHidden)}
+                      style={{ width: Theme.SearchWidth, height: Theme.SearchHeight }}
+                    >
                       <img src={iconUrl('d_Search Icon')} alt="" />
                       <input
-                        value={MenuField.search}
+                        value={searchOn ? MenuField.search : ''}
                         placeholder="Search"
                         autoFocus
                         spellCheck={false}
                         aria-label="Search the menu"
-                        onChange={(e) => SceneMenu.setSearch(e.target.value)}
+                        onChange={(e) => searchOn && SceneMenu.setSearch(e.target.value)}
                         onKeyDown={onKey}
                       />
                     </label>

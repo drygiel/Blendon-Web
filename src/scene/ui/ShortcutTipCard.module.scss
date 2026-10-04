@@ -1,0 +1,284 @@
+// The shortcut tip card in Blendon's notice palette (Palette.Notice*), sizes in Unity points.
+$fill: rgba(33, 33, 36, 0.97);
+$border: rgba(255, 255, 255, 0.13);
+$rule: rgba(255, 255, 255, 0.08);
+$subtitle: rgba(255, 255, 255, 0.52);
+$brand: #46607c;
+$pad: 12px;
+
+.card {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: $fill;
+  border: 1px solid $border;
+  border-radius: 6px;
+  color: #fff;
+  font-family: Inter, system-ui, sans-serif;
+  user-select: none;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+  box-sizing: border-box;
+  height: 43px;
+  padding: 1px ($pad + 20px + 6px) 0 $pad;
+}
+
+.badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: $brand;
+  font:
+    700 12px/1 Georgia,
+    serif;
+}
+
+.headText {
+  min-width: 0;
+}
+
+.title,
+.subtitle,
+.name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.title {
+  height: 15px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+.subtitle {
+  height: 13px;
+  font-size: 10px;
+  line-height: 13px;
+  color: $subtitle;
+}
+
+.close {
+  position: absolute;
+  top: 9px;
+  right: $pad;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: #808080;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+  }
+
+  &:hover {
+    background: #7a4d4a;
+
+    svg {
+      stroke: #fff;
+    }
+  }
+}
+
+.rule {
+  flex: none;
+  height: 1px;
+  background: $rule;
+}
+
+.inset {
+  margin: 0 $pad;
+}
+
+.side {
+  position: relative;
+  display: flex;
+  flex: none;
+  box-sizing: border-box;
+  height: 71px;
+  padding: 12px $pad 0;
+}
+
+.tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 50px;
+  height: 50px;
+  margin-right: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+
+  img {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  margin-right: 10px;
+}
+
+.name {
+  height: 15px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+.brand {
+  height: 11px;
+  margin: 3px 0 5px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 11px;
+  letter-spacing: 0.02em;
+}
+
+.blendon {
+  color: #ed8c26;
+}
+
+.unity {
+  color: #5c9ef0;
+}
+
+.caps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.right {
+  flex: none;
+  width: 120px;
+  padding-top: 7px;
+}
+
+.launch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 120px;
+  height: 21px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  background: #4a4a4d;
+  color: #eee;
+  font:
+    400 11px Inter,
+    system-ui,
+    sans-serif;
+  cursor: pointer;
+
+  &:hover {
+    background: #57575b;
+  }
+}
+
+.primary {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: $brand;
+
+  &:hover {
+    background: #4f6d8f;
+  }
+}
+
+.demoOnly,
+.demoOnly:hover {
+  cursor: not-allowed;
+  background: $brand;
+}
+
+.chevron {
+  width: 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.note {
+  height: 13px;
+  margin: 3px 0 0 -10px;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 13px;
+  white-space: nowrap;
+  text-align: right;
+  color: $subtitle;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 0 $pad;
+  font-size: 10px;
+  color: #a6a6a6;
+  white-space: nowrap;
+}
+
+.bulb {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  i {
+    display: block;
+    width: 10.5px;
+    height: 10.5px;
+    background: #f2d933;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+  }
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #58a6ff;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    color: #79b8ff;
+    text-decoration: underline;
+  }
+}

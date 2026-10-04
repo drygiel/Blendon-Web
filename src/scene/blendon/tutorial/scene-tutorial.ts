@@ -240,8 +240,9 @@ export const SceneTutorialCard = {
   install() {
     // Blendon's settings are the Blendon tab beside the Scene view; showing or using it is opening them.
     window.addEventListener('blendon:settings-opened', () => Reports.report('SettingsOpened'));
-    // The dock's reset button starts the tutorial over, card shown again.
+    // The dock's reset button and the window's Start Over both start the tutorial over, card shown again.
     window.addEventListener('blendon:reset', () => SceneTutorialCard.restart());
+    window.addEventListener('blendon:tutorial-restart', () => SceneTutorialCard.restart());
     Reports.listen((r) => {
       if (!SceneTutorialCard.active) return;
       let any = false;

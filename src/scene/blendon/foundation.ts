@@ -257,7 +257,10 @@ export const SceneTutorial = {
   },
 };
 
-/** In-scene "which key moved" cards are Editor-profile business; nothing to explain here. */
+/** Called by a Blendon action that has just run, naming its shortcut; the card itself is in shortcut-tips.ts. */
 export const ShortcutTips = {
-  note(_id: string) {},
+  onNote: null as ((id: string) => void) | null,
+  note(id: string) {
+    ShortcutTips.onNote?.(id);
+  },
 };

@@ -14,6 +14,16 @@ export function SceneSection() {
           pie menu. Flip a switch or rebind a key in the Blendon tab and the Scene view follows. Changes live only on
           this page.
         </p>
+        <p className={styles.warn} role="note">
+          <svg viewBox="0 0 16 16" width={16} height={16} aria-hidden="true">
+            <path d="M8 1.5 15 14H1z" />
+            <path d="M8 6v4M8 11.6v.4" />
+          </svg>
+          <span>
+            <strong>Demo only.</strong> This is a browser simulation of Unity and Blendon. Some features may not work
+            properly or may be unavailable in the browser.
+          </span>
+        </p>
       </div>
       <Dock />
     </section>

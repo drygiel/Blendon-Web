@@ -55,6 +55,20 @@
   flex: 1;
 }
 
+.warn {
+  overflow: hidden;
+  min-width: 0;
+  color: $text-3;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  strong {
+    color: $accent;
+    font-weight: 600;
+  }
+}
+
 .close {
   display: grid;
   place-items: center;

@@ -51,14 +51,27 @@ function hintHeight(text: string) {
 // "Shift+Mouse 2" -> ["Shift", "Mouse 2"]; a lone "+" key stays a key.
 const tokens = (binding: string) => binding.split(/\+(?=.)/).filter(Boolean);
 
-function KeyCaps({ binding, color, dim }: { binding: string; color: string; dim: boolean }) {
+/** `joined`: a "+" between the caps, where the card has the width to spell the chord out. */
+export function KeyCaps({
+  binding,
+  color,
+  dim,
+  joined = false,
+  className,
+}: {
+  binding: string;
+  color: string;
+  dim: boolean;
+  joined?: boolean;
+  className?: string;
+}) {
   return (
-    <span className={styles.caps}>
+    <span className={className ?? styles.caps}>
       {tokens(binding).map((t, i) => {
         const mouse = /^Mouse (\d)$/.exec(t);
         const name = mouse ? D.mouseIcons[Number(mouse[1])] : null;
         const url = name ? `${import.meta.env.BASE_URL}plugin/icons/icon_${name.replace(/ /g, '_')}.png` : null;
-        return (
+        const cap = (
           <span key={i} className={styles.cap + (dim ? ' ' + styles.dim : '')} style={{ color }}>
             {url ? (
               <i
@@ -70,6 +83,7 @@ function KeyCaps({ binding, color, dim }: { binding: string; color: string; dim:
             )}
           </span>
         );
+        return joined && i > 0 ? [<span key={'+' + i}>+</span>, cap] : cap;
       })}
     </span>
   );

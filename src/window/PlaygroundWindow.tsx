@@ -61,7 +61,23 @@ export default function PlaygroundWindow() {
   const reduced = useReducedMotion();
 
   // The Scene view above reads the window's values; every change is published to it.
-  useEffect(() => SharedSettings.publish({ val: (k) => app.val(k), shortcut: (id) => app.shortcut(id) }), [app]);
+  useEffect(
+    () =>
+      SharedSettings.publish({
+        val: (k) => app.val(k),
+        shortcut: (id) => app.shortcut(id),
+        kbSide: () => app.st.kbSide,
+        pieOn: (id) => app.pieOn(id),
+      }),
+    [app],
+  );
+
+  // A shortcut tip's "Open in Blendon": the Keyboard page with that shortcut's row lit.
+  useEffect(() => {
+    const open = (e: Event) => app.goTo('Keyboard', (e as CustomEvent<{ id?: string }>).detail?.id);
+    window.addEventListener('blendon:open-keyboard', open);
+    return () => window.removeEventListener('blendon:open-keyboard', open);
+  }, [app]);
 
   // The dock's reset button: every value, override and binding back to its default; the layout stays.
   useEffect(() => {

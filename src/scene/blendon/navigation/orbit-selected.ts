@@ -385,7 +385,8 @@ function tryEnterOrthoSnap(view: SceneView, rotation: Quaternion) {
   let pivot = TurntableOrbit.pivotAround(ctx.center, ctx.startOffset, ctx.startRotation, snapped);
   pivot = ViewProjection.pivotAtCenterDepth(pivot, ctx.center, snapped);
   view.size = ViewProjection.apparentHalfHeight(view, ctx.center);
-  view.orthographic = true;
+  // The axis snap is the one view change that never animates: it follows the held key frame for frame.
+  view.setOrthographicInstant(true);
   view.pivot = pivot;
   view.rotation = snapped;
   SceneTutorial.report('OrbitAxisSnap');
@@ -406,7 +407,7 @@ function exitOrthoToPerspective(view: SceneView) {
     view.pivot = pivot;
   }
   view.size = ViewProjection.perspectiveSizeForHalfHeight(view, ctx.center, view.pivot, rotation, targetHalfHeight);
-  view.orthographic = false;
+  view.setOrthographicInstant(false);
 }
 
 /** Keeps a usable pivot behind the orbit centre when leaving ortho zoomed in close. */

@@ -13,6 +13,38 @@
   color: $text-3;
 }
 
+// Amber note between the lead and the dock.
+.warn {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 760px;
+  box-sizing: border-box;
+  margin: 22px 0 0;
+  padding: 11px 14px;
+  border: 1px solid rgba($accent, 0.45);
+  border-radius: 8px;
+  background: rgba($accent, 0.08);
+  font-size: 14px;
+  line-height: 1.5;
+  color: $text-3;
+
+  strong {
+    color: $accent-light;
+    font-weight: 600;
+  }
+
+  svg {
+    flex: none;
+    margin-top: 2px;
+    fill: none;
+    stroke: $accent;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+}
+
 // Each pane's content fills it; the dock sizes the panes.
 .slot {
   position: absolute;

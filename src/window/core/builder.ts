@@ -169,6 +169,36 @@ export function evalCond(app: WindowModel, e: Cond): unknown {
 
 const tipOf = (t: string, i = ''): TipSource => ({ t, i });
 
+// Settings the browser's Scene view can't act on, and why; the tooltip says so.
+const pointer = "a web page can't move the mouse pointer";
+const NotSimulated: Record<string, string> = {
+  'GeneralSettings.CursorWrapEnabled': pointer,
+  'GeneralSettings.CursorWrap': pointer,
+  'GeneralSettings.WrapBounds': pointer,
+  'PanSettings.CursorWrapEnabled': pointer,
+  'PanSettings.CursorWrap': pointer,
+  'PanSettings.WrapBounds': pointer,
+  'SharedGizmoSettings.CursorWrapEnabled': pointer,
+  'SharedGizmoSettings.CursorWrap': pointer,
+  'SharedGizmoSettings.WrapBounds': pointer,
+  'PieMenuSettings.LockCursorToViewport': pointer,
+  'OrientationGizmoSettings.HideNativeGizmo': "the demo draws only Blendon's gizmo",
+  'ViewportNavSettings.MatchFieldOfView': 'the demo scene has no cameras',
+  'SharedGizmoSettings.ShowPreview': 'the demo window has no gizmo preview',
+  'SnapToFloorSettings.SurfaceLayers': 'the demo scene has a single layer',
+  'BoxSelectSettings.SelectPrefabRoots': 'the demo scene has no prefabs',
+  'BoxSelectSettings.RespectSelectionBase': 'the demo scene has no Selection Base objects',
+  'SceneMenuSettings.SharpText': 'the browser lays out its own text',
+};
+
+const propTip = (key: string, t: string, i = '') => {
+  const why = NotSimulated[key];
+  return tipOf(
+    why ? `${t}\n\n<size=9><b><color=#D98E38>BROWSER DEMO</color></b></size>\nNot simulated here: ${why}.` : t,
+    i,
+  );
+};
+
 export class Builder {
   readonly app: WindowModel;
   readonly pageW: number;
@@ -474,7 +504,7 @@ export class Builder {
     if (!this.matches(p.l, p.t)) return;
     this.count();
     this.flush();
-    this.add({ ...extra, label: p.l, pkey: key, tip: tipOf(p.t, p.i), mark: !this.app.isDefault(key) });
+    this.add({ ...extra, label: p.l, pkey: key, tip: propTip(key, p.t, p.i), mark: !this.app.isDefault(key) });
   }
 
   general(key: string, src: string, k: PropKind, extra?: { min?: number; max?: number; srcPage?: string }) {
@@ -492,7 +522,7 @@ export class Builder {
       src,
       srcPage: extra?.srcPage ?? 'Overview',
       ovr,
-      tip: tipOf(p.t, p.i),
+      tip: propTip(key, p.t, p.i),
       mark: ovr,
     });
   }

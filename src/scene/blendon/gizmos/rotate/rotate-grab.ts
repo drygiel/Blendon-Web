@@ -4,6 +4,7 @@ import { HandleUtility, MouseCursor } from '../../../unity/handles.ts';
 import { Event, EventType } from '../../../unity/imgui.ts';
 import { Plane, Vector3 } from '../../../unity/math.ts';
 import type { SceneCamera, SceneView } from '../../../unity/sceneview.ts';
+import { ShortcutTips } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { GrabSession, IndividualOrigins } from '../common/controller.ts';
 import { AxisBasis } from '../common/layout.ts';
@@ -39,7 +40,10 @@ export class RotateGrab extends GrabSession {
   static install() {
     ShortcutManager.register(
       RotateGrab.ShortcutId,
-      (args: ShortcutArguments) => RotateGrab.instance.request(args),
+      (args: ShortcutArguments) => {
+        RotateGrab.instance.request(args);
+        ShortcutTips.note(RotateGrab.ShortcutId);
+      },
       false,
       'R',
     );

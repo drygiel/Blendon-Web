@@ -13,7 +13,7 @@ export function itemBase(app: WindowModel, it: Item) {
   const ovrRow = 'ovrRow' in it && !!it.ovrRow;
   const ovr = 'ovr' in it && !!it.ovr;
   const mark = 'mark' in it && !!it.mark;
-  const hl = !!pkey && app.st.hl === pkey;
+  const hl = app.st.hl !== null && (pkey ?? ('sid' in it ? it.sid : undefined)) === app.st.hl;
   const cls =
     `it it-${it.k}` + (it.dis ? ' dis' : '') + (hl ? ' hl' : '') + (ovrRow ? ' ovr' + (ovr ? '' : ' fol') : '');
   const markStyle: CSSProperties = { background: it.dis ? rgba(it.acc, 0.4) : it.acc };

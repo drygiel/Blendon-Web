@@ -167,8 +167,9 @@ function ActionRow({ it }: { it: ItemOf<'action'> }) {
         title: 'Start the tutorial over?',
         body: 'Every task will be un-ticked and the card goes back to chapter one.',
         ok: 'Start Over',
+        run: () => window.dispatchEvent(new Event('blendon:tutorial-restart')),
       });
-    else app.demo('In Unity this brings back the shortcut tips you have already dismissed in the Scene view.');
+    else window.dispatchEvent(new Event('blendon:tips-reset'));
   };
   return (
     <div className={itemBase(app, it).cls}>
