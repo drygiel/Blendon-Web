@@ -14,9 +14,20 @@ async function openScene(page: Page) {
   return view;
 }
 
+interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
 interface HostElement {
   sceneHost: {
-    scene: { allObjects(): Iterable<{ name: string; transform: { position: { x: number; y: number; z: number } } }> };
+    scene: { allObjects(): Iterable<{ name: string; transform: { position: Vec3 } }> };
+    view: {
+      rotation: Vec3 & { w: number };
+      pixelsPerPoint: number;
+      camera: { pixelHeight: number; worldToScreenPoint(p: Vec3): Vec3 };
+    };
   };
 }
 
@@ -26,6 +37,26 @@ function positionOf(page: Page, name: string) {
     const go = [...(el as HostElement).sceneHost.scene.allObjects()].find((o) => o.name === n);
     return go ? { x: go.transform.position.x, y: go.transform.position.y, z: go.transform.position.z } : null;
   }, name);
+}
+
+function viewRotation(page: Page) {
+  return page.locator('#try [role=application]').evaluate((el: unknown) => {
+    const r = (el as HostElement).sceneHost.view.rotation;
+    return [r.x, r.y, r.z, r.w];
+  });
+}
+
+/** Where the named object's pivot is on the page. */
+async function pagePointOf(page: Page, name: string) {
+  const view = page.locator('#try [role=application]');
+  const box = (await view.boundingBox())!;
+  const p = await view.evaluate((el: unknown, n) => {
+    const v = (el as HostElement).sceneHost.view;
+    const go = [...(el as HostElement).sceneHost.scene.allObjects()].find((o) => o.name === n)!;
+    const s = v.camera.worldToScreenPoint(go.transform.position);
+    return { x: s.x / v.pixelsPerPoint, y: (v.camera.pixelHeight - s.y) / v.pixelsPerPoint };
+  }, name);
+  return { x: box.x + p.x, y: box.y + p.y };
 }
 
 test.beforeEach(async ({ page }) => {
@@ -81,4 +112,31 @@ test('follows a feature switched off in the settings window', async ({ page }) =
   for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(1500);
   expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
+});
+
+test('orbits with the middle mouse button', async ({ page }) => {
+  const view = await openScene(page);
+  const box = (await view.boundingBox())!;
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  const before = await viewRotation(page);
+  await page.mouse.move(x, y);
+  await page.mouse.down({ button: 'middle' });
+  for (let i = 1; i <= 10; i++) await page.mouse.move(x + i * 12, y + i * 3);
+  await page.mouse.up({ button: 'middle' });
+  await expect.poll(() => viewRotation(page)).not.toEqual(before);
+});
+
+test('cancels a handle drag with the right mouse button', async ({ page }) => {
+  await openScene(page);
+  const before = (await positionOf(page, 'Cube'))!;
+  const at = await pagePointOf(page, 'Cube');
+  await page.mouse.move(at.x, at.y);
+  await page.mouse.down();
+  for (let i = 1; i <= 8; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
+  // Pressed while the left button is held, so the browser reports it only as a move.
+  await page.mouse.down({ button: 'right' });
+  await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+  await page.mouse.up({ button: 'right' });
+  await page.mouse.up();
 });

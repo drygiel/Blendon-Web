@@ -359,13 +359,8 @@ export class SceneHost {
       focusRoot.focus({ preventScroll: true });
       this.setActive(true);
       this.syncModifiers(e);
-      const button = UNITY_BUTTON[e.button] ?? e.button;
       root.setPointerCapture(e.pointerId);
-      this.pressed.add(button);
-      const ev = this.mouseEvent(EventType.MouseDown, e, button);
-      this.lastMouse = ev.mousePosition;
-      this.listeners.onInput?.(ev);
-      if (!this.mouseShortcut(button, ev, true)) this.runPass(ev);
+      this.press(e, UNITY_BUTTON[e.button] ?? e.button);
       this.requestFrame();
     });
 
@@ -374,8 +369,11 @@ export class SceneHost {
       this.syncModifiers(e);
       const events = e.getCoalescedEvents?.() ?? [e];
       for (const ce of events.length ? events : [e]) {
-        // A button released outside the page never reported its up.
-        for (const b of [...this.pressed]) if (!(ce.buttons & (1 << DOM_BUTTON[b]))) this.release(ce, b);
+        // Bit n of `buttons` is Unity's button n. A press or release while another button is held (a
+        // chord) only comes as a move, and a button released outside the page never reported its up.
+        for (const b of [...this.pressed]) if (!(ce.buttons & (1 << b))) this.release(ce, b);
+        if (this.pressed.size > 0)
+          for (let b = 0; b < 5; b++) if (ce.buttons & (1 << b) && !this.pressed.has(b)) this.press(ce, b);
         const held = [...this.pressed];
         const type = held.length ? EventType.MouseDrag : EventType.MouseMove;
         const ev = this.mouseEvent(type, ce, held.length ? held[held.length - 1] : 0);
@@ -466,6 +464,15 @@ export class SceneHost {
     on(window, 'blur', () => this.setActive(false));
   }
 
+  private press(e: PointerEvent, button: number) {
+    if (this.pressed.has(button)) return;
+    this.pressed.add(button);
+    const ev = this.mouseEvent(EventType.MouseDown, e, button);
+    this.lastMouse = ev.mousePosition;
+    this.listeners.onInput?.(ev);
+    if (!this.mouseShortcut(button, ev, true)) this.runPass(ev);
+  }
+
   private release(e: PointerEvent | MouseEvent, button: number) {
     if (!this.pressed.has(button)) return;
     this.pressed.delete(button);
@@ -492,8 +499,6 @@ export class SceneHost {
     ShortcutManager.endMismatched(eventShortcutModifiers(ev), this.view);
   }
 }
-
-const DOM_BUTTON = [0, 2, 1, 3, 4];
 
 /** Browser keys left alone even while the view has the keyboard. */
 function passThrough(e: KeyboardEvent) {
