@@ -19,6 +19,13 @@ export default defineConfig({
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,
+    // The landing, and the Playground on a page of its own at /playground/.
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        playground: fileURLToPath(new URL('./playground/index.html', import.meta.url)),
+      },
+    },
   },
   test: {
     include: ['tests/unit/**/*.test.ts', 'src/**/*.test.ts'],

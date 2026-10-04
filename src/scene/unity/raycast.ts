@@ -115,7 +115,7 @@ export function objectsInRect(
   return out;
 }
 
-function triangleOverlapsRect(a: Vector2, b: Vector2, c: Vector2, r: Rect) {
+export function triangleOverlapsRect(a: Vector2, b: Vector2, c: Vector2, r: Rect) {
   const tri = [a, b, c];
   if (tri.some((p) => r.contains(p))) return true;
   const corners = [
@@ -167,3 +167,76 @@ export function combinedBounds(objects: GameObject[]): Bounds | null {
   }
   return b;
 }
+
+/** One object projected for a rect query: its triangles' GUI points and their bounds. */
+interface ProjectedObject {
+  go: GameObject;
+  points: Vector2[];
+  triangles: number[];
+  /** Bounds of the projected vertices; only trusted when every vertex is in front of the camera. */
+  box: Rect;
+  inFront: boolean;
+}
+
+/**
+ * Rect queries against a still camera: every candidate is projected once, so a box dragged over the
+ * view only tests the triangles of objects its rect partly covers.
+ */
+export class RectPicker {
+  readonly objects: ProjectedObject[] = [];
+
+  constructor(candidates: Iterable<GameObject>, project: (p: Vector3) => Vector3) {
+    for (const go of candidates) {
+      if (!go.mesh) continue;
+      const m = go.transform.localToWorldMatrix;
+      const pts = go.mesh.vertices.map((v) => project(m.multiplyPoint3x4(v)));
+      const inFront = pts.every((p) => p.z > 0);
+      let x0 = Infinity,
+        y0 = Infinity,
+        x1 = -Infinity,
+        y1 = -Infinity;
+      for (const p of pts)
+        if (p.z > 0) {
+          x0 = Math.min(x0, p.x);
+          y0 = Math.min(y0, p.y);
+          x1 = Math.max(x1, p.x);
+          y1 = Math.max(y1, p.y);
+        }
+      if (x0 > x1) continue;
+      this.objects.push({
+        go,
+        points: pts.map((p) => (p.z > 0 ? p.xy : new Vector2(NaN, NaN))),
+        triangles: go.mesh.triangles,
+        box: Rect.minMax(x0, y0, x1, y1),
+        inFront,
+      });
+    }
+  }
+
+  /** Whether the rect touches the object's projected surface, or with fullyEnclosed holds all of it. */
+  touches(o: ProjectedObject, rect: Rect, fullyEnclosed: boolean) {
+    if (fullyEnclosed) return o.inFront && containsRect(rect, o.box);
+    if (!overlaps(o.box, rect)) return false;
+    if (containsRect(rect, o.box)) return true;
+    const p = o.points,
+      t = o.triangles;
+    for (let i = 0; i < t.length; i += 3) {
+      const a = p[t[i]],
+        b = p[t[i + 1]],
+        c = p[t[i + 2]];
+      if (Number.isNaN(a.x) || Number.isNaN(b.x) || Number.isNaN(c.x)) continue;
+      if (Math.max(a.x, b.x, c.x) < rect.xMin || Math.min(a.x, b.x, c.x) > rect.xMax) continue;
+      if (Math.max(a.y, b.y, c.y) < rect.yMin || Math.min(a.y, b.y, c.y) > rect.yMax) continue;
+      if (triangleOverlapsRect(a, b, c, rect)) return true;
+    }
+    return false;
+  }
+
+  pick(rect: Rect, fullyEnclosed = false): GameObject[] {
+    return this.objects.filter((o) => this.touches(o, rect, fullyEnclosed)).map((o) => o.go);
+  }
+}
+
+const overlaps = (a: Rect, b: Rect) => a.xMin <= b.xMax && a.xMax >= b.xMin && a.yMin <= b.yMax && a.yMax >= b.yMin;
+const containsRect = (outer: Rect, inner: Rect) =>
+  inner.xMin >= outer.xMin && inner.xMax <= outer.xMax && inner.yMin >= outer.yMin && inner.yMax <= outer.yMax;

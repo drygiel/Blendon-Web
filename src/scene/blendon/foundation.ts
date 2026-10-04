@@ -5,7 +5,7 @@ import { HandleUtility } from '../unity/handles.ts';
 import { Event, IS_MAC } from '../unity/imgui.ts';
 import { Plane, Ray, Vector2, Vector3 } from '../unity/math.ts';
 import { raycastAll } from '../unity/raycast.ts';
-import { Scene, type Transform } from '../unity/scene.ts';
+import { Ground, Scene, type Transform } from '../unity/scene.ts';
 import { SceneView, type SceneCamera } from '../unity/sceneview.ts';
 
 // ---- ModifierKey ------------------------------------------------------------------------------------
@@ -160,7 +160,14 @@ export interface SurfaceHit {
   point: Vector3;
   normal: Vector3;
   distance: number;
-  transform: Transform;
+  /** Null for the demo's ground. */
+  transform: Transform | null;
+}
+
+function groundHit(ray: Ray, maxDistance: number): SurfaceHit | null {
+  const d = Ground.raycast(ray.origin, ray.direction);
+  if (d === null || d > maxDistance) return null;
+  return { point: ray.getPoint(d), normal: Vector3.up, distance: d, transform: null };
 }
 
 export const EditorRaycastUtility = {
@@ -174,15 +181,18 @@ export const EditorRaycastUtility = {
       if (only && !ignored(t, only)) continue;
       return { point: h.point, normal: h.normal, distance: h.distance, transform: t };
     }
-    return null;
+    return only ? null : groundHit(ray, maxDistance);
   },
 
   raycastAll(ray: Ray, ignore?: Transform[] | null, maxDistance = Infinity) {
     const scene = Scene.current;
     if (!scene) return [];
-    return raycastAll(scene, ray)
+    const hits = raycastAll(scene, ray)
       .filter((h) => h.distance <= maxDistance && !ignored(h.gameObject.transform, ignore))
       .map((h) => ({ point: h.point, normal: h.normal }));
+    const ground = groundHit(ray, maxDistance);
+    if (ground) hits.push({ point: ground.point, normal: ground.normal });
+    return hits;
   },
 
   tryGetHitPoint(mouse: Vector2, ignore?: Transform[] | null) {

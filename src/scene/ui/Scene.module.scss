@@ -31,17 +31,11 @@
   }
 }
 
-.pic,
-.picBottom {
+.pic {
   position: absolute;
   display: block;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-.picBottom {
-  left: 0;
-  bottom: 0;
 }
 
 %btn {
@@ -237,4 +231,15 @@
   border-bottom: 0.6px solid #585858;
   box-sizing: border-box;
   pointer-events: none;
+}
+
+// A part of an overlay picture the demo has nothing behind.
+.demoOnly {
+  position: absolute;
+  cursor: not-allowed;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
 }

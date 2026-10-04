@@ -6,6 +6,7 @@ import { ViewAlignment, ViewSnap, WorldAxes } from '../blendon/navigation/view-s
 import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
 import { Vector2 } from '../unity/math.ts';
+import { TopStripHeight, useOverlays } from './overlays.ts';
 import styles from './Scene.module.scss';
 
 // The overlay window's padding around the widget, and its distance from the view's corner.
@@ -72,8 +73,9 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
     return new Vector2(e.clientX - r.left, e.clientY - r.top);
   };
   const focusView = () => host.focusRoot.focus({ preventScroll: true });
+  const overlays = useOverlays();
 
-  if (!OrientationGizmoSettings.Enabled) return null;
+  if (!OrientationGizmoSettings.Enabled || !overlays.isShown('orientation')) return null;
   const label = OrientationGizmoSettings.DirectionLabelEnabled ? element.directionLabel : '';
   const animated = OrientationGizmoSettings.AnimationEnabled;
   const current = ViewAlignment.currentDirection(host.view);
@@ -95,7 +97,13 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
   return (
     <div
       className={styles.orientation}
-      style={{ right: Margin.right, top: Margin.top, width: size.x, height: size.y, padding: WindowPadding }}
+      style={{
+        right: Margin.right,
+        top: Margin.top + (overlays.topStrip ? TopStripHeight : 0),
+        width: size.x,
+        height: size.y,
+        padding: WindowPadding,
+      }}
       onPointerEnter={() => setOverlayHover(true)}
       onPointerLeave={() => setOverlayHover(false)}
       onContextMenu={(e) => e.preventDefault()}

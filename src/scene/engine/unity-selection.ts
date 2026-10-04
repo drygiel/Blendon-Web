@@ -3,8 +3,8 @@
 import { EditorApplication, Selection, ShortcutManager, eventShortcutModifiers } from '../unity/editor.ts';
 import { GUI, HandleUtility } from '../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility, KeyCode } from '../unity/imgui.ts';
-import { Color, Rect, Vector2 } from '../unity/math.ts';
-import { raycastAll } from '../unity/raycast.ts';
+import { Color, Rect, Vector2, Vector3 } from '../unity/math.ts';
+import { RectPicker, raycastAll } from '../unity/raycast.ts';
 import type { GameObject } from '../unity/scene.ts';
 import type { SceneView } from '../unity/sceneview.ts';
 import type { SceneHost } from './host.ts';
@@ -30,6 +30,9 @@ export class UnitySelection {
   private boxStart = Vector2.zero;
   private boxEnd = Vector2.zero;
   private baseline: GameObject[] = [];
+  // Projected once per box: the camera holds still while it is dragged.
+  private picker: RectPicker | null = null;
+  private lastHits = '';
   private lastClick: { at: Vector2; time: number; hits: GameObject[]; index: number } | null = null;
 
   constructor(host: SceneHost) {
@@ -114,6 +117,17 @@ export class UnitySelection {
     this.boxStart = this.press!;
     this.boxEnd = ev.mousePosition;
     this.baseline = Selection.objects;
+    this.lastHits = '';
+    const view = this.host.view;
+    const c = view.camera,
+      k = view.pixelsPerPoint || 1;
+    this.picker = new RectPicker(
+      [...this.host.scene.allObjects()].filter((go) => go.visible && go.pickable),
+      (p) => {
+        const s = c.worldToScreenPoint(p);
+        return new Vector3(s.x / k, (c.pixelHeight - s.y) / k, s.z);
+      },
+    );
     const cmd = ev.clone(EventType.ExecuteCommand);
     cmd.commandName = BEGIN_COMMAND;
     // Sent from inside this pass, as the Editor does from its shortcut handler.
@@ -128,7 +142,11 @@ export class UnitySelection {
 
   /** The Editor's own box: live, Shift adds, the action key removes. */
   private applyBox(ev: Event) {
-    const hits = HandleUtility.pickRectObjects(this.rect()) as GameObject[];
+    const hits = this.picker?.pick(this.rect()) ?? [];
+    // The selection is only written when what the box touches changes.
+    const key = hits.map((o) => o.name).join('|') + (ev.shift ? '+' : ev.actionKey ? '-' : '');
+    if (key === this.lastHits) return;
+    this.lastHits = key;
     let next: GameObject[];
     if (ev.shift) next = [...new Set([...this.baseline, ...hits])];
     else if (ev.actionKey) next = this.baseline.filter((o) => !hits.includes(o));

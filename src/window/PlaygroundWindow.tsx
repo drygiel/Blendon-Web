@@ -63,6 +63,24 @@ export default function PlaygroundWindow() {
   // The Scene view above reads the window's values; every change is published to it.
   useEffect(() => SharedSettings.publish({ val: (k) => app.val(k), shortcut: (id) => app.shortcut(id) }), [app]);
 
+  // The dock's reset button: every value, override and binding back to its default; the layout stays.
+  useEffect(() => {
+    const reset = () =>
+      update((s) => ({
+        ...initialState(D.initial),
+        docked: s.docked,
+        hostW: s.hostW,
+        winW: s.winW,
+        winH: s.winH,
+        sideW: s.sideW,
+        sideCollapsed: s.sideCollapsed,
+        li: s.li,
+        page: s.page,
+      }));
+    window.addEventListener('blendon:reset', reset);
+    return () => window.removeEventListener('blendon:reset', reset);
+  }, []);
+
   const latest = useRef({ app, reduced });
   useLayoutEffect(() => {
     latest.current = { app, reduced };

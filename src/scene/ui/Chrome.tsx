@@ -2,7 +2,6 @@
 // is interactive (tool buttons, pivot point, handle orientation); the rest is a picture of Unity.
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import tools from '../../assets/scene/overlay-tools.png';
-import bottom from '../../assets/scene/overlay-bottom.png';
 import dropdown from '../../assets/scene/icons/d_dropdown.png';
 import handleCenter from '../../assets/scene/icons/d_ToolHandleCenter.png';
 import handleGlobal from '../../assets/scene/icons/d_ToolHandleGlobal.png';
@@ -20,7 +19,9 @@ import type { SceneHost } from '../engine/host.ts';
 import { PivotMode, PivotRotation, Tool, Tools } from '../unity/editor.ts';
 import { iconUrl } from '../unity/icons.ts';
 import { pivotPointNames, type PivotPointApi } from './pivot.ts';
+import { TopStripHeight, useOverlays } from './overlays.ts';
 import styles from './Scene.module.scss';
+import { OverlayMenu, TopToolbar } from './Toolbars.tsx';
 
 // The capture was taken at 175 % display scaling; its pixels map to points by this.
 const PX = 1 / 1.75;
@@ -30,6 +31,16 @@ const HANDLE_ROTATIONS = [
   { label: 'Global', value: PivotRotation.Global, icon: handleGlobal },
   { label: 'Local', value: PivotRotation.Local, icon: handleLocal },
   { label: 'Grid', value: PivotRotation.Grid, icon: iconUrl('d_GridAndSnap') },
+];
+
+// Parts of the tools overlay picture with nothing behind them in the demo: the tool context, View,
+// Rect and custom tools, and the folded component tools.
+const DEMO_ONLY = [
+  { top: 40, height: 46, label: 'Tool context' },
+  { top: 92, height: 35, label: 'View Tool' },
+  { top: 240, height: 35, label: 'Rect Tool' },
+  { top: 318, height: 35, label: 'Custom tools' },
+  { top: 361, height: 47, label: 'Component tools' },
 ];
 
 const TOOL_BUTTONS = [
@@ -110,69 +121,90 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
     height: pt(h),
   });
   const focusView = () => host.focusRoot.focus({ preventScroll: true });
+  const overlays = useOverlays();
+  const top = overlays.topStrip ? TopStripHeight : 0;
+  const below = (px: number) => top + pt(px);
 
   return (
     <div className={styles.chrome} onPointerDown={(e) => e.stopPropagation()}>
-      <img className={styles.pic} src={tools} alt="" style={pos(0, 0, 76, 530)} draggable={false} />
-      <img
-        className={styles.picBottom}
-        src={bottom}
-        alt=""
-        style={{ width: pt(612), height: pt(53) }}
-        draggable={false}
-      />
+      <TopToolbar host={host} />
+      <OverlayMenu host={host} />
+      {overlays.isShown('tools') && (
+        <img
+          className={styles.pic}
+          src={tools}
+          alt=""
+          style={{ ...pos(0, 0, 76, 412), top: below(4) }}
+          draggable={false}
+        />
+      )}
+      {overlays.isShown('tools') &&
+        DEMO_ONLY.map((z) => (
+          <span
+            key={z.label}
+            className={styles.demoOnly}
+            style={{ ...pos(5, 0, 65, z.height), top: below(4 + z.top) }}
+            title={`${z.label} (not in this demo)`}
+          />
+        ))}
 
-      {TOOL_BUTTONS.map((b) => (
-        <button
-          key={b.tool}
-          type="button"
-          className={styles.toolBtn + (current === b.tool ? ' ' + styles.toolOn : '')}
-          style={pos(5, b.top, 65, 35)}
-          title={b.label}
-          aria-label={b.label}
-          aria-pressed={current === b.tool}
-          onClick={() => {
-            Tools.current = b.tool;
-            focusView();
-            host.requestFrame();
-          }}
+      {overlays.isShown('tools') &&
+        TOOL_BUTTONS.map((b) => (
+          <button
+            key={b.tool}
+            type="button"
+            className={styles.toolBtn + (current === b.tool ? ' ' + styles.toolOn : '')}
+            style={{ ...pos(5, 0, 65, 35), top: below(4 + b.top) }}
+            title={b.label}
+            aria-label={b.label}
+            aria-pressed={current === b.tool}
+            onClick={() => {
+              Tools.current = b.tool;
+              focusView();
+              host.requestFrame();
+            }}
+          >
+            <img src={current === b.tool ? b.on : b.off} alt="" width={16} height={16} />
+          </button>
+        ))}
+
+      {overlays.isShown('toolSettings') && (
+        <div
+          className={styles.toolbar2}
+          style={{ left: pt(overlays.isShown('tools') ? 92 : 4), top: below(9), height: pt(45) }}
         >
-          <img src={current === b.tool ? b.on : b.off} alt="" width={16} height={16} />
-        </button>
-      ))}
-
-      <div className={styles.toolbar2} style={{ left: pt(80), top: pt(3), height: pt(45) }}>
-        <i className={styles.grip} />
-        <Dropdown
-          icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
-          label={pivotPointNames[mode].short}
-          title={'Pivot Point: ' + pivotPointNames[mode].long}
-          items={[0, 1, 2, 3].map((m) => ({
-            label: pivotPointNames[m].long,
-            checked: m === mode,
-            separatorBefore: m === 2,
-            run: () => {
-              pivot.set(m);
-              focusView();
-              host.requestFrame();
-            },
-          }))}
-        />
-        <Dropdown
-          icon={rotation.icon}
-          label={rotation.label}
-          title="Tool Handle Rotation"
-          items={HANDLE_ROTATIONS.map((o) => ({
-            label: o.label,
-            checked: Tools.pivotRotation === o.value,
-            run: () => {
-              Tools.pivotRotation = o.value;
-              focusView();
-              host.requestFrame();
-            },
-          }))}
-        />
-      </div>
+          <i className={styles.grip} />
+          <Dropdown
+            icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
+            label={pivotPointNames[mode].short}
+            title={'Pivot Point: ' + pivotPointNames[mode].long}
+            items={[0, 1, 2, 3].map((m) => ({
+              label: pivotPointNames[m].long,
+              checked: m === mode,
+              separatorBefore: m === 2,
+              run: () => {
+                pivot.set(m);
+                focusView();
+                host.requestFrame();
+              },
+            }))}
+          />
+          <Dropdown
+            icon={rotation.icon}
+            label={rotation.label}
+            title="Tool Handle Rotation"
+            items={HANDLE_ROTATIONS.map((o) => ({
+              label: o.label,
+              checked: Tools.pivotRotation === o.value,
+              run: () => {
+                Tools.pivotRotation = o.value;
+                focusView();
+                host.requestFrame();
+              },
+            }))}
+          />
+        </div>
+      )}
     </div>
   );
 }
