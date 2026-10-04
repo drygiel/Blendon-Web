@@ -35,6 +35,9 @@ const HANDLE_ROTATIONS = [
 
 // Parts of the tools overlay picture with nothing behind them in the demo: the tool context, View,
 // Rect and custom tools, and the folded component tools.
+// Floating overlays keep clear of the view's edge.
+const Edge = 5;
+
 const DEMO_ONLY = [
   { top: 40, height: 46, label: 'Tool context' },
   { top: 92, height: 35, label: 'View Tool' },
@@ -115,7 +118,7 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
   const mode = pivot.get();
   const rotation = HANDLE_ROTATIONS.find((o) => o.value === Tools.pivotRotation) ?? HANDLE_ROTATIONS[0];
   const pos = (left: number, topPx: number, w: number, h: number): CSSProperties => ({
-    left: pt(left),
+    left: Edge + pt(left),
     top: pt(topPx),
     width: pt(w),
     height: pt(h),
@@ -171,7 +174,7 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
       {overlays.isShown('toolSettings') && (
         <div
           className={styles.toolbar2}
-          style={{ left: pt(overlays.isShown('tools') ? 92 : 4), top: below(9), height: pt(45) }}
+          style={{ left: Edge + pt(overlays.isShown('tools') ? 92 : 4), top: below(9), height: pt(45) }}
         >
           <i className={styles.grip} />
           <Dropdown

@@ -255,3 +255,32 @@ test('opens the Playground on a page of its own, without scrolling', async ({ pa
   await page.getByRole('button', { name: 'Hide this bar' }).click();
   await expect(page.getByRole('link', { name: 'Back to the Blendon page' })).toHaveCount(0);
 });
+
+test('a key pressed mid-drag goes to the drag, not to a shortcut', async ({ page }) => {
+  const view = await openScene(page);
+  const before = (await positionOf(page, 'Cube'))!;
+  const at = await pagePointOf(page, 'Cube');
+  await page.mouse.move(at.x, at.y);
+  await page.mouse.down();
+  for (let i = 1; i <= 4; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
+  // Y is the Transform tool's key, Z a pie menu's; mid-drag they pick an axis.
+  await page.keyboard.press('y');
+  for (let i = 5; i <= 10; i++) await page.mouse.move(at.x - i * 8, at.y - i * 6);
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.y).not.toBeCloseTo(before.y, 2);
+  const p = (await positionOf(page, 'Cube'))!;
+  expect(p.x).toBeCloseTo(before.x, 4);
+  expect(p.z).toBeCloseTo(before.z, 4);
+  await page.keyboard.press('z');
+  await page.mouse.up();
+  await expect(view.getByRole('button', { name: 'Move Tool' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(view.getByText('Draw Mode')).toHaveCount(0);
+});
+
+test('the reset button starts the tutorial over', async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Skip the tutorial' }).click();
+  await view.getByRole('button', { name: 'Skip Tutorial' }).click();
+  await expect(view.getByText('Navigating the View')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Reset the scene and every setting' }).click();
+  await expect(view.getByText('Navigating the View')).toBeVisible();
+});

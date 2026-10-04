@@ -234,17 +234,16 @@ export class SceneRenderer {
     this.grid.renderOrder = 10;
     this.three.add(this.grid);
 
-    // Unlit, a hair under the grid. A fixed gap can't hold at every distance, so its depth is also pushed
-    // back: the grid's lines always win the depth test. The colour lands as #454545 after the post.
+    // Unlit, drawn after the objects without writing depth: it still covers whatever sinks below it, but
+    // never competes with the grid's lines for depth, at any distance. Lands as #454545 after the post.
     this.ground = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({
         color: new THREE.Color().setRGB(GROUND_RGB, GROUND_RGB, GROUND_RGB, THREE.SRGBColorSpace),
-        polygonOffset: true,
-        polygonOffsetFactor: 2,
-        polygonOffsetUnits: 8,
+        depthWrite: false,
       }),
     );
+    this.ground.renderOrder = 5;
     this.ground.frustumCulled = false;
     this.three.add(this.ground);
 
