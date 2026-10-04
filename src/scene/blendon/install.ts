@@ -16,6 +16,11 @@ import { QuickRoll } from './navigation/quick-roll.ts';
 import { ViewportNav } from './navigation/viewport-nav.ts';
 import { Zoom } from './navigation/zoom.ts';
 import { PieMenus } from './piemenus/built-in-pies.ts';
+import { FrameSelected } from './scenetools/frame-selected.ts';
+import { SelectionHistory, ViewHistory } from './scenetools/history.ts';
+import { IsolateView } from './scenetools/isolate-view.ts';
+import { ClickSelectParent, HierarchyWalk } from './scenetools/selection-tools.ts';
+import { SnapToFloor } from './scenetools/snap-to-floor.ts';
 
 let installed = false;
 
@@ -32,8 +37,14 @@ function installToolKeys() {
     ['Tools/Rotate', Tool.Rotate, 'E'],
     ['Tools/Transform', Tool.Transform, 'Y'],
   ];
+  // A running grab is offered the key first: Y is its axis lock.
   for (const [id, tool, key] of keys)
-    ShortcutManager.register(id, () => !ViewportGesture.busy && (Tools.current = tool), false, key);
+    ShortcutManager.register(
+      id,
+      () => !ViewportGesture.claimed(id) && !ViewportGesture.busy && (Tools.current = tool),
+      false,
+      key,
+    );
 }
 
 export function installBlendon() {
@@ -56,6 +67,9 @@ export function installBlendon() {
     grab.install();
     void grab.instance;
   }
+  for (const tool of [FrameSelected, IsolateView, SnapToFloor, SelectionHistory, ViewHistory, HierarchyWalk])
+    tool.install();
+  ClickSelectParent.install();
   // Last, so an open menu draws over every gizmo.
   PieMenus.install();
 }
