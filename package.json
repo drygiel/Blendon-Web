@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Website for Blendon - Blender-style Scene View, Gizmos & Pie Menus for Unity",
   "type": "module",
-  "packageManager": "pnpm@12.8.1",
+  "packageManager": "pnpm@12.9.0",
   "engines": {
     "node": ">=22.12"
   },
