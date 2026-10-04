@@ -179,3 +179,62 @@
   margin: 3px 0;
   background: #3a3a3a;
 }
+
+.orientation {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: auto;
+
+  canvas {
+    display: block;
+  }
+}
+
+.orientationLock {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: default;
+
+  img {
+    display: block;
+  }
+}
+
+.orientationLabel {
+  position: absolute;
+  left: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.6);
+  font:
+    400 11px/1 Inter,
+    system-ui,
+    sans-serif;
+  text-align: center;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.orientationMenu {
+  top: auto;
+  min-width: 120px;
+}
+
+.orientationGrip {
+  position: absolute;
+  top: 6.1px;
+  left: 5px;
+  width: 15.5px;
+  height: 3.5px;
+  border-top: 0.6px solid #585858;
+  border-bottom: 0.6px solid #585858;
+  box-sizing: border-box;
+  pointer-events: none;
+}

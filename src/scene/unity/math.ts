@@ -939,6 +939,11 @@ export class Bounds {
     return p.x >= a.x && p.x <= b.x && p.y >= a.y && p.y <= b.y && p.z >= a.z && p.z <= b.z;
   }
 
+  /** Unity's Expand: grows the size by amount on every axis. */
+  expand(amount: number) {
+    return new Bounds(this.center, this.size.add(new Vector3(amount, amount, amount)));
+  }
+
   /** Slab test; returns the entry distance or null. */
   intersectRay(ray: Ray): number | null {
     const a = this.min,

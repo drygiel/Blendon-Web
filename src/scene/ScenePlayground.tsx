@@ -7,6 +7,7 @@ import { buildDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
 import { Prefs } from './unity/editor.ts';
 import { Chrome } from './ui/Chrome.tsx';
+import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
 import type { PivotPointApi } from './ui/pivot.ts';
 import styles from './ui/Scene.module.scss';
 
@@ -60,6 +61,7 @@ export default function ScenePlayground({ onActiveChange }: Props) {
     <div ref={frameRef} className={styles.frame} aria-label="Unity Scene view running Blendon" role="application">
       <div ref={canvasRef} className={styles.canvas} />
       {host && <Chrome host={host} pivot={pivotPoint} />}
+      {host && <OrientationOverlay host={host} />}
     </div>
   );
 }
