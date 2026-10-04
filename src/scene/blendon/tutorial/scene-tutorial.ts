@@ -1,6 +1,7 @@
 // SceneTutorial + TutorialProgress: which tasks are done, which chapter is open, and the card's own
 // state. Kept per visitor in the browser; the card reads it through subscribe().
 import { SceneTutorial as Reports } from '../foundation.ts';
+import { reducedMotion } from '../navigation/camera.ts';
 import { GeneralSettings } from '../settings.ts';
 import { TutorialCurriculum, TutorialTasks, type TutorialChapter, type TutorialTask } from './curriculum.ts';
 
@@ -55,8 +56,9 @@ export class TutorialWindow {
     this.windowStart = first < 0 ? this.visible.length : first;
   }
 
+  // Reduced motion keeps the fades and cuts the moves.
   get slide() {
-    return easeOutCubic((clock() - this.shownAt) / SlideSeconds);
+    return reducedMotion() ? 1 : easeOutCubic((clock() - this.shownAt) / SlideSeconds);
   }
 
   get exitAlpha() {
@@ -87,7 +89,7 @@ export class TutorialWindow {
     } else if (this.phase === 'fading' && t - this.phaseStart >= TaskFadeSeconds) {
       this.phase = 'sliding';
       this.phaseStart = t;
-    } else if (this.phase === 'sliding' && t - this.phaseStart >= TaskSlideSeconds) {
+    } else if (this.phase === 'sliding' && (reducedMotion() || t - this.phaseStart >= TaskSlideSeconds)) {
       this.windowStart++;
       this.phase = 'none';
     }
