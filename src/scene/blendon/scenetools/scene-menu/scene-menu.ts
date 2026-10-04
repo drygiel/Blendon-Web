@@ -437,7 +437,7 @@ function beginRename() {
 }
 
 function run(node: MenuNode) {
-  if (!node.enabled) return;
+  if (!node.enabled || node.demoOnly) return;
   if (node.command) {
     if (node.staysOpen) {
       node.command();
