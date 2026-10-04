@@ -15,6 +15,7 @@ import { Pan } from './navigation/pan.ts';
 import { QuickRoll } from './navigation/quick-roll.ts';
 import { ViewportNav } from './navigation/viewport-nav.ts';
 import { Zoom } from './navigation/zoom.ts';
+import { PieMenus } from './piemenus/built-in-pies.ts';
 
 let installed = false;
 
@@ -55,4 +56,6 @@ export function installBlendon() {
     grab.install();
     void grab.instance;
   }
+  // Last, so an open menu draws over every gizmo.
+  PieMenus.install();
 }

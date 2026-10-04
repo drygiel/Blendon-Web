@@ -106,7 +106,25 @@ export class SceneRenderer {
   private readonly wireMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
   private readonly wireOverlayMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25 });
   private readonly material = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5, metalness: 0 });
-  private readonly unlitMat = new THREE.MeshBasicMaterial({ color: 0x808080 });
+  // Scene lighting off: Unity lights the view with a headlight on the camera instead of the scene's lights.
+  private readonly unlitMat = new THREE.ShaderMaterial({
+    vertexShader: /* glsl */ `
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        vec4 p = modelViewMatrix * vec4(position, 1.0);
+        vNormal = normalMatrix * normal;
+        vView = isOrthographic ? vec3(0.0, 0.0, 1.0) : -p.xyz;
+        gl_Position = projectionMatrix * p;
+      }`,
+    fragmentShader: /* glsl */ `
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        float ndl = max(dot(normalize(vNormal), normalize(vView)), 0.0);
+        gl_FragColor = vec4(vec3(0.214) * (0.35 + 1.6 * ndl), 1.0);
+      }`,
+  });
 
   constructor(canvas: HTMLCanvasElement, scene: Scene) {
     this.scene = scene;
@@ -274,10 +292,12 @@ export class SceneRenderer {
     const cam = this.camera(view);
     const mode = view.drawMode;
     const wireOnly = mode === DrawCameraMode.Wireframe;
+    // Unity's Unlit is the Textured draw mode with the scene lighting toggle off.
+    const unlit = !view.sceneLighting;
     for (const e of this.entries.values()) {
       const vis = e.go.visible;
       e.mesh.visible = vis && !wireOnly;
-      e.mesh.material = mode === DrawCameraMode.Unlit ? this.unlitMat : this.material;
+      e.mesh.material = unlit ? this.unlitMat : this.material;
       e.wire.visible = vis && (wireOnly || mode === DrawCameraMode.TexturedWire);
       e.wire.material = wireOnly ? this.wireMat : this.wireOverlayMat;
     }
@@ -335,8 +355,7 @@ export class SceneRenderer {
       }
       this.three.background = bg;
       for (const [o, v] of vis) o.visible = v;
-      for (const e of this.entries.values())
-        e.mesh.material = mode === DrawCameraMode.Unlit ? this.unlitMat : this.material;
+      for (const e of this.entries.values()) e.mesh.material = unlit ? this.unlitMat : this.material;
       r.setRenderTarget(this.distTarget);
       r.render(this.distScene, this.quadCam);
       r.setRenderTarget(null);

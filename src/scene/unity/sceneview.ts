@@ -184,7 +184,7 @@ export class SceneCamera {
   }
 }
 
-export const DrawCameraMode = { Textured: 0, Wireframe: 1, TexturedWire: 2, Unlit: 3 } as const;
+export const DrawCameraMode = { Textured: 0, Wireframe: 1, TexturedWire: 2 } as const;
 export type DrawCameraMode = (typeof DrawCameraMode)[keyof typeof DrawCameraMode];
 
 export interface SceneViewState {

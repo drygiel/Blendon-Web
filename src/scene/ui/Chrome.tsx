@@ -19,12 +19,19 @@ import transformOff from '../../assets/scene/icons/d_TransformTool.png';
 import transformOn from '../../assets/scene/icons/d_TransformTool_On.png';
 import type { SceneHost } from '../engine/host.ts';
 import { PivotMode, PivotRotation, Tool, Tools } from '../unity/editor.ts';
+import { iconUrl } from '../unity/icons.ts';
 import { pivotPointNames, type PivotPointApi } from './pivot.ts';
 import styles from './Scene.module.scss';
 
 // The capture was taken at 175 % display scaling; its pixels map to points by this.
 const PX = 1 / 1.75;
 const pt = (px: number) => px * PX;
+
+const HANDLE_ROTATIONS = [
+  { label: 'Global', value: PivotRotation.Global, icon: handleGlobal },
+  { label: 'Local', value: PivotRotation.Local, icon: handleLocal },
+  { label: 'Grid', value: PivotRotation.Grid, icon: iconUrl('d_GridAndSnap') },
+];
 
 const TOOL_BUTTONS = [
   { tool: Tool.Move, top: 129, off: moveOff, on: moveOn, label: 'Move Tool' },
@@ -96,6 +103,7 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
   useEffect(() => Tools.onChange(() => setTick((t) => t + 1)), []);
   const current = Tools.current;
   const mode = pivot.get();
+  const rotation = HANDLE_ROTATIONS.find((o) => o.value === Tools.pivotRotation) ?? HANDLE_ROTATIONS[0];
   const pos = (left: number, topPx: number, w: number, h: number): CSSProperties => ({
     left: pt(left),
     top: pt(topPx),
@@ -153,13 +161,10 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
           }))}
         />
         <Dropdown
-          icon={Tools.pivotRotation === PivotRotation.Local ? handleLocal : handleGlobal}
-          label={Tools.pivotRotation === PivotRotation.Local ? 'Local' : 'Global'}
+          icon={rotation.icon}
+          label={rotation.label}
           title="Tool Handle Rotation"
-          items={[
-            { label: 'Global', value: PivotRotation.Global },
-            { label: 'Local', value: PivotRotation.Local },
-          ].map((o) => ({
+          items={HANDLE_ROTATIONS.map((o) => ({
             label: o.label,
             checked: Tools.pivotRotation === o.value,
             run: () => {

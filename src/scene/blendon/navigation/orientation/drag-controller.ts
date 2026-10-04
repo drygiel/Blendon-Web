@@ -7,7 +7,14 @@ import { GeneralSettings } from '../../settings.ts';
 import { TurntableOrbit } from '../camera.ts';
 import { OrbitSelected, OrbitSelectedSettings } from '../orbit-selected.ts';
 import { ViewAlignment, ViewSnap, WorldAxes } from '../view-snap.ts';
-import { AxisHitTest, AxisProjection, GizmoGeometry, GizmoPainter, OrientationGizmoSettings, type AxisEntry } from './gizmo.ts';
+import {
+  AxisHitTest,
+  AxisProjection,
+  GizmoGeometry,
+  GizmoPainter,
+  OrientationGizmoSettings,
+  type AxisEntry,
+} from './gizmo.ts';
 
 const DragThresholdPixels = 3;
 let anyDragging = false;
@@ -26,11 +33,18 @@ export class OrientationGizmoElement {
   private dragStartRotation = Quaternion.identity;
   private orbitCenter = Vector3.zero;
   isDragging = false;
-  /** Set when anything the painter shows changed. */
-  onDirty: () => void = () => {};
+  private onDirty: () => void = () => {};
 
   constructor(view: SceneView) {
     this.view = view;
+  }
+
+  /** Called when anything the painter shows changed; returns the unsubscribe. */
+  listen(fn: () => void) {
+    this.onDirty = fn;
+    return () => {
+      if (this.onDirty === fn) this.onDirty = () => {};
+    };
   }
 
   static get anyDragging() {
@@ -156,8 +170,18 @@ export class OrientationGizmoElement {
       this.orbitCenter = OrbitSelected.resolveOrbitCenter(v);
     }
     const o = OrbitSelectedSettings;
-    const rotation = TurntableOrbit.rotate(this.dragStartRotation, delta, o.HorizontalOrbitDegreesPerPixel, o.VerticalTiltDegreesPerPixel);
-    v.pivot = TurntableOrbit.pivotAround(this.orbitCenter, this.dragStartPivot.sub(this.orbitCenter), this.dragStartRotation, rotation);
+    const rotation = TurntableOrbit.rotate(
+      this.dragStartRotation,
+      delta,
+      o.HorizontalOrbitDegreesPerPixel,
+      o.VerticalTiltDegreesPerPixel,
+    );
+    v.pivot = TurntableOrbit.pivotAround(
+      this.orbitCenter,
+      this.dragStartPivot.sub(this.orbitCenter),
+      this.dragStartRotation,
+      rotation,
+    );
     v.rotation = rotation;
     v.repaint();
     this.onDirty();

@@ -39,10 +39,10 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       element.paint(ctx, geometry);
     };
-    element.onDirty = () => {
+    const unlisten = element.listen(() => {
       paint();
       setTick((t) => t + 1);
-    };
+    });
     // Only the camera turning (or the projection) changes what it shows.
     const onFrame = () => {
       const v = host.view;
@@ -54,7 +54,10 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
     };
     host.frameListeners.add(onFrame);
     paint();
-    return () => void host.frameListeners.delete(onFrame);
+    return () => {
+      unlisten();
+      host.frameListeners.delete(onFrame);
+    };
   }, [host, element, w, h, geometry]);
 
   useEffect(() => {
@@ -81,7 +84,12 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       checked: current === i,
       run: () => ViewSnap.to(host.view, d.axisIndex, d.isPositive, animated),
     })),
-    { label: 'Perspective', checked: !host.view.orthographic, run: () => ViewSnap.toggleProjection(host.view, animated), sep: true },
+    {
+      label: 'Perspective',
+      checked: !host.view.orthographic,
+      run: () => ViewSnap.toggleProjection(host.view, animated),
+      sep: true,
+    },
   ];
 
   return (
@@ -153,7 +161,11 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
         </button>
       )}
       {menu && (
-        <div className={styles.menu + ' ' + styles.orientationMenu} role="menu" style={{ left: menu.x - 120, top: menu.y }}>
+        <div
+          className={styles.menu + ' ' + styles.orientationMenu}
+          role="menu"
+          style={{ left: menu.x - 120, top: menu.y }}
+        >
           {items.map((it) => (
             <div key={it.label}>
               {it.sep && <div className={styles.menuSep} />}

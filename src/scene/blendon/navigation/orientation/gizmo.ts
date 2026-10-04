@@ -125,7 +125,8 @@ export const AxisProjection = {
     for (let axis = 0; axis < 3; axis++) {
       // Camera space has +z into the screen and GUI y grows down, hence the negations.
       const v = inverse.mulV(WorldAxes.get(axis));
-      for (const sign of [1, -1]) out.push(new AxisEntry(axis, sign > 0, -v.z * sign, new Vector2(v.x, -v.y).mul(sign)));
+      for (const sign of [1, -1])
+        out.push(new AxisEntry(axis, sign > 0, -v.z * sign, new Vector2(v.x, -v.y).mul(sign)));
     }
     return out.sort((a, b) => a.depth - b.depth);
   },
@@ -172,7 +173,13 @@ class AxisPalette {
   }
 
   private axis(i: number) {
-    return this.locked ? GizmoColors.NavAxisLocked : i === 0 ? GizmoColors.NavAxisX : i === 1 ? GizmoColors.NavAxisY : GizmoColors.NavAxisZ;
+    return this.locked
+      ? GizmoColors.NavAxisLocked
+      : i === 0
+        ? GizmoColors.NavAxisX
+        : i === 1
+          ? GizmoColors.NavAxisY
+          : GizmoColors.NavAxisZ;
   }
   receding(e: AxisEntry) {
     return withFade(Color.lerp(this.background, this.axis(e.axisIndex), (e.depth + 1) * 0.25 + 0.5), this.opacity);
@@ -195,7 +202,9 @@ class AxisPalette {
     return hovered ? GizmoColors.NavCenterHover : withFade(GizmoColors.NavCenter, this.opacity * 0.6);
   }
   glyph(highlighted: boolean, hovered: boolean) {
-    return highlighted ? withFade(GizmoColors.NavGlyphHighlight, this.opacity) : withFade(GizmoColors.NavGlyph, this.opacity * (hovered ? 1 : 0.9));
+    return highlighted
+      ? withFade(GizmoColors.NavGlyphHighlight, this.opacity)
+      : withFade(GizmoColors.NavGlyph, this.opacity * (hovered ? 1 : 0.9));
   }
 }
 

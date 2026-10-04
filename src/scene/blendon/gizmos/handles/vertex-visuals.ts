@@ -144,7 +144,8 @@ export const VertexPreviewHandle = {
   /** The field of points a drag could pick up, while V is held and nothing is being dragged. */
   draw(coordinator: GizmoDragCoordinator) {
     if (Event.current.type !== EventType.Repaint) return;
-    if (coordinator.activeKind !== DragKind.None || !VertexSnappingUtility.isActive || VertexSnappingUtility.hasPick) return;
+    if (coordinator.activeKind !== DragKind.None || !VertexSnappingUtility.isActive || VertexSnappingUtility.hasPick)
+      return;
     const batch = MarkerBatch.tryBegin();
     if (!batch) return;
     const selection = SelectionCache.deep;
@@ -264,7 +265,12 @@ export const VertexPickHandle = {
       rmbDownPosition = ev.mousePosition;
       return false;
     }
-    if (ev.rawType === EventType.MouseUp && ev.button === MouseButton.RightMouse && rmbArmed && ev.type !== EventType.Layout) {
+    if (
+      ev.rawType === EventType.MouseUp &&
+      ev.button === MouseButton.RightMouse &&
+      rmbArmed &&
+      ev.type !== EventType.Layout
+    ) {
       rmbArmed = false;
       if (ev.mousePosition.sub(rmbDownPosition).sqrMagnitude > ClickSlackSquared) return false;
       VertexSnappingUtility.exitPickMode();
@@ -372,7 +378,13 @@ function drawStar(vertex: Vector3) {
       const mid = Vector3.lerp(a, b, 0.5);
       const shown = visible(cam, mid, EdgeLiftPixels * s.worldPerDevicePixel(s.depth(mid)));
       Handles.color = withFade(shown ? GizmoColors.VertexEdge : GizmoColors.VertexEdgeOccluded, fade * fade);
-      DrawPrimitives.drawThickSegment(a, b, s.forward, s.halfWidth(s.depth(a), thickness), s.halfWidth(s.depth(b), thickness));
+      DrawPrimitives.drawThickSegment(
+        a,
+        b,
+        s.forward,
+        s.halfWidth(s.depth(a), thickness),
+        s.halfWidth(s.depth(b), thickness),
+      );
     }
   }
 }
