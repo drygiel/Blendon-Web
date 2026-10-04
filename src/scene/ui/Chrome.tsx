@@ -2,7 +2,6 @@
 // is interactive (tool buttons, pivot point, handle orientation); the rest is a picture of Unity.
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import tools from '../../assets/scene/overlay-tools.png';
-import top from '../../assets/scene/overlay-top.png';
 import bottom from '../../assets/scene/overlay-bottom.png';
 import dropdown from '../../assets/scene/icons/d_dropdown.png';
 import handleCenter from '../../assets/scene/icons/d_ToolHandleCenter.png';
@@ -115,12 +114,11 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
   return (
     <div className={styles.chrome} onPointerDown={(e) => e.stopPropagation()}>
       <img className={styles.pic} src={tools} alt="" style={pos(0, 0, 76, 530)} draggable={false} />
-      <img className={styles.pic} src={top} alt="" style={pos(79, 3, 213, 45)} draggable={false} />
       <img
         className={styles.picBottom}
         src={bottom}
         alt=""
-        style={{ width: pt(670), height: pt(53) }}
+        style={{ width: pt(612), height: pt(53) }}
         draggable={false}
       />
 
@@ -143,7 +141,7 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
         </button>
       ))}
 
-      <div className={styles.toolbar2} style={{ left: pt(80), top: pt(52), height: pt(45) }}>
+      <div className={styles.toolbar2} style={{ left: pt(80), top: pt(3), height: pt(45) }}>
         <i className={styles.grip} />
         <Dropdown
           icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
