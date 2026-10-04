@@ -5,7 +5,6 @@ import { Hero } from './sections/hero/Hero.tsx';
 import { UnderTheHood } from './sections/hood/UnderTheHood.tsx';
 import { PromoVideo } from './sections/video/PromoVideo.tsx';
 import { PieMenus } from './sections/pies/PieMenus.tsx';
-import { Playground } from './sections/playground/Playground.tsx';
 import { Precision } from './sections/precision/Precision.tsx';
 import { SceneSection } from './sections/scene/SceneSection.tsx';
 import { Setup } from './sections/setup/Setup.tsx';
@@ -24,7 +23,6 @@ export function Landing() {
         <PieMenus />
         <Setup />
         <SceneSection />
-        <Playground />
         <Tutorial />
         <Shortcuts />
         <UnderTheHood />

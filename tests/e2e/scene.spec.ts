@@ -100,15 +100,17 @@ test('opens the context menu on a right click and closes it with Escape', async 
 
 test('follows a feature switched off in the settings window', async ({ page }) => {
   const view = await openScene(page);
-  await page.locator('#playground').scrollIntoViewIfNeeded();
-  const win = page.locator('#playground .uw');
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
   await win.getByRole('button', { name: 'Move', exact: true }).click();
   const enable = win.getByRole('button', { name: 'Enable Move' });
   await enable.click();
   await expect(enable).toHaveAttribute('aria-pressed', 'false');
 
   const before = (await positionOf(page, 'Cube'))!.x;
-  await view.focus();
+  // Picking the Scene tab hands the keyboard to the view.
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await expect(view).toBeFocused();
   for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(1500);
   expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
@@ -139,4 +141,35 @@ test('cancels a handle drag with the right mouse button', async ({ page }) => {
   await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
   await page.mouse.up({ button: 'right' });
   await page.mouse.up();
+});
+
+const isFullScreen = (page: Page) =>
+  page.evaluate(
+    () => !!(globalThis as unknown as { document: { fullscreenElement: unknown } }).document.fullscreenElement,
+  );
+
+test.describe('on a wide screen', () => {
+  test.use({ viewport: { width: 1600, height: 1000 } });
+
+  test('shows the Scene view and the settings window side by side, or as tabs', async ({ page }) => {
+    await openScene(page);
+    const win = page.locator('#try .uw');
+    await expect(win).toBeVisible();
+    await expect(page.locator('#try [role=application]')).toBeVisible();
+    await page.getByRole('button', { name: 'Show as tabs' }).click();
+    await expect(win).toBeHidden();
+    await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+    await expect(win).toBeVisible();
+    await expect(page.locator('#try [role=application]')).toBeHidden();
+    await page.getByRole('button', { name: 'Show side by side' }).click();
+    await expect(page.locator('#try [role=application]')).toBeVisible();
+  });
+
+  test('fills the screen and leaves it', async ({ page }) => {
+    await openScene(page);
+    await page.getByRole('button', { name: 'Full screen' }).click();
+    await expect.poll(() => isFullScreen(page)).toBe(true);
+    await page.getByRole('button', { name: 'Exit full screen' }).click();
+    await expect.poll(() => isFullScreen(page)).toBe(false);
+  });
 });

@@ -88,6 +88,8 @@ export interface WindowState {
   edit: { key: string; text: string } | null;
   dragKey: string | null;
   resizing: boolean;
+  /** Fills its host with no frame, tab or grip: a pane of the page's dock. */
+  docked: boolean;
 }
 
 export function initialState(initial: Record<string, PropValue>): WindowState {
@@ -118,6 +120,7 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
     edit: null,
     dragKey: null,
     resizing: false,
+    docked: false,
   };
 }
 

@@ -16,7 +16,7 @@ export function Shortcuts() {
     <Section id="shortcuts">
       <div className={styles.head}>
         <div className={styles.intro}>
-          <Eyebrow>08 / SHORTCUTS</Eyebrow>
+          <Eyebrow>07 / SHORTCUTS</Eyebrow>
           <SectionTitle>Every default, on one sheet.</SectionTitle>
           <Lead>All of them rebindable from Blendon&apos;s settings window or Unity&apos;s Edit → Shortcuts.</Lead>
         </div>

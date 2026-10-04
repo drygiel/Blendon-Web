@@ -383,7 +383,7 @@ export const TutorialCurriculum: TutorialChapter[] = [
       gesture(
         'setup.settings',
         "Open Blendon's settings",
-        'Tools → Blendon in Unity; on this page, the settings window further down. Every feature here can be switched off on its own, and its keys go straight back to the Editor.',
+        'Tools → Blendon in Unity; on this page, the Blendon tab beside the Scene tab. Every feature here can be switched off on its own, and its keys go straight back to the Editor.',
         'SettingsOpened',
         Pages.Overview,
       ),

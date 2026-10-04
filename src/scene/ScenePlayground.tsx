@@ -45,7 +45,7 @@ export default function ScenePlayground({ onActiveChange }: Props) {
         const p = D.props[key];
         return p?.d;
       };
-      // The settings window's values once it has loaded further down the page, the defaults until then.
+      // The settings window's values once its tab has loaded, the defaults until then.
       Prefs.source = {
         val: (key) => SharedSettings.reader?.val(key) ?? val(key),
         // Only Blendon's own shortcuts are in the window; Unity's (Undo, the tool keys) keep their defaults.

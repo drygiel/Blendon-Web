@@ -620,6 +620,13 @@ export class WindowModel {
     const r = host.getBoundingClientRect();
     const cs = getComputedStyle(host);
     const avail = Math.floor(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    if (this.st.docked) {
+      const h = Math.floor(r.height);
+      this.update((s) =>
+        avail !== s.hostW || avail !== s.winW || h !== s.winH ? { hostW: avail, winW: avail, winH: h } : {},
+      );
+      return;
+    }
     this.update((s) => (avail !== s.hostW ? { hostW: avail } : {}));
   }
 

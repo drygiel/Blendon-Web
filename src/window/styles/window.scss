@@ -26,6 +26,17 @@
   & * {
     box-sizing: border-box;
   }
+  &.docked {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    .tabbar {
+      display: none;
+    }
+    .ubody {
+      top: 0;
+    }
+  }
   & .lk {
     cursor: pointer;
   }
