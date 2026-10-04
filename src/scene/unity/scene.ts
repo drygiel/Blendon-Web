@@ -291,8 +291,10 @@ export class GameObject {
     return Bounds.minMax(min, max);
   }
 
-  /** Whether it shows in the Scene view: active and not hidden by visibility. */
+  /** Whether it shows in the Scene view: active, not hidden by visibility, and inside any isolation. */
   get visible() {
+    const isolated = this.scene.isolated;
+    if (isolated && !isolated.has(this)) return false;
     for (let t: Transform | null = this.transform; t; t = t.parent) if (t.gameObject.hidden) return false;
     return this.activeInHierarchy;
   }
@@ -302,6 +304,8 @@ export class Scene {
   /** The scene the Scene view shows; one at a time here. */
   static current: Scene | null = null;
   readonly roots: Transform[] = [];
+  /** SceneVisibilityManager's isolation: only these show while it is set. */
+  isolated: Set<GameObject> | null = null;
   private changeListeners = new Set<(t: Transform) => void>();
   private hierarchyListeners = new Set<() => void>();
 
@@ -345,3 +349,27 @@ export class Scene {
     this.hierarchyChanged();
   }
 }
+
+/** The isolation half of Unity's SceneVisibilityManager. */
+export const SceneVisibilityManager = {
+  isCurrentStageIsolated() {
+    return !!Scene.current?.isolated;
+  },
+  isolate(objects: GameObject[], includeDescendants: boolean) {
+    const scene = Scene.current;
+    if (!scene) return;
+    const shown = new Set<GameObject>();
+    for (const go of objects) {
+      if (includeDescendants) for (const t of go.transform.walk()) shown.add(t.gameObject);
+      else shown.add(go);
+    }
+    scene.isolated = shown;
+    scene.hierarchyChanged();
+  },
+  exitIsolation() {
+    const scene = Scene.current;
+    if (!scene?.isolated) return;
+    scene.isolated = null;
+    scene.hierarchyChanged();
+  },
+};

@@ -1,0 +1,115 @@
+// Settings of the Scene Tools pages, read through the window's values like every other page.
+import { GeneralSettings, sBool, sEnum, sNum, sStr } from '../settings.ts';
+
+const animated = (k: string) => sBool(k + 'AnimationEnabled', GeneralSettings.AnimationEnabled);
+const duration = (k: string) => sNum(k + 'AnimationDuration', GeneralSettings.AnimationDuration);
+
+export const FrameSelectedStep = { SelectionCenter: 0, ActivePivot: 1, ZoomIn: 2, BackToStart: 3 } as const;
+export type FrameSelectedStep = (typeof FrameSelectedStep)[keyof typeof FrameSelectedStep];
+const StepNames = ['SelectionCenter', 'ActivePivot', 'ZoomIn', 'BackToStart'];
+
+let parsedText: string | null = null;
+let cycle: FrameSelectedStep[] = [];
+
+const F = 'FrameSelectedSettings.';
+export const FrameSelectedSettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool(F + 'Enabled', true);
+  },
+  get AnimationEnabled() {
+    return animated(F);
+  },
+  get AnimationDuration() {
+    return duration(F);
+  },
+  get SequenceText() {
+    return sStr(F + 'SequenceText', StepNames.join(','));
+  },
+  /** The steps one press after another walks through; a new array whenever the text changes. */
+  get Cycle(): FrameSelectedStep[] {
+    const text = FrameSelectedSettings.SequenceText;
+    if (text === parsedText) return cycle;
+    parsedText = text;
+    // A leading '-' keeps a step's place in the order while leaving it out of the cycle.
+    const seen = new Set<number>();
+    const out: FrameSelectedStep[] = [];
+    for (const token of text.split(',')) {
+      const on = token.length > 0 && token[0] !== '-';
+      const step = StepNames.indexOf(on ? token : token.replace(/^-+/, ''));
+      if (step < 0 || seen.has(step)) continue;
+      seen.add(step);
+      if (on) out.push(step as FrameSelectedStep);
+    }
+    cycle = out;
+    return cycle;
+  },
+};
+
+export const SnapDirection = { Down: 0, Up: 1 } as const;
+
+const S = 'SnapToFloorSettings.';
+export const SnapToFloorSettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool(S + 'Enabled', true);
+  },
+  get Direction() {
+    return sEnum(S + 'Direction', ['Down', 'Up'], SnapDirection.Down);
+  },
+  get AlignToSurface() {
+    return sBool(S + 'AlignToSurface', false);
+  },
+  get SurfaceOffset() {
+    return sNum(S + 'SurfaceOffset', 0);
+  },
+  get AnimationEnabled() {
+    return animated(S);
+  },
+  get AnimationDuration() {
+    return duration(S);
+  },
+};
+
+const I = 'IsolateViewSettings.';
+export const IsolateViewSettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool(I + 'Enabled', true);
+  },
+  get IncludeChildren() {
+    return sBool(I + 'IncludeChildren', true);
+  },
+  get FrameOnIsolate() {
+    return sBool(I + 'FrameOnIsolate', false);
+  },
+};
+
+export const SelectionHistorySettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool('HistorySettings.Enabled', true);
+  },
+};
+
+const V = 'ViewHistorySettings.';
+export const ViewHistorySettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool(V + 'Enabled', true);
+  },
+  get AnimationEnabled() {
+    return animated(V);
+  },
+  get AnimationDuration() {
+    return duration(V);
+  },
+};
+
+const B = 'BoxSelectSettings.';
+export const BoxSelectSettings = {
+  get Enabled() {
+    return GeneralSettings.Enabled && sBool(B + 'Enabled', false);
+  },
+  get ClickSelectsParent() {
+    return sBool(B + 'ClickSelectsParent', true);
+  },
+  get HierarchyKeys() {
+    return sBool(B + 'HierarchyKeys', true);
+  },
+};
