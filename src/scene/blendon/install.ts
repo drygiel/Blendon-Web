@@ -9,7 +9,7 @@ import { RotateGrab } from './gizmos/rotate/rotate-grab.ts';
 import { ScaleGizmo } from './gizmos/scale/scale-gizmo.ts';
 import { ScaleGrab } from './gizmos/scale/scale-grab.ts';
 import { VertexSnappingUtility } from './gizmos/vertex-snapping.ts';
-import { ViewportGesture } from './gizmos/viewport-gesture.ts';
+import { GizmoRegistry, ViewportGesture } from './gizmos/viewport-gesture.ts';
 import { OrbitSelected } from './navigation/orbit-selected.ts';
 import { Pan } from './navigation/pan.ts';
 import { QuickRoll } from './navigation/quick-roll.ts';
@@ -56,6 +56,10 @@ export function installBlendon() {
   installed = true;
   installEditorUndo();
   installToolKeys();
+  // A handle drag or a box takes the keys it understands (X/Y/Z, digits, G/R/S) before any shortcut.
+  // Modal grabs already take theirs through ViewportGesture.claimed.
+  ShortcutManager.dragActive = () =>
+    (GizmoRegistry.anyManipulation() && !GizmoRegistry.hasModalSession()) || BoxSelect.isDragging;
   OrbitSelected.install();
   QuickRoll.install();
   Pan.install();

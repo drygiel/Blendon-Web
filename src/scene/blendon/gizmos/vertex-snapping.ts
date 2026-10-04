@@ -256,7 +256,7 @@ export const VertexSnappingUtility = {
   },
 
   install() {
-    ShortcutManager.register(VertexSnapping.ShortcutId, hold, true, 'V');
+    ShortcutManager.register(VertexSnapping.ShortcutId, hold, true, 'V', true);
     ShortcutManager.register(VertexSnapping.PickShortcutId, togglePickMode, false, 'Shift+V');
     Selection.selectionChanged.add(() => {
       VertexSnappingUtility.clearPick();

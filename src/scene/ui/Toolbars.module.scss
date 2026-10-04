@@ -130,14 +130,14 @@ $text: #c4c4c4;
 
 .menu {
   position: absolute;
-  left: 0;
-  bottom: 0;
+  left: 5px;
+  bottom: 5px;
   z-index: 2;
   display: flex;
   align-items: center;
   box-sizing: border-box;
   padding: 0 3px 0 4px;
-  border-radius: 3px 3px 0 0;
+  border-radius: 3px;
   background: $frame;
   pointer-events: auto;
 

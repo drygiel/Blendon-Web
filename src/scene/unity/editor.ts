@@ -554,6 +554,8 @@ interface ShortcutEntry {
   handler: (args: ShortcutArguments) => void;
   /** Unity's shortcut defaults, for ids the generated data doesn't carry. */
   fallback: string;
+  /** Still answers while a drag holds the mouse (a key meant to be held mid-drag). */
+  duringDrag: boolean;
 }
 
 const NAMED_KEYS: Record<string, number> = {
@@ -665,9 +667,15 @@ export const ShortcutManager = {
   /** Fired with the id of every shortcut that ran, for the tutorial and the key display. */
   onTriggered: new Set<(id: string, stage: number) => void>(),
 
-  register(id: string, handler: (args: ShortcutArguments) => void, clutch = false, fallback = '') {
-    registry.set(id, { id, clutch, handler, fallback });
+  register(id: string, handler: (args: ShortcutArguments) => void, clutch = false, fallback = '', duringDrag = false) {
+    registry.set(id, { id, clutch, handler, fallback, duringDrag });
   },
+
+  /**
+   * Set by Blendon: a handle, grab or box owns the mouse. The Editor's Shortcut Manager stands down then,
+   * so the key reaches the drag itself (Y picks the Y axis rather than the Transform tool).
+   */
+  dragActive: () => false,
 
   getShortcutBinding(id: string): KeyCombination | null {
     if (!bindingCache.has(id)) {
@@ -711,6 +719,7 @@ export const ShortcutManager = {
     }
     const e = ShortcutManager.find(ev.keyCode, eventShortcutModifiers(ev));
     if (!e) return false;
+    if (!e.duringDrag && ShortcutManager.dragActive()) return false;
     if (e.clutch) activeClutches.set(ev.keyCode, e);
     e.handler({ stage: ShortcutStage.Begin, context });
     for (const l of ShortcutManager.onTriggered) l(e.id, ShortcutStage.Begin);
