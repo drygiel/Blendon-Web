@@ -89,8 +89,7 @@ export class SceneHost {
       pick: (gui, ignore) =>
         raycastScene(this.scene, HandleUtility.guiPointToWorldRay(gui), { ignore: ignore as Set<GameObject> })
           ?.gameObject ?? null,
-      pickRect: (rect) =>
-        objectsInRect(this.scene, rect, (p) => HandleUtility.worldToGUIPointWithDepth(p)),
+      pickRect: (rect) => objectsInRect(this.scene, rect, (p) => HandleUtility.worldToGUIPointWithDepth(p)),
     };
     this.cleanup.push(this.scene.onChange(() => this.requestFrame()));
     this.cleanup.push(this.scene.onHierarchyChange(() => this.requestFrame()));
@@ -217,7 +216,12 @@ export class SceneHost {
   runPass(ev: Event) {
     const view = this.view;
     // Reentrant: a command can be sent from inside another event's pass.
-    const outer = { ev: Event.current, id: GUIUtility.nextId, near: HandleUtility.nearestControl, nested: this.depth > 0 };
+    const outer = {
+      ev: Event.current,
+      id: GUIUtility.nextId,
+      near: HandleUtility.nearestControl,
+      nested: this.depth > 0,
+    };
     this.depth++;
     SceneView.currentDrawingSceneView = view;
     setDrawTarget({ ctx: this.ctx, view });
@@ -299,7 +303,12 @@ export class SceneHost {
       this.runPass(ev);
     }
     this.pressed.clear();
-    heldModifiers.shift = heldModifiers.control = heldModifiers.alt = heldModifiers.command = heldModifiers.action = false;
+    heldModifiers.shift =
+      heldModifiers.control =
+      heldModifiers.alt =
+      heldModifiers.command =
+      heldModifiers.action =
+        false;
     EditorApplication.focusChanged.invoke(false);
     if (GUIUtility.hotControl !== 0) GUIUtility.hotControl = 0;
   }
@@ -416,7 +425,11 @@ export class SceneHost {
       if (ev.keyCode === KeyCode.None) return;
       this.listeners.onInput?.(ev);
       if (MODIFIER_CODES.has(ev.keyCode)) this.endStaleClutches(ev);
-      if (!MODIFIER_CODES.has(ev.keyCode) && GUIUtility.keyboardControl === 0 && ShortcutManager.dispatchDown(ev, this.view)) {
+      if (
+        !MODIFIER_CODES.has(ev.keyCode) &&
+        GUIUtility.keyboardControl === 0 &&
+        ShortcutManager.dispatchDown(ev, this.view)
+      ) {
         this.requestFrame();
         return;
       }
@@ -478,7 +491,7 @@ const DOM_BUTTON = [0, 2, 1, 3, 4];
 /** Browser keys left alone even while the view has the keyboard. */
 function passThrough(e: KeyboardEvent) {
   if (/^F\d+$/.test(e.key)) return true;
-  if ((e.ctrlKey || e.metaKey) && /^[rltwnjip0=+\-]$/i.test(e.key) && e.key.toLowerCase() !== 'z') return true;
+  if ((e.ctrlKey || e.metaKey) && /^[rltwnjip0=+-]$/i.test(e.key) && e.key.toLowerCase() !== 'z') return true;
   if (e.key === 'Tab') return true;
   return false;
 }

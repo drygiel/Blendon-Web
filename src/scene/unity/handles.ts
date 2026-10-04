@@ -64,7 +64,11 @@ const meshCone: Face[] = (() => {
       ],
     });
     out.push({
-      v: [new Vector3(0, 0, -0.5), new Vector3(b[0] * 0.4, b[1] * 0.4, -0.5), new Vector3(a[0] * 0.4, a[1] * 0.4, -0.5)],
+      v: [
+        new Vector3(0, 0, -0.5),
+        new Vector3(b[0] * 0.4, b[1] * 0.4, -0.5),
+        new Vector3(a[0] * 0.4, a[1] * 0.4, -0.5),
+      ],
       n: [Vector3.back, Vector3.back, Vector3.back],
     });
   }
@@ -567,6 +571,74 @@ export const Handles = {
     return position;
   },
 
+  /** Handles.Slider2D: the press point's offset is kept, the rest follows the cursor ray on the handle's plane. */
+  slider2D(
+    id: number,
+    handlePos: Vector3,
+    handleDir: Vector3,
+    slideDir1: Vector3,
+    slideDir2: Vector3,
+    handleSize: number,
+    cap: CapFunction | null,
+    snap: Vector2,
+  ): Vector3 {
+    const ev = Event.current;
+    const st = sliderState;
+    const rotation = Quaternion.lookRotation(handleDir, slideDir1);
+    const hit = (mouse: Vector2) => {
+      const ray = HandleUtility.guiPointToWorldRay(mouse);
+      const denom = Vector3.dot(ray.direction, handleDir);
+      if (Math.abs(denom) < 1e-8) return null;
+      const t = Vector3.dot(handlePos.sub(ray.origin), handleDir) / denom;
+      return t < 0 && !cam().orthographic ? null : ray.getPoint(t);
+    };
+    const param = (p: Vector3, dir: Vector3) => Vector3.dot(dir, p.sub(st.startPosition)) / dir.sqrMagnitude;
+    switch (ev.type) {
+      case EventType.Layout:
+      case EventType.MouseMove:
+        cap?.(id, handlePos, rotation, handleSize, EventType.Layout);
+        break;
+      case EventType.MouseDown: {
+        if (HandleUtility.nearestControl !== id || ev.button !== 0 || GUIUtility.hotControl !== 0 || ev.alt) break;
+        st.currentMouse = ev.mousePosition;
+        const p = hit(st.currentMouse);
+        if (!p) break;
+        GUIUtility.hotControl = id;
+        st.startPosition = handlePos;
+        const click = p.sub(handlePos);
+        st.planeOffset = new Vector2(Vector3.dot(click, slideDir1), Vector3.dot(click, slideDir2));
+        ev.use();
+        break;
+      }
+      case EventType.MouseDrag:
+        if (GUIUtility.hotControl !== id) break;
+        st.currentMouse = st.currentMouse.add(ev.delta);
+        {
+          const p = hit(st.currentMouse);
+          if (p) {
+            let x = param(p, slideDir1) - st.planeOffset.x;
+            let y = param(p, slideDir2) - st.planeOffset.y;
+            if (snap.x > 0) x = Math.round(x / snap.x) * snap.x;
+            if (snap.y > 0) y = Math.round(y / snap.y) * snap.y;
+            handlePos = st.startPosition.add(slideDir1.mul(x)).add(slideDir2.mul(y));
+            GUI.changed = true;
+          }
+        }
+        ev.use();
+        break;
+      case EventType.MouseUp:
+        if (GUIUtility.hotControl === id && (ev.button === 0 || ev.button === 2)) {
+          GUIUtility.hotControl = 0;
+          ev.use();
+        }
+        break;
+      case EventType.Repaint:
+        cap?.(id, handlePos, rotation, handleSize, EventType.Repaint);
+        break;
+    }
+    return handlePos;
+  },
+
   setCamera(_c?: unknown) {},
 };
 
@@ -574,6 +646,7 @@ const sliderState = {
   startMouse: Vector2.zero,
   currentMouse: Vector2.zero,
   startPosition: Vector3.zero,
+  planeOffset: Vector2.zero,
 };
 
 export const HandleUtility = {
@@ -938,3 +1011,17 @@ export const MouseCursor = {
   SlideArrow: 'default',
   FPS: 'default',
 } as const;
+
+const changeStack: boolean[] = [];
+
+export const EditorGUI = {
+  beginChangeCheck() {
+    changeStack.push(GUI.changed);
+    GUI.changed = false;
+  },
+  endChangeCheck() {
+    const changed = GUI.changed;
+    GUI.changed = (changeStack.pop() ?? false) || changed;
+    return changed;
+  },
+};

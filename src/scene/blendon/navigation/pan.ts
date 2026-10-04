@@ -4,7 +4,13 @@ import { EditorGUIUtility, HandleUtility, MouseCursor } from '../../unity/handle
 import { Event, EventType, FocusType, GUIUtility, MouseButton } from '../../unity/imgui.ts';
 import { Plane, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import { SceneView, type SceneCamera } from '../../unity/sceneview.ts';
-import { CursorWrapTracker, EditorRaycastUtility, ModalViewportGate, SceneTutorial, ShortcutTips } from '../foundation.ts';
+import {
+  CursorWrapTracker,
+  EditorRaycastUtility,
+  ModalViewportGate,
+  SceneTutorial,
+  ShortcutTips,
+} from '../foundation.ts';
 import { GeneralSettings, sBool } from '../settings.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
@@ -109,7 +115,12 @@ function onSceneGUI(view: SceneView) {
 
   if (e.type === EventType.Layout && (st.shortcutHeld || st.panning)) HandleUtility.addDefaultControl(controlId);
 
-  if (st.panning && e.rawType === EventType.MouseDown && e.button === MouseButton.RightMouse && GeneralSettings.RmbCancelEnabled) {
+  if (
+    st.panning &&
+    e.rawType === EventType.MouseDown &&
+    e.button === MouseButton.RightMouse &&
+    GeneralSettings.RmbCancelEnabled
+  ) {
     st.cancelled = true;
     endPan();
     view.pivot = st.startPivot;
@@ -127,12 +138,18 @@ function onSceneGUI(view: SceneView) {
     st.startPivot = view.pivot;
     Pan.beginPanSession(view);
     e.use();
-  } else if (e.type === EventType.MouseDrag && st.panning && GUIUtility.hotControl === st.hotControl && e.button === st.trackedButton) {
+  } else if (
+    e.type === EventType.MouseDrag &&
+    st.panning &&
+    GUIUtility.hotControl === st.hotControl &&
+    e.button === st.trackedButton
+  ) {
     panning(view, e.delta);
     e.use();
   }
 
-  if (st.panning) EditorGUIUtility.addCursorRect(new Rect(0, 0, view.position.width, view.position.height), MouseCursor.Pan);
+  if (st.panning)
+    EditorGUIUtility.addCursorRect(new Rect(0, 0, view.position.width, view.position.height), MouseCursor.Pan);
 }
 
 function endPan() {

@@ -21,8 +21,7 @@ export function composite(fillFraction: number, coverage: number, fill: Color, s
 }
 
 /** Alpha scaled by the gizmo Opacity slider and `extra`. */
-export const withOpacity = (c: Color, extra = 1) =>
-  new Color(c.r, c.g, c.b, c.a * SharedGizmoSettings.Opacity * extra);
+export const withOpacity = (c: Color, extra = 1) => new Color(c.r, c.g, c.b, c.a * SharedGizmoSettings.Opacity * extra);
 
 /** Each channel pushed away from mid-grey by the Contrast slider (or `contrast`). */
 export function contrast(c: Color, k = -1, alpha = -1) {

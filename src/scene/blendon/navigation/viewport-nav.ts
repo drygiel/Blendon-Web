@@ -78,14 +78,28 @@ export const ViewportNavActions = {
     if (!canMove(v)) return;
     const step = ViewportNavSettings.OrbitStepDegrees;
     const rotation = TurntableOrbit.rotate(v.rotation, new Vector2(yawSign * step, pitchSign * step), 1, 1);
-    ViewOrbitTween.to(v, resolvePivot(v, rotation), rotation, v.size, v.orthographic, ViewportNavSettings.AnimationEnabled);
+    ViewOrbitTween.to(
+      v,
+      resolvePivot(v, rotation),
+      rotation,
+      v.size,
+      v.orthographic,
+      ViewportNavSettings.AnimationEnabled,
+    );
   },
 
   reverseView() {
     const v = target();
     if (!canMove(v)) return;
     const rotation = Quaternion.angleAxis(180, v.rotation.mulV(Vector3.up)).mul(v.rotation);
-    ViewOrbitTween.to(v, resolvePivot(v, rotation), rotation, v.size, v.orthographic, ViewportNavSettings.AnimationEnabled);
+    ViewOrbitTween.to(
+      v,
+      resolvePivot(v, rotation),
+      rotation,
+      v.size,
+      v.orthographic,
+      ViewportNavSettings.AnimationEnabled,
+    );
   },
 
   alignToCamera() {
@@ -113,9 +127,17 @@ export const ViewportNav = {
     const I = ViewportNavIds;
     const bindings: Binding[] = [
       [I.Front, 'Num 1', () => grabTook(I.Front) || pieTook(1) || (ready() && A.snapToView(2, true))],
-      [I.Back, 'Ctrl+Num 1', () => grabTook(I.Back) || pieTookAny() || (ready() && (A.snapToView(2, false), ShortcutTips.note(I.Back)))],
+      [
+        I.Back,
+        'Ctrl+Num 1',
+        () => grabTook(I.Back) || pieTookAny() || (ready() && (A.snapToView(2, false), ShortcutTips.note(I.Back))),
+      ],
       [I.Right, 'Num 3', () => grabTook(I.Right) || pieTook(3) || (ready() && A.snapToView(0, true))],
-      [I.Left, 'Ctrl+Num 3', () => grabTook(I.Left) || pieTookAny() || (ready() && (A.snapToView(0, false), ShortcutTips.note(I.Left)))],
+      [
+        I.Left,
+        'Ctrl+Num 3',
+        () => grabTook(I.Left) || pieTookAny() || (ready() && (A.snapToView(0, false), ShortcutTips.note(I.Left))),
+      ],
       [I.Top, 'Num 7', () => grabTook(I.Top) || pieTook(7) || (ready() && A.snapToView(1, true))],
       [I.Bottom, 'Ctrl+Num 7', () => grabTook(I.Bottom) || pieTookAny() || (ready() && A.snapToView(1, false))],
       [I.Projection, 'Num 5', () => grabTook(I.Projection) || pieTook(5) || (ready() && A.toggleProjection())],

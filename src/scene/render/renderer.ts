@@ -28,7 +28,8 @@ function geometryFor(mesh: Mesh) {
   });
   // Mirroring flips handedness, so the winding is reversed to keep front faces in front.
   const idx: number[] = [];
-  for (let i = 0; i < mesh.triangles.length; i += 3) idx.push(mesh.triangles[i], mesh.triangles[i + 2], mesh.triangles[i + 1]);
+  for (let i = 0; i < mesh.triangles.length; i += 3)
+    idx.push(mesh.triangles[i], mesh.triangles[i + 2], mesh.triangles[i + 1]);
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
   g.setIndex(idx);
@@ -62,7 +63,8 @@ function skyEnvironment(renderer: THREE.WebGLRenderer) {
       uHorizon: { value: new THREE.Vector3(0.55, 0.66, 0.85) },
       uGround: { value: new THREE.Vector3(0.11, 0.1, 0.095) },
     },
-    vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    vertexShader:
+      'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `uniform vec3 uZenith; uniform vec3 uHorizon; uniform vec3 uGround; varying vec3 vDir;
       void main(){ vec3 d = normalize(vDir); vec3 c = d.y >= 0.0 ? mix(uHorizon, uZenith, pow(d.y, 0.45)) : mix(uHorizon, uGround, pow(-d.y, 0.25));
       gl_FragColor = vec4(c, 1.0); }`,
@@ -108,12 +110,20 @@ export class SceneRenderer {
 
   constructor(canvas: HTMLCanvasElement, scene: Scene) {
     this.scene = scene;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance',
+    });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.autoClear = false;
     this.three.background = new THREE.Color().setRGB(0.278431, 0.278431, 0.278431, THREE.SRGBColorSpace);
 
-    const light = new THREE.DirectionalLight(new THREE.Color().setRGB(1, 0.972, 0.944, THREE.SRGBColorSpace), LIGHT_INTENSITY);
+    const light = new THREE.DirectionalLight(
+      new THREE.Color().setRGB(1, 0.972, 0.944, THREE.SRGBColorSpace),
+      LIGHT_INTENSITY,
+    );
     const dir = Quaternion.euler(LIGHT_EULER).mulV(Vector3.forward);
     light.position.copy(toThreeV(dir.mul(-100)));
     light.target.position.set(0, 0, 0);
@@ -131,7 +141,7 @@ export class SceneRenderer {
         uSize: { value: 10 },
         uOrtho: { value: 0 },
         uViewDir: { value: new THREE.Vector3() },
-        uColor: { value: new THREE.Vector4(0.2140, 0.2140, 0.2140, 0.4) },
+        uColor: { value: new THREE.Vector4(0.214, 0.214, 0.214, 0.4) },
         // Strength, fade start and end (in view sizes), line width.
         uNear: { value: new THREE.Vector4(4, 1, 5, 0) },
         uFar: { value: new THREE.Vector4(1.4, 3, 40, 0.7) },
@@ -325,7 +335,8 @@ export class SceneRenderer {
       }
       this.three.background = bg;
       for (const [o, v] of vis) o.visible = v;
-      for (const e of this.entries.values()) e.mesh.material = mode === DrawCameraMode.Unlit ? this.unlitMat : this.material;
+      for (const e of this.entries.values())
+        e.mesh.material = mode === DrawCameraMode.Unlit ? this.unlitMat : this.material;
       r.setRenderTarget(this.distTarget);
       r.render(this.distScene, this.quadCam);
       r.setRenderTarget(null);

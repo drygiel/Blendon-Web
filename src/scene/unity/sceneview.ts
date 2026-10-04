@@ -340,7 +340,12 @@ export class SceneView {
     } else {
       this.flight = {
         from: this.state(),
-        to: { pivot: point, rotation: this.isRotationLocked ? this._rotation : rotation.normalized, size: Math.abs(size), orthographic },
+        to: {
+          pivot: point,
+          rotation: this.isRotationLocked ? this._rotation : rotation.normalized,
+          size: Math.abs(size),
+          orthographic,
+        },
         t: 0,
       };
       this.ortho.set(orthographic ? 1 : 0);

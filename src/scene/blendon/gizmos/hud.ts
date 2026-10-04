@@ -118,7 +118,13 @@ export const GizmoHud = {
   },
 
   startRotateDrag(axis: GizmoAxis, dir: Vector3) {
-    Object.assign(st, { mode: DragMode.Rotate, axis1: axis, dir1: dir.normalized, total: Vector3.zero, isScale: false });
+    Object.assign(st, {
+      mode: DragMode.Rotate,
+      axis1: axis,
+      dir1: dir.normalized,
+      total: Vector3.zero,
+      isScale: false,
+    });
   },
 
   startRotateFreeDrag() {

@@ -26,11 +26,7 @@ export const GizmoRenderer = {
   },
 
   computeViewDir(position: Vector3, camera: SceneCamera | null) {
-    return !camera
-      ? Vector3.forward
-      : camera.orthographic
-        ? camera.forward
-        : position.sub(camera.position).normalized;
+    return !camera ? Vector3.forward : camera.orthographic ? camera.forward : position.sub(camera.position).normalized;
   },
 
   currentCamera(): SceneCamera | null {
@@ -128,7 +124,11 @@ export const PlaneOffsetView = {
   viewDir(position: Vector3, camera: SceneCamera | null) {
     if (!camera) return Vector3.forward;
     if (!ViewNavigationState.inProgress || !PlaneOffsetView.latched)
-      PlaneOffsetView.latched = { position: camera.position, forward: camera.forward, orthographic: camera.orthographic };
+      PlaneOffsetView.latched = {
+        position: camera.position,
+        forward: camera.forward,
+        orthographic: camera.orthographic,
+      };
     const p = PlaneOffsetView.latched;
     return p.orthographic ? p.forward : position.sub(p.position).normalized;
   },
@@ -156,7 +156,14 @@ function circlePoints(segments: number, center: Vector3, normal: Vector3, radius
   const pts: Vector3[] = [];
   for (let i = 0; i < segments; i++) {
     const t = (i / segments) * Math.PI * 2;
-    pts.push(center.add(a.mul(Math.cos(t)).add(b.mul(Math.sin(t))).mul(radius)));
+    pts.push(
+      center.add(
+        a
+          .mul(Math.cos(t))
+          .add(b.mul(Math.sin(t)))
+          .mul(radius),
+      ),
+    );
   }
   return pts;
 }
@@ -267,7 +274,14 @@ export const DrawPrimitives = {
     Handles.drawAAConvexPolygon(...squarePoints(center, normal, halfSize));
   },
 
-  drawPlaneShape(corners: Vector3[], count: number, baseColor: Color, fade: number, lineThickness: number, active = false) {
+  drawPlaneShape(
+    corners: Vector3[],
+    count: number,
+    baseColor: Color,
+    fade: number,
+    lineThickness: number,
+    active = false,
+  ) {
     Handles.color = withOpacity(baseColor, active ? 0.8 : fade * 0.5);
     DrawPrimitives.drawPolygon(corners, count);
     Handles.color = active ? withAlpha(baseColor, 1) : withOpacity(baseColor, fade);
@@ -361,5 +375,10 @@ function drawSegment(p0: Vector3, p1: Vector3, viewDir: Vector3, hw0: number, hw
   perp = perp.normalized;
   p0 = p0.sub(dir.mul(0.0003));
   p1 = p1.add(dir.mul(0.0003));
-  Handles.drawAAConvexPolygon(p0.sub(perp.mul(hw0)), p1.sub(perp.mul(hw1)), p1.add(perp.mul(hw1)), p0.add(perp.mul(hw0)));
+  Handles.drawAAConvexPolygon(
+    p0.sub(perp.mul(hw0)),
+    p1.sub(perp.mul(hw1)),
+    p1.add(perp.mul(hw1)),
+    p0.add(perp.mul(hw0)),
+  );
 }

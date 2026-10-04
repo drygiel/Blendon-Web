@@ -40,17 +40,7 @@ interface MenuItem {
   separatorBefore?: boolean;
 }
 
-function Dropdown({
-  icon,
-  label,
-  title,
-  items,
-}: {
-  icon: string;
-  label: string;
-  title: string;
-  items: MenuItem[];
-}) {
+function Dropdown({ icon, label, title, items }: { icon: string; label: string; title: string; items: MenuItem[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -118,7 +108,13 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
     <div className={styles.chrome} onPointerDown={(e) => e.stopPropagation()}>
       <img className={styles.pic} src={tools} alt="" style={pos(0, 0, 76, 530)} draggable={false} />
       <img className={styles.pic} src={top} alt="" style={pos(79, 3, 213, 45)} draggable={false} />
-      <img className={styles.picBottom} src={bottom} alt="" style={{ width: pt(670), height: pt(53) }} draggable={false} />
+      <img
+        className={styles.picBottom}
+        src={bottom}
+        alt=""
+        style={{ width: pt(670), height: pt(53) }}
+        draggable={false}
+      />
 
       {TOOL_BUTTONS.map((b) => (
         <button

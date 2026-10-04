@@ -1,4 +1,5 @@
 // The playground scene: a few primitives on the grid, like a fresh Unity scene being blocked out.
+import { PivotMode, SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import type { SceneHost } from './engine/host.ts';
 import { Selection, Undo } from './unity/editor.ts';
 import { Quaternion, Vector3 } from './unity/math.ts';
@@ -14,10 +15,12 @@ interface Spec {
   parent?: Transform;
 }
 
+// The reference capture's Scene view camera: the Editor's FOV and size, pose fitted to the capture.
 export const DEMO_VIEW = {
-  pivot: new Vector3(0.75, 0.45, 0.35),
-  rotation: Quaternion.euler(22, 163, 0),
-  size: 3.3,
+  pivot: new Vector3(-1.6135, -0.2232, -3.9295),
+  rotation: Quaternion.euler(20.031, 165.2098, 0),
+  size: 4.4398,
+  fieldOfView: 59.6,
 };
 
 export function buildDemoScene(host: SceneHost) {
@@ -31,19 +34,29 @@ export function buildDemoScene(host: SceneHost) {
     return go;
   };
 
-  const cube = add({ name: 'Cube', mesh: 'Cube', position: new Vector3(-1.5, 0.5, -0.4), euler: new Vector3(0, 352, 0) });
-  add({ name: 'Cube (1)', mesh: 'Cube', position: new Vector3(0.9, 0.5, 0.9) });
-  add({ name: 'Tilted Cube', mesh: 'Cube', position: new Vector3(3.6, 0.707, 1.3), euler: new Vector3(0, 20, 45) });
-  add({ name: 'Sphere', mesh: 'Sphere', position: new Vector3(3.3, 0.5, -0.1) });
+  const cube = add({ name: 'Cube', mesh: 'Cube', position: new Vector3(-3.9816, 0.5, -1.1618) });
+  add({ name: 'Cube (1)', mesh: 'Cube', position: new Vector3(-1, 0, -5) });
+  add({ name: 'Tilted Cube', mesh: 'Cube', position: new Vector3(0.5963, 0.5, -3.1219), euler: new Vector3(0, 0, 45) });
+  add({ name: 'Sphere', mesh: 'Sphere', position: new Vector3(2.3702, 0.5, -7.0878) });
+  add({ name: 'Cube (2)', mesh: 'Cube', position: new Vector3(13.2528, 0.6677, -4.0396) });
 
   // Out of the opening shot: a slope for surface snapping and a small hierarchy.
-  add({ name: 'Ramp', mesh: 'Ramp', position: new Vector3(-8.2, 0.5, 1.4), euler: new Vector3(0, 30, 0), scale: new Vector3(2, 1, 2.4) });
+  add({
+    name: 'Ramp',
+    mesh: 'Ramp',
+    position: new Vector3(-8.2, 0.5, 1.4),
+    euler: new Vector3(0, 30, 0),
+    scale: new Vector3(2, 1, 2.4),
+  });
   const group = add({ name: 'Group', position: new Vector3(9.6, 0, 1.2) });
   add({ name: 'Cylinder', mesh: 'Cylinder', position: new Vector3(-0.8, 1, 0), parent: group.transform });
   add({ name: 'Capsule', mesh: 'Capsule', position: new Vector3(0.9, 1, 0.4), parent: group.transform });
 
   const v = host.view;
+  v.cameraSettings.fieldOfView = DEMO_VIEW.fieldOfView;
   v.lookAtDirect(DEMO_VIEW.pivot, DEMO_VIEW.rotation, DEMO_VIEW.size);
+  // The reference capture's toolbar: Median Point, Global.
+  SharedGizmoSettings.PivotPoint = PivotMode.Median;
   Selection.set([cube], cube, false);
   Undo.clearAll();
 }
