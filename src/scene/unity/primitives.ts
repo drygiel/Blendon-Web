@@ -84,7 +84,10 @@ function cylinder(segments = 20): Mesh {
   }
   for (let s = 0; s < segments; s++) {
     const i = s * 2;
-    const mid = v[i].add(v[i + 3]).mul(0.5).withY(0);
+    const mid = v[i]
+      .add(v[i + 3])
+      .mul(0.5)
+      .withY(0);
     tri(v, t, i, i + 1, i + 2, mid);
     tri(v, t, i + 1, i + 3, i + 2, mid);
   }
@@ -209,4 +212,3 @@ export function primitiveMesh(type: PrimitiveType): Mesh {
   }
   return m;
 }
-

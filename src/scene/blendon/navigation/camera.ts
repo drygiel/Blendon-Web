@@ -30,7 +30,13 @@ export const ViewProjection = {
     return Math.max(depth, 0.0001) * Math.tan(halfFov(v));
   },
 
-  perspectiveSizeForHalfHeight(v: SceneView, worldPoint: Vector3, pivot: Vector3, rotation: Quaternion, target: number) {
+  perspectiveSizeForHalfHeight(
+    v: SceneView,
+    worldPoint: Vector3,
+    pivot: Vector3,
+    rotation: Quaternion,
+    target: number,
+  ) {
     const h = halfFov(v);
     const depthOffset = Vector3.dot(worldPoint.sub(pivot), rotation.mulV(Vector3.forward));
     return Math.max((target - depthOffset * Math.tan(h)) * Math.cos(h), 0.0001);
@@ -113,7 +119,9 @@ export class ViewOrbitPath {
   evaluate(t: number): [Vector3, Quaternion] {
     const rotation = Quaternion.slerp(this.fromRotation, this.toRotation, t);
     const pivot = this.isArc
-      ? TurntableOrbit.pivotAround(this.center, this.startOffset, this.fromRotation, rotation).add(this.axisSlide.mul(t))
+      ? TurntableOrbit.pivotAround(this.center, this.startOffset, this.fromRotation, rotation).add(
+          this.axisSlide.mul(t),
+        )
       : Vector3.lerp(this.fromPivot, this.toPivot, t);
     return [pivot, rotation];
   }
@@ -182,7 +190,14 @@ export function reducedMotion() {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function play(v: SceneView, pivot: Vector3, rotation: Quaternion, size: number, orthographic: boolean, duration: number) {
+function play(
+  v: SceneView,
+  pivot: Vector3,
+  rotation: Quaternion,
+  size: number,
+  orthographic: boolean,
+  duration: number,
+) {
   const T = ViewOrbitTween;
   T.path = ViewOrbitPath.between(v.pivot, v.rotation, pivot, rotation);
   T.fromSize = v.size;

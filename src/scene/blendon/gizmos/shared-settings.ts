@@ -79,7 +79,9 @@ export const SharedGizmoSettings = {
     return sNum(K + 'Opacity', 0.8);
   },
   get PivotPoint(): PivotMode {
-    return Tools.pivotMode === UnityPivotMode.Pivot ? SharedGizmoSettings.PivotSideMode : SharedGizmoSettings.CenterSideMode;
+    return Tools.pivotMode === UnityPivotMode.Pivot
+      ? SharedGizmoSettings.PivotSideMode
+      : SharedGizmoSettings.CenterSideMode;
   },
   set PivotPoint(m: PivotMode) {
     if (PivotModes.unitySide(m) === UnityPivotMode.Pivot) Prefs.set(K + 'PivotSideMode', m);

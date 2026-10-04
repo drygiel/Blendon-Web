@@ -128,7 +128,9 @@ const ctx = {
 };
 
 function selectionCenter(targets: Transform[]) {
-  return targets.length === 1 ? targets[0].position : SelectionPivot.ofMultiple(SharedGizmoSettings.PivotPoint, targets);
+  return targets.length === 1
+    ? targets[0].position
+    : SelectionPivot.ofMultiple(SharedGizmoSettings.PivotPoint, targets);
 }
 
 export const OrbitSelected = {
@@ -237,7 +239,8 @@ function onSceneGUI(view: SceneView) {
   } else st.lockNoticeShown = false;
 
   const cancel =
-    (e.type === EventType.KeyDown && e.keyCode === KeyCode.Escape) || (e.type === EventType.MouseDown && e.button === 1);
+    (e.type === EventType.KeyDown && e.keyCode === KeyCode.Escape) ||
+    (e.type === EventType.MouseDown && e.button === 1);
   if (input.isActive && cancel) {
     cancelOrbitDrag(view, controlId);
     e.use();
@@ -311,7 +314,8 @@ function startOrbitDrag(view: SceneView, e: Event, controlId: number) {
   input.begin();
   st.snapModifierHeld = ModifierKeys.isHeld(OrbitSelectedSettings.SnapModifier, e);
   // Orbiting always leaves orthographic, unless the axis snap is held to stay there.
-  if (view.orthographic && (!OrbitSelectedSettings.AltSnapEnabled || !st.snapModifierHeld)) exitOrthoToPerspective(view);
+  if (view.orthographic && (!OrbitSelectedSettings.AltSnapEnabled || !st.snapModifierHeld))
+    exitOrthoToPerspective(view);
   view.repaint();
   e.use();
 }

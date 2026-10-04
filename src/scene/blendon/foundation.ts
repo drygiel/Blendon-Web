@@ -1,6 +1,6 @@
 // Editor/Foundation essentials the features share: modifier keys, the modal viewport claim, the
 // selection cache, cursor-wrap tracking (the browser can't warp the cursor) and renderer raycasts.
-import { Selection } from '../unity/editor.ts';
+import { EditorSnapSettings, Selection } from '../unity/editor.ts';
 import { HandleUtility } from '../unity/handles.ts';
 import { Event, IS_MAC } from '../unity/imgui.ts';
 import { Plane, Ray, Vector2, Vector3 } from '../unity/math.ts';
@@ -124,7 +124,27 @@ export class CursorWrapTracker {
   end() {
     this.isActive = false;
   }
+
+  /** The OS cursor is never warped here, so there is nothing to hold off or pick back up. */
+  suspend() {}
+  resume() {}
 }
+
+/** EditorSnapSettings as Unity 6.0 reads it: holding the action key snaps every increment. */
+export const SnapCompat = {
+  get angleSnapEnabled() {
+    return EditorSnapSettings.angleSnapEnabled || EditorSnapSettings.incrementalSnapActive;
+  },
+  get scaleSnapEnabled() {
+    return EditorSnapSettings.scaleSnapEnabled || EditorSnapSettings.incrementalSnapActive;
+  },
+  get gridPosition() {
+    return EditorSnapSettings.gridPosition;
+  },
+  get gridRotation() {
+    return EditorSnapSettings.gridRotation;
+  },
+};
 
 export const CursorWrap = {
   isPlausibleViewStep(_viewPoints: number, _cursorPoints: number) {
@@ -215,6 +235,11 @@ export const SceneTutorial = {
   },
   report(signal: string) {
     for (const l of reportListeners) l({ kind: 'signal', signal });
+  },
+  /** Reported from a live drag frame, the only place holding the key is the same as using it. */
+  noteDragModifiers(snapping: boolean, precision: boolean) {
+    if (snapping) SceneTutorial.report('IncrementalSnap');
+    if (precision) SceneTutorial.report('PrecisionDrag');
   },
   listen(l: (r: Report) => void) {
     reportListeners.add(l);

@@ -71,7 +71,8 @@ export class Transform {
   }
 
   isChildOf(t: Transform) {
-    for (let p: Transform | null = this; p; p = p._parent) if (p === t) return true;
+    if (this === t) return true;
+    for (let p = this._parent; p; p = p._parent) if (p === t) return true;
     return false;
   }
 

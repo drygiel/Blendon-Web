@@ -179,8 +179,7 @@ export const Selection = {
       for (const t of all) for (const d of t.walk()) if (!out.includes(d)) out.push(d);
       return out;
     }
-    if (mode & SelectionMode.TopLevel)
-      return all.filter((t) => !all.some((o) => o !== t && t.isChildOf(o)));
+    if (mode & SelectionMode.TopLevel) return all.filter((t) => !all.some((o) => o !== t && t.isChildOf(o)));
     return all;
   },
 
@@ -285,12 +284,12 @@ export const Undo = {
     const g = ensureOpen(name);
     if (!g.name) g.name = name;
     if ('transform' in target && 'scene' in target) {
-      const go = target as GameObject;
+      const go = target;
       if (!g.before.objects.has(go))
         g.before.objects.set(go, { hidden: go.hidden, active: go.activeSelf, name: go.name });
       if (!g.before.transforms.has(go.transform)) g.before.transforms.set(go.transform, captureTransform(go.transform));
     } else {
-      const t = target as Transform;
+      const t = target;
       if (!g.before.transforms.has(t)) g.before.transforms.set(t, captureTransform(t));
     }
   },
@@ -338,7 +337,8 @@ export const Undo = {
     if (first < 0 || first === undoStack.length - 1) return;
     const target = undoStack[first];
     for (const g of undoStack.splice(first + 1)) {
-      for (const [k, v] of g.before.transforms) if (!target.before.transforms.has(k)) target.before.transforms.set(k, v);
+      for (const [k, v] of g.before.transforms)
+        if (!target.before.transforms.has(k)) target.before.transforms.set(k, v);
       for (const [k, v] of g.before.objects) if (!target.before.objects.has(k)) target.before.objects.set(k, v);
       target.before.created.push(...g.before.created);
       if (!target.before.selection && g.before.selection) target.before.selection = g.before.selection;
@@ -562,7 +562,8 @@ export function parseBinding(text: string): KeyCombination | null {
   for (const p of parts) {
     if (p === 'Shift') modifiers |= ShortcutModifiers.Shift;
     else if (p === 'Alt') modifiers |= ShortcutModifiers.Alt;
-    else if (p === 'Ctrl' || p === 'Control') modifiers |= IS_MAC ? ShortcutModifiers.Control : ShortcutModifiers.Action;
+    else if (p === 'Ctrl' || p === 'Control')
+      modifiers |= IS_MAC ? ShortcutModifiers.Control : ShortcutModifiers.Action;
     else modifiers |= ShortcutModifiers.Action;
   }
   let keyCode: number = KeyCode.None;
@@ -689,4 +690,4 @@ export const ShortcutManager = {
   },
 };
 
-export const EventTypeOf = (ev: Event) => ev.type as EventType;
+export const EventTypeOf = (ev: Event): EventType => ev.type;

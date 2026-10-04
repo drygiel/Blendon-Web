@@ -90,7 +90,9 @@ function applyPendingKeyboardZoom(view: SceneView) {
   pendingView = null;
   const step = Mathf.Clamp(ZoomSettings.KeyboardStep, 0.01, 0.9);
   const factor = Math.pow(1 - step, steps);
-  const over = new Rect(0, 0, view.cameraViewport.width, view.cameraViewport.height).contains(Event.current.mousePosition);
+  const over = new Rect(0, 0, view.cameraViewport.width, view.cameraViewport.height).contains(
+    Event.current.mousePosition,
+  );
   const anchor = over ? EditorRaycastUtility.getScreenPoint() : view.pivot;
   applyScale(view, anchor, factor);
   view.repaint();
@@ -137,4 +139,3 @@ function applyDolly(view: SceneView, amount: number, target: Vector3) {
   const dir = ZoomSettings.ZoomToCursor ? target.sub(cam.position).normalized : cam.forward;
   view.pivot = view.pivot.add(dir.mul(amount * ZoomSettings.Speed * view.size));
 }
-
