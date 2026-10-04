@@ -5,7 +5,6 @@ import { MenuField, SceneMenu } from '../blendon/scenetools/scene-menu/scene-men
 import {
   quickRect,
   inlineRect,
-  rowHeight,
   Theme,
   type Glyph,
   type MenuNode,
@@ -137,11 +136,22 @@ function ItemRow({ panel, index, row, area }: { panel: MenuPanel; index: number;
   const enabled = classic || node!.enabled;
   const checked = !!node?.item?.checked;
   const iconNode = row.iconFrom ?? node;
-  const cls = [styles.item, selected && styles.selected, !enabled && styles.disabled, classic && styles.quiet]
+  const demo = !!node?.demoOnly;
+  const cls = [
+    styles.item,
+    selected && styles.selected,
+    !enabled && styles.disabled,
+    classic && styles.quiet,
+    demo && styles.demoOnly,
+  ]
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls} style={{ top: area.y, height: area.height }}>
+    <div
+      className={cls}
+      style={{ top: area.y, height: area.height }}
+      title={demo ? `${node.label} (not in this demo)` : undefined}
+    >
       {panel.textOffset > 0 && (
         <span className={styles.gutter}>
           {classic ? (
@@ -157,10 +167,18 @@ function ItemRow({ panel, index, row, area }: { panel: MenuPanel; index: number;
       <span className={styles.label}>{classic ? 'Classic Unity Menu' : node!.label}</span>
       {node?.isFolder ? (
         <span className={styles.arrow}>
-          <GlyphIcon glyph="Submenu" size={12} />
+          {panel.native ? (
+            <svg width={12} height={12} viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+          ) : (
+            <GlyphIcon glyph="Submenu" size={12} />
+          )}
         </span>
       ) : (
-        (classic || node!.hotkey) && <span className={styles.hint}>{classic ? 'Shift RMB' : hintOf(node!)}</span>
+        (classic || node!.hotkey) && (
+          <span className={styles.hint}>{classic ? 'Shift RMB' : panel.native ? node!.hotkey : hintOf(node!)}</span>
+        )
       )}
     </div>
   );
@@ -179,7 +197,7 @@ function Row({
   top: number;
   quick: MenuNode[];
 }) {
-  const area = new Rect(0, top, panel.rect.width, rowHeight(row));
+  const area = new Rect(0, top, panel.rect.width, panel.height(row));
   const selected = panel.selected === index;
   switch (row.kind) {
     case 'separator':
@@ -266,8 +284,9 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
   if (!session) return null;
 
   const local = (e: { clientX: number; clientY: number; currentTarget: Element }) => {
-    const frame = (e.currentTarget.closest('[role=application]') ?? e.currentTarget).getBoundingClientRect();
-    return new Vector2(e.clientX - frame.left, e.clientY - frame.top);
+    // The layer spans the camera viewport, which starts under the top toolbar.
+    const layer = (e.currentTarget.closest(`.${styles.layer}`) ?? e.currentTarget).getBoundingClientRect();
+    return new Vector2(e.clientX - layer.left, e.clientY - layer.top);
   };
   const focusView = () => host.focusRoot.focus({ preventScroll: true });
 
@@ -277,8 +296,11 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
     if ((e.target as HTMLElement).closest('input')) return;
     // Keeps the search box focused while a row is clicked.
     e.preventDefault();
+    const before = SceneMenu.session;
     SceneMenu.press(local(e), e.button);
-    if (!SceneMenu.isOpen) focusView();
+    // A menu replaced by another (the classic one) takes its search box with it; the view keeps the
+    // focus, or losing it would close the new menu.
+    if (SceneMenu.session !== before) focusView();
   };
   const onWheel = (e: WheelEvent<HTMLDivElement>) => SceneMenu.scroll(local(e), e.deltaY * 0.6);
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -295,14 +317,14 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
         let y = -panel.scroll;
         const rowEls = panel.rows.map((row, i) => {
           const top = y;
-          y += rowHeight(row);
+          y += panel.height(row);
           return <Row key={i} panel={panel} index={i} row={row} top={top} quick={session.model.quick} />;
         });
         const thumb = panel.maxScroll > 0 ? Math.max(16, (body.height * body.height) / panel.contentHeight) : 0;
         return (
           <div
             key={k}
-            className={styles.panel}
+            className={styles.panel + (panel.native ? ' ' + styles.native : '')}
             style={{ left: panel.rect.x, top: panel.rect.y, width: panel.rect.width, height: panel.rect.height }}
             onPointerMove={onMove}
             onPointerDown={onDown}

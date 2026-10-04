@@ -69,6 +69,11 @@ export class MenuNode {
     return this.item ? this.item.enabled : this.available;
   }
 
+  /** Shown as Unity shows it, but there is nothing behind it in the demo. */
+  get demoOnly() {
+    return !!this.item?.demoOnly;
+  }
+
   get hasIcon() {
     return !!this.glyph || !!this.iconName;
   }
@@ -248,6 +253,23 @@ export const Theme = {
   FlyoutOverlap: 3,
 };
 
+/** Unity's own context menu (the classic one): plain rows, no icons, the Editor's metrics at 100 %. */
+export const NativeTheme = {
+  RowHeight: 26,
+  SeparatorHeight: 11,
+  PadY: 3,
+  TextX: 41,
+  RightPad: 30,
+  HintGap: 40,
+  ArrowSize: 12,
+  MinWidth: 200,
+  FlyoutOverlap: 4,
+};
+
+export function nativeRowHeight(r: MenuRow) {
+  return r.kind === 'separator' ? NativeTheme.SeparatorHeight : NativeTheme.RowHeight;
+}
+
 export type RowKind = 'item' | 'label' | 'separator' | 'quick' | 'inline' | 'classic';
 
 export interface MenuRow {
@@ -281,12 +303,13 @@ export function rowSelectable(r: MenuRow) {
 // ---- measuring ----
 
 let ctx: CanvasRenderingContext2D | null = null;
-export type Font = 'item' | 'hint' | 'label' | 'title';
+export type Font = 'item' | 'hint' | 'label' | 'title' | 'native';
 const Fonts: Record<Font, string> = {
   item: '400 12px Inter, system-ui, sans-serif',
   hint: '400 11px Inter, system-ui, sans-serif',
   label: '400 11px Inter, system-ui, sans-serif',
   title: '700 12px Inter, system-ui, sans-serif',
+  native: '400 13px "Segoe UI", Inter, system-ui, sans-serif',
 };
 
 export function measure(text: string, font: Font) {
@@ -328,5 +351,8 @@ export function quickRect(row: Rect, index: number) {
 export function buildClassicModel(snapshot: SceneMenuSnapshot): MenuModel {
   const section: MenuSection = { title: '', showTitle: false, nodes: [] };
   for (const item of snapshot.items) insert(section, item, '');
+  // The Editor rules off the component submenus from its own entries.
+  const firstComponent = section.nodes.find((n) => n.isFolder && snapshot.componentRoots.has(n.label));
+  if (firstComponent) firstComponent.separatorBefore = true;
   return { quick: [], sections: [section] };
 }

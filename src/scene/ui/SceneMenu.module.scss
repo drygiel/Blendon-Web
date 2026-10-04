@@ -276,3 +276,63 @@ $font: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: $hint;
 }
+
+// Shown as in Unity, but nothing behind it here.
+.demoOnly {
+  cursor: not-allowed;
+}
+
+// Unity's own context menu (Shift+right-click): plain rows in the system font, rounded, no icons.
+.native {
+  border: 1px solid #1f1f1f;
+  border-radius: 6px;
+  background: #2c2c2c;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  font-family: 'Segoe UI', Inter, system-ui, sans-serif;
+
+  .separator {
+    left: 8px;
+    right: 8px;
+    background: #3e3e3e;
+  }
+
+  .item {
+    left: 3px;
+    right: 3px;
+    padding: 0 27px 0 38px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #e4e4e4;
+  }
+
+  .selected {
+    background: #353535;
+    color: #e4e4e4;
+
+    .hint,
+    .arrow {
+      color: #e4e4e4;
+    }
+  }
+
+  .disabled {
+    opacity: 1;
+    color: #707070;
+
+    .hint {
+      color: #707070;
+    }
+  }
+
+  .hint {
+    margin-left: 40px;
+    font-size: 13px;
+    color: #e4e4e4;
+  }
+
+  .arrow {
+    margin-left: 40px;
+    margin-right: -14px;
+    color: #c8c8c8;
+  }
+}

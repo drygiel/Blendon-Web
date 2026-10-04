@@ -7,6 +7,8 @@ import {
   inlineRect,
   inlineWidth,
   measure,
+  NativeTheme,
+  nativeRowHeight,
   quickRect,
   rowHeight,
   rowSelectable,
@@ -21,6 +23,8 @@ export class MenuPanel {
   readonly parentRow: number;
   /** The root's title and search strip; the plain Editor menu has none. */
   readonly hasHeader: boolean;
+  /** Drawn as Unity's own context menu, with its metrics. */
+  readonly native: boolean;
   rows: MenuRow[] = [];
   rect = new Rect();
   scroll = 0;
@@ -28,10 +32,19 @@ export class MenuPanel {
   column = -1;
   iconGutter = true;
 
-  constructor(isRoot: boolean, parentRow: number, hasHeader = isRoot) {
+  constructor(isRoot: boolean, parentRow: number, hasHeader = isRoot, native = false) {
     this.isRoot = isRoot;
     this.parentRow = parentRow;
-    this.hasHeader = hasHeader;
+    this.hasHeader = hasHeader && !native;
+    this.native = native;
+  }
+
+  height(r: MenuRow) {
+    return this.native ? nativeRowHeight(r) : rowHeight(r);
+  }
+
+  private get padY() {
+    return this.native ? NativeTheme.PadY : Theme.PadY;
   }
 
   get textOffset() {
@@ -41,15 +54,15 @@ export class MenuPanel {
     return this.hasHeader ? Theme.HeaderHeight : 0;
   }
   get contentHeight() {
-    return this.rows.reduce((h, r) => h + rowHeight(r), 0);
+    return this.rows.reduce((h, r) => h + this.height(r), 0);
   }
   get body() {
     const r = this.rect;
     return new Rect(
       r.x,
-      r.y + this.headerHeight + Theme.PadY,
+      r.y + this.headerHeight + this.padY,
       r.width,
-      Math.max(0, r.height - this.headerHeight - Theme.PadY * 2),
+      Math.max(0, r.height - this.headerHeight - this.padY * 2),
     );
   }
   get header() {
@@ -60,6 +73,7 @@ export class MenuPanel {
   }
 
   measureWidth(quickCount: number, title: string, search: boolean) {
+    if (this.native) return this.measureNative();
     let width = Theme.MinWidth;
     for (const row of this.rows) {
       if (row.kind === 'inline' && row.nodes) {
@@ -88,15 +102,32 @@ export class MenuPanel {
     return Math.min(Math.ceil(width), Theme.MaxWidth);
   }
 
+  private measureNative() {
+    const T = NativeTheme;
+    let width = T.MinWidth;
+    for (const row of this.rows) {
+      const node = row.node;
+      if (row.kind !== 'item' || !node) continue;
+      let w = T.TextX + measure(node.label, 'native') + T.RightPad;
+      if (node.isFolder) w += T.HintGap;
+      else if (node.hotkey) w += T.HintGap + measure(node.hotkey, 'native');
+      width = Math.max(width, w);
+    }
+    return Math.ceil(width);
+  }
+
   commitRows() {
-    this.iconGutter = this.rows.some(
-      (r) => r.kind === 'classic' || r.kind === 'quick' || !!r.iconFrom || !!r.node?.hasIcon || !!r.node?.item?.checked,
-    );
+    this.iconGutter =
+      !this.native &&
+      this.rows.some(
+        (r) =>
+          r.kind === 'classic' || r.kind === 'quick' || !!r.iconFrom || !!r.node?.hasIcon || !!r.node?.item?.checked,
+      );
   }
 
   place(at: Vector2, width: number, bounds: Rect) {
     const available = bounds.height - Theme.ViewMargin * 2;
-    const height = Math.min(this.headerHeight + Theme.PadY * 2 + this.contentHeight, available);
+    const height = Math.min(this.headerHeight + this.padY * 2 + this.contentHeight, available);
     const x = Mathf.Clamp(at.x, bounds.x + Theme.ViewMargin, bounds.xMax - Theme.ViewMargin - width);
     const y = Mathf.Clamp(at.y, bounds.y + Theme.ViewMargin, bounds.yMax - Theme.ViewMargin - height);
     this.rect = new Rect(Math.round(x), Math.round(y), width, height);
@@ -105,15 +136,16 @@ export class MenuPanel {
 
   placeBeside(parent: MenuPanel, row: number, width: number, bounds: Rect) {
     const anchor = parent.rowRect(row);
-    let x = parent.rect.xMax - Theme.FlyoutOverlap;
-    if (x + width > bounds.xMax - Theme.ViewMargin) x = parent.rect.x - width + Theme.FlyoutOverlap;
-    this.place(new Vector2(x, anchor.y - Theme.PadY), width, bounds);
+    const overlap = this.native ? NativeTheme.FlyoutOverlap : Theme.FlyoutOverlap;
+    let x = parent.rect.xMax - overlap;
+    if (x + width > bounds.xMax - Theme.ViewMargin) x = parent.rect.x - width + overlap;
+    this.place(new Vector2(x, anchor.y - this.padY), width, bounds);
   }
 
   rowRect(index: number) {
     let y = this.body.y - this.scroll;
-    for (let i = 0; i < index; i++) y += rowHeight(this.rows[i]);
-    return new Rect(this.rect.x, y, this.rect.width, rowHeight(this.rows[index]));
+    for (let i = 0; i < index; i++) y += this.height(this.rows[i]);
+    return new Rect(this.rect.x, y, this.rect.width, this.height(this.rows[index]));
   }
 
   columnRect(rect: Rect, row: MenuRow, index: number) {
@@ -129,7 +161,7 @@ export class MenuPanel {
     if (!body.contains(p)) return -1;
     let y = body.y - this.scroll;
     for (let i = 0; i < this.rows.length; i++) {
-      const h = rowHeight(this.rows[i]);
+      const h = this.height(this.rows[i]);
       if (p.y >= y && p.y < y + h) return i;
       y += h;
     }
@@ -149,8 +181,8 @@ export class MenuPanel {
   reveal(index: number) {
     if (index < 0 || index >= this.rows.length) return;
     let top = 0;
-    for (let i = 0; i < index; i++) top += rowHeight(this.rows[i]);
-    const bottom = top + rowHeight(this.rows[index]);
+    for (let i = 0; i < index; i++) top += this.height(this.rows[i]);
+    const bottom = top + this.height(this.rows[index]);
     if (top < this.scroll) this.scroll = top;
     else if (bottom > this.scroll + this.body.height) this.scroll = bottom - this.body.height;
   }
@@ -198,7 +230,7 @@ export class MenuSession {
     this.title = title;
     this.classicRow = classicRow;
     this.classic = classic;
-    this.panels = [new MenuPanel(true, -1, !classic)];
+    this.panels = [new MenuPanel(true, -1, !classic, classic)];
   }
 
   get root() {
@@ -226,7 +258,7 @@ export class MenuSession {
     if (this.panels.length > parentIndex + 1 && this.panels[parentIndex + 1].parentRow === row) return;
     this.closeFrom(parentIndex + 1);
     const parent = this.panels[parentIndex];
-    const panel = new MenuPanel(false, row);
+    const panel = new MenuPanel(false, row, false, this.classic);
     addNodes(panel.rows, parent.rows[row].node!.children);
     panel.commitRows();
     panel.placeBeside(parent, row, panel.measureWidth(0, '', false), this.bounds);

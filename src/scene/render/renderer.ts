@@ -234,11 +234,15 @@ export class SceneRenderer {
     this.grid.renderOrder = 10;
     this.three.add(this.grid);
 
-    // Unlit, a hair under the grid so its lines stay on top. The colour lands as #454545 after the post.
+    // Unlit, a hair under the grid. A fixed gap can't hold at every distance, so its depth is also pushed
+    // back: the grid's lines always win the depth test. The colour lands as #454545 after the post.
     this.ground = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({
         color: new THREE.Color().setRGB(GROUND_RGB, GROUND_RGB, GROUND_RGB, THREE.SRGBColorSpace),
+        polygonOffset: true,
+        polygonOffsetFactor: 2,
+        polygonOffsetUnits: 8,
       }),
     );
     this.ground.frustumCulled = false;
@@ -422,7 +426,7 @@ export class SceneRenderer {
     // Seen from below it would hide the scene, as no floor in Unity would.
     this.ground.visible = c.position.y > Ground.y;
     this.ground.scale.copy(this.grid.scale);
-    this.ground.position.set(c.position.x, Ground.y - Math.max(0.002, reach * 1e-6), -c.position.z);
+    this.ground.position.set(c.position.x, Ground.y - 0.0001, -c.position.z);
     this.ground.updateMatrixWorld();
     const u = this.gridMat.uniforms;
     (u.uCamPos.value as THREE.Vector3).copy(toThreeV(c.position));

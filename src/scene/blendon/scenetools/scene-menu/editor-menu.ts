@@ -1,6 +1,6 @@
 // The Editor's own Scene view context menu (GameObjectToolContext.PopulateMenu) for the browser scene:
 // what the right-click menu reads in, plus the edit commands and keys it lists. Entries that need a
-// window the page doesn't have (Add Component, Properties) or the grid settings stay greyed.
+// window the page doesn't have (Add Component, Properties) or grid placement look as in Unity but do nothing.
 import { Selection, ShortcutManager, Undo, EditorSnapSettings } from '../../../unity/editor.ts';
 import { Quaternion, Vector3 } from '../../../unity/math.ts';
 import {
@@ -21,6 +21,8 @@ export interface SceneMenuItem {
   hotkey: string;
   separatorBefore: boolean;
   enabled: boolean;
+  /** Looks as in Unity, does nothing here: no grid placement or windows in the browser. */
+  demoOnly?: boolean;
   checked: boolean;
   execute: () => void;
 }
@@ -64,6 +66,8 @@ function item(name: string, run: () => void, enabled = true, separatorBefore = f
     execute: run,
   };
 }
+
+const demoOnly = (i: SceneMenuItem): SceneMenuItem => ({ ...i, demoOnly: true });
 
 // ---- edit commands ----
 
@@ -277,17 +281,17 @@ export function captureEditorMenu(): SceneMenuSnapshot {
     item('Move to Closest Grid Point', moveToGrid, any),
     item('Align to Grid Rotation', alignToGrid, any),
     // The grid's own placement is not something the browser grid can move to.
-    item('Grid/Move to Active Object Position', () => {}, false),
-    item('Grid/Align to Active Object Rotation', () => {}, false),
-    item('Grid/Move to Handle Position', () => {}, false),
-    item('Grid/Align to Handle Rotation', () => {}, false),
+    demoOnly(item('Grid/Move to Active Object Position', () => {})),
+    demoOnly(item('Grid/Align to Active Object Rotation', () => {})),
+    demoOnly(item('Grid/Move to Handle Position', () => {})),
+    demoOnly(item('Grid/Align to Handle Rotation', () => {})),
     item('Grid/Reset to World', () => {}, false, true),
     item('Grid/Apply Last Custom Values', () => {}, false),
     isolated
       ? item('Exit Isolation', () => SceneVisibilityManager.exitIsolation(), true, true)
       : item('Isolate', () => SceneVisibilityManager.isolate(Selection.gameObjects, true), any, true),
-    item('Add Component... %#a', () => {}, false, true),
-    item('Properties... _&P', () => {}, false),
+    demoOnly(item('Add Component... %#a', () => {}, true, true)),
+    demoOnly(item('Properties... _&P', () => {})),
   ];
   const componentRoots = new Set<string>();
   const active = Selection.activeTransform;
