@@ -22,11 +22,15 @@ interface Vec3 {
 
 interface HostElement {
   sceneHost: {
+    root: { getBoundingClientRect(): { left: number; top: number } };
+    selectionNames: string[];
     scene: { allObjects(): Iterable<{ name: string; transform: { position: Vec3 } }> };
     view: {
       rotation: Vec3 & { w: number };
       pixelsPerPoint: number;
       camera: { pixelHeight: number; worldToScreenPoint(p: Vec3): Vec3 };
+      drawMode: number;
+      highlight: { selects: unknown[]; deselects: unknown[] } | null;
     };
   };
 }
@@ -46,18 +50,31 @@ function viewRotation(page: Page) {
   });
 }
 
-/** Where the named object's pivot is on the page. */
-async function pagePointOf(page: Page, name: string) {
-  const view = page.locator('#try [role=application]');
-  const box = (await view.boundingBox())!;
-  const p = await view.evaluate((el: unknown, n) => {
-    const v = (el as HostElement).sceneHost.view;
-    const go = [...(el as HostElement).sceneHost.scene.allObjects()].find((o) => o.name === n)!;
+/** Where the named object's pivot is on the page; the camera viewport starts under the top toolbar. */
+function pagePointOf(page: Page, name: string) {
+  return page.locator('#try [role=application]').evaluate((el: unknown, n) => {
+    const h = (el as HostElement).sceneHost;
+    const v = h.view;
+    const go = [...h.scene.allObjects()].find((o) => o.name === n)!;
     const s = v.camera.worldToScreenPoint(go.transform.position);
-    return { x: s.x / v.pixelsPerPoint, y: (v.camera.pixelHeight - s.y) / v.pixelsPerPoint };
+    const r = h.root.getBoundingClientRect();
+    return { x: r.left + s.x / v.pixelsPerPoint, y: r.top + (v.camera.pixelHeight - s.y) / v.pixelsPerPoint };
   }, name);
-  return { x: box.x + p.x, y: box.y + p.y };
 }
+
+/** What Box Select's highlight marks right now: [to select, to deselect]. */
+function highlighted(page: Page) {
+  return page.locator('#try [role=application]').evaluate((el: unknown) => {
+    const h = (el as HostElement).sceneHost.view.highlight;
+    return [h?.selects.length ?? 0, h?.deselects.length ?? 0];
+  });
+}
+
+const selectionNames = (page: Page) =>
+  page.locator('#try [role=application]').evaluate((el: unknown) => (el as HostElement).sceneHost.selectionNames);
+
+const drawMode = (page: Page) =>
+  page.locator('#try [role=application]').evaluate((el: unknown) => (el as HostElement).sceneHost.view.drawMode);
 
 test.beforeEach(async ({ page }) => {
   errors = [];
@@ -172,4 +189,69 @@ test.describe('on a wide screen', () => {
     await page.getByRole('button', { name: 'Exit full screen' }).click();
     await expect.poll(() => isFullScreen(page)).toBe(false);
   });
+});
+
+test('box selects with a dashed box, a names readout and a red mark for Ctrl', async ({ page }) => {
+  const view = await openScene(page);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.getByRole('button', { name: 'Box Select', exact: true }).click();
+  // On in the captured Editor's settings, so on here from the start.
+  await expect(win.getByRole('button', { name: 'Enable Box Select' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await expect(view).toBeFocused();
+
+  const sphere = await pagePointOf(page, 'Sphere');
+  const cube1 = await pagePointOf(page, 'Cube (1)');
+  const from = { x: sphere.x - 60, y: sphere.y - 60 };
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  for (let i = 1; i <= 6; i++) await page.mouse.move(from.x + ((cube1.x - from.x) * i) / 6, from.y + 120 * (i / 6));
+  await expect.poll(async () => (await highlighted(page))[0]).toBeGreaterThan(0);
+  await page.mouse.up();
+  await expect.poll(() => selectionNames(page)).toContain('Sphere');
+
+  // Ctrl over a selected object marks it to drop out.
+  await page.keyboard.down('Control');
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(sphere.x + 20, sphere.y + 20);
+  await expect.poll(async () => (await highlighted(page))[1]).toBeGreaterThan(0);
+  await page.mouse.up();
+  await page.keyboard.up('Control');
+  await expect.poll(() => selectionNames(page)).not.toContain('Sphere');
+});
+
+test('the toolbars switch the draw mode and hide overlays; demo-only buttons say so', async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Wireframe Draw Mode', exact: true }).click();
+  await expect.poll(() => drawMode(page)).toBe(1);
+  await view.getByRole('button', { name: 'Tools', exact: true }).click();
+  await expect(view.getByRole('button', { name: 'Move Tool' })).toHaveCount(0);
+  const search = view.getByRole('button', { name: 'Search', exact: true });
+  await expect(search).toHaveCSS('cursor', 'not-allowed');
+});
+
+test('resets the scene and every setting', async ({ page }) => {
+  const view = await openScene(page);
+  const before = (await positionOf(page, 'Cube'))!;
+  await view.focus();
+  for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x + 2, 4);
+  await page.getByRole('button', { name: 'Reset the scene and every setting' }).click();
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x, 4);
+});
+
+test('opens the Playground on a page of its own, without scrolling', async ({ page }) => {
+  await page.goto('playground/');
+  await expect(page.locator('[role=application] canvas').first()).toBeVisible();
+  const overflow = await page.evaluate(() => {
+    const d = (
+      globalThis as unknown as { document: { documentElement: { scrollHeight: number; clientHeight: number } } }
+    ).document.documentElement;
+    return d.scrollHeight - d.clientHeight;
+  });
+  expect(overflow).toBe(0);
+  await page.getByRole('button', { name: 'Hide this bar' }).click();
+  await expect(page.getByRole('link', { name: 'Back to the Blendon page' })).toHaveCount(0);
 });

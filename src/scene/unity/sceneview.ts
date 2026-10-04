@@ -1,6 +1,8 @@
 // The Scene view camera model, matching Unity 6's SceneView: pivot/rotation/size, with the camera
 // parked size/sin(fov/2) behind the pivot (2*size when orthographic) and an animated ortho fade.
+import type { HighlightSets, IdCapture } from '../render/renderer.ts';
 import { Mathf, Matrix4x4, Quaternion, Ray, Rect, Vector2, Vector3 } from './math.ts';
+import type { GameObject } from './scene.ts';
 
 export const kOrthoThresholdAngle = 3;
 export const kDefaultPerspectiveFov = 60;
@@ -234,6 +236,10 @@ export class SceneView {
   drawMode: DrawCameraMode = DrawCameraMode.Textured;
   /** Effects/skybox flags are not modelled; the grid is. */
   showGrid = true;
+  /** Box Select's preview, drawn by the host's renderer after the selection outline. */
+  highlight: HighlightSets | null = null;
+  /** Set by the host: which of these objects owns each visible pixel right now. */
+  captureIds: ((objects: GameObject[]) => IdCapture) | null = null;
 
   /** Window rect in points (the viewport only; there is no toolbar strip in the browser). */
   position = new Rect(0, 0, 800, 600);

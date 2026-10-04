@@ -1,0 +1,84 @@
+@use 'tokens' as *;
+
+// The page never scrolls: the dock takes whatever the bar leaves.
+:global(html),
+:global(body),
+:global(#root) {
+  height: 100%;
+  overflow: hidden;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 32px;
+  padding: 0 6px 0 14px;
+  background: #141414;
+  border-bottom: 1px solid #0d0d0d;
+  font-size: 13px;
+}
+
+.home {
+  display: flex;
+
+  img {
+    display: block;
+    height: 16px;
+    width: auto;
+  }
+}
+
+.title {
+  color: $text-3;
+}
+
+.back {
+  color: $text-3;
+  text-decoration: none;
+
+  &:hover {
+    color: $text;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: $text-3;
+
+  svg {
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+  }
+
+  &:hover {
+    background: #2a2a2a;
+    color: $text;
+  }
+}
+
+.dock {
+  flex: 1;
+  min-height: 0;
+}

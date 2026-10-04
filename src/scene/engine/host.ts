@@ -1,6 +1,5 @@
 // Runs a Scene view the way the Editor does: DOM input becomes IMGUI events, each preceded by a
 // Layout pass and offered to the Shortcut Manager first; frames run only while something changes.
-import * as THREE from 'three';
 import { SceneRenderer, type OutlineSets } from '../render/renderer.ts';
 import {
   EditorApplication,
@@ -44,6 +43,11 @@ export interface HostListeners {
 export class SceneHost {
   readonly scene = new Scene();
   readonly view = new SceneView();
+
+  /** The selection's names, for the end-to-end tests. */
+  get selectionNames() {
+    return Selection.objects.map((o) => o.name);
+  }
   readonly renderer: SceneRenderer;
   readonly glCanvas: HTMLCanvasElement;
   readonly overlay: HTMLCanvasElement;
@@ -85,6 +89,7 @@ export class SceneHost {
     SceneViewRef.current = this.view;
     Scene.current = this.scene;
     this.view.onRepaint = () => this.requestFrame();
+    this.view.captureIds = (objects) => this.renderer.captureIds(this.view, objects);
     EditorApplication.wake = () => this.requestFrame();
     Undo.init(this.scene);
     HandleUtility.picker = {
@@ -163,8 +168,7 @@ export class SceneHost {
     return {
       selected: selected.filter((o) => o.mesh),
       children: children.filter((o) => o.mesh),
-      extra: this.extraOutline.objects,
-      extraColor: this.extraOutline.color,
+      highlight: this.view.highlight,
     };
   }
 
@@ -209,9 +213,6 @@ export class SceneHost {
     ctx.restore();
     this.requestFrame();
   }
-
-  /** Objects Handles.DrawOutline asked for this frame (box select highlight). */
-  extraOutline: { objects: GameObject[]; color: THREE.Color } = { objects: [], color: new THREE.Color(1, 1, 1) };
 
   // ---- passes ------------------------------------------------------------------------------------
 

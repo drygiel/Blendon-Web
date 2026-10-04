@@ -32,6 +32,15 @@ $text: #c4c4c4;
   }
 }
 
+// The stand-alone Playground: the dock is the page.
+.page {
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .full {
   width: 100vw;
   height: 100vh;
@@ -113,7 +122,12 @@ $text: #c4c4c4;
   background: $focus-line;
 }
 
-// Unity's add-tab cross.
+// Unity's add-tab cross and window menu: pictures only.
+.plus,
+.kebab {
+  cursor: not-allowed;
+}
+
 .plus {
   position: relative;
   align-self: center;
@@ -156,6 +170,7 @@ $text: #c4c4c4;
 
 .tool {
   display: grid;
+  box-sizing: border-box;
   place-items: center;
   width: 22px;
   height: 20px;

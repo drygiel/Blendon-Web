@@ -1,10 +1,20 @@
 // three.js view of the Unity scene: mirrored into a right-handed space (z flipped), lit like the
 // default URP setup, with Unity's grid and selection outline drawn on top.
 import * as THREE from 'three';
+import { EditorSnapSettings } from '../unity/editor.ts';
 import { Quaternion, Vector3 } from '../unity/math.ts';
-import type { GameObject, Mesh, Scene } from '../unity/scene.ts';
+import { Ground, type GameObject, type Mesh, type Scene } from '../unity/scene.ts';
 import { DrawCameraMode, type SceneView } from '../unity/sceneview.ts';
-import { DIST_H_FRAG, GRID_FRAG, GRID_VERT, OUTLINE_FRAG, POST_FRAG, QUAD_VERT } from './shaders.ts';
+import {
+  DIST4_H_FRAG,
+  DIST_H_FRAG,
+  GRID_FRAG,
+  GRID_VERT,
+  HIGHLIGHT_FRAG,
+  OUTLINE_FRAG,
+  POST_FRAG,
+  QUAD_VERT,
+} from './shaders.ts';
 
 const toThreeV = (v: Vector3) => new THREE.Vector3(v.x, v.y, -v.z);
 const toThreeQ = (q: Quaternion) => new THREE.Quaternion(-q.x, -q.y, q.z, q.w);
@@ -51,6 +61,8 @@ const LIGHT_EULER = new Vector3(50, 330, 0);
 // these and the sky below were matched to the reference capture's face colours.
 const LIGHT_INTENSITY = 12;
 const ENV_INTENSITY = 0.7;
+// sRGB input that comes out of the tonemapper as #454545.
+const GROUND_RGB = 0.265;
 
 /** The default procedural skybox as an environment: lights the ambient and the reflections. */
 function skyEnvironment(renderer: THREE.WebGLRenderer) {
@@ -79,9 +91,37 @@ function skyEnvironment(renderer: THREE.WebGLRenderer) {
 export interface OutlineSets {
   selected: GameObject[];
   children: GameObject[];
-  extra: GameObject[];
-  extraColor: THREE.Color;
+  highlight: HighlightSets | null;
 }
+
+/** Box Select's preview: what a release selects and deselects, children's meshes included. */
+export interface HighlightSets {
+  selects: GameObject[];
+  deselects: GameObject[];
+  /** Marked objects with no mesh anywhere under them, drawn as squares by Box Select itself. */
+  markers: GameObject[];
+  markerOf: Set<GameObject>;
+  /** sRGB colours; alpha is the fill's. */
+  selectColor: [number, number, number, number];
+  deselectColor: [number, number, number, number];
+  fill: boolean;
+  outline: boolean;
+  /** Rim width in points. */
+  width: number;
+  occludedOpacity: number;
+  alpha: number;
+}
+
+/** Every visible pixel's object, as index + 1; read once per box. */
+export interface IdCapture {
+  width: number;
+  height: number;
+  /** Device pixels per GUI point. */
+  scale: number;
+  data: Uint8Array;
+}
+
+const colorUniform = () => ({ value: new THREE.Vector4() });
 
 export class SceneRenderer {
   readonly renderer: THREE.WebGLRenderer;
@@ -90,6 +130,7 @@ export class SceneRenderer {
   private readonly ortho = new THREE.OrthographicCamera();
   private readonly entries = new Map<GameObject, Entry>();
   private readonly grid: THREE.Mesh;
+  private readonly ground: THREE.Mesh;
   private readonly gridMat: THREE.ShaderMaterial;
   private readonly maskTarget: THREE.WebGLRenderTarget;
   private readonly distTarget: THREE.WebGLRenderTarget;
@@ -97,6 +138,27 @@ export class SceneRenderer {
   private readonly distMat: THREE.ShaderMaterial;
   private readonly outlineMat: THREE.ShaderMaterial;
   private readonly distScene = new THREE.Scene();
+  private readonly hlMask: THREE.WebGLRenderTarget;
+  private readonly hlDist: THREE.WebGLRenderTarget;
+  private readonly hlDistMat: THREE.ShaderMaterial;
+  private readonly hlMat: THREE.ShaderMaterial;
+  private readonly hlDistScene = new THREE.Scene();
+  private readonly hlScene = new THREE.Scene();
+  private readonly depthOnlyMat = new THREE.MeshBasicMaterial({ colorWrite: false });
+  // Select visible, select hidden, deselect visible, deselect hidden: one mask channel each.
+  private readonly hlChannels = [
+    maskMaterial(THREE.LessEqualDepth, [1, 0, 0, 0]),
+    maskMaterial(THREE.GreaterDepth, [0, 1, 0, 0]),
+    maskMaterial(THREE.LessEqualDepth, [0, 0, 1, 0]),
+    maskMaterial(THREE.GreaterDepth, [0, 0, 0, 1]),
+  ];
+  private readonly idTarget = new THREE.WebGLRenderTarget(1, 1);
+  private readonly idMat = new THREE.ShaderMaterial({
+    uniforms: { uId: colorUniform() },
+    vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec4 uId; void main(){ gl_FragColor = uId; }',
+  });
+  private dpr = 1;
   private readonly hdrTarget: THREE.WebGLRenderTarget;
   private readonly postMat: THREE.ShaderMaterial;
   private readonly postScene = new THREE.Scene();
@@ -158,6 +220,8 @@ export class SceneRenderer {
         uCamPos: { value: new THREE.Vector3() },
         uSize: { value: 10 },
         uOrtho: { value: 0 },
+        uUnit: { value: 1 },
+        uOrigin: { value: new THREE.Vector2() },
         uViewDir: { value: new THREE.Vector3() },
         uColor: { value: new THREE.Vector4(0.214, 0.214, 0.214, 0.4) },
         // Strength, fade start and end (in view sizes), line width.
@@ -169,6 +233,16 @@ export class SceneRenderer {
     this.grid.frustumCulled = false;
     this.grid.renderOrder = 10;
     this.three.add(this.grid);
+
+    // Unlit, a hair under the grid so its lines stay on top. The colour lands as #454545 after the post.
+    this.ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setRGB(GROUND_RGB, GROUND_RGB, GROUND_RGB, THREE.SRGBColorSpace),
+      }),
+    );
+    this.ground.frustumCulled = false;
+    this.three.add(this.ground);
 
     this.hdrTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
     this.postMat = new THREE.ShaderMaterial({
@@ -208,6 +282,38 @@ export class SceneRenderer {
       },
     });
     this.distScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.distMat));
+
+    this.hlMask = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
+    this.hlDist = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false });
+    this.hlDistMat = new THREE.ShaderMaterial({
+      vertexShader: QUAD_VERT,
+      fragmentShader: DIST4_H_FRAG,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: { uMask: { value: this.hlMask.texture }, uTexel: { value: texel }, uR: { value: 4 } },
+    });
+    this.hlMat = new THREE.ShaderMaterial({
+      vertexShader: QUAD_VERT,
+      fragmentShader: HIGHLIGHT_FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uMask: { value: this.hlMask.texture },
+        uDist: { value: this.hlDist.texture },
+        uTexel: { value: texel },
+        uR: { value: 4 },
+        uWidth: { value: 2 },
+        uSelect: colorUniform(),
+        uDeselect: colorUniform(),
+        uOccluded: { value: 0.5 },
+        uFill: { value: 0 },
+        uOutline: { value: 1 },
+        uAlpha: { value: 1 },
+      },
+    });
+    this.hlDistScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.hlDistMat));
+    this.hlScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.hlMat));
     this.quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.outlineMat));
   }
 
@@ -219,6 +325,10 @@ export class SceneRenderer {
     this.maskTarget.setSize(w, h);
     this.distTarget.setSize(w, h);
     this.hdrTarget.setSize(w, h);
+    this.hlMask.setSize(w, h);
+    this.hlDist.setSize(w, h);
+    this.idTarget.setSize(w, h);
+    this.dpr = dpr;
     (this.outlineMat.uniforms.uTexel.value as THREE.Vector2).set(1 / w, 1 / h);
     // Unity's outline is two points wide whatever the display scale.
     const rim = 2 * dpr;
@@ -307,12 +417,18 @@ export class SceneRenderer {
     const reach = Math.max(view.size * 600, 50);
     this.grid.visible = view.showGrid;
     this.grid.scale.set(reach * 2, 1, reach * 2);
-    this.grid.position.set(c.position.x, 0, -c.position.z);
+    this.grid.position.set(c.position.x, Ground.y, -c.position.z);
     this.grid.updateMatrixWorld();
+    // Seen from below it would hide the scene, as no floor in Unity would.
+    this.ground.visible = c.position.y > Ground.y;
+    this.ground.scale.copy(this.grid.scale);
+    this.ground.position.set(c.position.x, Ground.y - Math.max(0.002, reach * 1e-6), -c.position.z);
+    this.ground.updateMatrixWorld();
     const u = this.gridMat.uniforms;
     (u.uCamPos.value as THREE.Vector3).copy(toThreeV(c.position));
     (u.uViewDir.value as THREE.Vector3).copy(toThreeV(c.forward));
     u.uSize.value = view.size;
+    u.uUnit.value = Math.max(1e-3, EditorSnapSettings.gridSize.x);
     u.uOrtho.value = c.orthographic ? 1 : 0;
 
     const r = this.renderer;
@@ -326,7 +442,6 @@ export class SceneRenderer {
     const sets: [GameObject[], number][] = [
       [outline.selected, 0],
       [outline.children, 1],
-      [outline.extra, 2],
     ];
     if (sets.some(([l]) => l.length)) {
       const vis = new Map<THREE.Object3D, boolean>();
@@ -359,9 +474,95 @@ export class SceneRenderer {
       r.setRenderTarget(this.distTarget);
       r.render(this.distScene, this.quadCam);
       r.setRenderTarget(null);
-      (this.outlineMat.uniforms.uExtra.value as THREE.Color).copy(outline.extraColor);
       r.render(this.quadScene, this.quadCam);
     }
+    if (outline.highlight) this.renderHighlight(outline.highlight, cam, unlit);
+  }
+
+  /** Shows only these meshes, each with its material, for one render into the current target. */
+  private renderOnly(cam: THREE.Camera, draws: [GameObject, THREE.Material][]) {
+    const vis = new Map<THREE.Object3D, boolean>();
+    this.three.traverse((o) => vis.set(o, o.visible));
+    const bg = this.three.background;
+    this.three.background = null;
+    this.three.traverse((o) => (o.visible = false));
+    this.three.visible = true;
+    const used: THREE.Mesh[] = [];
+    for (const [go, mat] of draws) {
+      const e = this.entries.get(go);
+      if (!e) continue;
+      e.mesh.visible = true;
+      e.mesh.material = mat;
+      used.push(e.mesh);
+      this.renderer.render(this.three, cam);
+      e.mesh.visible = false;
+    }
+    this.three.background = bg;
+    for (const [o, v] of vis) o.visible = v;
+    return used;
+  }
+
+  private renderHighlight(h: HighlightSets, cam: THREE.Camera, unlit: boolean) {
+    const r = this.renderer;
+    const visible = [...this.entries.values()].filter((e) => e.go.visible).map((e) => e.go);
+    const meshes = (list: GameObject[]) => list.filter((go) => go.mesh && go.visible);
+    r.setRenderTarget(this.hlMask);
+    r.setClearColor(0x000000, 0);
+    r.clear(true, true, false);
+    const draws: [GameObject, THREE.Material][] = visible.map((go) => [go, this.depthOnlyMat]);
+    const [selVis, selOcc, deVis, deOcc] = this.hlChannels;
+    for (const go of meshes(h.selects)) draws.push([go, selVis], [go, selOcc]);
+    for (const go of meshes(h.deselects)) draws.push([go, deVis], [go, deOcc]);
+    this.renderOnly(cam, draws);
+    for (const e of this.entries.values()) e.mesh.material = unlit ? this.unlitMat : this.material;
+
+    const rim = h.width * this.dpr;
+    const u = this.hlMat.uniforms;
+    u.uWidth.value = rim;
+    u.uR.value = this.hlDistMat.uniforms.uR.value = Math.min(8, Math.ceil(rim + 1));
+    (u.uSelect.value as THREE.Vector4).fromArray(srgbToLinear(h.selectColor));
+    (u.uDeselect.value as THREE.Vector4).fromArray(srgbToLinear(h.deselectColor));
+    u.uOccluded.value = h.occludedOpacity;
+    u.uFill.value = h.fill ? 1 : 0;
+    u.uOutline.value = h.outline ? 1 : 0;
+    u.uAlpha.value = h.alpha;
+    r.setRenderTarget(this.hlDist);
+    r.render(this.hlDistScene, this.quadCam);
+    r.setRenderTarget(null);
+    r.render(this.hlScene, this.quadCam);
+  }
+
+  /** Box Select's Visible Only read of the view: which object owns each pixel, ground and hidden ones aside. */
+  captureIds(view: SceneView, objects: GameObject[]): IdCapture {
+    this.sync();
+    const cam = this.camera(view);
+    const r = this.renderer;
+    const index = new Map(objects.map((go, i) => [go, i + 1]));
+    r.setRenderTarget(this.idTarget);
+    r.setClearColor(0x000000, 0);
+    r.clear(true, true, false);
+    const draws: [GameObject, THREE.Material][] = [];
+    for (const e of this.entries.values()) {
+      if (!e.go.visible) continue;
+      const id = index.get(e.go) ?? 0;
+      const mat = this.idMat.clone();
+      (mat.uniforms.uId.value as THREE.Vector4).set(
+        (id & 255) / 255,
+        ((id >> 8) & 255) / 255,
+        ((id >> 16) & 255) / 255,
+        1,
+      );
+      draws.push([e.go, mat]);
+    }
+    this.renderOnly(cam, draws);
+    for (const [, m] of draws) m.dispose();
+    const w = this.idTarget.width,
+      h = this.idTarget.height;
+    const data = new Uint8Array(w * h * 4);
+    r.readRenderTargetPixels(this.idTarget, 0, 0, w, h, data);
+    r.setRenderTarget(null);
+    for (const e of this.entries.values()) e.mesh.material = this.material;
+    return { width: w, height: h, scale: this.dpr, data };
   }
 
   dispose() {
@@ -369,5 +570,36 @@ export class SceneRenderer {
     this.maskTarget.dispose();
     this.distTarget.dispose();
     this.hdrTarget.dispose();
+    this.hlMask.dispose();
+    this.hlDist.dispose();
+    this.idTarget.dispose();
   }
 }
+
+/** Writes one channel of the highlight mask: in front of the scene's depth, or behind it. */
+function maskMaterial(depthFunc: THREE.DepthModes, channel: [number, number, number, number]) {
+  return new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Vector4(...channel) } },
+    vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec4 uColor; void main(){ gl_FragColor = uColor; }',
+    blending: THREE.CustomBlending,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneFactor,
+    blendSrcAlpha: THREE.OneFactor,
+    blendDstAlpha: THREE.OneFactor,
+    depthFunc,
+    depthWrite: false,
+    // Pulled towards the camera, so the object's own surface counts as in front, not behind.
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -4,
+  });
+}
+
+const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const srgbToLinear = ([r, g, b, a]: [number, number, number, number]): [number, number, number, number] => [
+  toLinear(r),
+  toLinear(g),
+  toLinear(b),
+  a,
+];

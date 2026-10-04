@@ -17,10 +17,17 @@ import { WindowSlot } from './WindowSlot.tsx';
 type Pane = 'scene' | 'blendon';
 
 const SPLIT_SCREEN = '(min-width: 1366px)';
-// The reference layout's share of the Scene view; the divider moves it within the minimums.
-const DEFAULT_FRACTION = 0.42;
 const MIN_SCENE = 420;
-const MIN_WINDOW = 640;
+const MIN_WINDOW = 420;
+// The reference layout gives the window 58 %; on a smaller screen the Scene view keeps the room and the
+// window narrows to its collapsed sidebar.
+const WIDE_DOCK = 1800;
+
+function defaultFraction(width: number) {
+  if (width <= 0 || width >= WIDE_DOCK) return 0.42;
+  const win = Math.min(Math.max(width * 0.38, 480), 620);
+  return Math.max(0.3, 1 - win / width);
+}
 const SCENE_ICON = `${import.meta.env.BASE_URL}scene/icons/d_UnityEditor.SceneView.png`;
 
 interface KeyboardLock {
@@ -32,16 +39,28 @@ const keyboard = () => (navigator as Navigator & { keyboard?: KeyboardLock }).ke
 // The Scene view tutorial's "Open Blendon's settings" task: showing or using the window is opening them.
 const settingsOpened = () => window.dispatchEvent(new Event('blendon:settings-opened'));
 
-export function Dock() {
+/** `page`: the dock is the whole page (the stand-alone Playground), with no link out to itself. */
+export function Dock({ page = false }: { page?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const wide = useMediaQuery(SPLIT_SCREEN);
-  const [splitPref, setSplitPref] = useState(true);
-  const split = wide && splitPref;
+  // Side by side by default only where there is room; the button switches it anywhere.
+  const [splitPref, setSplitPref] = useState<boolean | null>(null);
+  const split = splitPref ?? wide;
+  const [width, setWidth] = useState(0);
   // Tabs: the one shown. Split: the one last used, whose tab carries the focus line.
   const [active, setActive] = useState<Pane>('scene');
-  const [fraction, setFraction] = useState(DEFAULT_FRACTION);
+  const [dragged, setFraction] = useState<number | null>(null);
+  const fraction = dragged ?? defaultFraction(width);
   const [full, setFull] = useState(false);
   const canFull = typeof document !== 'undefined' && document.fullscreenEnabled;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     const onChange = () => {
@@ -118,16 +137,22 @@ export function Dock() {
 
   const tools = (
     <div className={styles.tools}>
-      {wide && (
-        <ToolButton
-          label={split ? 'Show as tabs' : 'Show side by side'}
-          pressed={split}
-          onClick={() => setSplitPref(!split)}
-        >
-          <rect x="1.5" y="2.5" width="13" height="11" rx="1" />
-          <path d="M8 2.5v11" />
-        </ToolButton>
-      )}
+      <ToolButton
+        label="Reset the scene and every setting"
+        pressed={false}
+        onClick={() => window.dispatchEvent(new Event('blendon:reset'))}
+      >
+        <path d="M2.5 8a5.5 5.5 0 1 0 1.7-4" />
+        <path d="M2.2 1.8v3.4h3.4" />
+      </ToolButton>
+      <ToolButton
+        label={split ? 'Show as tabs' : 'Show side by side'}
+        pressed={split}
+        onClick={() => setSplitPref(!split)}
+      >
+        <rect x="1.5" y="2.5" width="13" height="11" rx="1" />
+        <path d="M8 2.5v11" />
+      </ToolButton>
       {canFull && (
         <ToolButton label={full ? 'Exit full screen' : 'Full screen'} pressed={full} onClick={toggleFull}>
           {full ? (
@@ -137,6 +162,20 @@ export function Dock() {
           )}
         </ToolButton>
       )}
+      {!page && (
+        <a
+          className={styles.tool}
+          href={`${import.meta.env.BASE_URL}playground/`}
+          target="_blank"
+          rel="noopener"
+          title="Open the Playground on a page of its own"
+          aria-label="Open the Playground on a page of its own"
+        >
+          <svg viewBox="0 0 16 16" width={14} height={14} aria-hidden="true">
+            <path d="M9 2.5h4.5V7M13.5 2.5 7.5 8.5M11.5 9.5v4h-9v-9h4" />
+          </svg>
+        </a>
+      )}
     </div>
   );
 
@@ -144,8 +183,8 @@ export function Dock() {
   const blendonTab = <Tab pane="blendon" active={active} split={split} onPick={pick} />;
 
   return (
-    <div ref={ref} className={cx(styles.dock, full && styles.full)}>
-      <span id="playground" className={styles.anchor} />
+    <div ref={ref} className={cx(styles.dock, page && styles.page, full && styles.full)}>
+      {!page && <span id="playground" className={styles.anchor} />}
       {split ? (
         <>
           <Strip style={paneStyle('scene')} tabs={sceneTab} />
@@ -154,7 +193,7 @@ export function Dock() {
             className={styles.divider}
             style={{ left: `calc(${at} - 2px)` }}
             onPointerDown={dragDivider}
-            onDoubleClick={() => setFraction(DEFAULT_FRACTION)}
+            onDoubleClick={() => setFraction(null)}
             role="separator"
             aria-orientation="vertical"
             aria-label="Resize the panes"
@@ -215,10 +254,10 @@ function Strip({ tabs, tools, style }: { tabs: ReactNode; tools?: ReactNode; sty
   return (
     <div className={styles.strip} style={style}>
       {tabs}
-      <span className={styles.plus} aria-hidden="true" />
+      <span className={styles.plus} aria-hidden="true" title="Add Tab (not in this demo)" />
       <span className={styles.spacer} />
       {tools}
-      <span className={styles.kebab} aria-hidden="true">
+      <span className={styles.kebab} aria-hidden="true" title="Window menu (not in this demo)">
         <i />
         <i />
         <i />

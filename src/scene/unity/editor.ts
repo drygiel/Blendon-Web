@@ -433,9 +433,10 @@ export const Undo = {
 // ---- EditorSnapSettings ------------------------------------------------------------------------------
 
 export const EditorSnapSettings = {
-  move: new Vector3(1, 1, 1),
-  rotate: 15,
-  scale: 1,
+  // The reference Editor's Grid and Snap toolbar values.
+  move: new Vector3(0.25, 0.25, 0.25),
+  rotate: 5,
+  scale: 0.25,
   gridSize: new Vector3(1, 1, 1),
   gridPosition: Vector3.zero,
   gridRotation: Quaternion.identity,
@@ -462,6 +463,19 @@ export const EditorSnapSettings = {
   },
   get incrementalSnapActive() {
     return EditorSnapSettings.snapEnabled && !EditorSnapSettings.gridSnapActive;
+  },
+
+  reset() {
+    Object.assign(EditorSnapSettings, {
+      move: new Vector3(0.25, 0.25, 0.25),
+      rotate: 5,
+      scale: 0.25,
+      gridSize: new Vector3(1, 1, 1),
+      gridSnapEnabled: false,
+      angleSnapEnabled: false,
+      scaleSnapEnabled: false,
+      snapToggle: false,
+    });
   },
 };
 

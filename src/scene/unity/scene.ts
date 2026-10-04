@@ -296,9 +296,22 @@ export class GameObject {
     const isolated = this.scene.isolated;
     if (isolated && !isolated.has(this)) return false;
     // Scene visibility is per object: hiding with descendants marks each of them.
-    return !this.hidden && this.activeInHierarchy;
+    return !(this.hidden && this.scene.visibilityEnabled) && this.activeInHierarchy;
   }
 }
+
+/**
+ * Demo only: the floor the scene stands on, half a unit down so an object at the origin rests on it.
+ * Drawn under the grid and hit by surface raycasts, but never picked or selected.
+ */
+export const Ground = {
+  y: -0.5,
+  /** Distance along the ray to the floor, seen from above only. */
+  raycast(origin: Vector3, direction: Vector3): number | null {
+    if (direction.y >= 0 || origin.y <= Ground.y) return null;
+    return (Ground.y - origin.y) / direction.y;
+  },
+};
 
 export class Scene {
   /** The scene the Scene view shows; one at a time here. */
@@ -306,6 +319,8 @@ export class Scene {
   readonly roots: Transform[] = [];
   /** SceneVisibilityManager's isolation: only these show while it is set. */
   isolated: Set<GameObject> | null = null;
+  /** The Scene view's visibility toggle: off shows hidden objects again, keeping their flags. */
+  visibilityEnabled = true;
   private changeListeners = new Set<(t: Transform) => void>();
   private hierarchyListeners = new Set<() => void>();
 

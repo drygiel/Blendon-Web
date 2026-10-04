@@ -19,6 +19,7 @@ import { PieMenus } from './piemenus/built-in-pies.ts';
 import { FrameSelected } from './scenetools/frame-selected.ts';
 import { SelectionHistory, ViewHistory } from './scenetools/history.ts';
 import { IsolateView } from './scenetools/isolate-view.ts';
+import { BoxSelect } from './scenetools/box-select.ts';
 import { ClickSelectParent, HierarchyWalk } from './scenetools/selection-tools.ts';
 import { SnapToFloor } from './scenetools/snap-to-floor.ts';
 import { SceneTutorialCard } from './tutorial/scene-tutorial.ts';
@@ -73,6 +74,7 @@ export function installBlendon() {
   for (const tool of [FrameSelected, IsolateView, SnapToFloor, SelectionHistory, ViewHistory, HierarchyWalk])
     tool.install();
   ClickSelectParent.install();
+  BoxSelect.install();
   EditorEdit.install();
   SceneMenu.install();
   SceneTutorialCard.install();

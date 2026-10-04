@@ -15,6 +15,8 @@ uniform vec3 uCamPos;
 uniform vec3 uViewDir;
 uniform float uSize;
 uniform float uOrtho;
+uniform float uUnit;
+uniform vec2 uOrigin;
 uniform vec4 uColor;
 uniform vec4 uNear;
 uniform vec4 uFar;
@@ -31,13 +33,15 @@ float lineAlpha(vec2 p, float spacing) {
 }
 
 void main() {
-  float lod = log(max(uSize, 1e-4) * 0.35) / log(10.0);
+  // The grid size from the Grid and Snap toolbar scales every level.
+  vec2 cell = (vWorld.xz - uOrigin) / uUnit;
+  float lod = log(max(uSize / uUnit, 1e-4) * 0.35) / log(10.0);
   float level = floor(lod);
   float t = lod - level;
   float s0 = pow(10.0, max(level, -3.0));
   float dist = uOrtho > 0.5 ? uSize : length(vWorld - uCamPos);
-  float a0 = lineAlpha(vWorld.xz, s0) * (1.0 - t) * (1.0 - smoothstep(uSize * uNear.y, uSize * uNear.z, dist));
-  float a1 = lineAlpha(vWorld.xz, s0 * 10.0) * (1.0 - smoothstep(uSize * uFar.y, uSize * uFar.z, dist));
+  float a0 = lineAlpha(cell, s0) * (1.0 - t) * (1.0 - smoothstep(uSize * uNear.y, uSize * uNear.z, dist));
+  float a1 = lineAlpha(cell, s0 * 10.0) * (1.0 - smoothstep(uSize * uFar.y, uSize * uFar.z, dist));
   float a = max(a0 * uNear.x, a1 * uFar.x);
 
   vec3 toFrag = normalize(vWorld - uCamPos);
@@ -129,5 +133,68 @@ void main() {
   float vf = clamp(1.0 - dot(dist, dist), 0.0, 1.0);
   c *= vf;
   gl_FragColor = vec4(clamp(neutralTonemap(max(c, 0.0)), 0.0, 1.0), 1.0);
+  #include <colorspace_fragment>
+}`;
+
+/** Box Select highlight, horizontal half: the distance transform of all four mask channels. */
+export const DIST4_H_FRAG = /* glsl */ `
+uniform sampler2D uMask;
+uniform vec2 uTexel;
+uniform float uR;
+varying vec2 vUv;
+void main() {
+  vec4 best = vec4(16.0);
+  for (int i = -8; i <= 8; i++) {
+    float fi = float(i);
+    if (abs(fi) > uR) continue;
+    vec4 m = texture2D(uMask, vUv + vec2(fi * uTexel.x, 0.0));
+    best = min(best, mix(vec4(16.0), vec4(abs(fi)), step(0.5, m)));
+  }
+  gl_FragColor = best / 16.0;
+}`;
+
+/**
+ * Box Select highlight: what a release selects (r visible, g hidden) and deselects (b visible, a hidden).
+ * Each rim grows from its own part and is cut back by the whole silhouette, the hidden one fainter;
+ * selects are drawn over deselects, as Blendon draws them.
+ */
+export const HIGHLIGHT_FRAG = /* glsl */ `
+uniform sampler2D uMask;
+uniform sampler2D uDist;
+uniform vec2 uTexel;
+uniform float uR;
+uniform float uWidth;
+uniform vec4 uSelect;
+uniform vec4 uDeselect;
+uniform float uOccluded;
+uniform float uFill;
+uniform float uOutline;
+uniform float uAlpha;
+varying vec2 vUv;
+
+vec4 layer(vec3 color, float fillAlpha, float vis, float occ, float dVis, float dOcc) {
+  float inside = max(step(0.5, vis), step(0.5, occ));
+  float rimVis = clamp(uWidth + 0.5 - dVis, 0.0, 1.0) * (1.0 - inside) * uOutline;
+  float rimOcc = clamp(uWidth + 0.5 - dOcc, 0.0, 1.0) * (1.0 - inside) * uOutline * uOccluded;
+  float rim = rimVis + rimOcc * (1.0 - rimVis);
+  float fill = uFill * fillAlpha * (step(0.5, vis) + step(0.5, occ) * (1.0 - step(0.5, vis)) * uOccluded);
+  return vec4(color, max(rim, fill));
+}
+
+void main() {
+  vec4 d = vec4(16.0);
+  for (int j = -8; j <= 8; j++) {
+    float fj = float(j);
+    if (abs(fj) > uR) continue;
+    vec4 dx = texture2D(uDist, vUv + vec2(0.0, fj * uTexel.y)) * 16.0;
+    d = min(d, sqrt(dx * dx + fj * fj));
+  }
+  vec4 m = texture2D(uMask, vUv);
+  vec4 s = layer(uSelect.rgb, uSelect.a, m.r, m.g, d.r, d.g);
+  vec4 u = layer(uDeselect.rgb, uDeselect.a, m.b, m.a, d.b, d.a);
+  float a = s.a + u.a * (1.0 - s.a);
+  if (a <= 0.0) discard;
+  vec3 c = (s.rgb * s.a + u.rgb * u.a * (1.0 - s.a)) / a;
+  gl_FragColor = vec4(c, a * uAlpha);
   #include <colorspace_fragment>
 }`;

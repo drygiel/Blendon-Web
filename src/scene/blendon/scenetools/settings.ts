@@ -1,5 +1,7 @@
 // Settings of the Scene Tools pages, read through the window's values like every other page.
-import { GeneralSettings, sBool, sEnum, sNum, sStr } from '../settings.ts';
+import { Mathf } from '../../unity/math.ts';
+import { ColorDefaults } from '../color.ts';
+import { GeneralSettings, sBool, sColor, sEnum, sNum, sStr } from '../settings.ts';
 
 const animated = (k: string) => sBool(k + 'AnimationEnabled', GeneralSettings.AnimationEnabled);
 const duration = (k: string) => sNum(k + 'AnimationDuration', GeneralSettings.AnimationDuration);
@@ -112,7 +114,58 @@ export const BoxSelectSettings = {
   get HierarchyKeys() {
     return sBool(B + 'HierarchyKeys', true);
   },
+  get RequireFullyEnclosed() {
+    return sBool(B + 'RequireFullyEnclosed', false);
+  },
+  get CombinedMode() {
+    return sEnum(B + 'CombinedMode', ['Intersect', 'Difference'], BoxSelectCombinedMode.Difference);
+  },
+  get VisibleOnly() {
+    return sBool(B + 'VisibleOnly', true);
+  },
+  get SelectionUpdate() {
+    return sEnum(B + 'SelectionUpdate', ['OnRelease', 'Highlight', 'Live'], BoxSelectUpdate.Highlight);
+  },
+  get CursorInfo() {
+    return sEnum(B + 'CursorInfo', ['None', 'Count', 'Names', 'CountAndNames'], BoxSelectInfo.Names);
+  },
+  get OutlineStyle() {
+    return sEnum(B + 'OutlineStyle', ['Solid', 'Dashed', 'DashedDense'], BoxSelectOutlineStyle.DashedDense);
+  },
+  get OutlineColor() {
+    return sColor(B + 'OutlineColor', ColorDefaults.BoxSelectOutlineDefault);
+  },
+  get FillColor() {
+    return sColor(B + 'FillColor', ColorDefaults.BoxSelectFillDefault);
+  },
+  get HighlightStyle() {
+    return sEnum(B + 'HighlightStyle', ['Fill', 'Outline', 'Both'], BoxSelectHighlightStyle.Outline);
+  },
+  get HighlightOutlineWidth() {
+    return Mathf.Clamp(sNum(B + 'HighlightOutlineWidth', 2.1), 0.5, 6);
+  },
+  get HighlightOccludedOpacity() {
+    return Mathf.Clamp01(sNum(B + 'HighlightOccludedOpacity', 0.5));
+  },
+  get HighlightColor() {
+    return sColor(B + 'HighlightColor', ColorDefaults.BoxSelectHighlightDefault);
+  },
+  get DeselectHighlightColor() {
+    return sColor(B + 'DeselectHighlightColor', ColorDefaults.BoxSelectDeselectHighlightDefault);
+  },
+  get NamesTextColor() {
+    return sColor(B + 'NamesTextColor', ColorDefaults.BoxSelectNamesTextDefault);
+  },
+  get NamesBackgroundColor() {
+    return sColor(B + 'NamesBackgroundColor', ColorDefaults.BoxSelectNamesBackgroundDefault);
+  },
 };
+
+export const BoxSelectCombinedMode = { Intersect: 0, Difference: 1 } as const;
+export const BoxSelectUpdate = { OnRelease: 0, Highlight: 1, Live: 2 } as const;
+export const BoxSelectInfo = { None: 0, Count: 1, Names: 2, CountAndNames: 3 } as const;
+export const BoxSelectOutlineStyle = { Solid: 0, Dashed: 1, DashedDense: 2 } as const;
+export const BoxSelectHighlightStyle = { Fill: 0, Outline: 1, Both: 2 } as const;
 
 export const SceneMenuEditActions = { IconRow: 0, List: 1 } as const;
 

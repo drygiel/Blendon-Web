@@ -1,0 +1,150 @@
+// Unity 6 dark toolbars, measured off the reference capture (175 % scaling, sizes in points).
+$strip: #3c3c3c;
+$frame: #0d0d0d;
+$btn: #585858;
+$btn-hover: #676767;
+$on: #46607c;
+$on-hover: #4f6d8f;
+$field: #2a2a2a;
+$text: #c4c4c4;
+
+.top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 0 3px 0 7px;
+  background: $strip;
+  pointer-events: auto;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 100%;
+}
+
+.strip {
+  display: flex;
+  gap: 1px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.btn {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  place-items: center;
+  place-content: center;
+  gap: 2px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: $btn;
+  cursor: default;
+
+  &:hover {
+    background: $btn-hover;
+  }
+
+  img {
+    display: block;
+    pointer-events: none;
+  }
+}
+
+.on,
+.on:hover {
+  background: $on;
+}
+
+.on:hover {
+  background: $on-hover;
+}
+
+// Unity draws these, but the demo has nothing behind them.
+.forbidden,
+.forbidden:hover {
+  cursor: not-allowed;
+}
+
+.forbidden:hover:not(.on) {
+  background: $btn;
+}
+
+.caret {
+  margin-right: -2px;
+}
+
+.field {
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 3px;
+  border: 1px solid #212121;
+  border-radius: 3px;
+  outline: 0;
+  background: $field;
+  color: $text;
+  font:
+    400 12px/1 Inter,
+    system-ui,
+    sans-serif;
+  cursor: text;
+
+  &:hover {
+    border-color: #656565;
+  }
+
+  &:focus {
+    border-color: #3a79bb;
+  }
+}
+
+.sep {
+  width: 1px;
+  height: 14px;
+  margin: 0 2px;
+  background: #2a2a2a;
+}
+
+.grip {
+  flex: none;
+  width: 6px;
+  height: 14px;
+  margin: 0 2px 0 0;
+  background:
+    linear-gradient(#5a5a5a, #5a5a5a) 1px 0 / 1px 100% no-repeat,
+    linear-gradient(#5a5a5a, #5a5a5a) 4px 0 / 1px 100% no-repeat;
+}
+
+.menu {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 3px 0 4px;
+  border-radius: 3px 3px 0 0;
+  background: $frame;
+  pointer-events: auto;
+
+  .grip {
+    margin: 0 4px 0 2px;
+    background:
+      linear-gradient(#3b3b3b, #3b3b3b) 1px 0 / 1px 100% no-repeat,
+      linear-gradient(#3b3b3b, #3b3b3b) 4px 0 / 1px 100% no-repeat;
+  }
+}

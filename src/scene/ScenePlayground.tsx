@@ -4,11 +4,12 @@ import { SharedSettings } from '../lib/shared-settings.ts';
 import { loadWindowData, D } from '../window/data/store.ts';
 import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import { installBlendon } from './blendon/install.ts';
-import { buildDemoScene } from './demo.ts';
+import { buildDemoScene, resetDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
 import { Prefs, ShortcutManager } from './unity/editor.ts';
 import { Chrome } from './ui/Chrome.tsx';
 import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
+import { SceneOverlays, TopStripHeight, useOverlays } from './ui/overlays.ts';
 import { SceneMenuView } from './ui/SceneMenuView.tsx';
 import { TutorialCard } from './ui/TutorialCard.tsx';
 import type { PivotPointApi } from './ui/pivot.ts';
@@ -38,8 +39,10 @@ export default function ScenePlayground({ onActiveChange }: Props) {
     let h: SceneHost | null = null;
     void loadWindowData().then(() => {
       if (disposed || !canvasRef.current || !frameRef.current) return;
-      // The shipped defaults; a page that follows the Defaults card reads the General value.
+      // The captured Editor's values, else the shipped defaults; a page that follows the Defaults card
+      // reads the General value.
       const val = (key: string): string | number | boolean | undefined => {
+        if (key in D.initial) return D.initial[key];
         const follows = D.followers[key];
         if (follows) return val(follows);
         const p = D.props[key];
@@ -78,13 +81,29 @@ export default function ScenePlayground({ onActiveChange }: Props) {
     [host],
   );
 
+  // The dock's reset button: the scene as first built, every overlay back.
+  useEffect(() => {
+    if (!host) return;
+    const reset = () => {
+      resetDemoScene(host);
+      SceneOverlays.reset();
+    };
+    window.addEventListener('blendon:reset', reset);
+    return () => window.removeEventListener('blendon:reset', reset);
+  }, [host]);
+
+  const overlays = useOverlays();
+
   return (
     <div ref={frameRef} className={styles.frame} aria-label="Unity Scene view running Blendon" role="application">
-      <div ref={canvasRef} className={styles.canvas} />
+      {/* Unity's camera viewport starts under the docked top toolbar. */}
+      <div className={styles.viewport} style={{ top: overlays.topStrip ? TopStripHeight : 0 }}>
+        <div ref={canvasRef} className={styles.canvas} />
+        {host && <TutorialCard host={host} />}
+        {host && <SceneMenuView host={host} />}
+      </div>
       {host && <Chrome host={host} pivot={pivotPoint} />}
       {host && <OrientationOverlay host={host} />}
-      {host && <TutorialCard host={host} />}
-      {host && <SceneMenuView host={host} />}
     </div>
   );
 }
