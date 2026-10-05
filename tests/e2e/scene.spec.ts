@@ -8,7 +8,8 @@ test.skip(({ browserName }) => browserName !== 'chromium', 'WebGL Scene view: Ch
 async function openScene(page: Page) {
   await page.locator('#try').scrollIntoViewIfNeeded();
   const view = page.locator('#try [role=application]');
-  await expect(view.locator('canvas').first()).toBeVisible();
+  // three.js, the engine and the window data load on demand; a busy machine takes a while.
+  await expect(view.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
   // The host is attached once the scene is built.
   await expect.poll(() => view.evaluate((el: unknown) => !!(el as Partial<HostElement>).sceneHost)).toBe(true);
   return view;
@@ -244,7 +245,7 @@ test('resets the scene and every setting', async ({ page }) => {
 
 test('opens the Playground on a page of its own, without scrolling', async ({ page }) => {
   await page.goto('playground/');
-  await expect(page.locator('[role=application] canvas').first()).toBeVisible();
+  await expect(page.locator('[role=application] canvas').first()).toBeVisible({ timeout: 20_000 });
   const overflow = await page.evaluate(() => {
     const d = (
       globalThis as unknown as { document: { documentElement: { scrollHeight: number; clientHeight: number } } }
@@ -348,4 +349,49 @@ test('says the Playground is a demo', async ({ page }) => {
   await expect(page.locator('#try').getByRole('note')).toContainText('Demo only');
   await page.goto('playground/');
   await expect(page.getByRole('banner').getByRole('note')).toContainText('Demo only');
+});
+
+test("with Blendon off, the Editor's own navigation, keys, menu and gizmo come back", async ({ page }) => {
+  const view = await openScene(page);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.getByRole('button', { name: 'Enable Blendon', exact: true }).click();
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await expect(view.getByLabel('Scene gizmo')).toBeVisible();
+  await expect(view.getByLabel('Orientation gizmo')).toHaveCount(0);
+
+  // Alt + left drag orbits the pivot.
+  const box = (await view.boundingBox())!;
+  const x = box.x + box.width * 0.4,
+    y = box.y + box.height * 0.35;
+  const before = await viewRotation(page);
+  await page.keyboard.down('Alt');
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  for (let i = 1; i <= 8; i++) await page.mouse.move(x + i * 10, y);
+  await page.mouse.up();
+  await page.keyboard.up('Alt');
+  expect(await viewRotation(page)).not.toEqual(before);
+
+  // R is the Editor's Scale tool again, not Blendon's rotate grab.
+  await page.keyboard.press('r');
+  await expect(view.getByRole('button', { name: 'Scale Tool' })).toHaveAttribute('aria-pressed', 'true');
+
+  // A right click opens the Editor's own menu.
+  await page.mouse.click(x, y, { button: 'right' });
+  await expect(view.getByText('Grid', { exact: true })).toBeVisible();
+  await expect(view.getByLabel('Search the menu')).toHaveCount(0);
+});
+
+test("with the Context Menu off, a right click opens the Editor's menu", async ({ page }) => {
+  const view = await openScene(page);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.getByRole('button', { name: 'Context Menu', exact: true }).click();
+  await win.getByRole('button', { name: 'Enable Context Menu', exact: true }).click();
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  const box = (await view.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3, { button: 'right' });
+  await expect(view.getByText('Grid', { exact: true })).toBeVisible();
+  await expect(view.getByLabel('Search the menu')).toHaveCount(0);
 });

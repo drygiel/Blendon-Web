@@ -755,9 +755,9 @@ function onBeforeSceneGui(view: SceneView) {
     case EventType.MouseDown:
       if (e.button === 1) {
         pressedAt = e.mousePosition;
-        // Shift+right-click is the classic menu.
-        classic = e.shift;
-        armed = SceneMenuSettings.Enabled && !gestureRunning() && !e.control && !e.alt && !e.command;
+        // Shift+right-click is the classic menu, and so is every right-click with Blendon's menu off.
+        classic = e.shift || !SceneMenuSettings.Enabled;
+        armed = !gestureRunning() && !e.control && !e.alt && !e.command;
       } else heldButtons |= 1 << e.button;
       break;
     case EventType.MouseMove:

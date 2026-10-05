@@ -11,6 +11,10 @@ export const OrientationGizmoSettings = {
   get Enabled() {
     return GeneralSettings.Enabled && sBool(K + 'Enabled', true);
   },
+  /** Unity's own scene gizmo leaves the view while Blendon's is shown. */
+  get HideNativeGizmo() {
+    return sBool(K + 'HideNativeGizmo', true);
+  },
   get Radius() {
     return sNum(K + 'Radius', 45);
   },

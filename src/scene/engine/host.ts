@@ -15,7 +15,20 @@ import { Rect, Vector2 } from '../unity/math.ts';
 import { objectsInRect, raycastScene } from '../unity/raycast.ts';
 import { Scene, type GameObject } from '../unity/scene.ts';
 import { SceneView } from '../unity/sceneview.ts';
+import { UnityCommands } from './unity-native/commands.ts';
+import { UnityNavigation } from './unity-native/navigation.ts';
+import { UnityToolHandles } from './unity-native/tool-handles.ts';
 import { UnitySelection } from './unity-selection.ts';
+
+let nativeInstalled = false;
+/** The Editor's own commands, gestures and handles, under whatever a plugin installs on top. */
+function installNative() {
+  if (nativeInstalled) return;
+  nativeInstalled = true;
+  UnityCommands.install();
+  UnityNavigation.install();
+  UnityToolHandles.install();
+}
 
 /** Unity's mouse button numbering from the DOM's (middle and right swap). */
 const UNITY_BUTTON = [0, 2, 1, 3, 4];
@@ -86,6 +99,7 @@ export class SceneHost {
     this.overlay.style.pointerEvents = 'none';
     this.ctx = this.overlay.getContext('2d')!;
     this.renderer = new SceneRenderer(this.glCanvas, this.scene);
+    installNative();
     SceneViewRef.current = this.view;
     Scene.current = this.scene;
     this.view.onRepaint = () => this.requestFrame();
@@ -262,7 +276,10 @@ export class SceneHost {
   private hooks(view: SceneView) {
     SceneView.beforeSceneGui.invoke(view);
     this.unitySelection.onGUI(view);
+    UnityToolHandles.onGUI(view);
     SceneView.duringSceneGui.invoke(view);
+    // The view tool runs last, on whatever the plugin's hooks left unused.
+    UnityNavigation.onGUI(view);
   }
 
   // ---- input -------------------------------------------------------------------------------------
@@ -433,6 +450,7 @@ export class SceneHost {
       if (MODIFIER_CODES.has(ev.keyCode)) this.endStaleClutches(ev);
       if (
         !MODIFIER_CODES.has(ev.keyCode) &&
+        !UnityNavigation.capturesKey(ev.keyCode) &&
         GUIUtility.keyboardControl === 0 &&
         ShortcutManager.dispatchDown(ev, this.view)
       ) {
@@ -450,7 +468,7 @@ export class SceneHost {
       if (ev.keyCode === KeyCode.None) return;
       e.preventDefault();
       if (MODIFIER_CODES.has(ev.keyCode)) this.endStaleClutches(ev);
-      if (ShortcutManager.dispatchUp(ev.keyCode, this.view)) {
+      if (!UnityNavigation.capturesKey(ev.keyCode) && ShortcutManager.dispatchUp(ev.keyCode, this.view)) {
         this.requestFrame();
         return;
       }
