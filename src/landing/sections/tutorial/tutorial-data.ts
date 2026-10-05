@@ -22,3 +22,8 @@ export interface TutorialData {
 }
 
 export const TUTORIAL: TutorialData = tutorial;
+
+const byId = new Map(TUTORIAL.chapters.flatMap((c) => c.tasks.map((t) => [t.id, t] as const)));
+
+/** A task's hover picture and clip, by the id the playground's curriculum shares. */
+export const tutorialTip = (id: string): TutorialTask | undefined => byId.get(id);
