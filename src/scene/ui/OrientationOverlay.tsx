@@ -26,6 +26,7 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
 
   useEffect(() => {
     let last = '';
+    let lastUi = '';
     const paint = () => {
       const c = canvasRef.current;
       const ctx = c?.getContext('2d');
@@ -51,6 +52,11 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       if (key === last) return;
       last = key;
       paint();
+      // React re-renders only when the overlay's markup changes; a re-render every frame of a turning
+      // camera starves the page's other updates (the Blendon tab's lazy load never landed).
+      const ui = `${element.directionLabel},${v.orthographic},${v.isRotationLocked}`;
+      if (ui === lastUi) return;
+      lastUi = ui;
       setTick((t) => t + 1);
     };
     host.frameListeners.add(onFrame);

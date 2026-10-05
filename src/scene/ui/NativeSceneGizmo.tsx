@@ -126,6 +126,7 @@ export function NativeSceneGizmo({ host, besideBlendon }: { host: SceneHost; bes
 
   useEffect(() => {
     let last = '';
+    let lastUi = '';
     const onFrame = () => {
       const r = view.rotation;
       const key = `${r.x},${r.y},${r.z},${r.w},${view.orthographic},${hover}`;
@@ -164,6 +165,10 @@ export function NativeSceneGizmo({ host, besideBlendon }: { host: SceneHost; bes
         if (Math.abs(v.z) > 0.95) return;
         ctx.fillText(l, Size / 2 + v.x * (R + 2), Size / 2 - v.y * (R + 2));
       });
+      // Re-rendered only for a new label: a render per frame starves the page's other updates.
+      const ui = `${view.orthographic},${alignedName(r)}`;
+      if (ui === lastUi) return;
+      lastUi = ui;
       setTick((t) => t + 1);
     };
     host.frameListeners.add(onFrame);

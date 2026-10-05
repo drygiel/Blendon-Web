@@ -13,9 +13,9 @@ import {
   Tools,
   Undo,
 } from './unity/editor.ts';
-import { Quaternion, Vector3 } from './unity/math.ts';
+import { Mathf, Quaternion, Vector3 } from './unity/math.ts';
 import { primitiveMesh, type PrimitiveType } from './unity/primitives.ts';
-import { DrawCameraMode } from './unity/sceneview.ts';
+import { DrawCameraMode, type SceneView } from './unity/sceneview.ts';
 import { GameObject, type Transform } from './unity/scene.ts';
 
 interface Spec {
@@ -70,7 +70,16 @@ export function buildDemoScene(host: SceneHost) {
   // The reference capture's toolbar: Median Point, Global.
   SharedGizmoSettings.PivotPoint = PivotMode.Median;
   Selection.set([cube], cube, false);
+  centerOn(v, cube);
   Undo.clearAll();
+}
+
+/** Turns the camera, where it stands, to look straight at the object, keeping its distance. */
+function centerOn(v: SceneView, go: GameObject) {
+  const center = go.bounds?.center ?? go.transform.position;
+  const offset = center.sub(v.camera.position);
+  const size = offset.magnitude * Math.sin(v.cameraSettings.fieldOfView * 0.5 * Mathf.Deg2Rad);
+  v.lookAtDirect(center, Quaternion.lookRotation(offset.normalized, Vector3.up), size);
 }
 
 /** Back to the page's first state: the scene as built, the Scene view's toggles and every setting changed here. */

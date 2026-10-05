@@ -1,12 +1,13 @@
 // Blendon's Scene View tutorial card: one chapter at a time, three task rows, the current task's hint,
 // and the way on once the chapter is done. Docked bottom right, draggable by its header, foldable.
-import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import { useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
 import { D } from '../../window/data/store.ts';
 import { TutorialTasks } from '../blendon/tutorial/curriculum.ts';
 import { SceneTutorialCard, TutorialProgress } from '../blendon/tutorial/scene-tutorial.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
 import type { Color } from '../unity/math.ts';
+import { useViewSize } from './view-size.ts';
 import styles from './TutorialCard.module.scss';
 
 const Width = 330;
@@ -103,18 +104,9 @@ const Chevron = ({ up }: { up: boolean }) => (
 
 export function TutorialCard({ host }: { host: SceneHost }) {
   useSyncExternalStore(SceneTutorialCard.subscribe, () => SceneTutorialCard.version);
-  const [view, setView] = useState({ w: host.view.position.width, h: host.view.position.height });
+  const view = useViewSize(host);
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const [confirmSkip, setConfirmSkip] = useState(false);
-
-  useEffect(() => {
-    const onFrame = () => {
-      const p = host.view.position;
-      setView((v) => (v.w === p.width && v.h === p.height ? v : { w: p.width, h: p.height }));
-    };
-    host.frameListeners.add(onFrame);
-    return () => void host.frameListeners.delete(onFrame);
-  }, [host]);
 
   const active = SceneTutorialCard.active;
   const card = SceneTutorialCard.window;
