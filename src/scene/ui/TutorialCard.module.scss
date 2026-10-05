@@ -362,3 +362,44 @@ $font: Inter, system-ui, sans-serif;
     }
   }
 }
+
+// The row's hover card (TutorialTip): Notice palette, inert to the pointer, hidden until placed.
+.tip {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  padding: 10px;
+  background: rgb(33, 33, 36);
+  border: 1px solid $border;
+  border-radius: 6px;
+  color: #fff;
+  font-family: $font;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.tipTitle {
+  height: 18px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.tipHint {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 13px;
+  color: $subtitle;
+}
+
+// Every picture and clip is 16:9, so the card's height is known before they load.
+.tipMedia {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 8px;
+  border-radius: 3px;
+  background: #1c1d21;
+}
