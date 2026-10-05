@@ -412,7 +412,7 @@ const CHROME_ICONS = [
 ];
 
 // The page header videos are the feature clips the landing page shows too.
-const HEADER_CLIP: Record<string, string> = {
+export const HEADER_CLIP: Record<string, string> = {
   OrbitSelected: 'OrbitSelected',
   Pan: 'Pan',
   Zoom: 'Zoom',
