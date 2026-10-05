@@ -6,6 +6,7 @@ import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import { installBlendon } from './blendon/install.ts';
 import { OrientationGizmoSettings } from './blendon/navigation/orientation/gizmo.ts';
 import { GeneralSettings } from './blendon/settings.ts';
+import { startAttractOrbit } from './attract.ts';
 import { buildDemoScene, resetDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
 import { Prefs, ShortcutManager } from './unity/editor.ts';
@@ -42,6 +43,7 @@ export default function ScenePlayground({ onActiveChange }: Props) {
   useEffect(() => {
     let disposed = false;
     let h: SceneHost | null = null;
+    let stopAttract = () => {};
     void loadWindowData().then(() => {
       if (disposed || !canvasRef.current || !frameRef.current) return;
       // The captured Editor's values, else the shipped defaults; a page that follows the Defaults card
@@ -71,12 +73,14 @@ export default function ScenePlayground({ onActiveChange }: Props) {
       h.listeners.onActiveChange = (a) => activeCb.current?.(a);
       installBlendon();
       buildDemoScene(h);
+      stopAttract = startAttractOrbit(h);
       // Lets end-to-end tests read the scene without a global.
       (frameRef.current as HTMLElement & { sceneHost?: SceneHost }).sceneHost = h;
       setHost(h);
     });
     return () => {
       disposed = true;
+      stopAttract();
       h?.dispose();
     };
   }, []);

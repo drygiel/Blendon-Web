@@ -5,13 +5,15 @@ let errors: string[] = [];
 // The view needs WebGL, which only Chromium's headless build has everywhere CI runs.
 test.skip(({ browserName }) => browserName !== 'chromium', 'WebGL Scene view: Chromium only');
 
-async function openScene(page: Page) {
+async function openScene(page: Page, still = true) {
   await page.locator('#try').scrollIntoViewIfNeeded();
   const view = page.locator('#try [role=application]');
   // three.js, the engine and the window data load on demand; a busy machine takes a while.
   await expect(view.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
   // The host is attached once the scene is built.
   await expect.poll(() => view.evaluate((el: unknown) => !!(el as Partial<HostElement>).sceneHost)).toBe(true);
+  // Focusing the view ends the idle orbit, so every test starts from a camera that holds still.
+  if (still) await view.evaluate((el: unknown) => (el as { focus(o: object): void }).focus({ preventScroll: true }));
   return view;
 }
 
@@ -394,4 +396,16 @@ test("with the Context Menu off, a right click opens the Editor's menu", async (
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3, { button: 'right' });
   await expect(view.getByText('Grid', { exact: true })).toBeVisible();
   await expect(view.getByLabel('Search the menu')).toHaveCount(0);
+});
+
+test('the camera orbits the cube until the playground is touched', async ({ page }) => {
+  const view = await openScene(page, false);
+  const a = await viewRotation(page);
+  await expect.poll(() => viewRotation(page)).not.toEqual(a);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  await page.waitForTimeout(100);
+  const b = await viewRotation(page);
+  await page.waitForTimeout(600);
+  expect(await viewRotation(page)).toEqual(b);
+  await expect(view).toBeAttached();
 });

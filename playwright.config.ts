@@ -8,6 +8,8 @@ const chromiumPath = process.env.PW_CHROMIUM_PATH;
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
+  // The Scene view renders in software WebGL on CI-class machines; a slow one needs the headroom.
+  timeout: 60_000,
   reporter: 'list',
   use: { baseURL: `http://localhost:${port}${base}` },
   webServer: {
