@@ -1,6 +1,6 @@
 // The Editor's own Scene view picking and box select (RectSelection), which Blendon builds on: a click
 // picks what is under the cursor, a drag sends the begin command whose hotControl Blendon's box takes.
-import { EditorApplication, Selection, ShortcutManager, eventShortcutModifiers } from '../unity/editor.ts';
+import { EditorApplication, Selection, ShortcutManager, Tool, Tools, eventShortcutModifiers } from '../unity/editor.ts';
 import { GUI, HandleUtility } from '../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility, KeyCode } from '../unity/imgui.ts';
 import { Color, Rect, Vector2, Vector3 } from '../unity/math.ts';
@@ -49,7 +49,14 @@ export class UnitySelection {
         break;
 
       case EventType.MouseDown:
-        if (ev.button === 0 && HandleUtility.nearestControl === id && GUIUtility.hotControl === 0 && !ev.alt) {
+        // The View tool's left button pans; it never selects.
+        if (
+          ev.button === 0 &&
+          HandleUtility.nearestControl === id &&
+          GUIUtility.hotControl === 0 &&
+          !ev.alt &&
+          Tools.current !== Tool.View
+        ) {
           this.press = ev.mousePosition;
           this.dragging = false;
         }

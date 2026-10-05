@@ -4,10 +4,13 @@ import { SharedSettings } from '../lib/shared-settings.ts';
 import { loadWindowData, D } from '../window/data/store.ts';
 import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import { installBlendon } from './blendon/install.ts';
+import { OrientationGizmoSettings } from './blendon/navigation/orientation/gizmo.ts';
+import { GeneralSettings } from './blendon/settings.ts';
 import { buildDemoScene, resetDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
 import { Prefs, ShortcutManager } from './unity/editor.ts';
 import { Chrome } from './ui/Chrome.tsx';
+import { NativeSceneGizmo } from './ui/NativeSceneGizmo.tsx';
 import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
 import { SceneOverlays, TopStripHeight, useOverlays } from './ui/overlays.ts';
 import { SceneMenuView } from './ui/SceneMenuView.tsx';
@@ -24,6 +27,7 @@ interface Props {
 const pivotPoint: PivotPointApi = {
   get: () => SharedGizmoSettings.PivotPoint,
   set: (m) => void (SharedGizmoSettings.PivotPoint = m),
+  blendon: () => GeneralSettings.Enabled && SharedGizmoSettings.PivotMenuEnabled && SharedGizmoSettings.AnyToolEnabled,
 };
 
 export default function ScenePlayground({ onActiveChange }: Props) {
@@ -114,6 +118,9 @@ export default function ScenePlayground({ onActiveChange }: Props) {
       </div>
       {host && <Chrome host={host} pivot={pivotPoint} />}
       {host && <OrientationOverlay host={host} />}
+      {host && !(OrientationGizmoSettings.Enabled && OrientationGizmoSettings.HideNativeGizmo) && (
+        <NativeSceneGizmo host={host} besideBlendon={OrientationGizmoSettings.Enabled} />
+      )}
     </div>
   );
 }

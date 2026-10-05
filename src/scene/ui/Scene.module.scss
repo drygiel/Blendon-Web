@@ -184,6 +184,36 @@
   }
 }
 
+.nativeGizmo {
+  position: absolute;
+  pointer-events: auto;
+
+  canvas {
+    display: block;
+  }
+}
+
+.nativeGizmoLabel {
+  display: block;
+  width: 100%;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #c4c4c4;
+  font:
+    400 11px/18px Inter,
+    system-ui,
+    sans-serif;
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+
+  span {
+    font-size: 13px;
+  }
+}
+
 .orientationLock {
   position: absolute;
   top: 0;

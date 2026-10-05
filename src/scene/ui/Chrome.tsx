@@ -33,20 +33,20 @@ const HANDLE_ROTATIONS = [
   { label: 'Grid', value: PivotRotation.Grid, icon: iconUrl('d_GridAndSnap') },
 ];
 
-// Parts of the tools overlay picture with nothing behind them in the demo: the tool context, View,
-// Rect and custom tools, and the folded component tools.
+// Parts of the tools overlay picture with nothing behind them in the demo: the tool context, the Rect
+// and custom tools, and the folded component tools.
 // Floating overlays keep clear of the view's edge.
 const Edge = 5;
 
 const DEMO_ONLY = [
   { top: 40, height: 46, label: 'Tool context' },
-  { top: 92, height: 35, label: 'View Tool' },
   { top: 240, height: 35, label: 'Rect Tool' },
   { top: 318, height: 35, label: 'Custom tools' },
   { top: 361, height: 47, label: 'Component tools' },
 ];
 
 const TOOL_BUTTONS = [
+  { tool: Tool.View, top: 92, off: iconUrl('d_ViewToolMove'), on: iconUrl('d_ViewToolMove'), label: 'View Tool' },
   { tool: Tool.Move, top: 129, off: moveOff, on: moveOn, label: 'Move Tool' },
   { tool: Tool.Rotate, top: 166, off: rotateOff, on: rotateOn, label: 'Rotate Tool' },
   { tool: Tool.Scale, top: 203, off: scaleOff, on: scaleOn, label: 'Scale Tool' },
@@ -177,21 +177,39 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
           style={{ left: Edge + pt(overlays.isShown('tools') ? 92 : 4), top: below(9), height: pt(45) }}
         >
           <i className={styles.grip} />
-          <Dropdown
-            icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
-            label={pivotPointNames[mode].short}
-            title={'Pivot Point: ' + pivotPointNames[mode].long}
-            items={[0, 1, 2, 3].map((m) => ({
-              label: pivotPointNames[m].long,
-              checked: m === mode,
-              separatorBefore: m === 2,
-              run: () => {
-                pivot.set(m);
-                focusView();
-                host.requestFrame();
-              },
-            }))}
-          />
+          {pivot.blendon() ? (
+            <Dropdown
+              icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
+              label={pivotPointNames[mode].short}
+              title={'Pivot Point: ' + pivotPointNames[mode].long}
+              items={[0, 1, 2, 3].map((m) => ({
+                label: pivotPointNames[m].long,
+                checked: m === mode,
+                separatorBefore: m === 2,
+                run: () => {
+                  pivot.set(m);
+                  focusView();
+                  host.requestFrame();
+                },
+              }))}
+            />
+          ) : (
+            // The Editor's own Pivot / Center, while Blendon's pivot point menu is off.
+            <Dropdown
+              icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
+              label={Tools.pivotMode === PivotMode.Pivot ? 'Pivot' : 'Center'}
+              title="Tool Handle Position"
+              items={[PivotMode.Pivot, PivotMode.Center].map((m) => ({
+                label: m === PivotMode.Pivot ? 'Pivot' : 'Center',
+                checked: Tools.pivotMode === m,
+                run: () => {
+                  Tools.pivotMode = m;
+                  focusView();
+                  host.requestFrame();
+                },
+              }))}
+            />
+          )}
           <Dropdown
             icon={rotation.icon}
             label={rotation.label}

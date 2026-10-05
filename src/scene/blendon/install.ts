@@ -1,6 +1,6 @@
 // Installs every Blendon feature into the running Scene view, in the order their scene GUI hooks
 // subscribe (which is the order they see each event).
-import { ShortcutManager, Tool, Tools, Undo } from '../unity/editor.ts';
+import { ShortcutManager, Undo } from '../unity/editor.ts';
 import { TransformGizmo } from './gizmos/composite/transform-gizmo.ts';
 import { MoveGizmo } from './gizmos/move/move-gizmo.ts';
 import { MoveGrab } from './gizmos/move/move-grab.ts';
@@ -22,6 +22,7 @@ import { IsolateView } from './scenetools/isolate-view.ts';
 import { BoxSelect } from './scenetools/box-select.ts';
 import { ClickSelectParent, HierarchyWalk } from './scenetools/selection-tools.ts';
 import { SnapToFloor } from './scenetools/snap-to-floor.ts';
+import { ShortcutParking } from './shortcut-parking.ts';
 import { ShortcutTipCard } from './shortcut-tips.ts';
 import { SceneTutorialCard } from './tutorial/scene-tutorial.ts';
 import { EditorEdit } from './scenetools/scene-menu/editor-menu.ts';
@@ -35,28 +36,14 @@ function installEditorUndo() {
   ShortcutManager.register('Edit/Redo', () => !ViewportGesture.busy && Undo.performRedo(), false, 'Ctrl+Y');
 }
 
-/** Unity's own tool keys for the tools Blendon replaces (R and S belong to Blendon's grabs). */
-function installToolKeys() {
-  const keys: [string, Tool, string][] = [
-    ['Tools/Move', Tool.Move, 'W'],
-    ['Tools/Rotate', Tool.Rotate, 'E'],
-    ['Tools/Transform', Tool.Transform, 'Y'],
-  ];
-  // A running grab is offered the key first: Y is its axis lock.
-  for (const [id, tool, key] of keys)
-    ShortcutManager.register(
-      id,
-      () => !ViewportGesture.claimed(id) && !ViewportGesture.busy && (Tools.current = tool),
-      false,
-      key,
-    );
-}
-
 export function installBlendon() {
   if (installed) return;
   installed = true;
   installEditorUndo();
-  installToolKeys();
+  // A switched-off feature's keys go back to the Editor's commands; those stand down while Blendon's
+  // grab takes its keys (Y for the Y axis) or a pie menu owns the view.
+  ShortcutManager.parked = (id) => ShortcutParking.isParked(id);
+  ShortcutManager.standDown = (id) => ViewportGesture.claimed(id) || ViewportGesture.busy;
   // A handle drag or a box takes the keys it understands (X/Y/Z, digits, G/R/S) before any shortcut.
   // Modal grabs already take theirs through ViewportGesture.claimed.
   ShortcutManager.dragActive = () =>

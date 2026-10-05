@@ -182,7 +182,6 @@ const NotSimulated: Record<string, string> = {
   'SharedGizmoSettings.CursorWrap': pointer,
   'SharedGizmoSettings.WrapBounds': pointer,
   'PieMenuSettings.LockCursorToViewport': pointer,
-  'OrientationGizmoSettings.HideNativeGizmo': "the demo draws only Blendon's gizmo",
   'ViewportNavSettings.MatchFieldOfView': 'the demo scene has no cameras',
   'SharedGizmoSettings.ShowPreview': 'the demo window has no gizmo preview',
   'SnapToFloorSettings.SurfaceLayers': 'the demo scene has a single layer',

@@ -11,4 +11,6 @@ export const pivotPointNames = [
 export interface PivotPointApi {
   get(): number;
   set(mode: number): void;
+  /** Blendon's menu is in the toolbar; false shows the Editor's Pivot / Center. */
+  blendon(): boolean;
 }
