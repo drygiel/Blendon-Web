@@ -58,22 +58,119 @@
 }
 
 .chapters {
-  margin: 0;
-  padding: 0;
-  list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
-  gap: 10px 24px;
+  gap: 6px 16px;
+}
 
-  li {
-    display: flex;
-    gap: 12px;
-    font-size: 15px;
-    color: $text-2;
+.chapter {
+  display: flex;
+  gap: 12px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 15px;
+  color: $text-3;
+  text-align: left;
+
+  &:hover {
+    color: $text;
   }
+}
+
+.chapterOn {
+  background: $surface-raised;
+  border-color: $border-strong;
+  color: $text;
 }
 
 .chapterNum {
   @include mono;
   color: $accent;
+}
+
+.tasks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid $border;
+  padding-top: 10px;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 15px;
+  color: $text-2;
+  text-align: left;
+  cursor: help;
+
+  &:hover {
+    color: $text;
+    background: $surface-3;
+  }
+}
+
+.taskOn {
+  color: $text;
+  background: $surface-raised;
+
+  .box {
+    border-color: $accent;
+  }
+}
+
+// The Scene View card's empty checkbox.
+.box {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 1px solid $border-strong;
+  border-radius: 4px;
+  background: $surface-2;
+}
+
+// The hover card: fixed, so the section's overflow never clips it, and inert to the pointer.
+.tip {
+  position: fixed;
+  z-index: 50;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid $border-strong;
+  border-radius: 10px;
+  background: $surface-raised;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.55);
+  pointer-events: none;
+}
+
+.tipTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: $text;
+}
+
+.tipHint {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: $text-3;
+}
+
+.tipMedia {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  background: #1c1d21;
 }

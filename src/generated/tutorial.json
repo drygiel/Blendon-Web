@@ -1,0 +1,271 @@
+{
+ "chapters": [
+  {
+   "title": "Navigating the View",
+   "subtitle": "The camera, Blender's way",
+   "tasks": [
+    {
+     "id": "nav.orbit",
+     "title": "Orbit around your selection",
+     "hint": "Select something, then hold the orbit button and drag - the camera turns around the selection, not around the view's own pivot.",
+     "picture": "plugin/headers/OrbitSelected_Header.webp",
+     "clip": "plugin/video/OrbitSelected.mp4"
+    },
+    {
+     "id": "nav.axis-snap",
+     "title": "Snap the view to a world axis",
+     "hint": "Start the orbit drag first, then hold this key: as the view comes near a world axis it locks onto it and drops into orthographic. Let go for a free perspective orbit again.",
+     "picture": "plugin/tips/OrbitSelected_SnapToAxis.webp",
+     "clip": ""
+    },
+    {
+     "id": "nav.quick-roll",
+     "title": "Roll the view 90°",
+     "hint": "Hold Alt and flick MMB in any direction - the view rolls 90° that way and lands squarely on the nearest axis view.",
+     "picture": "plugin/tips/OrbitSelected_QuickRoll.webp",
+     "clip": ""
+    },
+    {
+     "id": "nav.pan",
+     "title": "Slide the camera sideways",
+     "hint": "Pan keeps the point under the cursor anchored, so the scene tracks your hand instead of drifting.",
+     "picture": "plugin/headers/Pan_Header.webp",
+     "clip": "plugin/video/Pan.mp4"
+    },
+    {
+     "id": "nav.zoom",
+     "title": "Zoom toward the cursor",
+     "hint": "Point at something across the scene and scroll - you close in on that, not on the middle of the view.",
+     "picture": "plugin/headers/Zoom_Header.webp",
+     "clip": "plugin/video/Zoom.mp4"
+    },
+    {
+     "id": "nav.frame",
+     "title": "Frame the selection",
+     "hint": "Press it again without changing the selection to step through the cycle: bounds, pivot, close, then back where you started.",
+     "picture": "plugin/headers/FrameSelected_Header.webp",
+     "clip": "plugin/video/FrameSelected.mp4"
+    },
+    {
+     "id": "nav.axis-view",
+     "title": "Jump to an axis view",
+     "hint": "The numpad views: front, right and top, with the action modifier for the opposite side of each. NumLock has to be on.",
+     "picture": "plugin/headers/NumpadViews_Header.webp",
+     "clip": "plugin/video/NumpadViews.mp4"
+    }
+   ]
+  },
+  {
+   "title": "Grab, Rotate, Scale",
+   "subtitle": "Transform with no handle",
+   "tasks": [
+    {
+     "id": "grab.move",
+     "title": "Grab the selection and move it",
+     "hint": "The selection follows the cursor across the screen - no handle to hit first.",
+     "picture": "plugin/tips/Move_Grab.webp",
+     "clip": ""
+    },
+    {
+     "id": "grab.confirm",
+     "title": "Confirm a transform",
+     "hint": "A left click or Enter drops the selection where it is and ends the grab.",
+     "picture": "plugin/tips/Move_Grab.webp",
+     "clip": ""
+    },
+    {
+     "id": "grab.cancel",
+     "title": "Cancel a transform",
+     "hint": "Right-click or Escape mid-grab and everything goes back exactly where it started - one undo step, never a half-applied move.",
+     "picture": "plugin/tips/Overview_RmbCancel.webp",
+     "clip": ""
+    },
+    {
+     "id": "grab.rotate",
+     "title": "Grab-rotate the selection",
+     "hint": "The same gesture for rotation: the angle follows the cursor around the pivot.",
+     "picture": "plugin/tips/Rotate_Grab.webp",
+     "clip": ""
+    },
+    {
+     "id": "grab.scale",
+     "title": "Grab-scale the selection",
+     "hint": "And for scale: move away from the pivot to grow, toward it to shrink.",
+     "picture": "plugin/tips/Scale_Grab.webp",
+     "clip": ""
+    }
+   ]
+  },
+  {
+   "title": "Handles & Snapping",
+   "subtitle": "What the handles land on",
+   "tasks": [
+    {
+     "id": "handles.axis",
+     "title": "Drag an axis handle",
+     "hint": "The arrows and boxes work as they always did - they just draw Blender's way, and honour everything this tutorial has taught so far.",
+     "picture": "plugin/headers/Move_Header.webp",
+     "clip": "plugin/video/Move.mp4"
+    },
+    {
+     "id": "handles.plane",
+     "title": "Drag a plane handle",
+     "hint": "The small square between two arrows moves along both of those axes at once.",
+     "picture": "plugin/tips/Move_PlaneHandles.webp",
+     "clip": ""
+    },
+    {
+     "id": "handles.ring",
+     "title": "Turn a rotation ring",
+     "hint": "Switch to the rotate tool and drag one of the coloured rings; the angle follows the cursor around the pivot.",
+     "picture": "plugin/headers/Rotate_Header.webp",
+     "clip": "plugin/video/Rotate.mp4"
+    },
+    {
+     "id": "snap.surface",
+     "title": "Drop an object onto a surface",
+     "hint": "Hold this key while moving: the selection follows the surface under the cursor, for placing things on a floor or a wall.",
+     "picture": "plugin/tips/Move_SurfaceSnap.webp",
+     "clip": ""
+    },
+    {
+     "id": "snap.lookat",
+     "title": "Aim an object at something",
+     "hint": "The same key while rotating aims the selection at whatever is under the cursor.",
+     "picture": "plugin/tips/Rotate_LookAt.webp",
+     "clip": ""
+    },
+    {
+     "id": "snap.vertex",
+     "title": "Snap to a vertex",
+     "hint": "Unity's own vertex snapping: hold the key, pick up the selection by one of its vertices and drop it onto another object's.",
+     "picture": "plugin/tips/AllTools_VertexSnapping.webp",
+     "clip": ""
+    },
+    {
+     "id": "snap.virtual-pivot",
+     "title": "Pin a virtual pivot",
+     "hint": "Toggle it, then click a vertex to settle on it - drags snap from that point instead of a default origin, until you toggle the mode off again.",
+     "picture": "plugin/tips/AllTools_PickVirtualPivot.webp",
+     "clip": ""
+    },
+    {
+     "id": "snap.floor",
+     "title": "Drop the selection to the floor",
+     "hint": "Rests each object's bounds on whatever is below it, ignoring its own colliders.",
+     "picture": "plugin/headers/SnapToFloor_Header.webp",
+     "clip": "plugin/video/SnapToFloor.mp4"
+    }
+   ]
+  },
+  {
+   "title": "Precision",
+   "subtitle": "Exact values, mid-drag",
+   "tasks": [
+    {
+     "id": "precision.axis",
+     "title": "Constrain a drag to one axis",
+     "hint": "During any drag press X, Y or Z. Press the same key again to switch between global and local; a third press on a G/R/S grab frees the axis.",
+     "picture": "plugin/tips/AllTools_PlaneLock.webp",
+     "clip": ""
+    },
+    {
+     "id": "precision.numeric",
+     "title": "Type an exact value",
+     "hint": "Mid-drag, type a number and press Enter. The mouse stops driving the moment the first digit lands.",
+     "picture": "plugin/tips/Move_Grab.webp",
+     "clip": ""
+    },
+    {
+     "id": "precision.plane",
+     "title": "Lock a plane instead of an axis",
+     "hint": "Hold this modifier with an axis key to exclude that axis rather than isolate it - the drag then runs across the other two.",
+     "picture": "plugin/tips/AllTools_PlaneLock.webp",
+     "clip": ""
+    },
+    {
+     "id": "precision.snap",
+     "title": "Snap to the increment lattice",
+     "hint": "Hold the action key while dragging to land on Unity's own snap increments; ticks are drawn along the handle as you go.",
+     "picture": "plugin/tips/AllTools_SnapTicks.webp",
+     "clip": ""
+    },
+    {
+     "id": "precision.slow",
+     "title": "Slow a drag down for fine work",
+     "hint": "Hold this key mid-drag: the selection moves a fraction of the distance the cursor does, and every snap step halves.",
+     "picture": "plugin/tips/AllTools_PrecisionMode.webp",
+     "clip": ""
+    }
+   ]
+  },
+  {
+   "title": "Scene Tools",
+   "subtitle": "The rest of the Scene View",
+   "tasks": [
+    {
+     "id": "tools.isolate",
+     "title": "Isolate the selection, then leave",
+     "hint": "Hides everything else while you work. The same key brings the scene back.",
+     "picture": "plugin/headers/IsolateView_Header.webp",
+     "clip": "plugin/video/IsolateView.mp4"
+    },
+    {
+     "id": "tools.selection-history",
+     "title": "Step back through selections",
+     "hint": "Browser-style back and forward for what you had selected - the mouse's own side buttons by default.",
+     "picture": "plugin/headers/NavigationHistory_SelectionHeader.webp",
+     "clip": "plugin/video/SelectionHistory.mp4"
+    },
+    {
+     "id": "tools.view-history",
+     "title": "Step back through camera positions",
+     "hint": "The same pair with the shift modifier undoes where you were looking from, not what was selected.",
+     "picture": "plugin/headers/NavigationHistory_ViewHeader.webp",
+     "clip": "plugin/video/ViewHistory.mp4"
+    },
+    {
+     "id": "tools.orientation",
+     "title": "Click an axis on the orientation gizmo",
+     "hint": "The ball in the corner of the view: click a handle to swing round to that axis, drag inside it to orbit, middle-click to toggle projection.",
+     "picture": "plugin/headers/OrientationGizmo_Header.webp",
+     "clip": "plugin/video/OrientationGizmo.mp4"
+    }
+   ]
+  },
+  {
+   "title": "Pie Menus & Setup",
+   "subtitle": "Menus on a key, and setup",
+   "tasks": [
+    {
+     "id": "pie.flick",
+     "title": "Run a pie item with a flick",
+     "hint": "Hold the key, flick the mouse toward an item and let go. Direction is all that counts - you never have to land on the button.",
+     "picture": "plugin/headers/PieMenus_Header.webp",
+     "clip": "plugin/video/PieMenus.mp4"
+    },
+    {
+     "id": "pie.tap",
+     "title": "Latch a pie open and click",
+     "hint": "Tap the same key instead of holding it: the menu stays up, and a left click runs an item.",
+     "picture": "plugin/tips/PieMenus_TapTimeout.webp",
+     "clip": ""
+    },
+    {
+     "id": "pie.number",
+     "title": "Run a pie item by its number",
+     "hint": "Every item is numbered; its number key runs it directly while the menu is open.",
+     "picture": "plugin/tips/PieMenus_ShowNumbers.webp",
+     "clip": ""
+    },
+    {
+     "id": "setup.settings",
+     "title": "Open Blendon's settings",
+     "hint": "Tools → Blendon. Every feature here can be switched off on its own, and its keys go straight back to the Editor.",
+     "picture": "plugin/tips/Overview_MasterSwitch.webp",
+     "clip": ""
+    }
+   ]
+  }
+ ]
+}
