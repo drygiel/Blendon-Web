@@ -1,9 +1,10 @@
 // Blendon's shortcut tip card: the key just pressed, whose it is now and where the Editor's command went.
 // Slides in at the Scene view's bottom right corner, the spot the tutorial card leaves free once done.
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { ShortcutTipCard as Tips, type TipSide } from '../blendon/shortcut-tips.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
+import { useViewSize } from './view-size.ts';
 import styles from './ShortcutTipCard.module.scss';
 import { KeyCaps } from './TutorialCard.tsx';
 
@@ -62,16 +63,7 @@ function Side({ side }: { side: TipSide }) {
 
 export function ShortcutTipCard({ host }: { host: SceneHost }) {
   useSyncExternalStore(Tips.subscribe, () => Tips.version);
-  const [view, setView] = useState({ w: host.view.position.width, h: host.view.position.height });
-
-  useEffect(() => {
-    const onFrame = () => {
-      const p = host.view.position;
-      setView((v) => (v.w === p.width && v.h === p.height ? v : { w: p.width, h: p.height }));
-    };
-    host.frameListeners.add(onFrame);
-    return () => void host.frameListeners.delete(onFrame);
-  }, [host]);
+  const view = useViewSize(host);
 
   const card = Tips.card;
   if (!card || view.w < Width + RightMargin * 2 || view.h < Height + BottomMargin + 8) return null;
