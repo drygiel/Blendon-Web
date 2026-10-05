@@ -95,6 +95,16 @@ test('loads the Scene view with the tutorial card', async ({ page }) => {
   await expect(view.getByLabel('Orientation gizmo')).toBeVisible();
 });
 
+test("a tutorial row's hover card shows the feature's clip", async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByText('Orbit around your selection').hover();
+  const tip = view.getByRole('tooltip');
+  await expect(tip).toBeVisible();
+  await expect(tip.locator('video')).toHaveAttribute('src', /OrbitSelected\.mp4$/);
+  await page.mouse.move(0, 0);
+  await expect(tip).toHaveCount(0);
+});
+
 test('grabs the selection by a typed distance and undoes it', async ({ page }) => {
   const view = await openScene(page);
   const before = await positionOf(page, 'Cube');

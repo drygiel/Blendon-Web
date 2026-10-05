@@ -1,6 +1,7 @@
 // Blendon's Scene View tutorial card: one chapter at a time, three task rows, the current task's hint,
 // and the way on once the chapter is done. Docked bottom right, draggable by its header, foldable.
-import { useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import { tutorialTip } from '../../landing/sections/tutorial/tutorial-data.ts';
 import { D } from '../../window/data/store.ts';
 import { TutorialTasks } from '../blendon/tutorial/curriculum.ts';
 import { SceneTutorialCard, TutorialProgress } from '../blendon/tutorial/scene-tutorial.ts';
@@ -8,6 +9,7 @@ import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
 import type { Color } from '../unity/math.ts';
 import { useViewSize } from './view-size.ts';
+import { TipShowDelayMs, TutorialTip } from './TutorialTip.tsx';
 import styles from './TutorialCard.module.scss';
 
 const Width = 330;
@@ -107,6 +109,27 @@ export function TutorialCard({ host }: { host: SceneHost }) {
   const view = useViewSize(host);
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const [hover, setHover] = useState<{ id: string; row: HTMLElement; shown: boolean } | null>(null);
+  const hoverTimer = useRef<number | undefined>(undefined);
+  // A row whose tip any input took down stays without one until the cursor leaves it.
+  const dismissed = useRef<string | null>(null);
+
+  const hideTip = () => {
+    window.clearTimeout(hoverTimer.current);
+    setHover(null);
+  };
+  const dismissTip = () => {
+    if (!hover) return;
+    dismissed.current = hover.id;
+    hideTip();
+  };
+
+  useEffect(() => {
+    if (!hover) return;
+    window.addEventListener('keydown', dismissTip);
+    return () => window.removeEventListener('keydown', dismissTip);
+  });
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
   const active = SceneTutorialCard.active;
   const card = SceneTutorialCard.window;
@@ -184,6 +207,7 @@ export function TutorialCard({ host }: { host: SceneHost }) {
   const offset = card.scroll * RowHeight;
   const slots = card.phase === 'sliding' ? VisibleRows + 1 : VisibleRows;
   const rowEls = [];
+  const hoverable = new Set<string>();
   for (let slot = 0; slot < slots; slot++) {
     const task = visible[card.windowStart + slot];
     if (!task) break;
@@ -192,12 +216,30 @@ export function TutorialCard({ host }: { host: SceneHost }) {
     const alpha = slot === 0 ? exitAlpha : 1;
     const color = isDone ? 'rgba(255,255,255,0.4)' : current ? '#fff' : 'rgba(255,255,255,0.78)';
     const keys = TutorialTasks.keys(task);
+    const tip = tutorialTip(task.id);
+    if (alpha >= 1) hoverable.add(task.id);
     rowEls.push(
-      <div key={task.id} className={styles.row + (current ? ' ' + styles.current : '')} style={{ opacity: alpha }}>
+      <div
+        key={task.id}
+        className={styles.row + (current ? ' ' + styles.current : '')}
+        style={{ opacity: alpha }}
+        onPointerEnter={(e) => {
+          if (!tip || e.pointerType !== 'mouse' || drag.current || dismissed.current === task.id) return;
+          const row = e.currentTarget;
+          window.clearTimeout(hoverTimer.current);
+          setHover({ id: task.id, row, shown: false });
+          hoverTimer.current = window.setTimeout(() => setHover({ id: task.id, row, shown: true }), TipShowDelayMs);
+        }}
+        onPointerLeave={() => {
+          dismissed.current = null;
+          hideTip();
+        }}
+      >
         <span className={styles.box + (isDone ? ' ' + styles.boxDone : current ? ' ' + styles.boxCurrent : '')}>
           {isDone ? '✓' : ''}
         </span>
-        <span className={styles.task} style={{ color }} title={task.hint}>
+        {/* A row with a picture gets the hover card instead of the browser's tooltip. */}
+        <span className={styles.task} style={{ color }} title={tip ? undefined : task.hint}>
           {task.title}
         </span>
         {keys && <KeyCaps binding={keys} color={color} dim={isDone} />}
@@ -211,80 +253,92 @@ export function TutorialCard({ host }: { host: SceneHost }) {
       );
   }
 
+  // Only a fully shown row keeps its tip: one fading out of the window loses it.
+  const tip = !collapsed && hover?.shown && hoverable.has(hover.id) ? tutorialTip(hover.id) : undefined;
+
   return (
-    <div
-      className={styles.card + (collapsed ? ' ' + styles.pill : '')}
-      style={{ left: x, top: y, width: w, height: h }}
-      onPointerDown={(e) => e.stopPropagation()}
-      onWheel={(e) => e.stopPropagation()}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {collapsed ? (
-        <div className={styles.pillBody} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag}>
-          {badge}
-          <div className={styles.text}>
-            <div className={styles.title}>{chapter.title}</div>
-            <div className={styles.subtitle}>
-              Chapter {index + 1} of 6 · {doneCount}/{total}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className={styles.header} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag}>
+    <>
+      <div
+        className={styles.card + (collapsed ? ' ' + styles.pill : '')}
+        style={{ left: x, top: y, width: w, height: h }}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          dismissTip();
+        }}
+        onWheel={(e) => {
+          e.stopPropagation();
+          dismissTip();
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        {collapsed ? (
+          <div className={styles.pillBody} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag}>
             {badge}
             <div className={styles.text}>
               <div className={styles.title}>{chapter.title}</div>
-              <div className={styles.subtitle}>{chapter.subtitle}</div>
+              <div className={styles.subtitle}>
+                Chapter {index + 1} of 6 · {doneCount}/{total}
+              </div>
             </div>
           </div>
-          <div className={styles.segments}>
-            {Array.from({ length: 6 }, (_, i) => (
-              <i key={i} className={i < index ? styles.segDone : i === index ? styles.segCurrent : ''} />
-            ))}
-          </div>
-          <div className={styles.rule} />
-          <div className={styles.window} style={{ height: VisibleRows * RowHeight + hintH }}>
-            <div style={{ transform: `translateY(${-offset}px)` }}>{rowEls}</div>
-          </div>
-          <div className={styles.footer}>
-            <span className={complete ? styles.complete : ''}>
-              {complete ? 'Chapter complete' : `${doneCount} of ${total} done`}
-            </span>
-            {complete ? (
-              <button type="button" className={styles.next} onClick={() => SceneTutorialCard.advance()}>
-                {last ? 'Finish' : `Start chapter ${index + 2}`}
+        ) : (
+          <>
+            <div className={styles.header} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag}>
+              {badge}
+              <div className={styles.text}>
+                <div className={styles.title}>{chapter.title}</div>
+                <div className={styles.subtitle}>{chapter.subtitle}</div>
+              </div>
+            </div>
+            <div className={styles.segments}>
+              {Array.from({ length: 6 }, (_, i) => (
+                <i key={i} className={i < index ? styles.segDone : i === index ? styles.segCurrent : ''} />
+              ))}
+            </div>
+            <div className={styles.rule} />
+            <div className={styles.window} style={{ height: VisibleRows * RowHeight + hintH }}>
+              <div style={{ transform: `translateY(${-offset}px)` }}>{rowEls}</div>
+            </div>
+            <div className={styles.footer}>
+              <span className={complete ? styles.complete : ''}>
+                {complete ? 'Chapter complete' : `${doneCount} of ${total} done`}
+              </span>
+              {complete ? (
+                <button type="button" className={styles.next} onClick={() => SceneTutorialCard.advance()}>
+                  {last ? 'Finish' : `Start chapter ${index + 2}`}
+                </button>
+              ) : (
+                <span>Chapter {index + 1} of 6</span>
+              )}
+            </div>
+          </>
+        )}
+        {buttons}
+        {confirmSkip && (
+          <div className={styles.confirm} role="dialog" aria-label="Skip the Blendon tutorial?">
+            <p>
+              <b>Skip the Blendon tutorial?</b>
+              The card stops appearing for the rest of this visit. Everything you have ticked off is kept.
+            </p>
+            <div>
+              <button type="button" onClick={() => setConfirmSkip(false)}>
+                Keep Going
               </button>
-            ) : (
-              <span>Chapter {index + 1} of 6</span>
-            )}
+              <button
+                type="button"
+                className={styles.danger}
+                onClick={() => {
+                  setConfirmSkip(false);
+                  SceneTutorialCard.skip();
+                }}
+              >
+                Skip Tutorial
+              </button>
+            </div>
           </div>
-        </>
-      )}
-      {buttons}
-      {confirmSkip && (
-        <div className={styles.confirm} role="dialog" aria-label="Skip the Blendon tutorial?">
-          <p>
-            <b>Skip the Blendon tutorial?</b>
-            The card stops appearing for the rest of this visit. Everything you have ticked off is kept.
-          </p>
-          <div>
-            <button type="button" onClick={() => setConfirmSkip(false)}>
-              Keep Going
-            </button>
-            <button
-              type="button"
-              className={styles.danger}
-              onClick={() => {
-                setConfirmSkip(false);
-                SceneTutorialCard.skip();
-              }}
-            >
-              Skip Tutorial
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+      {tip && hover && <TutorialTip tip={tip} row={hover.row} card={{ x, y, w }} view={view} />}
+    </>
   );
 }
