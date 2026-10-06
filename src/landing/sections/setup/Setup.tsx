@@ -40,7 +40,7 @@ export function Setup() {
 
   return (
     <Section id="setup">
-      <SectionIntro eyebrow="04 / SETUP" title="Your keys. Your setup. One window." />
+      <SectionIntro eyebrow="06 / SETUP" title="Your keys. Your setup. One window." />
       <p className={styles.lead}>
         Every feature gets its own page in Tools → Blendon: an illustrated card with how it works and its keys, then the
         settings. Flip through a few.

@@ -9,7 +9,6 @@ import { Precision } from './sections/precision/Precision.tsx';
 import { SceneSection } from './sections/scene/SceneSection.tsx';
 import { Setup } from './sections/setup/Setup.tsx';
 import { Shortcuts } from './sections/shortcuts/Shortcuts.tsx';
-import { SpecStrip } from './sections/spec/SpecStrip.tsx';
 import { Tutorial } from './sections/tutorial/Tutorial.tsx';
 
 export function Landing() {
@@ -17,16 +16,15 @@ export function Landing() {
     <>
       <Hero />
       <main>
-        <SpecStrip />
+        <PromoVideo />
         <Features />
         <Precision />
         <PieMenus />
+        <Tutorial />
         <Setup />
         <SceneSection />
-        <Tutorial />
         <Shortcuts />
         <UnderTheHood />
-        <PromoVideo />
         <FinalCta />
       </main>
       <Footer />

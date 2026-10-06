@@ -14,7 +14,7 @@ test.afterEach(() => {
 
 test('renders every section', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toContainText('rewired for Blender hands.');
-  for (const id of ['features', 'precision', 'pies', 'setup', 'try', 'tutorial', 'shortcuts', 'hood', 'video', 'get']) {
+  for (const id of ['video', 'features', 'precision', 'pies', 'tutorial', 'setup', 'try', 'shortcuts', 'hood', 'get']) {
     await expect(page.locator(`#${id}`)).toBeAttached();
   }
 });

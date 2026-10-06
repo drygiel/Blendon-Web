@@ -5,13 +5,14 @@ import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import styles from './Hero.module.scss';
 
 const NAV = [
+  ['#video', 'Video'],
   ['#features', 'Features'],
   ['#precision', 'Precision'],
   ['#pies', 'Pie menus'],
+  ['#tutorial', 'Tutorial'],
   ['#setup', 'Setup'],
   ['#try', 'Try it'],
   ['#shortcuts', 'Shortcuts'],
-  ['#playground', 'Playground'],
 ] as const;
 
 const REEL = ['0.000', '0.031', '0.142', '0.355', '0.637', '0.937', '1.188', '1.330', '1.374'];
@@ -319,8 +320,8 @@ export function Hero() {
         </p>
         <div className={styles.actions}>
           <ButtonLink href="#get">Get it on the Asset Store</ButtonLink>
-          <ButtonLink href="#features" variant="secondary">
-            Watch every feature
+          <ButtonLink href="#try" variant="secondary">
+            Try it in your browser
           </ButtonLink>
         </div>
       </div>

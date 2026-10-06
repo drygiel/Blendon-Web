@@ -9,7 +9,7 @@ const POSTERS = ['maxresdefault', 'sddefault', 'hqdefault'].map(
   (q) => `https://i.ytimg.com/vi/${PROMO_VIDEO_ID}/${q}.jpg`,
 );
 
-/** Section 10: the promo video. YouTube's player loads only once it is asked to play. */
+/** The promo video. YouTube's player loads only once it is asked to play. */
 export function PromoVideo() {
   const [playing, setPlaying] = useState(false);
   const [poster, setPoster] = useState(0);
@@ -18,7 +18,7 @@ export function PromoVideo() {
   return (
     <Section id="video">
       <SectionIntro
-        eyebrow="09 / VIDEO"
+        eyebrow="01 / VIDEO"
         title="See it in motion."
         lead="A short tour of Blendon in the Unity 6 Scene view."
       />

@@ -2,6 +2,13 @@ import type { ReactNode } from 'react';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './UnderTheHood.module.scss';
 
+const SPECS = [
+  ['EDITOR-ONLY', 'Adds nothing to player builds. No runtime components, Editor assemblies only.'],
+  ['PRIVATE', 'No network requests, no analytics, no extra packages installed.'],
+  ['OPTIONAL', "Every feature switches off on its own. Each gizmo falls back to Unity's."],
+  ['OPEN', 'Full C# source included, plus an illustrated PDF manual.'],
+] as const;
+
 const Code = ({ children }: { children: ReactNode }) => <span className={styles.code}>{children}</span>;
 
 const COLUMNS: [string, ReactNode[]][] = [
@@ -26,16 +33,20 @@ const COLUMNS: [string, ReactNode[]][] = [
       </>,
     ],
   ],
-  [
-    'NEVER',
-    ['Ships code into a player build', 'Makes a network request', 'Collects analytics', 'Installs other packages'],
-  ],
 ];
 
 export function UnderTheHood() {
   return (
     <Section id="hood">
-      <SectionIntro eyebrow="08 / UNDER THE HOOD" title="Built to stay out of your project." />
+      <SectionIntro eyebrow="09 / UNDER THE HOOD" title="Built to stay out of your project." />
+      <div className={styles.specs}>
+        {SPECS.map(([label, text]) => (
+          <div key={label} className={styles.spec}>
+            <span className={styles.specLabel}>{label}</span>
+            <span className={styles.specText}>{text}</span>
+          </div>
+        ))}
+      </div>
       <div className={styles.cards}>
         {COLUMNS.map(([label, items]) => (
           <div key={label} className={styles.card}>
