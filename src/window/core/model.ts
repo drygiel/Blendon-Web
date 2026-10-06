@@ -417,6 +417,12 @@ export class WindowModel {
     });
   }
 
+  /** Opens the pie menu editor on a built-in pie, or on a new menu for NEW_PIE. */
+  editPie(id: string) {
+    this.dismissTip();
+    this.update({ menu: null, capturing: null, pieEdit: id });
+  }
+
   // ---- tooltips ---------------------------------------------------------------------------------
   tipIn(e: ReactMouseEvent<HTMLElement>, tip: TipSource | null | undefined) {
     if (!tip?.t) return;

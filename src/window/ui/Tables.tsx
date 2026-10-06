@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import type { ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { pageInfo } from '../core/model.ts';
-import type { TipSource } from '../core/state.ts';
+import { NEW_PIE, type TipSource } from '../core/state.ts';
 import { D } from '../data/store.ts';
 import { Caps, Check } from './common.tsx';
 import { useApp, useTip } from './context.ts';
@@ -74,11 +74,7 @@ export function FeaturePie({ it }: { it: ItemOf<'fpie'> }) {
           <Check />
         </button>
         <span className={'fi sm' + (live ? '' : ' off')} style={iconStyle(pie.icon, 14, '#598CF2')} />
-        <span
-          className={'ft2' + (live ? '' : ' muted') + ' lk'}
-          onClick={() => app.demo(`In Unity this opens the ${pie.title} pie menu in the pie menu editor.`)}
-          {...tip}
-        >
+        <span className={'ft2' + (live ? '' : ' muted') + ' lk'} onClick={() => app.editPie(pie.id)} {...tip}>
           {pie.title}
         </span>
         <span className="fkey">
@@ -292,7 +288,7 @@ function PieRow({ id, i }: { id: string; i: number }) {
   const featureOn = !!app.val('PieMenuSettings.Enabled');
   const on = app.pieOn(id);
   const binding = app.shortcut(pie.sid);
-  const edit = () => app.demo(`In Unity this opens the ${pie.title} pie menu in the pie menu editor.`);
+  const edit = () => app.editPie(id);
   const tip = useTip(pie.tipRow.t ? pie.tipRow : { t: pie.desc, native: true });
   const keyTip = useTip({ t: 'Edit this menu to change its shortcut', native: true });
   const itemsTip = useTip({ t: "How many of the ring's slots run something", native: true });
@@ -363,10 +359,7 @@ export function PieFooter({ it }: { it: ItemOf<'pieFooter'> }) {
         <span style={iconStyle('d_Folder Icon', 12)} />
         Config File
       </button>
-      <button
-        className="nb add"
-        onClick={() => app.demo('In Unity this opens the pie menu editor with a new, empty menu.')}
-      >
+      <button className="nb add" onClick={() => app.editPie(NEW_PIE)}>
         <span style={iconStyle('d_Toolbar Plus', 12, '#EEEEEE')} />
         Add
       </button>
