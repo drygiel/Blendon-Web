@@ -55,7 +55,7 @@ export function Tutorial() {
     <Section id="tutorial">
       <div className={styles.split}>
         <div className={styles.intro}>
-          <Eyebrow>05 / TUTORIAL</Eyebrow>
+          <Eyebrow>06 / TUTORIAL</Eyebrow>
           <SectionTitle>Never touched Blender? The Scene view teaches you.</SectionTitle>
           <Lead>
             A checklist card walks through the gestures right in the Scene view. A task ticks off only when you actually

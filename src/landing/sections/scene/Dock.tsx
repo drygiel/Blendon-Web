@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -36,6 +37,9 @@ interface KeyboardLock {
 }
 const keyboard = () => (navigator as Navigator & { keyboard?: KeyboardLock }).keyboard;
 
+// Full screen support never changes; the prerendered page goes without the button until hydrated.
+const noChange = () => () => {};
+
 // The Scene view tutorial's "Open Blendon's settings" task: showing or using the window is opening them.
 const settingsOpened = () => window.dispatchEvent(new Event('blendon:settings-opened'));
 
@@ -52,7 +56,11 @@ export function Dock({ page = false }: { page?: boolean }) {
   const [dragged, setFraction] = useState<number | null>(null);
   const fraction = dragged ?? defaultFraction(width);
   const [full, setFull] = useState(false);
-  const canFull = typeof document !== 'undefined' && document.fullscreenEnabled;
+  const canFull = useSyncExternalStore(
+    noChange,
+    () => document.fullscreenEnabled,
+    () => false,
+  );
 
   useEffect(() => {
     const el = ref.current;

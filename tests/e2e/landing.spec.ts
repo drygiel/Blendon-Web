@@ -5,6 +5,8 @@ let errors: string[] = [];
 test.beforeEach(async ({ page }) => {
   errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  // React reports a prerender that doesn't match the client on the console, then renders anew.
+  page.on('console', (m) => m.type() === 'error' && /hydrat/i.test(m.text()) && errors.push(m.text()));
   await page.goto('');
 });
 
@@ -14,7 +16,21 @@ test.afterEach(() => {
 
 test('renders every section', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toContainText('rewired for Blender hands.');
-  for (const id of ['video', 'features', 'precision', 'pies', 'tutorial', 'setup', 'try', 'shortcuts', 'hood', 'get']) {
+  for (const id of [
+    'video',
+    'compare',
+    'features',
+    'precision',
+    'pies',
+    'tutorial',
+    'setup',
+    'pace',
+    'try',
+    'shortcuts',
+    'hood',
+    'faq',
+    'get',
+  ]) {
     await expect(page.locator(`#${id}`)).toBeAttached();
   }
 });
@@ -63,4 +79,25 @@ test('promo video loads the player only when asked', async ({ page }) => {
   await expect(video.locator('iframe')).toHaveCount(0);
   await video.getByRole('button', { name: /Play Blendon/ }).click();
   await expect(video.locator('iframe')).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/hrjcGZ32UHI\?autoplay=1/);
+});
+
+test('faq answers open on click', async ({ page }) => {
+  const faq = page.locator('#faq');
+  const answer = faq.getByText(/^Per seat, under the Unity Asset Store/);
+  await expect(answer).toBeHidden();
+  await faq.getByText('How is it licensed?').click();
+  await expect(answer).toBeVisible();
+});
+
+test('ships the landing prerendered, with its structured data', async ({ page, request }) => {
+  const html = await (await request.get('')).text();
+  expect(html).toContain('rewired for');
+  expect(html).toContain('Questions before you buy.');
+
+  const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(
+    (m) => JSON.parse(m[1] ?? '') as { '@type': string; offers?: { price: string }; mainEntity?: unknown[] },
+  );
+  expect(data.find((d) => d['@type'] === 'SoftwareApplication')?.offers?.price).toBe('40.00');
+  const faq = data.find((d) => d['@type'] === 'FAQPage');
+  await expect(page.locator('#faq details')).toHaveCount(faq?.mainEntity?.length ?? -1);
 });
