@@ -4,6 +4,7 @@ import { Footer } from './sections/footer/Footer.tsx';
 import { Hero } from './sections/hero/Hero.tsx';
 import { UnderTheHood } from './sections/hood/UnderTheHood.tsx';
 import { PromoVideo } from './sections/video/PromoVideo.tsx';
+import { Pace } from './sections/pace/Pace.tsx';
 import { PieMenus } from './sections/pies/PieMenus.tsx';
 import { Precision } from './sections/precision/Precision.tsx';
 import { SceneSection } from './sections/scene/SceneSection.tsx';
@@ -22,6 +23,7 @@ export function Landing() {
         <PieMenus />
         <Tutorial />
         <Setup />
+        <Pace />
         <SceneSection />
         <Shortcuts />
         <UnderTheHood />
