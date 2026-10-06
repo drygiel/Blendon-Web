@@ -42,7 +42,7 @@ const ControlId = 0x426f7853;
 // Past this many points from the press, a drag with nothing under it becomes a box.
 const DragThreshold = 5;
 // Dash and gap length of a dashed outline, in device pixels.
-const DashSize = 4;
+const DashSize = 8;
 const InfoOffset = 16;
 const InfoCornerRadius = 4;
 const MaxListedNames = 8;
