@@ -54,6 +54,37 @@ test('answers window-only actions with the demo note', async ({ page }) => {
   await expect(win.locator('.dlg .dtt')).toHaveText('Demo only');
 });
 
+test('edits a built-in pie in the pie menu editor without saving it', async ({ page }) => {
+  const win = await openWindow(page);
+  await win.locator('.si[aria-label="Pie Menus"]').click();
+  await win.locator('.pr .pt', { hasText: 'Draw Mode' }).click();
+  const editor = page.getByRole('dialog', { name: 'Edit Pie Menu' });
+  await expect(editor).toBeVisible();
+  await expect(editor.getByText('BROWSER DEMO')).toBeVisible();
+  await expect(editor.getByRole('textbox', { name: 'Title' })).toHaveValue('Draw Mode');
+
+  await editor.getByRole('button', { name: /^Slot 1:/ }).click();
+  await page.getByRole('textbox', { name: 'Search actions' }).fill('cube');
+  await page.keyboard.press('Enter');
+  await expect(editor.getByRole('button', { name: 'Slot 1: Cube' })).toBeVisible();
+
+  await editor.getByRole('button', { name: 'Save' }).click();
+  await expect(editor.locator('.dlg .dtt')).toHaveText('Browser demo');
+  await editor.getByRole('button', { name: 'Close Editor' }).click();
+  await expect(editor).toHaveCount(0);
+});
+
+test('opens a new, empty pie menu from Add', async ({ page }) => {
+  const win = await openWindow(page);
+  await win.locator('.si[aria-label="Pie Menus"]').click();
+  await win.locator('.nb.add').click();
+  const editor = page.getByRole('dialog', { name: 'New Pie Menu' });
+  await expect(editor.getByRole('button', { name: /^Slot \d: Empty$/ })).toHaveCount(8);
+  await expect(editor.getByRole('button', { name: 'Create' })).toHaveClass(/off/);
+  await page.keyboard.press('Escape');
+  await expect(editor).toHaveCount(0);
+});
+
 test('opens the manual from the Overview', async ({ page }) => {
   const win = await openWindow(page);
   const popup = page.waitForEvent('popup');
