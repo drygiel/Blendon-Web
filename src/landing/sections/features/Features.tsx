@@ -24,7 +24,7 @@ export function Features() {
   return (
     <Section id="features" className={styles.section}>
       <SectionIntro
-        eyebrow="01 / FEATURES"
+        eyebrow="02 / FEATURES"
         title="Everything your hands already expect."
         lead="Navigation, gizmos, scene tools and menus, each tuned from one settings window: Tools → Blendon. Pick a feature to watch it run."
       />
