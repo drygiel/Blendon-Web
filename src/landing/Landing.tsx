@@ -1,9 +1,12 @@
+import { Compare } from './sections/compare/Compare.tsx';
 import { FinalCta } from './sections/cta/FinalCta.tsx';
+import { Faq } from './sections/faq/Faq.tsx';
 import { Features } from './sections/features/Features.tsx';
 import { Footer } from './sections/footer/Footer.tsx';
 import { Hero } from './sections/hero/Hero.tsx';
 import { UnderTheHood } from './sections/hood/UnderTheHood.tsx';
 import { PromoVideo } from './sections/video/PromoVideo.tsx';
+import { Pace } from './sections/pace/Pace.tsx';
 import { PieMenus } from './sections/pies/PieMenus.tsx';
 import { Precision } from './sections/precision/Precision.tsx';
 import { SceneSection } from './sections/scene/SceneSection.tsx';
@@ -17,14 +20,17 @@ export function Landing() {
       <Hero />
       <main>
         <PromoVideo />
+        <Compare />
         <Features />
         <Precision />
         <PieMenus />
         <Tutorial />
         <Setup />
+        <Pace />
         <SceneSection />
         <Shortcuts />
         <UnderTheHood />
+        <Faq />
         <FinalCta />
       </main>
       <Footer />

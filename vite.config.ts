@@ -7,7 +7,7 @@ const base = process.env.BASE_PATH ?? '/Blendon-Web/';
 // Absolute URL of the deployed site, for the social preview tags in index.html.
 const siteUrl = process.env.SITE_URL ?? `https://drygiel.github.io${base}`;
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   base,
   plugins: [react(), { name: 'site-url', transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl) }],
   css: {
@@ -19,6 +19,8 @@ export default defineConfig({
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,
+    // The prerender's server bundle only renders markup; the client build ships public/.
+    copyPublicDir: !isSsrBuild,
     // The landing, and the Playground on a page of its own at /playground/.
     rollupOptions: {
       input: {
@@ -31,4 +33,4 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
   },
-});
+}));

@@ -103,7 +103,7 @@ export function PieMenus() {
   return (
     <Section id="pies">
       <SectionIntro
-        eyebrow="04 / PIE MENUS"
+        eyebrow="05 / PIE MENUS"
         title="Eight pies. One key each."
         lead="Hold the key, flick toward an item and let go. Or tap it and the menu stays open for a click. Selection is by angle alone, so a flick far past an item still picks it. Point anywhere around the ring below and click."
       />

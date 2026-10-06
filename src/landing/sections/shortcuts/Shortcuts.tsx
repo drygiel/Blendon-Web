@@ -16,9 +16,12 @@ export function Shortcuts() {
     <Section id="shortcuts">
       <div className={styles.head}>
         <div className={styles.intro}>
-          <Eyebrow>08 / SHORTCUTS</Eyebrow>
+          <Eyebrow>10 / SHORTCUTS</Eyebrow>
           <SectionTitle>Every default, on one sheet.</SectionTitle>
-          <Lead>All of them rebindable from Blendon&apos;s settings window or Unity&apos;s Edit → Shortcuts.</Lead>
+          <Lead>
+            All of them rebindable from Blendon&apos;s settings window or Unity&apos;s Edit → Shortcuts. On macOS, Ctrl
+            and Alt read Cmd and Option.
+          </Lead>
         </div>
         <span className={styles.preset}>Blendon keyboard preset</span>
       </div>

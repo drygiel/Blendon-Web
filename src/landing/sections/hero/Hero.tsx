@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import wordmark from '../../../assets/landing/wordmark.png';
 import { cx } from '../../../lib/cx.ts';
+import { PRICE, STORE_URL } from '../../../lib/product.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import styles from './Hero.module.scss';
 
@@ -13,6 +14,7 @@ const NAV = [
   ['#setup', 'Setup'],
   ['#try', 'Try it'],
   ['#shortcuts', 'Shortcuts'],
+  ['#faq', 'FAQ'],
 ] as const;
 
 const REEL = ['0.000', '0.031', '0.142', '0.355', '0.637', '0.937', '1.188', '1.330', '1.374'];
@@ -299,7 +301,7 @@ export function Hero() {
             </a>
           ))}
         </nav>
-        <ButtonLink href="#get" variant="secondary" small>
+        <ButtonLink href={STORE_URL} variant="secondary" small>
           Get Blendon
         </ButtonLink>
       </header>
@@ -319,7 +321,7 @@ export function Hero() {
           every key rebindable, nothing added to your builds.
         </p>
         <div className={styles.actions}>
-          <ButtonLink href="#get">Get it on the Asset Store</ButtonLink>
+          <ButtonLink href={STORE_URL}>Get it on the Asset Store · {PRICE}</ButtonLink>
           <ButtonLink href="#try" variant="secondary">
             Try it in your browser
           </ButtonLink>

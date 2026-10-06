@@ -1,0 +1,25 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.task {
+  font-size: 15px;
+  font-weight: 600;
+  color: $text;
+}
+
+.unity {
+  font-size: 14px;
+  line-height: 1.5;
+  color: $text-4;
+}
+
+.blendon {
+  font-size: 15px;
+  line-height: 1.5;
+  color: $text-2;
+
+  > span:first-child {
+    display: block;
+    margin-bottom: 8px;
+  }
+}
