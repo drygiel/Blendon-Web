@@ -16,6 +16,7 @@ test('renders every section', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toContainText('rewired for Blender hands.');
   for (const id of [
     'video',
+    'compare',
     'features',
     'precision',
     'pies',
@@ -25,6 +26,7 @@ test('renders every section', async ({ page }) => {
     'try',
     'shortcuts',
     'hood',
+    'faq',
     'get',
   ]) {
     await expect(page.locator(`#${id}`)).toBeAttached();
@@ -75,4 +77,12 @@ test('promo video loads the player only when asked', async ({ page }) => {
   await expect(video.locator('iframe')).toHaveCount(0);
   await video.getByRole('button', { name: /Play Blendon/ }).click();
   await expect(video.locator('iframe')).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/hrjcGZ32UHI\?autoplay=1/);
+});
+
+test('faq answers open on click', async ({ page }) => {
+  const faq = page.locator('#faq');
+  const answer = faq.getByText(/^Per seat, under the Unity Asset Store/);
+  await expect(answer).toBeHidden();
+  await faq.getByText('How is it licensed?').click();
+  await expect(answer).toBeVisible();
 });

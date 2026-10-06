@@ -2,6 +2,7 @@ import { cx } from '../../../lib/cx.ts';
 import { CONTESTED_KEYS, FEATURE_PRESETS, type ContestedKey } from '../../data/content.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
+import table from '../../ui/Table.module.scss';
 import styles from './Pace.module.scss';
 
 /** One preset's column: what the key does there, and where the other command went. */
@@ -26,14 +27,14 @@ export function Pace() {
   return (
     <Section id="pace">
       <SectionIntro
-        eyebrow="07 / YOUR PACE"
+        eyebrow="08 / YOUR PACE"
         title="Keep your Unity habits. Pick up Blender's at your own pace."
         lead="On first load Blendon asks one question: which keys it may take. Nothing is written until you answer, and the answer can be changed any time on the Overview page of Tools → Blendon."
       />
 
-      <div className={styles.panel}>
-        <table className={styles.table}>
-          <caption className={styles.caption}>Who keeps a contested key, on each keyboard preset</caption>
+      <div className={table.panel}>
+        <table className={table.table}>
+          <caption className={table.caption}>Who keeps a contested key, on each keyboard preset</caption>
           <thead>
             <tr>
               <th scope="col">Key</th>
@@ -47,17 +48,17 @@ export function Pace() {
                 <th scope="row">
                   <Keys tokens={row.keys} />
                 </th>
-                <td data-preset="Blendon preset">
+                <td data-label="Blendon preset">
                   <Owner does={row.blendon} other={row.unity} to={row.unityTo} />
                 </td>
-                <td data-preset="Unity preset">
+                <td data-label="Unity preset">
                   <Owner does={row.unity} other={row.blendon} to={row.blendonTo} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className={styles.note}>
+        <p className={table.note}>
           Both presets are real Unity shortcut profiles. The command that loses a key moves one modifier aside, and the
           settings window lists every pair.
         </p>

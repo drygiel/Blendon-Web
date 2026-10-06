@@ -1,0 +1,107 @@
+// A bordered table panel. Below phone width each row stacks: its header on top, then the cells side by
+// side, each captioned from its `data-label`.
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.panel {
+  position: relative;
+  margin-top: 40px;
+  border: 1px solid $border-2;
+  border-radius: 16px;
+  background: $surface-2;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  th,
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid $hairline;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    @include caption(12px, 0.14em, $text-4);
+    font-weight: 400;
+    text-transform: uppercase;
+    border-bottom-color: $border;
+  }
+
+  thead th:first-child {
+    width: var(--first-col, 150px);
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  // A column to draw the eye to.
+  .lit {
+    background: rgba($accent, 0.045);
+  }
+
+  thead .lit {
+    color: $accent;
+  }
+
+  @include below($bp-small) {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      border-bottom: 1px solid $hairline;
+    }
+
+    tbody tr:last-child {
+      border-bottom: 0;
+    }
+
+    tbody th {
+      grid-column: 1 / -1;
+      padding-bottom: 4px;
+    }
+
+    th,
+    td {
+      border-bottom: 0;
+    }
+
+    td {
+      padding-top: 6px;
+    }
+
+    td::before {
+      @include caption(10px, 0.14em, $text-dim);
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.note {
+  margin: 0;
+  padding: 14px 20px;
+  border-top: 1px solid $hairline;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $text-3;
+}

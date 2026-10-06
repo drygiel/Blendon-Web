@@ -14,6 +14,7 @@ const NAV = [
   ['#setup', 'Setup'],
   ['#try', 'Try it'],
   ['#shortcuts', 'Shortcuts'],
+  ['#faq', 'FAQ'],
 ] as const;
 
 const REEL = ['0.000', '0.031', '0.142', '0.355', '0.637', '0.937', '1.188', '1.330', '1.374'];
