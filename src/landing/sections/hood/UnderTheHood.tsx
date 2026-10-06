@@ -18,7 +18,8 @@ const COLUMNS: [string, ReactNode[]][] = [
       'Unity 6000.0 or newer',
       'Built-in Render Pipeline, URP or HDRP',
       'Windows, macOS or Linux',
-      'A numeric keypad, only for Numpad Views',
+      'A middle mouse button for orbit and pan. On a trackpad, rebind both in Tools → Blendon',
+      'A numeric keypad, only for Numpad Views. Without one, the View pie and the Orientation Gizmo reach the same views',
     ],
   ],
   [
@@ -38,7 +39,7 @@ const COLUMNS: [string, ReactNode[]][] = [
 export function UnderTheHood() {
   return (
     <Section id="hood">
-      <SectionIntro eyebrow="09 / UNDER THE HOOD" title="Built to stay out of your project." />
+      <SectionIntro eyebrow="10 / UNDER THE HOOD" title="Built to stay out of your project." />
       <div className={styles.specs}>
         {SPECS.map(([label, text]) => (
           <div key={label} className={styles.spec}>

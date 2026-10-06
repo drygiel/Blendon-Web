@@ -7,3 +7,6 @@ export const PRICE_USD = 40;
 export const PRICE = `$${PRICE_USD}`;
 export const VERSION = '1.0.0';
 export const RELEASED = '2026-09-04';
+
+/** The purchase terms, under each buy button. */
+export const TERMS = 'One-time purchase · Per-seat license · Refunds available';

@@ -1,3 +1,5 @@
+import { PRICE, STORE_URL, TERMS } from '../../../lib/product.ts';
+import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import { SectionIntro } from '../../ui/Section.tsx';
 import { Dock } from './Dock.tsx';
 import styles from './SceneSection.module.scss';
@@ -7,7 +9,7 @@ export function SceneSection() {
   return (
     <section id="try" className={styles.section}>
       <div className={styles.intro}>
-        <SectionIntro eyebrow="07 / TRY IT" title="Feel it in your hands, right here." />
+        <SectionIntro eyebrow="08 / TRY IT" title="Feel it in your hands, right here." />
         <p className={styles.lead}>
           A Unity Scene view with Blendon installed and Blendon&apos;s settings window, simulated in the browser. Click
           into the Scene view, then orbit with the middle mouse button, press G to grab, type a distance, hold Z for a
@@ -26,6 +28,18 @@ export function SceneSection() {
         </p>
       </div>
       <Dock />
+      <div className={styles.buyRow}>
+        <div className={styles.buy}>
+          <div className={styles.buyText}>
+            <strong>Like how it feels?</strong>
+            <span>The real thing runs in your Unity 6 Editor, in every scene you open.</span>
+          </div>
+          <div className={styles.buyAction}>
+            <ButtonLink href={STORE_URL}>Get Blendon · {PRICE}</ButtonLink>
+            <span className={styles.terms}>{TERMS}</span>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

@@ -1,0 +1,145 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.panel {
+  position: relative;
+  margin-top: 40px;
+  border: 1px solid $border-2;
+  border-radius: 16px;
+  background: $surface-2;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  th,
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid $hairline;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    @include caption(12px, 0.14em, $text-4);
+    font-weight: 400;
+    text-transform: uppercase;
+    border-bottom-color: $border;
+  }
+
+  tbody th {
+    width: 150px;
+  }
+
+  // Phones: the key on a line of its own, then the two presets side by side, each labelled.
+  @include below($bp-small) {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      border-bottom: 1px solid $hairline;
+    }
+
+    tbody th {
+      grid-column: 1 / -1;
+      width: auto;
+      padding-bottom: 4px;
+    }
+
+    th,
+    td {
+      border-bottom: 0;
+    }
+
+    td {
+      padding-top: 6px;
+    }
+
+    td::before {
+      @include caption(10px, 0.14em, $text-dim);
+      content: attr(data-preset);
+      display: block;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.does {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: $text;
+}
+
+.moved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: $text-4;
+}
+
+.note {
+  margin: 0;
+  padding: 14px 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $text-3;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.back {
+  border-color: rgba($accent, 0.4);
+}
+
+.label {
+  @include caption(11px, 0.14em, $text-dim);
+  text-transform: uppercase;
+}
+
+.back .label {
+  color: $accent;
+}
+
+.cardTitle {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cardText {
+  font-size: 14px;
+  line-height: 1.55;
+  color: $text-3;
+}
