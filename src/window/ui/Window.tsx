@@ -8,6 +8,7 @@ import { M, PAL, badgeFill, brighten, rgba, tinted } from '../core/util.ts';
 import { Runs } from './common.tsx';
 import { AppContext, useApp, useTip } from './context.ts';
 import { ItemView } from './Items.tsx';
+import { PieEditor } from '../pie-editor/PieEditor.tsx';
 
 function SideItem({ s, collapsed, searching }: { s: SideEntry; collapsed: boolean; searching: boolean }) {
   const app = useApp();
@@ -529,6 +530,7 @@ function WindowFrame({ app, L, iconVars }: WindowProps) {
         </div>
       </div>
       <Overlays />
+      {st.pieEdit && <PieEditor key={st.pieEdit} app={app} iconVars={iconVars} />}
       {!st.docked && <div className="grip" onPointerDown={(e) => app.gripDrag(e)} aria-hidden="true" />}
       {st.resizing && (
         <div className="sizetag">

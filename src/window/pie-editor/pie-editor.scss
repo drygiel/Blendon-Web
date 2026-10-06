@@ -1,0 +1,466 @@
+// The pie menu editor: Unity 6's dark utility window over the Playground. The layer carries `.uw`, so
+// the window's own controls (key caps, buttons, the shortcut plate, dialogs) look the same here.
+.uw.pe-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  max-width: none;
+  background: rgba(0, 0, 0, 0.28);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+
+  & :focus-visible {
+    outline: 1px solid #3a79bb;
+    outline-offset: 1px;
+  }
+
+  .pe-win {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    background: #383838;
+    border: 1px solid #191919;
+    border-radius: 6px;
+    box-shadow:
+      0 24px 70px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+    outline: 0;
+  }
+
+  // ---- title bar ----
+  .pe-bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 28px;
+    padding: 0 0 0 9px;
+    background: #202020;
+    border-bottom: 1px solid #191919;
+    cursor: move;
+    touch-action: none;
+  }
+  .pe-bar img {
+    opacity: 0.85;
+  }
+  .pe-bt {
+    flex: 1;
+    font-size: 12px;
+    color: #d2d2d2;
+  }
+  .pe-close {
+    width: 40px;
+    height: 28px;
+    font-size: 18px;
+    line-height: 26px;
+    text-align: center !important;
+    color: #c4c4c4;
+    cursor: pointer;
+  }
+  .pe-close:hover {
+    background: #c42b1c;
+    color: #fff;
+  }
+
+  .pe-demo {
+    flex: none;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 5px 16px;
+    background: rgba(217, 142, 56, 0.12);
+    border-bottom: 1px solid rgba(217, 142, 56, 0.28);
+    font-size: 10.857px;
+    color: #c4c4c4;
+  }
+  .pe-demo b {
+    flex: none;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: #d98e38;
+  }
+
+  // ---- body ----
+  .pe-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 10px 8px 6px;
+    scrollbar-color: #5f5f5f #2b2b2b;
+    scrollbar-width: thin;
+  }
+  .pe-field {
+    display: grid;
+    grid-template-columns: minmax(0, 215px) minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    margin-bottom: 4px;
+  }
+  .pe-field.dis .scf {
+    opacity: 0.5;
+  }
+  .pe-lbl {
+    font-size: 12px;
+    color: #c4c4c4;
+    line-height: 17px;
+    min-width: 0;
+  }
+  .pe-cap {
+    font-size: 10.286px;
+    line-height: 15px;
+    color: #808080;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pe-input {
+    width: 100%;
+    height: 20px;
+    padding: 0 6px;
+    background: #2a2a2a;
+    border: 1px solid #212121;
+    border-radius: 3px;
+    color: #d2d2d2;
+    font-size: 12px;
+    outline: 0;
+  }
+  .pe-input:focus {
+    border-color: #3a79bb;
+  }
+  .pe-native {
+    display: grid;
+    grid-template-columns: minmax(0, 215px) minmax(0, 1fr);
+    gap: 6px;
+  }
+  .pe-nt {
+    color: #808080;
+    line-height: 15px;
+  }
+  .pe-native .nlead {
+    color: #808080;
+    white-space: normal;
+  }
+
+  // Surface.Card
+  .pe-card {
+    margin-top: 10px;
+    padding: 10px;
+    background: #3f3f3f;
+    border: 1px solid #262626;
+    border-radius: 6px;
+  }
+  .pe-ct {
+    font-size: 12px;
+    font-weight: 700;
+    color: #c4c4c4;
+  }
+  .pe-card > .pe-cap {
+    white-space: normal;
+    margin-bottom: 6px;
+  }
+
+  // ---- the ring ----
+  .pe-ring {
+    position: relative;
+    width: 100%;
+  }
+  .pe-center {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border-style: solid;
+    border-color: var(--pe-ring);
+    box-shadow:
+      0 0 0 1px var(--pe-outline),
+      inset 0 0 0 1px var(--pe-outline);
+  }
+  .pe-rtitle {
+    position: absolute;
+    width: 200px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  }
+  .pe-slot {
+    position: absolute;
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    // PaddingLeft/Right less the 1px outline, which the renderer draws inside the pill.
+    padding: 0 8px !important;
+    background: var(--pe-item) !important;
+    border: 1px solid var(--pe-outline) !important;
+    border-radius: 5px;
+    color: var(--pe-text) !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+    cursor: pointer !important;
+  }
+  .pe-slot:hover {
+    background: var(--pe-hi) !important;
+    color: #fff !important;
+  }
+  .pe-slot.empty {
+    opacity: 0.35;
+  }
+  .pe-slot.empty:hover {
+    opacity: 0.7;
+  }
+  .pe-ic {
+    flex: none;
+    display: flex;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+  }
+  .pe-ic:hover {
+    background: var(--pe-plate);
+    box-shadow: 0 0 0 2px var(--pe-plate);
+  }
+  .pe-lb {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+  .pe-dg {
+    flex: none;
+    margin-left: 10px;
+    opacity: 0.55;
+  }
+
+  // ---- footer ----
+  .pe-foot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px 8px;
+  }
+  .pe-foot .nb {
+    height: 24px;
+  }
+  .pe-reset {
+    min-width: 130px;
+    margin-right: 4px;
+  }
+  .pe-note {
+    font-size: 10.286px;
+    color: #808080;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .pe-flex {
+    flex: 1;
+  }
+  .pe-fb {
+    flex: none;
+    width: 90px;
+  }
+  .nb.off {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  // ---- pop-ups ----
+  .pe-pshield {
+    position: absolute;
+    inset: 0;
+    z-index: 70;
+  }
+  .pe-pop {
+    position: absolute;
+    z-index: 71;
+    display: flex;
+    flex-direction: column;
+    background: #2b2b2b;
+    border: 1px solid #191919;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+  .pe-pop.rename {
+    background: #383838;
+  }
+  .pe-phead {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    height: 22px;
+    background: #232323;
+    font-size: 12px;
+    font-weight: 700;
+    color: #c4c4c4;
+  }
+  .pe-px {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    line-height: 15px;
+    font-size: 14px;
+    text-align: center !important;
+    color: #8a8a8a;
+    cursor: pointer;
+  }
+  .pe-px:hover {
+    color: #e0e0e0;
+  }
+  .pe-pbar {
+    flex: none;
+    padding: 3px 4px 4px;
+    border-bottom: 1px solid #1f1f1f;
+  }
+  .pe-search {
+    width: 100%;
+    height: 20px;
+    padding: 0 8px;
+    background: #2a2a2a;
+    border: 1px solid #191919;
+    border-radius: 10px;
+    color: #d2d2d2;
+    font-size: 12px;
+    outline: 0;
+  }
+  .pe-search:focus {
+    border-color: #3a79bb;
+  }
+  .pe-plist {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 2px 0;
+    scrollbar-color: #5f5f5f #2b2b2b;
+    scrollbar-width: thin;
+  }
+  .pe-row {
+    display: flex !important;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    height: 20px;
+    padding-right: 6px !important;
+    font-size: 12px;
+    color: #c4c4c4;
+    white-space: nowrap;
+    cursor: pointer !important;
+  }
+  .pe-row:hover {
+    background: #3e5f96 !important;
+    color: #fff;
+  }
+  .pe-row.on {
+    background: #2c4a75 !important;
+    color: #fff;
+  }
+  .pe-row.br {
+    font-weight: 700;
+  }
+  .pe-arrow {
+    width: 9px;
+    font-size: 10px;
+    color: #9a9a9a;
+  }
+  .pe-ricon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+  .pe-rn {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pe-rp {
+    margin-left: auto;
+    padding-left: 8px;
+    font-size: 10.286px;
+    color: #808080;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pe-pnone {
+    padding: 10px;
+    font-size: 11px;
+    color: #808080;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+  .pe-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 32px);
+    grid-auto-rows: 32px;
+    align-content: start;
+    padding: 2px 0 2px 2px;
+    scrollbar-color: #5f5f5f #2b2b2b;
+    scrollbar-width: thin;
+  }
+  .pe-cell {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    cursor: pointer !important;
+  }
+  .pe-cell:hover {
+    background: #464646 !important;
+  }
+  .pe-cell.on {
+    background: #2c4a75 !important;
+  }
+  .pe-hover {
+    flex: none;
+    height: 20px;
+    line-height: 20px;
+    padding: 0 8px;
+    border-top: 1px solid #1f1f1f;
+    font-size: 10.286px;
+    color: #9a9a9a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pe-rename {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+  .pe-rbtns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .pe-rbtns .nb {
+    width: 86px;
+    height: 20px;
+  }
+  .pe-menu {
+    padding: 3px 0;
+  }
+  .pe-menu .mi {
+    height: 22px;
+    cursor: pointer !important;
+  }
+  .pe-sep {
+    height: 1px;
+    margin: 4px 0;
+    background: #3f3f3f;
+  }
+}

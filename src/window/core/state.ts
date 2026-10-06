@@ -54,6 +54,8 @@ export interface FrameStep {
   on: boolean;
 }
 
+export const NEW_PIE = 'new';
+
 export type KeyboardSide = 'Blendon' | 'Unity';
 
 /** Everything the window remembers; changes live only in this tab. */
@@ -84,6 +86,8 @@ export interface WindowState {
   tip: TipState | null;
   menu: MenuState | null;
   dlg: DialogState | null;
+  /** The pie menu editor: a pie's id, NEW_PIE for Add, or null when closed. */
+  pieEdit: string | null;
   capturing: string | null;
   edit: { key: string; text: string } | null;
   dragKey: string | null;
@@ -116,6 +120,7 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
     tip: null,
     menu: null,
     dlg: null,
+    pieEdit: null,
     capturing: null,
     edit: null,
     dragKey: null,
