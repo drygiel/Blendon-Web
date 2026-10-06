@@ -18,16 +18,17 @@ React 19, TypeScript (strict), Vite, SCSS (CSS Modules), Vitest, Playwright, ESL
 
 ## Scripts
 
-| Command         | What it does                                                  |
-| --------------- | ------------------------------------------------------------- |
-| `pnpm install`  | Install dependencies                                          |
-| `pnpm dev`      | Dev server with hot reload                                    |
-| `pnpm build`    | Type-check and build the static site into `dist/`             |
-| `pnpm preview`  | Serve the production build locally                            |
-| `pnpm check`    | Type-check, lint, format check and unit tests (what CI runs)  |
-| `pnpm test`     | Unit tests (Vitest)                                           |
-| `pnpm test:e2e` | End-to-end tests in Chromium, Firefox and WebKit (Playwright) |
-| `pnpm format`   | Format everything with Prettier                               |
+| Command          | What it does                                                  |
+| ---------------- | ------------------------------------------------------------- |
+| `pnpm install`   | Install dependencies                                          |
+| `pnpm dev`       | Dev server with hot reload                                    |
+| `pnpm build`     | Type-check, build the static site into `dist/` and prerender  |
+| `pnpm prerender` | Render the landing and its JSON-LD into `dist/index.html`     |
+| `pnpm preview`   | Serve the production build locally                            |
+| `pnpm check`     | Type-check, lint, format check and unit tests (what CI runs)  |
+| `pnpm test`      | Unit tests (Vitest)                                           |
+| `pnpm test:e2e`  | End-to-end tests in Chromium, Firefox and WebKit (Playwright) |
+| `pnpm format`    | Format everything with Prettier                               |
 
 Playwright needs its browsers once: `pnpm exec playwright install`.
 
@@ -68,6 +69,7 @@ The exporter reads Blendon only through reflection, so it compiles in any assemb
 | `src/window/styles/`      | The window's styles, scoped under `.uw`                                          |
 | `src/generated/`          | `pnpm sync` output                                                               |
 | `scripts/sync/`           | `pnpm sync`: reads the plugin's C# sources and the Unity dump                    |
+| `src/entry-server.tsx`    | `pnpm prerender`'s server entry; `scripts/prerender.ts` writes its output        |
 | `tools/unity/`            | The Unity-side exporter for `Metadata~/PlaygroundRef`                            |
 | `tests/unit`, `tests/e2e` | Vitest and Playwright suites                                                     |
 

@@ -5,6 +5,8 @@ let errors: string[] = [];
 test.beforeEach(async ({ page }) => {
   errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  // React reports a prerender that doesn't match the client on the console, then renders anew.
+  page.on('console', (m) => m.type() === 'error' && /hydrat/i.test(m.text()) && errors.push(m.text()));
   await page.goto('');
 });
 
@@ -85,4 +87,17 @@ test('faq answers open on click', async ({ page }) => {
   await expect(answer).toBeHidden();
   await faq.getByText('How is it licensed?').click();
   await expect(answer).toBeVisible();
+});
+
+test('ships the landing prerendered, with its structured data', async ({ page, request }) => {
+  const html = await (await request.get('')).text();
+  expect(html).toContain('rewired for');
+  expect(html).toContain('Questions before you buy.');
+
+  const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(
+    (m) => JSON.parse(m[1] ?? '') as { '@type': string; offers?: { price: string }; mainEntity?: unknown[] },
+  );
+  expect(data.find((d) => d['@type'] === 'SoftwareApplication')?.offers?.price).toBe('40.00');
+  const faq = data.find((d) => d['@type'] === 'FAQPage');
+  await expect(page.locator('#faq details')).toHaveCount(faq?.mainEntity?.length ?? -1);
 });

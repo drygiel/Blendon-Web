@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import './styles/fonts.ts';
 import './styles/global.scss';
 import { App } from './App.tsx';
@@ -7,8 +7,11 @@ import { App } from './App.tsx';
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
 
-createRoot(root).render(
+const app = (
   <StrictMode>
     <App />
-  </StrictMode>,
+  </StrictMode>
 );
+// The build prerenders the landing into #root; the dev server leaves it empty.
+if (root.hasChildNodes()) hydrateRoot(root, app);
+else createRoot(root).render(app);
