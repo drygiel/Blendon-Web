@@ -510,3 +510,119 @@ export const FEATURE_PRESETS: [string, string][] = [
     'Just the Move, Rotate, Scale and Transform gizmos, with their grab and vertex-snap keys. Everything else stays off, and Unity keeps every other key.',
   ],
 ];
+
+export interface Comparison {
+  task: string;
+  unity: string;
+  blendon: string;
+  keys: KeyTokens;
+}
+
+export const COMPARISON: Comparison[] = [
+  {
+    task: 'Look around an object',
+    unity: "Orbit turns around the Scene view's pivot, so you frame the object first",
+    blendon: 'Orbit turns around the selection, or the point under the cursor',
+    keys: ['MMB', '~drag'],
+  },
+  {
+    task: 'Zoom in on a detail',
+    unity: 'The wheel zooms toward the pivot in the middle of the view',
+    blendon: 'The point under the cursor stays where it is',
+    keys: ['Scroll'],
+  },
+  {
+    task: 'Move something exactly 2 m',
+    unity: 'Drag a handle, then fix the number in the Inspector',
+    blendon: 'Grab, pick the axis, type the distance. No handle, no Inspector',
+    keys: ['G', 'X', '2', 'Enter'],
+  },
+  {
+    task: 'Box-select a few objects',
+    unity: 'Only objects that fit wholly inside the box are picked',
+    blendon: 'Everything the box touches, tested against real triangles',
+    keys: ['LMB', '~drag'],
+  },
+  {
+    task: 'Look straight down an axis',
+    unity: 'Click a cone of the scene gizmo',
+    blendon: 'One numpad key, the View pie or an Alt + middle-mouse flick',
+    keys: ['Num 7'],
+  },
+  {
+    task: 'Switch draw mode, pivot or snapping',
+    unity: 'Open a dropdown in the toolbar overlays',
+    blendon: 'Hold a key and flick a pie menu',
+    keys: ['Z', '~/', '.', '~/', 'Shift', '~+', 'S'],
+  },
+  {
+    task: 'Find a menu command',
+    unity: "Right-click and scan the Scene view's menu",
+    blendon: 'Right-click and type: the same entries, grouped and searchable',
+    keys: ['RMB'],
+  },
+];
+
+export interface FaqEntry {
+  q: string;
+  /** Plain text: the page shows it and the structured data repeats it. */
+  a: string;
+  /** A link shown after the answer: [href, label]. */
+  link?: [string, string];
+}
+
+export const FAQ: FaqEntry[] = [
+  {
+    q: 'Does it work in Unity 2022 LTS or older?',
+    a: 'No. Blendon needs Unity 6000.0 (Unity 6) or newer. Everything added after 6.0 goes through a compatibility layer, so Unity 6.0 and the newest release behave the same.',
+  },
+  {
+    q: 'Will it break my Unity muscle memory?',
+    a: "Only if you let it. On the Unity keyboard preset the Editor keeps every key and Blendon's gestures move aside: orbit to Ctrl + middle mouse, pan to Alt + middle mouse. Or start with the Tools Only preset and switch features on as you go.",
+    link: ['#pace', 'Compare the two presets.'],
+  },
+  {
+    q: 'Do I need a numpad or a three-button mouse?',
+    a: 'A numpad only for Numpad Views: the View pie and the Orientation Gizmo reach the same views without one. Orbit and pan use the middle mouse button by default, and both can be rebound to suit a trackpad.',
+  },
+  {
+    q: 'Does it work on macOS and Linux?',
+    a: 'Yes, on Windows, macOS and Linux. Key labels follow the platform, so macOS shows Cmd and Option where Windows shows Ctrl and Alt.',
+  },
+  {
+    q: 'Which render pipelines does it support?',
+    a: "All of them. Blendon draws through the Editor's own Handles and gizmo systems, so the Built-in Render Pipeline, URP and HDRP behave the same.",
+  },
+  {
+    q: 'Does it touch my project, my builds or version control?',
+    a: 'Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs, keys to its own Shortcut Manager profile and pie menus to a file in your user settings folder.',
+  },
+  {
+    q: 'Can I undo what it does?',
+    a: 'Yes. Every gizmo drag, grab, box selection, reset and added object is a single undo step, and Esc or a right-click cancels a drag before it lands.',
+  },
+  {
+    q: 'Does it get in the way of Splines, Terrain or other tools?',
+    a: 'No. Tool contexts such as Splines or Terrain painting keep their own input, as they do without Blendon. With the Splines package installed, the Tools pie can even start Create Spline.',
+  },
+  {
+    q: 'How is it licensed?',
+    a: "Per seat, under the Unity Asset Store's standard terms: everyone who uses Blendon needs a license of their own. It is a one-time purchase.",
+  },
+  {
+    q: 'Is it still being worked on?',
+    a: 'Yes. Blendon is updated often, and updates arrive through the Package Manager like any other Asset Store package.',
+  },
+  {
+    q: 'Can I get a refund?',
+    a: "Yes. If Blendon doesn't suit the way you work, request a refund through the Unity Asset Store.",
+  },
+  {
+    q: 'Is the source code included?',
+    a: 'Yes, the full C# source, plus an illustrated PDF manual.',
+  },
+  {
+    q: 'How do I remove it completely?',
+    a: 'Select Default in Edit → Shortcuts, click Reset All Pages on the Overview page of Tools → Blendon, then delete the Blendon folder. Your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that file too.',
+  },
+];

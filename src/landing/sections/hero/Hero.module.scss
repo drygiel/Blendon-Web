@@ -980,6 +980,10 @@ $z-blue: #4696ee;
   font-size: 14px;
   font-weight: 500;
 
+  @include below($bp-md) {
+    gap: 20px;
+  }
+
   @include below($bp-nav) {
     display: none;
   }

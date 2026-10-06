@@ -1,4 +1,6 @@
+import { Compare } from './sections/compare/Compare.tsx';
 import { FinalCta } from './sections/cta/FinalCta.tsx';
+import { Faq } from './sections/faq/Faq.tsx';
 import { Features } from './sections/features/Features.tsx';
 import { Footer } from './sections/footer/Footer.tsx';
 import { Hero } from './sections/hero/Hero.tsx';
@@ -18,6 +20,7 @@ export function Landing() {
       <Hero />
       <main>
         <PromoVideo />
+        <Compare />
         <Features />
         <Precision />
         <PieMenus />
@@ -27,6 +30,7 @@ export function Landing() {
         <SceneSection />
         <Shortcuts />
         <UnderTheHood />
+        <Faq />
         <FinalCta />
       </main>
       <Footer />

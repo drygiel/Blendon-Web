@@ -1,0 +1,60 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.list {
+  max-width: 860px;
+  margin-top: 36px;
+  border-top: 1px solid $border;
+}
+
+.item {
+  border-bottom: 1px solid $hairline;
+}
+
+.question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 58px;
+  padding: 12px 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  list-style: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: $text;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  // A plus that turns into a cross while open.
+  &::after {
+    content: '+';
+    flex: none;
+    font: 400 22px/1 $font-mono;
+    color: $accent;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.item[open] .question::after {
+  transform: rotate(45deg);
+}
+
+.answer {
+  margin: 0;
+  padding: 0 32px 18px 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: $text-3;
+
+  a {
+    color: $accent-light;
+  }
+}

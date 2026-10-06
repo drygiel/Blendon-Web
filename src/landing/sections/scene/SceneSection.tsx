@@ -9,7 +9,7 @@ export function SceneSection() {
   return (
     <section id="try" className={styles.section}>
       <div className={styles.intro}>
-        <SectionIntro eyebrow="08 / TRY IT" title="Feel it in your hands, right here." />
+        <SectionIntro eyebrow="09 / TRY IT" title="Feel it in your hands, right here." />
         <p className={styles.lead}>
           A Unity Scene view with Blendon installed and Blendon&apos;s settings window, simulated in the browser. Click
           into the Scene view, then orbit with the middle mouse button, press G to grab, type a distance, hold Z for a

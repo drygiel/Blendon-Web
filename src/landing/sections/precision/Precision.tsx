@@ -37,7 +37,7 @@ export function Precision() {
     <Section id="precision">
       <div className={styles.split}>
         <div className={styles.intro}>
-          <Eyebrow>03 / PRECISION</Eyebrow>
+          <Eyebrow>04 / PRECISION</Eyebrow>
           <SectionTitle>No handle to hunt for. Just type the number.</SectionTitle>
           <Lead>
             Press G, R or S anywhere in the Scene view and the selection follows the cursor. Constrain with X, Y or Z,

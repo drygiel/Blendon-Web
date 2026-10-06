@@ -39,7 +39,7 @@ const COLUMNS: [string, ReactNode[]][] = [
 export function UnderTheHood() {
   return (
     <Section id="hood">
-      <SectionIntro eyebrow="10 / UNDER THE HOOD" title="Built to stay out of your project." />
+      <SectionIntro eyebrow="11 / UNDER THE HOOD" title="Built to stay out of your project." />
       <div className={styles.specs}>
         {SPECS.map(([label, text]) => (
           <div key={label} className={styles.spec}>
