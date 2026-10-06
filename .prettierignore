@@ -1,4 +1,5 @@
 dist
+dist-ssr
 coverage
 pnpm-lock.yaml
 src/generated
