@@ -79,6 +79,14 @@ test('promo video loads the player only when asked', async ({ page }) => {
   await expect(video.locator('iframe')).toHaveCount(0);
   await video.getByRole('button', { name: /Play Blendon/ }).click();
   await expect(video.locator('iframe')).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/hrjcGZ32UHI\?autoplay=1/);
+  // Playing brings the player to the middle of the screen.
+  const player = page.locator('[data-plot-anchor="video-player"]');
+  const offset = async () => {
+    const r = await player.boundingBox();
+    const h = page.viewportSize()?.height ?? 0;
+    return r ? Math.abs(r.y + r.height / 2 - h / 2) : Infinity;
+  };
+  await expect.poll(offset).toBeLessThan(4);
 });
 
 test('faq answers open on click', async ({ page }) => {

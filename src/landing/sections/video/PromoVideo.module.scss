@@ -44,6 +44,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  // A very slow push in, so the cover is never quite still before it plays.
+  animation: push-in 26s ease-in-out infinite alternate;
 }
 
 .play {
@@ -65,13 +67,32 @@
   box-shadow:
     inset 0 1px 0 $accent-light,
     0 12px 36px rgba(242, 163, 58, 0.35);
+  // The pulse animates `transform`, the hover `scale`, so the two combine.
+  animation: breathe 2.4s ease-in-out infinite;
   transition:
-    transform 0.2s ease,
+    scale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
     background 0.2s ease;
+
+  // Two rings spreading from the button in turn, so it reads as something to press.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid $accent;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    animation: ripple 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+  }
+
+  &::after {
+    animation-delay: 1.2s;
+  }
 
   .cover:hover & {
     background: $accent-hover;
-    transform: scale(1.06);
+    scale: 1.16;
   }
 
   @include below($bp-phone) {
@@ -95,9 +116,49 @@
   text-transform: uppercase;
 }
 
+@keyframes push-in {
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+@keyframes ripple {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+// Ambient motion rests with the rest of the page while the visitor is idle.
+:global(html[data-plot-idle]) {
+  .poster,
+  .play,
+  .play::before,
+  .play::after {
+    animation-play-state: paused;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cover::after,
   .play {
     transition: none;
+  }
+
+  .poster,
+  .play,
+  .play::before,
+  .play::after {
+    animation: none;
   }
 }

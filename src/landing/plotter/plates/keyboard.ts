@@ -1,5 +1,5 @@
 import { SHORTCUTS } from '../../data/content.ts';
-import { AMBER, NEUTRAL, SERIF_S, rgba } from '../draw.ts';
+import { AMBER, NEUTRAL, SERIF_S, rgba, smooth } from '../draw.ts';
 import type { Plate } from './types.ts';
 
 type Key = [label: string, x: number, y: number, w: number, h: number];
@@ -44,16 +44,57 @@ const KEYS = layout();
 const WIDTH = 22.8;
 const LIT = new Set(SHORTCUTS.flatMap(([, tokens]) => tokens));
 
-/** The keyboard, drawn row by row; every key with a Blendon default is lit. */
+/** Every default as key presses on this keyboard, modifiers first: Ctrl + Num 1 / Num 3 is two presses. */
+function presses(): number[][] {
+  const at = new Map<string, number>();
+  KEYS.forEach(([label], i) => at.has(label) || at.set(label, i));
+  const out: number[][] = [];
+  for (const [, tokens] of SHORTCUTS) {
+    const alts: string[][] = [[]];
+    for (const tk of tokens) {
+      if (tk === '~/') alts.push([]);
+      else alts[alts.length - 1].push(tk);
+    }
+    for (const alt of alts) {
+      const plus = alt.indexOf('~+');
+      const mods = (plus < 0 ? [] : alt.slice(0, plus)).flatMap((k) => at.get(k) ?? []);
+      if (plus > 0 && mods.length < plus) continue;
+      for (const k of alt.slice(plus + 1)) {
+        const i = at.get(k);
+        if (i !== undefined) out.push([...mods, i]);
+      }
+    }
+  }
+  return out;
+}
+
+const PRESSES = presses();
+/** Seconds per press: keys go down one after another, stay held, then come up and rest. */
+const PRESS = 2.6;
+
+/** How far each key of the current press is down, 0 to 1, at time `t`. */
+function pressed(t: number): Map<number, number> {
+  const out = new Map<number, number>();
+  if (!PRESSES.length) return out;
+  const keys = PRESSES[Math.floor(t / PRESS) % PRESSES.length];
+  const u = t % PRESS;
+  const up = 1 - smooth(1.5, 1.95, u);
+  keys.forEach((k, j) => out.set(k, smooth(0.15 + j * 0.24, 0.4 + j * 0.24, u) * up));
+  return out;
+}
+
+/** The keyboard, drawn row by row; every key with a Blendon default is lit, then they are pressed in turn. */
 export const keyboard: Plate = {
-  draw({ ink, ctx, sy, W, title, content }) {
+  animated: true,
+  draw({ ink, ctx, sy, t, reduce, W, title, content }) {
     if (!title || W < 1100) return;
     const width = Math.min(430, content.w * 0.36);
     const u = width / WIDTH;
     const x0 = content.right - width;
     const y0 = title.top - sy - 34;
     const gap = Math.max(1.5, u * 0.12);
-    for (const [label, kx, ky, kw, kh] of KEYS) {
+    const down = ink.p > 0.98 && !reduce ? pressed(t) : null;
+    KEYS.forEach(([label, kx, ky, kw, kh], i) => {
       const lit = LIT.has(label);
       const a = 0.04 + ky * 0.08 + (kx / WIDTH) * 0.18;
       const x = x0 + kx * u + gap / 2;
@@ -76,7 +117,17 @@ export const keyboard: Plate = {
         ctx.fillStyle = rgba(AMBER, 0.08 * ink.I);
         ctx.fillRect(x, y, w, h);
       }
-    }
+      // A pressed key glows and sinks a pixel into its outline.
+      const k = down?.get(i) ?? 0;
+      if (k > 0.01) {
+        const d = 1.2 * k;
+        ctx.fillStyle = rgba(AMBER, 0.24 * k * ink.I);
+        ctx.fillRect(x + d, y + d, w - 2 * d, h - 2 * d);
+        ctx.strokeStyle = rgba(AMBER, 0.7 * k * ink.I);
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + d + 0.5, y + d + 0.5, w - 2 * d - 1, h - 2 * d - 1);
+      }
+    });
     ink.label('fig. 10 — every default, lit', x0 + width, y0 + 5 * u + 22, 0.7, 0.9, {
       font: SERIF_S,
       align: 'right',

@@ -5,7 +5,10 @@ import {
   FINALE,
   INTRO_END,
   JUMP,
+  RAIL,
   RING,
+  RING_SCROLL,
+  ROUTE_LINE,
   STATION_LINE,
   UP,
   WRITE,
@@ -14,6 +17,7 @@ import {
   introS,
   posAt,
   sAtB,
+  sAtRailY,
   scrollKeyframes,
   type TitleBox,
 } from '../../src/landing/plotter/path.ts';
@@ -134,11 +138,90 @@ describe('plotter station', () => {
     for (let i = (st?.i0 ?? 0) + 1; i <= (st?.i1 ?? 0); i++) expect(withPie.kind[i]).toBe(RING);
   });
 
-  it('lands as the station reaches the middle of the screen', () => {
+  it('lands while the station is still low on screen, and leaves the circle to time', () => {
     const st = withPie.stations[0];
     const land = keys.find((k) => k.b === st?.b0);
     expect(land?.sc).toBe(pie.cy - H * STATION_LINE);
     const s = sAtB(withPie, bAtScroll(keys, (land?.sc ?? 0) - 1));
     expect(s).toBeLessThan(st?.s0 ?? 0);
+    const closed = keys.find((k) => k.b === st?.b1);
+    expect((closed?.sc ?? Infinity) - (land?.sc ?? 0)).toBe(RING_SCROLL);
+  });
+
+  it('leaps from higher up the rail when asked to', () => {
+    const early = buildPath({
+      titles,
+      railX: 94,
+      origin: { x: 720, y: 700 },
+      cta: null,
+      detours: [{ ...pie, from: pie.cy - 150 }],
+    });
+    const st = early.stations[0];
+    expect(st?.fromY).toBe(pie.cy - 150);
+    const start = posAt(early, st?.sJump ?? 0);
+    expect(start.x).toBeCloseTo(94, 0);
+    expect(start.y).toBeCloseTo(pie.cy - 150, 0);
+    expect(posAt(early, st?.s0 ?? 0).y).toBeCloseTo(pie.cy, 0);
+  });
+});
+
+describe('plotter routes', () => {
+  // The second title passes its section down the right margin and crosses back under it.
+  const back = 2120;
+  const right = buildPath({
+    titles,
+    railX: 94,
+    origin: { x: 720, y: 700 },
+    cta: null,
+    routes: [
+      {
+        title: 1,
+        pts: [
+          { x: 1346, y: titles[1].bottom + 6 },
+          { x: 1346, y: back },
+        ],
+      },
+    ],
+  });
+  const keys = scrollKeyframes(right, H, maxScroll);
+  const near = (x: number, y: number) =>
+    Array.from({ length: right.n }, (_, i) => Math.hypot(right.x[i] - x, right.y[i] - y)).some((d) => d < 30);
+
+  it('draws on past the underline, down the right and back to the rail', () => {
+    const run = right.runs[1];
+    expect(right.kind[(run?.i1 ?? 0) + 1]).toBe(RAIL);
+    expect(near(1346, 1700)).toBe(true);
+    expect(near(700, back)).toBe(true);
+    // Nothing of the plain rail beside the section: the pen is on the right meanwhile.
+    for (let i = run?.i1 ?? 0; i < (right.runs[2]?.i0 ?? 0); i++) {
+      if (right.y[i] > (run?.uy ?? 0) + 40 && right.y[i] < back - 40) expect(right.x[i]).toBeGreaterThan(1300);
+    }
+    expect(right.legs.get(1)).toHaveLength(3);
+  });
+
+  it('keeps the pen on screen down the route and the keyframes ascending', () => {
+    for (let j = 1; j < keys.length; j++) expect(keys[j]?.sc).toBeGreaterThan(keys[j - 1]?.sc ?? Infinity);
+    for (let sc = 0; sc <= maxScroll; sc += 20) {
+      const p = posAt(right, sAtB(right, bAtScroll(keys, sc)));
+      if (p.x > 1300) {
+        expect(p.y - sc).toBeGreaterThan(0);
+        expect(p.y - sc).toBeLessThan(H);
+      }
+    }
+    const down = right.legs.get(1)?.[1];
+    const at = keys.find((k) => k.b === right.b[down?.i ?? 0]);
+    expect(down?.horizontal).toBe(false);
+    expect(at?.sc).toBeLessThanOrEqual((down?.y ?? 0) - H * ROUTE_LINE);
+  });
+
+  it('finds the rail point level with a row, within a stretch', () => {
+    const run = path.runs[2];
+    const next = path.runs[3];
+    const s = sAtRailY(path, 2500, run?.i1 ?? 0, next?.i0 ?? 0, 94);
+    const p = posAt(path, s ?? 0);
+    expect(p.x).toBeCloseTo(94, 0);
+    expect(p.y).toBeGreaterThanOrEqual(2500);
+    expect(p.y).toBeLessThan(2510);
+    expect(path.kind[p.i]).toBe(RAIL);
   });
 });

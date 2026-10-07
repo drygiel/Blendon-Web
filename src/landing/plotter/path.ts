@@ -58,12 +58,33 @@ export interface Detour {
   cy: number;
   /** Radius of the circle drawn around the point. */
   r: number;
+  /** Height on the rail where the leap starts; the point's own height by default. */
+  from?: number;
+}
+
+/**
+ * A route after a title: instead of going back to the rail, the pen keeps drawing through these corners
+ * and rejoins the rail at the height of the last one.
+ */
+export interface Route {
+  title: number;
+  pts: Point[];
+}
+
+/** One straight leg of a route, ending at path index `i`. */
+export interface Leg {
+  i: number;
+  y: number;
+  len: number;
+  horizontal: boolean;
 }
 
 export interface Station {
   name: string;
   title: number;
   cy: number;
+  /** Height on the rail where the leap starts. */
+  fromY: number;
   /** Arc length and budget where the leap starts, where the pen lands and where its circle closes. */
   sJump: number;
   bJump: number;
@@ -90,6 +111,8 @@ export interface PlotPath {
   maxY: Float32Array;
   runs: Run[];
   stations: Station[];
+  /** Legs of each title's route, by title index. */
+  legs: Map<number, Leg[]>;
   total: number;
 }
 
@@ -101,11 +124,14 @@ export interface PathInput {
   /** The button the pen circles at the end, if any. */
   cta: Box | null;
   detours?: Detour[];
+  routes?: Route[];
 }
 
 const STEP = 4;
 const UP_COST = 0.3;
 const UNDERLINE_GAP = 6;
+/** Corner radius of a route. */
+const ROUTE_RADIUS = 26;
 
 function sampler() {
   const xs: number[] = [];
@@ -148,6 +174,42 @@ function sampler() {
         );
       }
     },
+    /** Straight legs through `pts`, each corner rounded; returns the index where each leg's straight part ends. */
+    polyline(pts: Point[], radius: number, k: SegmentKind): number[] {
+      const ends: number[] = [];
+      for (let j = 0; j < pts.length; j++) {
+        const c = pts[j];
+        const n = pts[j + 1];
+        const ax = c.x - lx;
+        const ay = c.y - ly;
+        const la = Math.hypot(ax, ay);
+        if (!n) {
+          this.line(c.x, c.y, k);
+          ends.push(xs.length - 1);
+          break;
+        }
+        const bx = n.x - c.x;
+        const by = n.y - c.y;
+        const lb = Math.hypot(bx, by);
+        const r = Math.min(radius, la / 2, lb / 2);
+        this.line(c.x - (ax / (la || 1)) * r, c.y - (ay / (la || 1)) * r, k);
+        ends.push(xs.length - 1);
+        if (r > 0.5) {
+          const ux = bx / lb;
+          const uy = by / lb;
+          this.cubic(
+            c.x - (ax / la) * r * 0.45,
+            c.y - (ay / la) * r * 0.45,
+            c.x + ux * r * 0.45,
+            c.y + uy * r * 0.45,
+            c.x + ux * r,
+            c.y + uy * r,
+            k,
+          );
+        }
+      }
+      return ends;
+    },
     ellipse(cx: number, cy: number, rx: number, ry: number, a0: number, sweep: number, k: SegmentKind) {
       const n = Math.ceil((Math.abs(sweep) * Math.max(rx, ry)) / STEP);
       for (let i = 1; i <= n; i++) {
@@ -160,20 +222,24 @@ function sampler() {
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
+/** Where writing under a title ends, and the underline's height. */
+export const underlineEnd = (t: TitleBox): Point => ({ x: t.right + 16, y: t.bottom + UNDERLINE_GAP });
+
 /**
  * The route: from the hero origin up to the first title, then down the rail with a branch under every
- * later title, ending in an ellipse around the call to action. A detour after a title takes the rail down
- * to its point's height, leaps across into the point, circles it and drops back onto the rail.
+ * later title, ending in an ellipse around the call to action. A title with a route draws on past its
+ * underline and rejoins the rail lower down. A detour after a title leaps from the rail into its point,
+ * circles it and drops back onto the rail.
  */
-export function buildPath({ titles, railX: rx, origin, cta, detours = [] }: PathInput): PlotPath {
+export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes = [] }: PathInput): PlotPath {
   const pb = sampler();
   const runs: Run[] = [];
-  const marks: { d: Detour; iJump: number; i0: number; i1: number }[] = [];
+  const legs = new Map<number, Leg[]>();
+  const marks: { d: Detour; jy: number; iJump: number; i0: number; i1: number }[] = [];
   pb.move(origin.x, origin.y);
   titles.forEach((t, i) => {
-    const uy = t.bottom + UNDERLINE_GAP;
+    const { x: ex, y: uy } = underlineEnd(t);
     const sx = t.left - 14;
-    const ex = t.right + 16;
     const r = clamp((t.left - rx) * 0.5, 6, 26);
     if (i === 0) pb.cubic(origin.x - 40, origin.y - 170, sx - 130, uy + 70, sx, uy, UP);
     else {
@@ -184,25 +250,49 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [] }: Path
     const i0 = pb.count() - 1;
     pb.line(ex, uy, WRITE);
     runs.push({ i0, i1: pb.count() - 1, s0: 0, s1: 0, b0: 0, b1: 0, sx, ex, uy, th: t.bottom - t.top });
-    if (i < titles.length - 1) {
+    const route = i < titles.length - 1 ? routes.find((x) => x.title === i && x.pts.length) : undefined;
+    if (route) {
+      const end = route.pts[route.pts.length - 1];
+      const pts: Point[] = [];
+      let prev: Point = { x: ex, y: uy };
+      for (const p of [...route.pts, { x: rx, y: end.y }, { x: rx, y: end.y + r }]) {
+        if (Math.hypot(p.x - prev.x, p.y - prev.y) < 1) continue;
+        pts.push(p);
+        prev = p;
+      }
+      const ends = pb.polyline(pts, ROUTE_RADIUS, RAIL);
+      // The last leg only turns down onto the rail; the rail's own keyframes take it from there.
+      legs.set(
+        i,
+        ends.slice(0, -1).map((ix, k) => {
+          const a = k ? pts[k - 1] : { x: ex, y: uy };
+          const c = pts[k];
+          const dx = c.x - a.x;
+          const dy = c.y - a.y;
+          return { i: ix, y: c.y, len: Math.hypot(dx, dy), horizontal: Math.abs(dx) > Math.abs(dy) };
+        }),
+      );
+    } else if (i < titles.length - 1) {
       // Back along the underline with the pen up, then down the rail again.
       pb.line(rx + r, uy, UP);
       pb.cubic(rx + r * 0.45, uy, rx, uy + r * 0.45, rx, uy + r, RAIL);
     }
     const d = detours.find((x) => x.title === i);
-    if (d && i < titles.length - 1 && d.cy > uy + r) {
-      pb.line(rx, d.cy, RAIL);
+    if (d && i < titles.length - 1 && d.cy > pb.last().y) {
+      const jy = clamp(d.from ?? d.cy, pb.last().y, d.cy);
+      pb.line(rx, jy, RAIL);
       const iJump = pb.count() - 1;
       // An arcing leap, higher the farther it goes.
-      const lift = Math.min(260, (d.cx - rx) * 0.32);
-      pb.cubic(rx + (d.cx - rx) * 0.3, d.cy - lift, d.cx - (d.cx - rx) * 0.25, d.cy - lift, d.cx, d.cy, JUMP);
+      const dx = d.cx - rx;
+      const lift = Math.min(260, dx * 0.32);
+      pb.cubic(rx + dx * 0.3, jy - lift, d.cx - dx * 0.25, Math.min(jy, d.cy) - lift, d.cx, d.cy, JUMP);
       const i0 = pb.count() - 1;
       // A radius out to the circle, then the circle itself, counterclockwise as angles are measured.
       pb.line(d.cx + d.r, d.cy, RING);
       pb.ellipse(d.cx, d.cy, d.r, d.r, 0, -Math.PI * 2, RING);
       const i1 = pb.count() - 1;
       pb.cubic(d.cx + d.r * 0.4, d.cy + d.r * 1.1, rx + 80, d.cy + d.r * 1.1, rx, d.cy + d.r + 40, UP);
-      marks.push({ d, iJump, i0, i1 });
+      marks.push({ d, jy, iJump, i0, i1 });
     }
   });
   if (cta) {
@@ -227,6 +317,7 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [] }: Path
     maxY: new Float32Array(n),
     runs,
     stations: [],
+    legs,
     total: 0,
   };
   const { x, y, s, b, kind, maxY } = path;
@@ -244,10 +335,11 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [] }: Path
     r.b0 = b[r.i0];
     r.b1 = b[r.i1];
   }
-  path.stations = marks.map(({ d, iJump, i0, i1 }) => ({
+  path.stations = marks.map(({ d, jy, iJump, i0, i1 }) => ({
     name: d.name,
     title: d.title,
     cy: d.cy,
+    fromY: jy,
     sJump: s[iJump],
     bJump: b[iJump],
     s0: s[i0],
@@ -266,15 +358,23 @@ export interface Keyframe {
   sc: number;
   /** Scroll budget along the path. */
   b: number;
+  /** Least scroll between the previous keyframe and this one. */
+  gap?: number;
 }
 
 /** Where on screen, as a share of its height, a one-line title is underlined once written. */
 export const WRITE_LINE = 0.42;
-/** Where on screen a station's point is when the pen lands in it. */
-export const STATION_LINE = 0.5;
-/** Scroll the leap into a station takes, in pixels, and the circle after it, as a share of the screen. */
-const JUMP_SCROLL = 150;
-const RING_SCROLL = 0.22;
+/** Where on screen a station's point is when the pen lands in it: low enough that it lands early. */
+export const STATION_LINE = 0.6;
+/** Where on screen the pen stays while it runs down a route. */
+export const ROUTE_LINE = 0.5;
+/** Least scroll the leap into a station takes, in pixels. */
+const JUMP_SCROLL = 120;
+/** Scroll the circle after a landing takes: the plotter draws it by time instead. */
+export const RING_SCROLL = 24;
+/** Scroll the pen then rests on the closed circle before it heads back to the rail. */
+const RING_REST = 140;
+const MIN_GAP = 24;
 
 /**
  * Scroll keyframes: each title gets written while it passes through the reading zone, the pen finishes the
@@ -291,24 +391,44 @@ export function scrollKeyframes(path: PlotPath, viewportH: number, maxScroll: nu
       const lead = clamp((r.s1 - r.s0) * 0.4, 90, viewportH * 0.3);
       kf.push({ sc: r.uy - anchor - lead, b: r.b0 }, { sc: r.uy - anchor, b: r.b1 });
     }
-    // The pen lands in a station as its point reaches the middle of the screen, then circles it.
+    // Down a route the pen holds its line on screen; across, it hurries over in a short stretch of scroll.
+    let prev = kf[kf.length - 1].sc;
+    for (const leg of path.legs.get(i) ?? []) {
+      const gap = leg.horizontal ? clamp(leg.len * 0.15, 80, 180) : MIN_GAP;
+      const sc = leg.horizontal ? prev + gap : Math.max(prev + gap, leg.y - viewportH * ROUTE_LINE);
+      kf.push({ sc, b: path.b[leg.i], gap });
+      prev = sc;
+    }
+    // The leap starts as its rail point passes the route line and lands with the point low on screen.
     for (const st of path.stations) {
       if (st.title !== i) continue;
       const land = st.cy - viewportH * STATION_LINE;
       kf.push(
-        { sc: land - JUMP_SCROLL, b: st.bJump },
-        { sc: land, b: st.b0 },
-        { sc: land + viewportH * RING_SCROLL, b: st.b1 },
+        { sc: Math.min(land - JUMP_SCROLL, st.fromY - viewportH * ROUTE_LINE), b: st.bJump },
+        { sc: land, b: st.b0, gap: JUMP_SCROLL },
+        { sc: land + RING_SCROLL, b: st.b1 },
+        { sc: land + RING_SCROLL + RING_REST, b: st.b1, gap: RING_REST },
       );
     }
   });
   kf.push({ sc: Math.max(maxScroll, 1), b: path.b[path.n - 1] });
   for (let j = kf.length - 2; j >= 1; j--) {
-    const gap = j === kf.length - 2 ? Math.min(viewportH * 0.35, 280) : 24;
+    const gap = j === kf.length - 2 ? Math.min(viewportH * 0.35, 280) : (kf[j + 1].gap ?? MIN_GAP);
     kf[j].sc = Math.min(kf[j].sc, kf[j + 1].sc - gap);
   }
   for (let j = 1; j < kf.length; j++) kf[j].sc = Math.max(kf[j].sc, kf[j - 1].sc + 1);
   return kf;
+}
+
+/** Arc length where the rail, between path indices `i0` and `i1`, first reaches height `y`. */
+export function sAtRailY(path: PlotPath, y: number, i0: number, i1: number, railX: number): number | null {
+  let best: number | null = null;
+  for (let i = Math.max(1, i0); i <= Math.min(i1, path.n - 1); i++) {
+    if (path.kind[i] !== RAIL || Math.abs(path.x[i] - railX) > 0.5) continue;
+    best = path.s[i];
+    if (path.y[i] >= y) break;
+  }
+  return best;
 }
 
 export function bAtScroll(kf: Keyframe[], sc: number): number {

@@ -22,7 +22,7 @@ export function Features() {
 
   if (!cur) return null;
   return (
-    <Section id="features" className={styles.section} plate="sphere">
+    <Section id="features" className={styles.section} plate="sphere" route="split">
       <SectionIntro
         eyebrow="03 / FEATURES"
         title={
@@ -53,7 +53,7 @@ export function Features() {
       </div>
 
       <div className={styles.explorer}>
-        <div className={styles.list} data-reveal="stagger">
+        <div className={styles.list} data-reveal="stagger" data-plot-col="left">
           {inGroup.map((f) => (
             <PickButton
               key={f.id}
@@ -65,7 +65,7 @@ export function Features() {
           ))}
         </div>
 
-        <div ref={panel} className={styles.player} data-reveal="print">
+        <div ref={panel} className={styles.player} data-reveal="print" data-plot-col="right">
           <video
             className={styles.video}
             src={near ? videoUrl(cur.clip) : undefined}

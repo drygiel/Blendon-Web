@@ -13,6 +13,7 @@
   background: transparent;
   color: #aeb3bb;
   text-align: left;
+  transition: color 0.15s ease;
 }
 
 .compact {
@@ -34,6 +35,7 @@
   border-radius: 50%;
   background: $border-strong;
   flex-shrink: 0;
+  transition: background 0.15s ease;
 }
 
 .on {
@@ -47,5 +49,16 @@
 
   &.blue .dot {
     background: $blue;
+  }
+}
+
+@media (hover: hover) {
+  .row:hover {
+    color: #fff;
+
+    .dot,
+    &.blue .dot {
+      background: $accent;
+    }
   }
 }

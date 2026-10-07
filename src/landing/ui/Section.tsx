@@ -9,12 +9,19 @@ interface SectionProps {
   className?: string;
   /** The background plotter's drawing for this section, by name. */
   plate?: string;
+  /** The pen's way past this section: down the right margin, or between its two columns. */
+  route?: 'right' | 'split';
 }
 
 /** A page-width landing section. */
-export function Section({ id, children, className, plate }: SectionProps) {
+export function Section({ id, children, className, plate, route }: SectionProps) {
   return (
-    <section id={id} className={[styles.section, className].filter(Boolean).join(' ')} data-plate={plate}>
+    <section
+      id={id}
+      className={[styles.section, className].filter(Boolean).join(' ')}
+      data-plate={plate}
+      data-plot-route={route}
+    >
       {children}
     </section>
   );

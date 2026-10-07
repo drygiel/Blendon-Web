@@ -13,6 +13,7 @@ import {
   TAU,
   WHITE,
   clamp,
+  easeInOut,
   easeOut,
   sprites as sharedSprites,
   mix,
@@ -29,10 +30,14 @@ import {
   introS,
   posAt,
   sAtB,
+  sAtRailY,
   scrollKeyframes,
+  underlineEnd,
   type Keyframe,
   type PlotPath,
+  type Point,
   type Detour,
+  type Route,
   type Run,
   type SegmentKind,
   type Station,
@@ -118,6 +123,14 @@ const AMBIENT_IDLE_MS = 8000;
 const MAX_DPR = 1.5;
 /** Heat steps of the fresh ink behind the pen. */
 const HEAT_BANDS = 16;
+/** How hard the grid bends toward the pen, and the reach of the bend in pixels. */
+const WARP_STRENGTH = 30;
+const WARP_RADIUS = 130;
+/** Seconds the pen takes to circle a station once it lands, and the station's plate to draw in full. */
+const RING_SECONDS = 1.2;
+const STATION_PLATE_SECONDS = 2.6;
+/** How far under a section a route crosses back to the rail. */
+const ROUTE_RETURN = 60;
 
 function pageRect(el: Element, sy: number): Rect {
   const r = el.getBoundingClientRect();
@@ -149,6 +162,16 @@ function sectionLabel(sec: HTMLElement | null | undefined): [string, string] {
   const text = sec?.dataset.hud ?? sec?.querySelector('[data-eyebrow]')?.textContent ?? '';
   const [num = '', name = ''] = text.split(' / ');
   return [num.trim(), name.trim()];
+}
+
+/** Right edge of an element's text, which may stop well short of its box. */
+function textRight(el: Element | null | undefined): number {
+  if (!el) return -Infinity;
+  const rg = document.createRange();
+  rg.selectNodeContents(el);
+  let right = -Infinity;
+  for (const q of Array.from(rg.getClientRects())) if (q.width > 1) right = Math.max(right, q.right);
+  return right;
 }
 
 const debounce = (fn: () => void, ms: number) => {
@@ -195,6 +218,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let origin = { x: 0, y: 0 };
   let heroBottom = 0;
   let stations: Station[] = [];
+  /** The station the pen circles by time since `t0`, ignoring the scroll meanwhile. */
+  let ring: { name: string; t0: number } | null = null;
+  /** After its circle the pen stays at this station's end until the visitor scrolls back above its leap. */
+  let ringFloor: string | null = null;
+  /** When each station's plate started; once started it draws to the end by time. */
+  const stationClock = new Map<string, number>();
+  /** The element under the pointer whose height the pen holds; `s` is cached per layout epoch. */
+  let hold: { el: HTMLElement; s: number | null; epoch: number } | null = null;
+  /** How far the drawn line reaches; ahead of the pen while it holds. */
+  let inkS = 0;
   const flashes: Flash[] = [];
   const anchors = new Map<string, Rect>();
   const sparks: Spark[] = [];
@@ -277,15 +310,28 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         const title = titles.findIndex((s) => s.section === sec);
         const r = pageRect(el, sy);
         const name = el.dataset.plotStation ?? '';
-        return title < 0 || !name ? [] : [{ title, name, cx: r.cx, cy: r.cy, r: Number(el.dataset.plotRadius) || 120 }];
+        const radius = Number(el.dataset.plotRadius) || 120;
+        // A stacked layout puts a whole column above the point; the leap never starts more than two radii up.
+        const leap = el.closest('[data-plot-leap-from]');
+        const from = leap ? Math.max(pageRect(leap, sy).top, r.cy - radius * 2) : undefined;
+        return title < 0 || !name ? [] : [{ title, name, cx: r.cx, cy: r.cy, r: radius, from }];
       },
     );
+    // Routes need the margin the section numbers use; narrow layouts keep the plain rail.
+    const routes: Route[] =
+      railX > 34
+        ? titles.flatMap((s, i) => {
+            const pts = s.section?.dataset.plotRoute ? routePoints(s, i) : null;
+            return pts ? [{ title: i, pts }] : [];
+          })
+        : [];
     path = buildPath({
       titles: titles.map((s) => ({ left: s.left, right: s.right, top: s.top, bottom: s.bottom })),
       railX,
       origin,
       cta: cta ? { cx: cta.cx, cy: cta.cy, w: cta.w, h: cta.h } : null,
       detours,
+      routes,
     });
     stations = path.stations;
     titles.forEach((s, i) => (s.run = path?.runs[i] ?? null));
@@ -327,8 +373,54 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const q = posAt(path, pen.s);
       pen.x = pen.px = q.x;
       pen.y = pen.py = q.y;
+      inkS = pen.s;
     }
     dirty = true;
+  }
+
+  /**
+   * Corners of a section's route. `right` passes the section down the right margin; `split` drops from the
+   * underline to just above the right column, turns left and runs down between the two columns. Both cross
+   * back to the rail under the section.
+   */
+  function routePoints(s: TitleState, i: number): Point[] | null {
+    const sec = s.section;
+    if (!sec) return null;
+    const box = pageRect(sec, sy);
+    const end = underlineEnd(s);
+    const next = titles[i + 1];
+    const back = box.bottom + Math.min(ROUTE_RETURN, next ? (next.top - box.bottom) * 0.35 : ROUTE_RETURN);
+    if (sec.dataset.plotRoute === 'right') {
+      const content = contentRect(sec, sy);
+      // The left rail mirrored about the content column.
+      const x = content.right + (content.left - railX);
+      return x < W - 6
+        ? [
+            { x, y: end.y },
+            { x, y: back },
+          ]
+        : null;
+    }
+    if (sec.dataset.plotRoute === 'split') {
+      const a = sec.querySelector('[data-plot-col="left"]');
+      const b = sec.querySelector('[data-plot-col="right"]');
+      if (!a || !b) return null;
+      const l = pageRect(a, sy);
+      const r = pageRect(b, sy);
+      if (r.left < l.right + 8) return null;
+      // Down past the lead's last word, into the space right above the right column.
+      const lead = textRight(s.el.parentElement?.querySelector('p'));
+      const x = clamp(Math.max(end.x, lead + 24), r.left + 40, r.right - 40);
+      const top = r.top - 12;
+      const gap = (l.right + r.left) / 2;
+      return [
+        { x, y: end.y },
+        { x, y: top },
+        { x: gap, y: top },
+        { x: gap, y: back },
+      ];
+    }
+    return null;
   }
 
   function measureAnchors() {
@@ -346,13 +438,18 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   function updatePen(dt: number) {
     if (!path || reduce) return;
     let target: number;
+    let follow = introDone;
     if (!introDone) {
       target = introS(path, t);
       if (t >= INTRO_END) introDone = true;
-    } else target = scrollTarget();
+    } else {
+      target = penTarget();
+      // The circle is already paced by time, so the pen takes it as given.
+      if (ring) follow = false;
+    }
     const prev = pen.s;
     const diff = target - prev;
-    pen.s = introDone ? prev + diff * (1 - Math.exp(-dt * (6 + Math.min(24, Math.abs(diff) / 250)))) : target;
+    pen.s = follow ? prev + diff * (1 - Math.exp(-dt * (6 + Math.min(24, Math.abs(diff) / 250)))) : target;
     pen.v = (pen.s - prev) / Math.max(dt, 1e-3);
     const q = posAt(path, pen.s);
     pen.px = pen.x;
@@ -366,12 +463,15 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       ignited = true;
       emit(origin.x, origin.y, 46, 330, -Math.PI / 2, TAU, 40);
     }
-    // Landing in a station going forward ignites it: a burst of sparks and a spreading ring of light.
+    // Landing in a station going forward ignites it: a burst of sparks and a spreading ring of light. From
+    // then on its plate draws by time, and the pen circles it by time while it is on screen.
     for (const st of stations) {
       if (prev < st.s0 && pen.s >= st.s0) {
         const p = posAt(path, st.s0);
         emit(p.x, p.y, 70, 420, 0, TAU, 30);
         flashes.push({ x: p.x, y: p.y, t, size: 260 });
+        if (!stationClock.has(st.name)) stationClock.set(st.name, t);
+        if (onScreenY(st.cy)) ring = { name: st.name, t0: t };
       }
     }
     if (pen.kind !== UP && t - lastMove < 1.5) {
@@ -385,6 +485,46 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         emit(pen.x, pen.y, n, 120 + Math.min(speed, 2000) * 0.12, dir + Math.PI, 2.3, 70);
       }
     }
+  }
+
+  const onScreenY = (y: number) => y - sy > 0 && y - sy < H;
+
+  /** Where the pen heads: along the scroll, unless it circles a station or holds at a hovered element. */
+  function penTarget(): number {
+    if (!path) return 0;
+    let target = scrollTarget();
+    if (ring) {
+      const name = ring.name;
+      const st = stations.find((x) => x.name === name);
+      const q = clamp((t - ring.t0) / RING_SECONDS);
+      if (st && q < 1 && onScreenY(st.cy)) return st.s0 + (st.s1 - st.s0) * easeInOut(q);
+      ring = null;
+      ringFloor = st ? name : null;
+    }
+    if (ringFloor) {
+      const st = stations.find((x) => x.name === ringFloor);
+      if (!st || target < st.sJump) ringFloor = null;
+      else target = Math.max(target, st.s1);
+    }
+    return holdS() ?? target;
+  }
+
+  /** Arc length on the rail level with the hovered element's first row, within its section's stretch. */
+  function holdS(): number | null {
+    if (!hold || !path) return null;
+    if (hold.epoch !== epoch) {
+      hold.epoch = epoch;
+      hold.s = null;
+      const sec = hold.el.closest('section');
+      const k = titles.findIndex((s) => s.section === sec);
+      const run = titles[k]?.run;
+      if (run) {
+        const r = (hold.el.querySelector(':scope > summary') ?? hold.el).getBoundingClientRect();
+        const end = titles[k + 1]?.run?.i0 ?? path.n - 1;
+        hold.s = sAtRailY(path, r.top + sy + r.height / 2, run.i1, end, railX);
+      }
+    }
+    return hold.s;
   }
 
   // Titles keep the furthest reveal they reached, so text never disappears again.
@@ -441,6 +581,13 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     reveal(host, 0);
     reveals = reveals.filter((r) => r.el !== host);
   };
+  // The pen follows the mouse over elements marked to hold it, such as the FAQ's questions.
+  const onPointerOver = (e: PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
+    const el = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-plot-hold]') : null;
+    if (el !== (hold?.el ?? null)) hold = el ? { el, s: null, epoch: -1 } : null;
+  };
+  const onPointerLeave = () => (hold = null);
   const remeasureSoon = debounce(() => {
     measureAnchors();
     for (const p of plates) if (p.plate.at) p.trigger = anchors.get(p.plate.at)?.top ?? p.trigger;
@@ -488,14 +635,18 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const hero = ps.plate.intro === true;
       // A station's plate draws as the pen circles the station, so the pen itself sets it off.
       const st = ps.plate.station ? stations.find((x) => x.name === ps.plate.station) : undefined;
+      const clock = st ? stationClock.get(st.name) : undefined;
       const target = reduce
         ? 1
         : hero
           ? clamp(t / HERO_PLATE_SECONDS)
           : st
-            ? clamp((pen.s - st.s0) / (st.s1 - st.s0 || 1))
+            ? clock === undefined
+              ? 0
+              : clamp((t - clock) / STATION_PLATE_SECONDS)
             : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
-      const next = ps.p + (target - ps.p) * (1 - Math.exp(-dt * (hero ? 60 : 5)));
+      // A station's plate is already paced by time.
+      const next = st ? target : ps.p + (target - ps.p) * (1 - Math.exp(-dt * (hero ? 60 : 5)));
       if (Math.abs(next - ps.p) > 0.0005 && visible(ps.section)) moving = true;
       ps.p = next;
     }
@@ -511,8 +662,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const y0 = -(par - base * cell);
     const px = pen.x;
     const py = pen.y - sy;
-    const sig = 85;
-    const str = reduce ? 0 : 15;
+    const sig = WARP_RADIUS;
+    const str = reduce ? 0 : WARP_STRENGTH;
     const reach = sig * 3;
     const penNear = str > 0 && py > -reach && py < H + reach;
     // Straight stretches are filled as rects, far cheaper to raster than strokes; only the stretch near the pen
@@ -598,6 +749,9 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const { x: X, y: Y, s: S, kind: K, maxY } = path;
     const top = sy - 60;
     const bot = sy + H + 60;
+    // The line reaches `e`; the pen, and the hot ink behind it, may be further back while it holds.
+    const e = posAt(path, inkS);
+    const ie = e.i;
     const p = posAt(path, pen.s);
     const ip = p.i;
     let lo = 0;
@@ -611,7 +765,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const run = new Path2D();
     const ticks = new Path2D();
     let last = -1;
-    for (let i = Math.max(1, lo); i < ip; i++) {
+    for (let i = Math.max(1, lo); i < ie; i++) {
       if ((Y[i] > bot && Y[i - 1] > bot) || K[i] === UP || K[i] === JUMP) {
         last = -1;
         continue;
@@ -621,17 +775,17 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       if (k !== last) pa.moveTo(X[i - 1], Y[i - 1] - sy);
       pa.lineTo(X[i], Y[i] - sy);
       last = k;
-      // Ruler ticks on the rail, a long one every fifth.
-      if (k === 0 && X[i] === X[i - 1] && Math.floor(S[i] / 30) !== Math.floor(S[i - 1] / 30)) {
+      // Ruler ticks on the rail, a long one every fifth; routes have none.
+      if (k === 0 && X[i] === railX && X[i - 1] === railX && Math.floor(S[i] / 30) !== Math.floor(S[i - 1] / 30)) {
         const len = Math.floor(S[i] / 30) % 5 === 0 ? 9 : 4;
         ticks.moveTo(X[i] - 3 - len, Y[i] - sy);
         ticks.lineTo(X[i] - 3, Y[i] - sy);
       }
     }
-    if (K[ip] !== UP && K[ip] !== JUMP) {
-      const pa = K[ip] === WRITE ? run : down;
-      if (K[ip] !== last) pa.moveTo(X[ip - 1], Y[ip - 1] - sy);
-      pa.lineTo(p.x, p.y - sy);
+    if (K[ie] !== UP && K[ie] !== JUMP) {
+      const pa = K[ie] === WRITE ? run : down;
+      if (K[ie] !== last) pa.moveTo(X[ie - 1], Y[ie - 1] - sy);
+      pa.lineTo(e.x, e.y - sy);
     }
     c.lineWidth = 1;
     c.strokeStyle = rgba(NEUTRAL, 0.18 * intensity);
@@ -648,7 +802,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       c.fillStyle = rgba(NEUTRAL, 0.4 * intensity);
       for (const s of titles.slice(1)) {
         const r = s.run;
-        if (!r || pen.s < r.s0) continue;
+        if (!r || inkS < r.s0) continue;
         const y = r.uy - sy;
         if (y < -20 || y > H + 20) continue;
         const [num] = sectionLabel(s.section);
@@ -845,6 +999,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     if (!idle) at += dt;
     const before = pen.s;
     updatePen(dt);
+    inkS = hold ? Math.max(inkS, pen.s) : Math.max(pen.s, Math.min(inkS, scrollTarget()));
     if (!reduce) {
       updateTitles();
       updateReveals();
@@ -885,7 +1040,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   const ro = new ResizeObserver(debounce(layout, 150));
   ro.observe(document.body);
   window.addEventListener('resize', onResize);
-  if (!reduce) document.addEventListener('focusin', onFocus);
+  if (!reduce) {
+    document.addEventListener('focusin', onFocus);
+    document.addEventListener('pointerover', onPointerOver);
+    root.addEventListener('pointerleave', onPointerLeave);
+  }
   const activity = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'touchstart'] as const;
   for (const type of activity) window.addEventListener(type, onActivity, { passive: true });
   layout();
@@ -920,6 +1079,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     ro.disconnect();
     window.removeEventListener('resize', onResize);
     document.removeEventListener('focusin', onFocus);
+    document.removeEventListener('pointerover', onPointerOver);
+    root.removeEventListener('pointerleave', onPointerLeave);
     for (const type of activity) window.removeEventListener(type, onActivity);
     root.removeAttribute('data-plot-idle');
   };
