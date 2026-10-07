@@ -53,7 +53,7 @@ export function Tutorial() {
 
   if (!chapter) return null;
   return (
-    <Section id="tutorial" plate="curve">
+    <Section id="tutorial" plate="curve" route="chart">
       <div className={styles.split}>
         <div className={styles.intro}>
           <Eyebrow>06 / TUTORIAL</Eyebrow>

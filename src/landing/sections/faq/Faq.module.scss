@@ -24,6 +24,7 @@
   font-size: 16px;
   font-weight: 600;
   color: $text;
+  transition: color 0.15s ease;
 
   &::-webkit-details-marker {
     display: none;
@@ -39,12 +40,16 @@
   }
 
   &:hover {
-    color: #fff;
+    color: $accent;
   }
 }
 
-.item[open] .question::after {
-  transform: rotate(45deg);
+.item[open] .question {
+  color: $accent;
+
+  &::after {
+    transform: rotate(45deg);
+  }
 }
 
 .answer {

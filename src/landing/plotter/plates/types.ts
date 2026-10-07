@@ -50,6 +50,11 @@ export interface Plate {
   animated?: boolean;
   /** Draws with the opening animation, by time, instead of by scroll. */
   intro?: boolean;
-  /** Draws while the pen circles this station, instead of by scroll. */
+  /**
+   * Set off when the pen reaches this station or named route point: it then draws by time, and undraws
+   * by time when the pen goes back before it. Without one on the page it draws by scroll.
+   */
   station?: string;
+  /** Progress that follows the pen through named route points: the plate's progress at each. */
+  track?: [mark: string, p: number][];
 }

@@ -165,6 +165,59 @@ describe('plotter station', () => {
   });
 });
 
+describe('plotter title lines and marks', () => {
+  it('writes a title along another line when asked, timed by its underline', () => {
+    const over = buildPath({
+      titles: titles.map((t, i) => (i === 2 ? { ...t, lineY: t.top - 120 } : t)),
+      railX: 94,
+      origin: { x: 720, y: 700 },
+      cta: null,
+    });
+    const run = over.runs[2];
+    expect(run?.uy).toBe((titles[2]?.top ?? 0) - 120);
+    expect(run?.ky).toBe((titles[2]?.bottom ?? 0) + 6);
+    const keys = scrollKeyframes(over, H, maxScroll);
+    const done = keys.find((k) => k.b === run?.b1);
+    expect((run?.ky ?? 0) - (done?.sc ?? 0)).toBeGreaterThan(H * 0.3);
+  });
+
+  it('leaps straight from the end of the title line, with no stop on the rail', () => {
+    const pie = { title: 3, name: 'pie', cx: 900, cy: 3500, r: 190, fromTitle: true };
+    const leap = buildPath({ titles, railX: 94, origin: { x: 720, y: 700 }, cta: null, detours: [pie] });
+    const st = leap.stations[0];
+    const run = leap.runs[3];
+    expect(st?.fromTitle).toBe(true);
+    expect(st?.iJump).toBe(run?.i1);
+    expect(leap.kind[(run?.i1 ?? 0) + 1]).toBe(JUMP);
+    const keys = scrollKeyframes(leap, H, maxScroll);
+    const after = keys.findIndex((k) => k.b === run?.b1);
+    expect(keys[after + 1]?.b).toBe(st?.b0);
+  });
+
+  it('names route points by their arc length', () => {
+    const named = buildPath({
+      titles,
+      railX: 94,
+      origin: { x: 720, y: 700 },
+      cta: null,
+      routes: [
+        {
+          title: 2,
+          startMark: 'in',
+          pts: [
+            { x: 900, y: 2900, r: 0, mark: 'eye' },
+            { x: 900, y: 3000 },
+          ],
+        },
+      ],
+    });
+    const eye = posAt(named, named.marks.get('eye') ?? 0);
+    expect(eye.x).toBeCloseTo(900, 0);
+    expect(eye.y).toBeCloseTo(2900, 0);
+    expect(named.marks.get('in')).toBe(named.runs[2]?.s1);
+  });
+});
+
 describe('plotter routes', () => {
   // The second title passes its section down the right margin and crosses back under it.
   const back = 2120;

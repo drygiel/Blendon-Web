@@ -2,7 +2,6 @@
 
 .footer {
   position: relative;
-  border-top: 1px solid $hairline;
   padding: 32px $page-pad 40px;
   box-sizing: border-box;
 }
@@ -53,7 +52,8 @@
   }
 }
 
-// An orange aurora behind the footer: soft lobes drifting and swelling, risen by --rise near the bottom.
+// An orange aurora behind the footer: soft lobes that drift, swell and breathe at their own slow periods,
+// so its shape and hue keep changing; risen by --rise near the bottom and leaning after the pointer (--mx).
 // Above the background plotter, below the page; no blend mode, which would composite the whole page again.
 .aurora {
   position: absolute;
@@ -61,66 +61,153 @@
   right: 0;
   bottom: 0;
   z-index: -1;
-  height: 560px;
+  height: 620px;
   overflow: hidden;
   pointer-events: none;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
   opacity: var(--rise, 0);
-  transform: translateY(calc((1 - var(--rise, 0)) * 35%));
+  transform: translate(calc(var(--mx, 0) * 5%), calc((1 - var(--rise, 0)) * 35%));
+  animation: hue 26s ease-in-out infinite alternate paused;
 
   span {
     position: absolute;
-    bottom: -45%;
-    width: 64%;
-    height: 115%;
+    bottom: -42%;
+    width: 60%;
+    height: 112%;
     border-radius: 50%;
-    animation: drift 22s ease-in-out infinite alternate paused;
+    animation:
+      drift-a 17s ease-in-out infinite alternate paused,
+      breathe 9s ease-in-out infinite alternate paused;
 
+    // Each lobe its own colour, so their breathing shifts the aurora's hue.
     &:nth-child(1) {
-      left: -12%;
-      background: radial-gradient(closest-side, rgba(240, 120, 36, 0.5), rgba(240, 120, 36, 0.14) 60%, transparent);
-      animation-duration: 19s;
+      left: -14%;
+      background: radial-gradient(closest-side, rgba(240, 120, 36, 0.52), rgba(240, 120, 36, 0.14) 60%, transparent);
     }
 
     &:nth-child(2) {
-      left: 18%;
-      width: 66%;
-      height: 130%;
-      background: radial-gradient(closest-side, rgba($accent, 0.55), rgba($accent, 0.15) 58%, transparent);
-      animation-duration: 27s;
-      animation-delay: -9s;
+      left: 16%;
+      width: 64%;
+      height: 128%;
+      background: radial-gradient(closest-side, rgba($accent, 0.56), rgba($accent, 0.15) 58%, transparent);
+      animation-name: drift-b, breathe;
+      animation-duration: 23s, 13s;
+      animation-delay:
+        -7s,
+        -4s;
     }
 
     &:nth-child(3) {
-      left: 48%;
-      background: radial-gradient(closest-side, rgba(226, 88, 32, 0.46), rgba(226, 88, 32, 0.13) 60%, transparent);
-      animation-duration: 23s;
-      animation-delay: -15s;
+      left: 50%;
+      background: radial-gradient(closest-side, rgba(226, 84, 30, 0.5), rgba(226, 84, 30, 0.13) 60%, transparent);
+      animation-name: drift-c, breathe;
+      animation-duration: 19s, 11s;
+      animation-delay:
+        -12s,
+        -6s;
+    }
+
+    &:nth-child(4) {
+      left: 30%;
+      width: 44%;
+      height: 90%;
+      background: radial-gradient(closest-side, rgba(255, 196, 92, 0.42), rgba(255, 196, 92, 0.1) 60%, transparent);
+      animation-name: drift-c, breathe;
+      animation-duration: 29s, 7s;
+      animation-delay:
+        -18s,
+        -2s;
+    }
+
+    // The lobe that follows the pointer furthest.
+    &:nth-child(5) {
+      left: 30%;
+      width: 40%;
+      height: 96%;
+      translate: calc(var(--mx, 0) * 70vw) 0;
+      background: radial-gradient(closest-side, rgba(250, 150, 50, 0.44), rgba(250, 150, 50, 0.1) 60%, transparent);
+      animation-name: drift-b, breathe;
+      animation-duration: 21s, 15s;
+      animation-delay:
+        -3s,
+        -9s;
     }
   }
 
+  &[data-on],
   &[data-on] span {
     animation-play-state: running;
   }
 }
 
-:global(html[data-plot-idle]) .aurora span {
-  animation-play-state: paused;
+:global(html[data-plot-idle]) .sky {
+  &,
+  span {
+    animation-play-state: paused;
+  }
 }
 
-@keyframes drift {
+@keyframes drift-a {
   0% {
-    transform: translateX(-7%) scale(1, 0.82) rotate(-3deg);
+    transform: translateX(-9%) scale(1, 0.78) rotate(-4deg);
   }
   50% {
-    transform: translateX(3%) scale(1.06, 1.08) rotate(2deg);
+    transform: translateX(4%) scale(1.12, 1.12) rotate(3deg);
   }
   100% {
-    transform: translateX(9%) scale(0.96, 0.94) rotate(-1deg);
+    transform: translateX(12%) scale(0.92, 0.9) rotate(-1deg);
+  }
+}
+
+@keyframes drift-b {
+  0% {
+    transform: translateX(8%) scale(0.9, 1.08) rotate(3deg);
+  }
+  50% {
+    transform: translateX(-6%) scale(1.14, 0.84) rotate(-3deg);
+  }
+  100% {
+    transform: translateX(-12%) scale(1, 1.16) rotate(2deg);
+  }
+}
+
+@keyframes drift-c {
+  0% {
+    transform: translateX(-4%) scale(1.1, 0.86) rotate(2deg);
+  }
+  50% {
+    transform: translateX(10%) scale(0.86, 1.14) rotate(-4deg);
+  }
+  100% {
+    transform: translateX(-8%) scale(1.04, 0.96) rotate(1deg);
+  }
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hue {
+  from {
+    filter: hue-rotate(-10deg);
+  }
+  to {
+    filter: hue-rotate(12deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora span {
+  .sky,
+  .sky span {
     animation: none;
   }
 }

@@ -19,7 +19,7 @@ export function PromoVideo() {
   const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
 
   return (
-    <Section id="video" plate="frustum" route="right">
+    <Section id="video" plate="frustum" route="camera">
       <SectionIntro
         eyebrow="01 / VIDEO"
         title={
