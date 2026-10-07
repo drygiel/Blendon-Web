@@ -4,7 +4,8 @@ import { cx } from '../../../lib/cx.ts';
 import { PIES } from '../../data/content.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { PickButton } from '../../ui/PickButton.tsx';
-import { POLAR_RING } from '../../plotter/plates/polar.ts';
+import { sprites } from '../../plotter/draw.ts';
+import { POLAR_RING, paintGlow } from '../../plotter/plates/polar.ts';
 import { plotStore } from '../../plotter/store.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PieMenus.module.scss';
@@ -66,6 +67,8 @@ export function PieMenus() {
   const [scale, setScale] = useState(MAX_SCALE);
   const stageRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const glowCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -76,6 +79,31 @@ export function PieMenus() {
     ro.observe(stage);
     return () => ro.disconnect();
   }, []);
+
+  // The glow is painted once per size; the plotter lights it, and its flicker runs only while on screen.
+  useEffect(() => {
+    const el = glowRef.current;
+    if (!el) return;
+    plotStore.pie.glow = el;
+    const io = new IntersectionObserver(([e]) => el.toggleAttribute('data-on', e?.isIntersecting ?? false));
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      plotStore.pie.glow = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const c = glowCanvasRef.current;
+    const g = c?.getContext('2d');
+    if (!c || !g) return;
+    const size = RADIUS * scale * 4;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(size * dpr);
+    c.height = Math.round(size * dpr);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    paintGlow(g, sprites(), size, RADIUS * scale);
+  }, [scale]);
 
   // Selection is by angle alone, so the pointer picks from anywhere in the section, not only over the pie.
   useEffect(() => {
@@ -177,6 +205,12 @@ export function PieMenus() {
               if (n >= 1 && n <= count) pick(n - 1);
             }}
           >
+            <div ref={glowRef} className={styles.glow} aria-hidden="true">
+              <canvas
+                ref={glowCanvasRef}
+                style={{ width: `${RADIUS * scale * 4}px`, height: `${RADIUS * scale * 4}px` }}
+              />
+            </div>
             {/* The pen leaps into this point after the title, then circles it. */}
             <div
               key={pie.id}

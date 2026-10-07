@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use 'tokens' as *;
 @use 'mixins' as *;
 
@@ -51,6 +52,43 @@
 
   .item {
     animation: unfoldIn 0.55s cubic-bezier(0.2, 0.7, 0.1, 1) calc(0.18s + var(--n, 0) * 55ms) backwards;
+  }
+}
+
+// The pie's ring burning like an accretion disc, over the polar paper: painted once, lit by the plotter
+// through --glow as the pen lands. The flicker runs only while it is lit, on screen and the visitor active.
+// Blended normally: a blend mode would isolate the whole page and composite it again every frame.
+.glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  opacity: var(--glow, 0);
+  transform: translate(-50%, -50%);
+
+  canvas {
+    display: block;
+    animation: flicker #{10 * math.$pi}s linear infinite paused;
+  }
+
+  &[data-on][data-lit] canvas {
+    animation-play-state: running;
+  }
+}
+
+:global(html[data-plot-idle]) .glow canvas {
+  animation-play-state: paused;
+}
+
+// 0.85 + 0.15 sin(3.1t) sin(1.7t), which repeats every 10π seconds.
+$flicker-steps: 252;
+
+@keyframes flicker {
+  @for $i from 0 through $flicker-steps {
+    $t: math.div($i * 10 * math.$pi, $flicker-steps);
+    #{math.div(math.round(math.div($i * 100000, $flicker-steps)), 1000) * 1%} {
+      opacity: math.div(math.round((0.85 + 0.15 * math.sin($t * 3.1) * math.sin($t * 1.7)) * 1000), 1000);
+    }
   }
 }
 
@@ -200,7 +238,8 @@
 @media (prefers-reduced-motion: reduce) {
   .ring,
   .title,
-  .item {
+  .item,
+  .glow canvas {
     animation: none;
   }
 }

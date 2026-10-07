@@ -9,6 +9,8 @@ export const plotStore = {
     hot: null as number | null,
     /** Ring radius on screen, in pixels. */
     radius: 0,
+    /** The glow around the pie's ring; the plotter lights it as the pen lands. */
+    glow: null as HTMLElement | null,
   },
   setup: {
     slide: 0,

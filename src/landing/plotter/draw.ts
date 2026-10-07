@@ -94,7 +94,14 @@ export interface Sprites {
   streak: HTMLCanvasElement;
 }
 
-export function makeSprites(): Sprites {
+let shared: Sprites | null = null;
+
+/** One set of sprites for the whole page. */
+export function sprites(): Sprites {
+  return (shared ??= makeSprites());
+}
+
+function makeSprites(): Sprites {
   const streak = document.createElement('canvas');
   streak.width = 256;
   streak.height = 4;
