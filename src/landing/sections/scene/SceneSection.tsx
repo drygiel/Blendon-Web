@@ -7,16 +7,23 @@ import styles from './SceneSection.module.scss';
 /** A Scene view running Blendon and Blendon's settings window, side by side or as tabs. */
 export function SceneSection() {
   return (
-    <section id="try" className={styles.section}>
+    <section id="try" className={styles.section} data-plate="frame">
       <div className={styles.intro}>
-        <SectionIntro eyebrow="09 / TRY IT" title="Feel it in your hands, right here." />
-        <p className={styles.lead}>
+        <SectionIntro
+          eyebrow="09 / TRY IT"
+          title={
+            <>
+              Feel it in your hands, <em>right here.</em>
+            </>
+          }
+        />
+        <p className={styles.lead} data-reveal="rise">
           A Unity Scene view with Blendon installed and Blendon&apos;s settings window, simulated in the browser. Click
           into the Scene view, then orbit with the middle mouse button, press G to grab, type a distance, hold Z for a
           pie menu. Flip a switch or rebind a key in the Blendon tab and the Scene view follows. Changes live only on
           this page.
         </p>
-        <p className={styles.warn} role="note">
+        <p className={styles.warn} role="note" data-reveal="rise">
           <svg viewBox="0 0 16 16" width={16} height={16} aria-hidden="true">
             <path d="M8 1.5 15 14H1z" />
             <path d="M8 6v4M8 11.6v.4" />

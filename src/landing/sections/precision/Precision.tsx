@@ -1,6 +1,6 @@
-import { Fragment } from 'react';
 import { KeyCap, Keys } from '../../ui/KeyCap.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
+import { Scramble } from '../../plotter/Scramble.tsx';
 import type { KeyTokens } from '../../data/content.ts';
 import styles from './Precision.module.scss';
 
@@ -34,53 +34,58 @@ const MODIFIERS: [KeyTokens, string, string][] = [
 
 export function Precision() {
   return (
-    <Section id="precision">
-      <div className={styles.split}>
-        <div className={styles.intro}>
-          <Eyebrow>04 / PRECISION</Eyebrow>
-          <SectionTitle>No handle to hunt for. Just type the number.</SectionTitle>
-          <Lead>
-            Press G, R or S anywhere in the Scene view and the selection follows the cursor. Constrain with X, Y or Z,
-            type an exact value, confirm with Enter. Typing works mid-drag on any gizmo handle too, and right-click puts
-            everything back.
-          </Lead>
-          <div className={styles.sequence}>
-            {SEQUENCE.map(([key, label], i) => (
-              <Fragment key={key}>
-                {i > 0 && <span className={styles.arrow}>→</span>}
-                <div className={styles.step}>
-                  <KeyCap size="xl" wide={key.length > 1}>
-                    {key}
-                  </KeyCap>
-                  <span className={styles.stepLabel}>{label}</span>
-                </div>
-              </Fragment>
-            ))}
-          </div>
-        </div>
+    <Section id="precision" plate="ruler">
+      <div className={styles.intro}>
+        <Eyebrow>04 / PRECISION</Eyebrow>
+        <SectionTitle>
+          No handle to hunt for. <em>Just type the number.</em>
+        </SectionTitle>
+        <Lead>
+          Press G, R or S anywhere in the Scene view and the selection follows the cursor. Constrain with X, Y or Z,
+          type an exact value, confirm with Enter. Typing works mid-drag on any gizmo handle too, and right-click puts
+          everything back.
+        </Lead>
+      </div>
 
-        <div className={styles.panel}>
-          <div className={styles.panelHead}>
-            <span>WHILE DRAGGING</span>
-            <span className={styles.readout}>Δx: 2.000 m Global</span>
-          </div>
-          <div className={styles.rows}>
-            {WHILE_DRAGGING.map(([keys, text]) => (
-              <div key={text} className={styles.row}>
-                <Keys tokens={keys} className={styles.rowKeys} />
-                <span className={styles.rowText}>{text}</span>
-              </div>
-            ))}
-          </div>
+      <ol className={styles.sequence} data-reveal="keys">
+        {SEQUENCE.map(([key, label]) => (
+          <li key={key} className={styles.step}>
+            <KeyCap size="xl" wide={key.length > 1}>
+              {key}
+            </KeyCap>
+            <span className={styles.stepLabel}>{label}</span>
+          </li>
+        ))}
+      </ol>
+
+      {/* The plotter draws a metre rule here, with the typed 2.000 m as a vector. */}
+      <div className={styles.ruler} data-plot-anchor="ruler-space" aria-hidden="true" />
+
+      <div className={styles.panel} data-reveal="print">
+        <div className={styles.panelHead}>
+          <span className={styles.panelLabel}>WHILE DRAGGING</span>
+          <span className={styles.readout}>
+            <b>Δx:</b> <Scramble value="2.000" /> m <span className={styles.space}>Global</span>
+          </span>
+        </div>
+        <div className={styles.rows}>
+          {WHILE_DRAGGING.map(([keys, text]) => (
+            <div key={text} className={styles.row}>
+              <Keys tokens={keys} className={styles.rowKeys} />
+              <span className={styles.rowText}>{text}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className={styles.cards}>
+      <div className={styles.mods} data-reveal="stagger">
         {MODIFIERS.map(([keys, title, text]) => (
-          <div key={title} className={styles.card}>
-            <Keys tokens={keys} className={styles.cardKeys} />
-            <span className={styles.cardTitle}>{title}</span>
-            <span className={styles.cardText}>{text}</span>
+          <div key={title} className={styles.mod}>
+            <Keys tokens={keys} className={styles.modKeys} />
+            <div>
+              <span className={styles.modTitle}>{title}</span>
+              <span className={styles.modText}>{text}</span>
+            </div>
           </div>
         ))}
       </div>

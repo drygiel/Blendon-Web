@@ -12,7 +12,11 @@ interface KeyCapProps {
 
 export function KeyCap({ children, size = 'md', wide = false }: KeyCapProps) {
   const cls = [styles.cap, size !== 'md' && styles[size], wide && styles.wide].filter(Boolean).join(' ');
-  return <span className={cls}>{children}</span>;
+  return (
+    <span className={cls} data-key="">
+      {children}
+    </span>
+  );
 }
 
 interface KeysProps {

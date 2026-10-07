@@ -1,0 +1,48 @@
+import type { Ink } from '../draw.ts';
+import type { plotStore } from '../store.ts';
+
+/** A box in page coordinates: `top` and `bottom` include the scroll offset. */
+export interface Rect {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  w: number;
+  h: number;
+  cx: number;
+  cy: number;
+}
+
+export interface PlateCtx {
+  ink: Ink;
+  ctx: CanvasRenderingContext2D;
+  /** Scroll offset; subtract it from page y to get screen y. */
+  sy: number;
+  /** Seconds since the plotter started. */
+  t: number;
+  W: number;
+  H: number;
+  mobile: boolean;
+  reduce: boolean;
+  /** The section the plate belongs to, and its content box inside the side padding. */
+  section: Rect;
+  content: Rect;
+  /** The section's title box, if it has one. */
+  title: Rect | null;
+  anchor: (name: string) => Rect | null;
+  /** Progress of a part of the plate that starts drawing when `r` comes into view. */
+  progressAt: (r: Rect) => number;
+  /** How far the section has scrolled through the viewport, 0 to 1, for scrubbed values. */
+  scrub: number;
+  store: typeof plotStore;
+}
+
+export interface Plate {
+  draw: (c: PlateCtx) => void;
+  /** Anchor whose top starts the plate drawing; the section's top by default. */
+  at?: string;
+  /** Moves on its own while visible, so the plotter keeps rendering. */
+  animated?: boolean;
+  /** Draws with the opening animation, by time, instead of by scroll. */
+  intro?: boolean;
+}

@@ -38,9 +38,16 @@ const COLUMNS: [string, ReactNode[]][] = [
 
 export function UnderTheHood() {
   return (
-    <Section id="hood">
-      <SectionIntro eyebrow="11 / UNDER THE HOOD" title="Built to stay out of your project." />
-      <div className={styles.specs}>
+    <Section id="hood" plate="blueprint">
+      <SectionIntro
+        eyebrow="11 / UNDER THE HOOD"
+        title={
+          <>
+            Built to stay <em>out of your project.</em>
+          </>
+        }
+      />
+      <div className={styles.specs} data-reveal="stagger">
         {SPECS.map(([label, text]) => (
           <div key={label} className={styles.spec}>
             <span className={styles.specLabel}>{label}</span>
@@ -48,7 +55,7 @@ export function UnderTheHood() {
           </div>
         ))}
       </div>
-      <div className={styles.cards}>
+      <div className={styles.cards} data-reveal="stagger">
         {COLUMNS.map(([label, items]) => (
           <div key={label} className={styles.card}>
             <span className={styles.label}>{label}</span>
@@ -60,6 +67,8 @@ export function UnderTheHood() {
           </div>
         ))}
       </div>
+      {/* The plotter draws a drawing's title block here. */}
+      <div className={styles.block} data-plot-anchor="hood-block" aria-hidden="true" />
     </Section>
   );
 }

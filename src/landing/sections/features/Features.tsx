@@ -22,14 +22,18 @@ export function Features() {
 
   if (!cur) return null;
   return (
-    <Section id="features" className={styles.section}>
+    <Section id="features" className={styles.section} plate="sphere">
       <SectionIntro
         eyebrow="03 / FEATURES"
-        title="Everything your hands already expect."
+        title={
+          <>
+            Everything your hands <em>already expect.</em>
+          </>
+        }
         lead="Navigation, gizmos, scene tools and menus, each tuned from one settings window: Tools → Blendon. Pick a feature to watch it run."
       />
 
-      <div role="tablist" aria-label="Feature groups" className={styles.tabs}>
+      <div role="tablist" aria-label="Feature groups" className={styles.tabs} data-reveal="stagger">
         {FEATURE_GROUPS.map((g) => (
           <button
             key={g.id}
@@ -49,7 +53,7 @@ export function Features() {
       </div>
 
       <div className={styles.explorer}>
-        <div className={styles.list}>
+        <div className={styles.list} data-reveal="stagger">
           {inGroup.map((f) => (
             <PickButton
               key={f.id}
@@ -61,7 +65,7 @@ export function Features() {
           ))}
         </div>
 
-        <div ref={panel} className={styles.player}>
+        <div ref={panel} className={styles.player} data-reveal="print">
           <video
             className={styles.video}
             src={near ? videoUrl(cur.clip) : undefined}

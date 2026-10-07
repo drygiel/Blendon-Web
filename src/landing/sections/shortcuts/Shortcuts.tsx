@@ -13,20 +13,24 @@ const WHILE_DRAGGING = [
 
 export function Shortcuts() {
   return (
-    <Section id="shortcuts">
+    <Section id="shortcuts" plate="keyboard">
       <div className={styles.head}>
         <div className={styles.intro}>
           <Eyebrow>10 / SHORTCUTS</Eyebrow>
-          <SectionTitle>Every default, on one sheet.</SectionTitle>
+          <SectionTitle>
+            Every default, <em>on one sheet.</em>
+          </SectionTitle>
           <Lead>
             All of them rebindable from Blendon&apos;s settings window or Unity&apos;s Edit → Shortcuts. On macOS, Ctrl
             and Alt read Cmd and Option.
           </Lead>
         </div>
-        <span className={styles.preset}>Blendon keyboard preset</span>
+        <span className={styles.preset} data-reveal="rise">
+          Blendon keyboard preset
+        </span>
       </div>
 
-      <div className={styles.sheet}>
+      <div className={styles.sheet} data-reveal="stagger">
         {SHORTCUTS.map(([action, keys]) => (
           <div key={action} className={styles.row}>
             <span className={styles.action}>{action}</span>
@@ -35,7 +39,7 @@ export function Shortcuts() {
         ))}
       </div>
 
-      <div className={styles.dragging}>
+      <div className={styles.dragging} data-reveal="rise">
         <span className={styles.draggingLabel}>WHILE DRAGGING</span>
         {WHILE_DRAGGING.map(([keys, text]) => (
           <Fragment key={text}>

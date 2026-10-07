@@ -4,6 +4,7 @@ import { cx } from '../../../lib/cx.ts';
 import { PIES } from '../../data/content.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { PickButton } from '../../ui/PickButton.tsx';
+import { plotStore } from '../../plotter/store.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PieMenus.module.scss';
 
@@ -75,6 +76,15 @@ export function PieMenus() {
     return () => ro.disconnect();
   }, []);
 
+  // The background's polar paper follows the pointer and the item it picks.
+  useEffect(() => {
+    const p = PIES.find((x) => x.id === pieId) ?? PIES[0];
+    const h = p && angle !== null ? select(p.items.length, new Set(p.disabled), -angle) : -1;
+    plotStore.pie.angle = angle;
+    plotStore.pie.hot = h >= 0 ? (-(DIRS[h] ?? 0) * Math.PI) / 180 : null;
+    plotStore.pie.radius = RADIUS * scale;
+  }, [angle, pieId, scale]);
+
   const pie = PIES.find((p) => p.id === pieId) ?? PIES[0];
   if (!pie) return null;
 
@@ -101,15 +111,19 @@ export function PieMenus() {
   };
 
   return (
-    <Section id="pies">
+    <Section id="pies" plate="polar">
       <SectionIntro
         eyebrow="05 / PIE MENUS"
-        title="Eight pies. One key each."
+        title={
+          <>
+            Eight pies. <em>One key each.</em>
+          </>
+        }
         lead="Hold the key, flick toward an item and let go. Or tap it and the menu stays open for a click. Selection is by angle alone, so a flick far past an item still picks it. Point anywhere around the ring below and click."
       />
 
       <div className={styles.explorer}>
-        <div className={styles.list}>
+        <div className={styles.list} data-reveal="stagger">
           {PIES.map((p) => (
             <PickButton
               key={p.id}
@@ -130,6 +144,7 @@ export function PieMenus() {
           <div
             ref={stageRef}
             className={styles.stage}
+            data-plot-anchor="pie-stage"
             tabIndex={0}
             aria-label={`${pie.title} pie menu. Press 1 to ${count} to pick an item.`}
             style={{ '--k': scale, height: `${HALF_HEIGHT * 2 * scale}px` } as CSSProperties}
@@ -142,7 +157,7 @@ export function PieMenus() {
               if (n >= 1 && n <= count) pick(n - 1);
             }}
           >
-            <div key={pie.id} ref={centerRef} className={styles.pie}>
+            <div key={pie.id} ref={centerRef} className={styles.pie} data-plot-anchor="pie-center">
               <svg
                 className={styles.ring}
                 viewBox={`${-RING_OUTER} ${-RING_OUTER} ${RING_OUTER * 2} ${RING_OUTER * 2}`}
@@ -206,7 +221,7 @@ export function PieMenus() {
         </div>
       </div>
 
-      <div className={styles.cards}>
+      <div className={styles.cards} data-reveal="stagger">
         {CARDS.map(([title, text]) => (
           <div key={title} className={styles.card}>
             <span className={styles.cardTitle}>{title}</span>

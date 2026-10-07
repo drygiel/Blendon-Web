@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cx } from '../../../lib/cx.ts';
 import { SETTINGS_SLIDES } from '../../data/content.ts';
 import { KeyCap } from '../../ui/KeyCap.tsx';
+import { plotStore } from '../../plotter/store.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './Setup.module.scss';
 
@@ -38,16 +39,28 @@ export function Setup() {
   const touchX = useRef<number | null>(null);
   const go = (d: number) => setSlide((s) => (s + d + N) % N);
 
+  // The background's stack of pages lifts the one on show.
+  useEffect(() => {
+    plotStore.setup.slide = slide;
+  }, [slide]);
+
   return (
-    <Section id="setup">
-      <SectionIntro eyebrow="07 / SETUP" title="Your keys. Your setup. One window." />
-      <p className={styles.lead}>
+    <Section id="setup" plate="pages">
+      <SectionIntro
+        eyebrow="07 / SETUP"
+        title={
+          <>
+            Your keys. Your setup. <em>One window.</em>
+          </>
+        }
+      />
+      <p className={styles.lead} data-reveal="rise">
         Every feature gets its own page in Tools → Blendon: an illustrated card with how it works and its keys, then the
         settings. Flip through a few.
       </p>
 
       <div className={styles.split}>
-        <div className={styles.viewer}>
+        <div className={styles.viewer} data-reveal="print">
           <div
             className={styles.carousel}
             onTouchStart={(e) => {
@@ -91,7 +104,7 @@ export function Setup() {
           </div>
         </div>
 
-        <div className={styles.details} aria-live="polite">
+        <div className={styles.details} aria-live="polite" data-reveal="rise">
           {SETTINGS_SLIDES.map((s, i) => (
             <div key={s.title} aria-hidden={i !== slide} className={cx(styles.detail, i === slide && styles.current)}>
               <div className={styles.counter}>
