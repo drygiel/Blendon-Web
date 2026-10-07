@@ -4,6 +4,7 @@ import { cx } from '../../../lib/cx.ts';
 import { PIES } from '../../data/content.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { PickButton } from '../../ui/PickButton.tsx';
+import { POLAR_RING } from '../../plotter/plates/polar.ts';
 import { plotStore } from '../../plotter/store.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PieMenus.module.scss';
@@ -60,7 +61,7 @@ export function PieMenus() {
   const [current, setCurrent] = useState<Record<string, number[]>>(() =>
     Object.fromEntries(PIES.map((p) => [p.id, p.active >= 0 ? [p.active] : []])),
   );
-  // Cursor direction from the ring's centre, GUI space (y down); null inside the deadzone or off the stage.
+  // Cursor direction from the ring's centre, GUI space (y down); null inside the deadzone or off the section.
   const [angle, setAngle] = useState<number | null>(null);
   const [scale, setScale] = useState(MAX_SCALE);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -75,6 +76,26 @@ export function PieMenus() {
     ro.observe(stage);
     return () => ro.disconnect();
   }, []);
+
+  // Selection is by angle alone, so the pointer picks from anywhere in the section, not only over the pie.
+  useEffect(() => {
+    const section = stageRef.current?.closest('section');
+    if (!section) return;
+    const move = (e: globalThis.PointerEvent) => {
+      const c = centerRef.current?.getBoundingClientRect();
+      if (!c) return;
+      const dx = e.clientX - c.left;
+      const dy = e.clientY - c.top;
+      setAngle(Math.hypot(dx, dy) / scale < THRESHOLD ? null : Math.atan2(dy, dx));
+    };
+    const leave = () => setAngle(null);
+    section.addEventListener('pointermove', move);
+    section.addEventListener('pointerleave', leave);
+    return () => {
+      section.removeEventListener('pointermove', move);
+      section.removeEventListener('pointerleave', leave);
+    };
+  }, [scale]);
 
   // The background's polar paper follows the pointer and the item it picks.
   useEffect(() => {
@@ -144,20 +165,27 @@ export function PieMenus() {
           <div
             ref={stageRef}
             className={styles.stage}
-            data-plot-anchor="pie-stage"
+            data-reveal="pie"
+            data-reveal-at="pie"
             tabIndex={0}
             aria-label={`${pie.title} pie menu. Press 1 to ${count} to pick an item.`}
             style={{ '--k': scale, height: `${HALF_HEIGHT * 2 * scale}px` } as CSSProperties}
-            onPointerMove={track}
             onPointerDown={track}
-            onPointerLeave={() => setAngle(null)}
             onClick={() => pick(hot)}
             onKeyDown={(e) => {
               const n = Number(e.key);
               if (n >= 1 && n <= count) pick(n - 1);
             }}
           >
-            <div key={pie.id} ref={centerRef} className={styles.pie} data-plot-anchor="pie-center">
+            {/* The pen leaps into this point after the title, then circles it. */}
+            <div
+              key={pie.id}
+              ref={centerRef}
+              className={styles.pie}
+              data-plot-anchor="pie-center"
+              data-plot-station="pie"
+              data-plot-radius={(RADIUS * scale * POLAR_RING).toFixed(1)}
+            >
               <svg
                 className={styles.ring}
                 viewBox={`${-RING_OUTER} ${-RING_OUTER} ${RING_OUTER * 2} ${RING_OUTER * 2}`}
@@ -197,6 +225,7 @@ export function PieMenus() {
                     )}
                     style={
                       {
+                        '--n': i,
                         '--x': x,
                         '--y': y,
                         // Pill edges, not centres, sit on the circle: Blender's half-size shift.

@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest';
 import {
   FINALE,
   INTRO_END,
+  JUMP,
+  RING,
+  STATION_LINE,
   UP,
   WRITE,
   bAtScroll,
@@ -110,5 +113,32 @@ describe('plotter markup', () => {
     expect(html).toContain('data-reveal="type"');
     expect(html.match(/class="plot-ch plot-ch-accent"/g)).toHaveLength(2);
     expect(html.match(/class="plot-ch"/g)).toHaveLength(4);
+  });
+});
+
+describe('plotter station', () => {
+  // The fourth title's section holds a pie whose centre sits 500 px under the title.
+  const pie = { title: 3, name: 'pie', cx: 900, cy: 3300, r: 190 };
+  const withPie = buildPath({ titles, railX: 94, origin: { x: 720, y: 700 }, cta: null, detours: [pie] });
+  const keys = scrollKeyframes(withPie, H, maxScroll);
+
+  it('leaps from the rail into the station after its title, then circles it', () => {
+    const st = withPie.stations[0];
+    expect(st?.name).toBe('pie');
+    const run = withPie.runs[3];
+    expect(st?.sJump).toBeGreaterThan(run?.s1 ?? Infinity);
+    const landing = posAt(withPie, st?.s0 ?? 0);
+    expect(landing.x).toBeCloseTo(pie.cx, 0);
+    expect(landing.y).toBeCloseTo(pie.cy, 0);
+    for (let i = (st?.iJump ?? 0) + 1; i <= (st?.i0 ?? 0); i++) expect(withPie.kind[i]).toBe(JUMP);
+    for (let i = (st?.i0 ?? 0) + 1; i <= (st?.i1 ?? 0); i++) expect(withPie.kind[i]).toBe(RING);
+  });
+
+  it('lands as the station reaches the middle of the screen', () => {
+    const st = withPie.stations[0];
+    const land = keys.find((k) => k.b === st?.b0);
+    expect(land?.sc).toBe(pie.cy - H * STATION_LINE);
+    const s = sAtB(withPie, bAtScroll(keys, (land?.sc ?? 0) - 1));
+    expect(s).toBeLessThan(st?.s0 ?? 0);
   });
 });

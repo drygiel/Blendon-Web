@@ -45,4 +45,8 @@ export interface Plate {
   animated?: boolean;
   /** Draws with the opening animation, by time, instead of by scroll. */
   intro?: boolean;
+  /** Draws while the pen circles this station, instead of by scroll. */
+  station?: string;
+  /** Bends the page grid around the station's point like space around a black hole. */
+  warp?: boolean;
 }

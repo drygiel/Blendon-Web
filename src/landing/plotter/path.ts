@@ -1,12 +1,15 @@
 // The pen's route down the page and the mapping from scroll position to how far along it the pen is.
 // Pure functions in page coordinates, so they run (and are tested) without a DOM.
 
-/** Segment kinds: the rail in the margin, writing under a title, a pen-up move, the closing ellipse. */
+/** Segment kinds: the rail in the margin, writing under a title, a pen-up move, the closing ellipse,
+ *  a sparking leap into a station and the circle the pen draws there. */
 export const RAIL = 0;
 export const WRITE = 1;
 export const UP = 2;
 export const FINALE = 3;
-export type SegmentKind = typeof RAIL | typeof WRITE | typeof UP | typeof FINALE;
+export const JUMP = 4;
+export const RING = 5;
+export type SegmentKind = typeof RAIL | typeof WRITE | typeof UP | typeof FINALE | typeof JUMP | typeof RING;
 
 export interface Point {
   x: number;
@@ -46,6 +49,33 @@ export interface Run {
   th: number;
 }
 
+/** A detour after a title: the pen leaps from the rail into a point, ignites there and circles it. */
+export interface Detour {
+  /** Index of the title it follows. */
+  title: number;
+  name: string;
+  cx: number;
+  cy: number;
+  /** Radius of the circle drawn around the point. */
+  r: number;
+}
+
+export interface Station {
+  name: string;
+  title: number;
+  cy: number;
+  /** Arc length and budget where the leap starts, where the pen lands and where its circle closes. */
+  sJump: number;
+  bJump: number;
+  s0: number;
+  b0: number;
+  s1: number;
+  b1: number;
+  iJump: number;
+  i0: number;
+  i1: number;
+}
+
 export interface PlotPath {
   n: number;
   x: Float32Array;
@@ -59,6 +89,7 @@ export interface PlotPath {
   /** Running maximum of y, for finding the first visible point. */
   maxY: Float32Array;
   runs: Run[];
+  stations: Station[];
   total: number;
 }
 
@@ -69,6 +100,7 @@ export interface PathInput {
   origin: Point;
   /** The button the pen circles at the end, if any. */
   cta: Box | null;
+  detours?: Detour[];
 }
 
 const STEP = 4;
@@ -130,11 +162,13 @@ const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
 /**
  * The route: from the hero origin up to the first title, then down the rail with a branch under every
- * later title, ending in an ellipse around the call to action.
+ * later title, ending in an ellipse around the call to action. A detour after a title takes the rail down
+ * to its point's height, leaps across into the point, circles it and drops back onto the rail.
  */
-export function buildPath({ titles, railX: rx, origin, cta }: PathInput): PlotPath {
+export function buildPath({ titles, railX: rx, origin, cta, detours = [] }: PathInput): PlotPath {
   const pb = sampler();
   const runs: Run[] = [];
+  const marks: { d: Detour; iJump: number; i0: number; i1: number }[] = [];
   pb.move(origin.x, origin.y);
   titles.forEach((t, i) => {
     const uy = t.bottom + UNDERLINE_GAP;
@@ -154,6 +188,21 @@ export function buildPath({ titles, railX: rx, origin, cta }: PathInput): PlotPa
       // Back along the underline with the pen up, then down the rail again.
       pb.line(rx + r, uy, UP);
       pb.cubic(rx + r * 0.45, uy, rx, uy + r * 0.45, rx, uy + r, RAIL);
+    }
+    const d = detours.find((x) => x.title === i);
+    if (d && i < titles.length - 1 && d.cy > uy + r) {
+      pb.line(rx, d.cy, RAIL);
+      const iJump = pb.count() - 1;
+      // An arcing leap, higher the farther it goes.
+      const lift = Math.min(260, (d.cx - rx) * 0.32);
+      pb.cubic(rx + (d.cx - rx) * 0.3, d.cy - lift, d.cx - (d.cx - rx) * 0.25, d.cy - lift, d.cx, d.cy, JUMP);
+      const i0 = pb.count() - 1;
+      // A radius out to the circle, then the circle itself, counterclockwise as angles are measured.
+      pb.line(d.cx + d.r, d.cy, RING);
+      pb.ellipse(d.cx, d.cy, d.r, d.r, 0, -Math.PI * 2, RING);
+      const i1 = pb.count() - 1;
+      pb.cubic(d.cx + d.r * 0.4, d.cy + d.r * 1.1, rx + 80, d.cy + d.r * 1.1, rx, d.cy + d.r + 40, UP);
+      marks.push({ d, iJump, i0, i1 });
     }
   });
   if (cta) {
@@ -177,6 +226,7 @@ export function buildPath({ titles, railX: rx, origin, cta }: PathInput): PlotPa
     kind: new Uint8Array(pb.ks),
     maxY: new Float32Array(n),
     runs,
+    stations: [],
     total: 0,
   };
   const { x, y, s, b, kind, maxY } = path;
@@ -194,6 +244,20 @@ export function buildPath({ titles, railX: rx, origin, cta }: PathInput): PlotPa
     r.b0 = b[r.i0];
     r.b1 = b[r.i1];
   }
+  path.stations = marks.map(({ d, iJump, i0, i1 }) => ({
+    name: d.name,
+    title: d.title,
+    cy: d.cy,
+    sJump: s[iJump],
+    bJump: b[iJump],
+    s0: s[i0],
+    b0: b[i0],
+    s1: s[i1],
+    b1: b[i1],
+    iJump,
+    i0,
+    i1,
+  }));
   return path;
 }
 
@@ -206,6 +270,11 @@ export interface Keyframe {
 
 /** Where on screen, as a share of its height, a one-line title is underlined once written. */
 export const WRITE_LINE = 0.42;
+/** Where on screen a station's point is when the pen lands in it. */
+export const STATION_LINE = 0.5;
+/** Scroll the leap into a station takes, in pixels, and the circle after it, as a share of the screen. */
+const JUMP_SCROLL = 150;
+const RING_SCROLL = 0.22;
 
 /**
  * Scroll keyframes: each title gets written while it passes through the reading zone, the pen finishes the
@@ -215,12 +284,24 @@ export function scrollKeyframes(path: PlotPath, viewportH: number, maxScroll: nu
   const first = path.runs[0];
   if (!first || path.n < 2) return [{ sc: 0, b: 0 }];
   const kf: Keyframe[] = [{ sc: 0, b: first.b1 }];
-  for (const r of path.runs.slice(1)) {
-    // A taller title is finished lower down, so its middle, not its underline, passes the line.
-    const anchor = viewportH * WRITE_LINE + Math.min(r.th * 0.5, viewportH * 0.2);
-    const lead = clamp((r.s1 - r.s0) * 0.4, 90, viewportH * 0.3);
-    kf.push({ sc: r.uy - anchor - lead, b: r.b0 }, { sc: r.uy - anchor, b: r.b1 });
-  }
+  path.runs.forEach((r, i) => {
+    if (i > 0) {
+      // A taller title is finished lower down, so its middle, not its underline, passes the line.
+      const anchor = viewportH * WRITE_LINE + Math.min(r.th * 0.5, viewportH * 0.2);
+      const lead = clamp((r.s1 - r.s0) * 0.4, 90, viewportH * 0.3);
+      kf.push({ sc: r.uy - anchor - lead, b: r.b0 }, { sc: r.uy - anchor, b: r.b1 });
+    }
+    // The pen lands in a station as its point reaches the middle of the screen, then circles it.
+    for (const st of path.stations) {
+      if (st.title !== i) continue;
+      const land = st.cy - viewportH * STATION_LINE;
+      kf.push(
+        { sc: land - JUMP_SCROLL, b: st.bJump },
+        { sc: land, b: st.b0 },
+        { sc: land + viewportH * RING_SCROLL, b: st.b1 },
+      );
+    }
+  });
   kf.push({ sc: Math.max(maxScroll, 1), b: path.b[path.n - 1] });
   for (let j = kf.length - 2; j >= 1; j--) {
     const gap = j === kf.length - 2 ? Math.min(viewportH * 0.35, 280) : 24;
