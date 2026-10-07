@@ -35,13 +35,14 @@ import {
   underlineEnd,
   type Keyframe,
   type PlotPath,
-  type Point,
   type Detour,
   type Route,
   type Run,
   type SegmentKind,
   type Station,
 } from './path.ts';
+import { curveGeometry } from './plates/curve.ts';
+import { frustumEye } from './plates/frustum.ts';
 import { HERO_ORIGIN_Y } from './plates/hero.ts';
 import { PLATES, type Plate, type PlateCtx, type Rect } from './plates/index.ts';
 import { REVEAL_EVENT, plotStore } from './store.ts';
@@ -126,9 +127,12 @@ const HEAT_BANDS = 16;
 /** How hard the grid bends toward the pen, and the reach of the bend in pixels. */
 const WARP_STRENGTH = 30;
 const WARP_RADIUS = 130;
-/** Seconds the pen takes to circle a station once it lands, and the station's plate to draw in full. */
+/** Seconds the pen takes to circle a station once it lands, and a station's plate to draw and undraw. */
 const RING_SECONDS = 1.2;
 const STATION_PLATE_SECONDS = 2.6;
+const STATION_UNDO_SECONDS = 1;
+/** How far above a section's eyebrow a route that passes over its title runs. */
+const OVER_TITLE = 100;
 /** How far under a section a route crosses back to the rail. */
 const ROUTE_RETURN = 60;
 
@@ -222,8 +226,6 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let ring: { name: string; t0: number } | null = null;
   /** After its circle the pen stays at this station's end until the visitor scrolls back above its leap. */
   let ringFloor: string | null = null;
-  /** When each station's plate started; once started it draws to the end by time. */
-  const stationClock = new Map<string, number>();
   /** The element under the pointer whose height the pen holds; `s` is cached per layout epoch. */
   let hold: { el: HTMLElement; s: number | null; epoch: number } | null = null;
   /** How far the drawn line reaches; ahead of the pen while it holds. */
@@ -311,22 +313,28 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         const r = pageRect(el, sy);
         const name = el.dataset.plotStation ?? '';
         const radius = Number(el.dataset.plotRadius) || 120;
-        // A stacked layout puts a whole column above the point; the leap never starts more than two radii up.
-        const leap = el.closest('[data-plot-leap-from]');
-        const from = leap ? Math.max(pageRect(leap, sy).top, r.cy - radius * 2) : undefined;
-        return title < 0 || !name ? [] : [{ title, name, cx: r.cx, cy: r.cy, r: radius, from }];
+        // A stacked layout puts a whole column between the title and the point; there it leaps from the rail.
+        const fromTitle = el.dataset.plotLeap === 'title' && railX > 34;
+        return title < 0 || !name ? [] : [{ title, name, cx: r.cx, cy: r.cy, r: radius, fromTitle }];
       },
     );
     // Routes need the margin the section numbers use; narrow layouts keep the plain rail.
-    const routes: Route[] =
+    const routes: (Route & { lineY?: number })[] =
       railX > 34
         ? titles.flatMap((s, i) => {
-            const pts = s.section?.dataset.plotRoute ? routePoints(s, i) : null;
-            return pts ? [{ title: i, pts }] : [];
+            const route = s.section?.dataset.plotRoute ? routeFor(s, i) : null;
+            return route ? [route] : [];
           })
         : [];
+    const lines = new Map(routes.map((r) => [r.title, r.lineY]));
     path = buildPath({
-      titles: titles.map((s) => ({ left: s.left, right: s.right, top: s.top, bottom: s.bottom })),
+      titles: titles.map((s, i) => ({
+        left: s.left,
+        right: s.right,
+        top: s.top,
+        bottom: s.bottom,
+        lineY: lines.get(i),
+      })),
       railX,
       origin,
       cta: cta ? { cx: cta.cx, cy: cta.cy, w: cta.w, h: cta.h } : null,
@@ -369,39 +377,88 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     });
 
     if (introDone && path) {
-      pen.s = scrollTarget();
+      // A pen holding at a hovered element stays there; a question opening below must not move it.
+      const free = scrollTarget();
+      pen.s = holdS() ?? free;
       const q = posAt(path, pen.s);
       pen.x = pen.px = q.x;
       pen.y = pen.py = q.y;
-      inkS = pen.s;
+      inkS = Math.max(pen.s, hold ? free : pen.s);
     }
     dirty = true;
   }
 
   /**
-   * Corners of a section's route. `right` passes the section down the right margin; `split` drops from the
-   * underline to just above the right column, turns left and runs down between the two columns. Both cross
-   * back to the rail under the section.
+   * A section's route. `right` passes the section down the right margin. `camera` writes the title from a
+   * line above it, drops onto the video camera's eye, follows its ray out to the right margin and goes down
+   * there. `split` drops from the underline to just above the right column, turns left and runs down between
+   * the two columns. `chart` runs down the rail ahead of the scroll, draws the learning curve and comes back
+   * round its right side. All of them cross back to the rail under the section.
    */
-  function routePoints(s: TitleState, i: number): Point[] | null {
+  function routeFor(s: TitleState, i: number): (Route & { lineY?: number }) | null {
     const sec = s.section;
     if (!sec) return null;
     const box = pageRect(sec, sy);
     const end = underlineEnd(s);
     const next = titles[i + 1];
     const back = box.bottom + Math.min(ROUTE_RETURN, next ? (next.top - box.bottom) * 0.35 : ROUTE_RETURN);
-    if (sec.dataset.plotRoute === 'right') {
-      const content = contentRect(sec, sy);
-      // The left rail mirrored about the content column.
-      const x = content.right + (content.left - railX);
-      return x < W - 6
-        ? [
-            { x, y: end.y },
-            { x, y: back },
-          ]
-        : null;
+    const content = contentRect(sec, sy);
+    // The left rail mirrored about the content column.
+    const right = content.right + (content.left - railX);
+    if (right > W - 6) return null;
+    const kind = sec.dataset.plotRoute;
+    if (kind === 'camera') {
+      const player = sec.querySelector('[data-plot-anchor="video-player"]');
+      const eyebrow = sec.querySelector('[data-eyebrow]');
+      const v = player ? pageRect(player, sy) : null;
+      const eye = v ? frustumEye(v, pageRect(s.el, sy), W) : null;
+      if (v && eye && eyebrow && v.right > eye[0]) {
+        const [ex, ey] = eye;
+        // Out along the ray to the player's top right corner, as far as the margin.
+        const yd = ey + ((v.top - ey) * (right - ex)) / (v.right - ex);
+        return {
+          title: i,
+          lineY: pageRect(eyebrow, sy).top - OVER_TITLE,
+          pts: [
+            { x: ex, y: pageRect(eyebrow, sy).top - OVER_TITLE },
+            { x: ex, y: ey, r: 0, mark: 'camera' },
+            { x: right, y: yd },
+            { x: right, y: back },
+          ],
+        };
+      }
     }
-    if (sec.dataset.plotRoute === 'split') {
+    if (kind === 'right' || kind === 'camera')
+      return {
+        title: i,
+        pts: [
+          { x: right, y: end.y },
+          { x: right, y: back },
+        ],
+      };
+    if (kind === 'chart') {
+      const plot = sec.querySelector('[data-plot-anchor="tutorial-plot"]');
+      if (!plot) return null;
+      const { pts } = curveGeometry(pageRect(plot, sy));
+      const first = pts[0];
+      const last = pts[pts.length - 1];
+      if (!first || !last) return null;
+      return {
+        title: i,
+        fromRail: true,
+        startMark: 'chart-in',
+        pts: [
+          // Down the rail ahead of the scroll, to reach the curve's start as it comes into view.
+          { x: railX, y: first[1], key: 0.88, gap: 160 },
+          { x: first[0], y: first[1], r: 0, key: null, mark: 'chart-0' },
+          ...pts.slice(1, -1).map(([x, y]) => ({ x, y, r: 0, key: null })),
+          { x: last[0], y: last[1], r: 0, key: 0.2, mark: 'chart-1' },
+          { x: right, y: last[1], mark: 'chart-out' },
+          { x: right, y: back },
+        ],
+      };
+    }
+    if (kind === 'split') {
       const a = sec.querySelector('[data-plot-col="left"]');
       const b = sec.querySelector('[data-plot-col="right"]');
       if (!a || !b) return null;
@@ -413,12 +470,15 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const x = clamp(Math.max(end.x, lead + 24), r.left + 40, r.right - 40);
       const top = r.top - 12;
       const gap = (l.right + r.left) / 2;
-      return [
-        { x, y: end.y },
-        { x, y: top },
-        { x: gap, y: top },
-        { x: gap, y: back },
-      ];
+      return {
+        title: i,
+        pts: [
+          { x, y: end.y },
+          { x, y: top },
+          { x: gap, y: top },
+          { x: gap, y: back },
+        ],
+      };
     }
     return null;
   }
@@ -470,9 +530,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         const p = posAt(path, st.s0);
         emit(p.x, p.y, 70, 420, 0, TAU, 30);
         flashes.push({ x: p.x, y: p.y, t, size: 260 });
-        if (!stationClock.has(st.name)) stationClock.set(st.name, t);
         if (onScreenY(st.cy)) ring = { name: st.name, t0: t };
       }
+    }
+    // Touching a plate's named point sets the plate off with a smaller burst.
+    for (const ps of plates) {
+      const at = ps.plate.station ? path.marks.get(ps.plate.station) : undefined;
+      if (at === undefined || prev >= at || pen.s < at) continue;
+      const p = posAt(path, at);
+      emit(p.x, p.y, 40, 300, 0, TAU, 20);
+      flashes.push({ x: p.x, y: p.y, t, size: 150 });
     }
     if (pen.kind !== UP && t - lastMove < 1.5) {
       const speed = Math.abs(pen.v);
@@ -629,24 +696,39 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   const visible = (r: Rect) => r.top - sy < H + 240 && r.bottom - sy > -420;
   const onScreen = (r: Rect) => r.top - sy < H && r.bottom - sy > 0;
 
+  /** A plate's progress from where the pen is between named route points, or null if any is missing. */
+  function trackP(track: [string, number][] | undefined): number | null {
+    if (!track || !path) return null;
+    let prev: [number, number] | null = null;
+    for (const [name, p] of track) {
+      const s = path.marks.get(name);
+      if (s === undefined) return null;
+      if (pen.s <= s) return prev ? prev[1] + (p - prev[1]) * clamp((pen.s - prev[0]) / (s - prev[0] || 1)) : p;
+      prev = [s, p];
+    }
+    return prev ? prev[1] : null;
+  }
+
   function stepPlates(dt: number): boolean {
     let moving = false;
     for (const ps of plates) {
       const hero = ps.plate.intro === true;
-      // A station's plate draws as the pen circles the station, so the pen itself sets it off.
+      // A station's plate is set off by the pen landing there, a named point's by the pen passing it.
       const st = ps.plate.station ? stations.find((x) => x.name === ps.plate.station) : undefined;
-      const clock = st ? stationClock.get(st.name) : undefined;
-      const target = reduce
-        ? 1
-        : hero
-          ? clamp(t / HERO_PLATE_SECONDS)
-          : st
-            ? clock === undefined
-              ? 0
-              : clamp((t - clock) / STATION_PLATE_SECONDS)
-            : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
-      // A station's plate is already paced by time.
-      const next = st ? target : ps.p + (target - ps.p) * (1 - Math.exp(-dt * (hero ? 60 : 5)));
+      const mark = st?.s0 ?? (ps.plate.station ? path?.marks.get(ps.plate.station) : undefined);
+      const tracked = trackP(ps.plate.track);
+      let next: number;
+      if (reduce) next = 1;
+      else if (tracked !== null) next = tracked;
+      else if (mark !== undefined) {
+        // Draws by time once the pen is past its point, and undraws by time when the pen goes back.
+        const on = pen.s >= mark;
+        const step = dt / (on ? STATION_PLATE_SECONDS : STATION_UNDO_SECONDS);
+        next = on ? Math.min(1, ps.p + step) : Math.max(0, ps.p - step);
+      } else {
+        const target = hero ? clamp(t / HERO_PLATE_SECONDS) : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
+        next = ps.p + (target - ps.p) * (1 - Math.exp(-dt * (hero ? 60 : 5)));
+      }
       if (Math.abs(next - ps.p) > 0.0005 && visible(ps.section)) moving = true;
       ps.p = next;
     }

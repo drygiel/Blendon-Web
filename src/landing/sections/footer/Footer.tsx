@@ -15,12 +15,17 @@ const LINKS = [
 export function Footer() {
   const aurora = useRef<HTMLDivElement>(null);
 
-  // The aurora rises over the last stretch of the page, so it greets the visitor at the bottom.
+  // The aurora rises over the last stretch of the page, so it greets the visitor at the bottom, and leans
+  // after the pointer as it moves across.
   useEffect(() => {
     const el = aurora.current;
     if (!el) return;
     const root = document.documentElement;
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let raf = 0;
+    let lean = 0;
+    let mx = 0;
+    let target = 0;
     const update = () => {
       raf = 0;
       const left = root.scrollHeight - root.clientHeight - window.scrollY;
@@ -31,22 +36,41 @@ export function Footer() {
     const schedule = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
+    // Eases toward the pointer slowly, and only while it still has a way to go.
+    const follow = () => {
+      mx += (target - mx) * 0.04;
+      el.style.setProperty('--mx', mx.toFixed(4));
+      lean = Math.abs(target - mx) > 0.001 ? requestAnimationFrame(follow) : 0;
+    };
+    const point = (e: PointerEvent) => {
+      if (still || !el.hasAttribute('data-on')) return;
+      target = e.clientX / window.innerWidth - 0.5;
+      if (!lean) lean = requestAnimationFrame(follow);
+    };
     update();
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
+    window.addEventListener('pointermove', point, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(lean);
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
+      window.removeEventListener('pointermove', point);
     };
   }, []);
 
   return (
     <footer className={styles.footer}>
-      <div ref={aurora} className={styles.aurora} aria-hidden="true">
-        <span />
-        <span />
-        <span />
+      {/* The outer box clips, so the risen layer inside never lengthens the page. */}
+      <div className={styles.aurora} aria-hidden="true">
+        <div ref={aurora} className={styles.sky}>
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
       </div>
       <div className={styles.inner}>
         <div className={styles.legal}>

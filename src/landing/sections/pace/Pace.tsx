@@ -25,7 +25,7 @@ function Owner({ does, other, to }: { does: string; other: string; to: Contested
 
 export function Pace() {
   return (
-    <Section id="pace" plate="waves">
+    <Section id="pace" plate="waves" route="right">
       <SectionIntro
         eyebrow="08 / YOUR PACE"
         title={

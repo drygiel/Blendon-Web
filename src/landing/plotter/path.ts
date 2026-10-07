@@ -22,6 +22,8 @@ export interface TitleBox {
   right: number;
   top: number;
   bottom: number;
+  /** Where the pen writes the title, if not along its underline: a line above the title, say. */
+  lineY?: number;
 }
 
 export interface Box {
@@ -47,6 +49,8 @@ export interface Run {
   uy: number;
   /** Height of the title's text. */
   th: number;
+  /** The underline's height, which times the writing even when the pen writes along another line. */
+  ky: number;
 }
 
 /** A detour after a title: the pen leaps from the rail into a point, ignites there and circles it. */
@@ -60,6 +64,23 @@ export interface Detour {
   r: number;
   /** Height on the rail where the leap starts; the point's own height by default. */
   from?: number;
+  /** Leaps straight from the end of the title's line instead of from the rail. */
+  fromTitle?: boolean;
+}
+
+/** A corner of a route. */
+export interface RoutePoint extends Point {
+  /** Corner radius; 0 for a sharp corner the pen passes exactly. */
+  r?: number;
+  /**
+   * Keyframe of the leg ending here: the share of the screen height the point is at when the pen gets there,
+   * or null for none. By default the pen holds its line down a vertical leg and hurries across a level one.
+   */
+  key?: number | null;
+  /** Least scroll the leg ending here takes. */
+  gap?: number;
+  /** Names the point, so the page can tell when the pen has passed it. */
+  mark?: string;
 }
 
 /**
@@ -68,7 +89,11 @@ export interface Detour {
  */
 export interface Route {
   title: number;
-  pts: Point[];
+  pts: RoutePoint[];
+  /** Goes back to the rail first, as without a route, and starts from there. */
+  fromRail?: boolean;
+  /** Names the route's start, where the title's line ends. */
+  startMark?: string;
 }
 
 /** One straight leg of a route, ending at path index `i`. */
@@ -77,6 +102,8 @@ export interface Leg {
   y: number;
   len: number;
   horizontal: boolean;
+  key?: number | null;
+  gap?: number;
 }
 
 export interface Station {
@@ -85,6 +112,8 @@ export interface Station {
   cy: number;
   /** Height on the rail where the leap starts. */
   fromY: number;
+  /** The leap starts where the title's line ends. */
+  fromTitle: boolean;
   /** Arc length and budget where the leap starts, where the pen lands and where its circle closes. */
   sJump: number;
   bJump: number;
@@ -113,6 +142,8 @@ export interface PlotPath {
   stations: Station[];
   /** Legs of each title's route, by title index. */
   legs: Map<number, Leg[]>;
+  /** Arc length of each named route point. */
+  marks: Map<string, number>;
   total: number;
 }
 
@@ -175,7 +206,7 @@ function sampler() {
       }
     },
     /** Straight legs through `pts`, each corner rounded; returns the index where each leg's straight part ends. */
-    polyline(pts: Point[], radius: number, k: SegmentKind): number[] {
+    polyline(pts: RoutePoint[], radius: number, k: SegmentKind): number[] {
       const ends: number[] = [];
       for (let j = 0; j < pts.length; j++) {
         const c = pts[j];
@@ -191,7 +222,7 @@ function sampler() {
         const bx = n.x - c.x;
         const by = n.y - c.y;
         const lb = Math.hypot(bx, by);
-        const r = Math.min(radius, la / 2, lb / 2);
+        const r = Math.min(c.r ?? radius, la / 2, lb / 2);
         this.line(c.x - (ax / (la || 1)) * r, c.y - (ay / (la || 1)) * r, k);
         ends.push(xs.length - 1);
         if (r > 0.5) {
@@ -235,10 +266,12 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
   const pb = sampler();
   const runs: Run[] = [];
   const legs = new Map<number, Leg[]>();
+  const named = new Map<string, number>();
   const marks: { d: Detour; jy: number; iJump: number; i0: number; i1: number }[] = [];
   pb.move(origin.x, origin.y);
   titles.forEach((t, i) => {
-    const { x: ex, y: uy } = underlineEnd(t);
+    const { x: ex, y: ky } = underlineEnd(t);
+    const uy = t.lineY ?? ky;
     const sx = t.left - 14;
     const r = clamp((t.left - rx) * 0.5, 6, 26);
     if (i === 0) pb.cubic(origin.x - 40, origin.y - 170, sx - 130, uy + 70, sx, uy, UP);
@@ -249,43 +282,61 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
     }
     const i0 = pb.count() - 1;
     pb.line(ex, uy, WRITE);
-    runs.push({ i0, i1: pb.count() - 1, s0: 0, s1: 0, b0: 0, b1: 0, sx, ex, uy, th: t.bottom - t.top });
-    const route = i < titles.length - 1 ? routes.find((x) => x.title === i && x.pts.length) : undefined;
+    runs.push({ i0, i1: pb.count() - 1, s0: 0, s1: 0, b0: 0, b1: 0, sx, ex, uy, th: t.bottom - t.top, ky });
+    const last = i === titles.length - 1;
+    const route = last ? undefined : routes.find((x) => x.title === i && x.pts.length);
+    const d = last ? undefined : detours.find((x) => x.title === i);
+    const back = () => {
+      // Back along the underline with the pen up, then down the rail again.
+      pb.line(rx + r, uy, UP);
+      pb.cubic(rx + r * 0.45, uy, rx, uy + r * 0.45, rx, uy + r, RAIL);
+    };
     if (route) {
+      if (route.startMark) named.set(route.startMark, pb.count() - 1);
+      if (route.fromRail) back();
       const end = route.pts[route.pts.length - 1];
-      const pts: Point[] = [];
-      let prev: Point = { x: ex, y: uy };
+      const pts: RoutePoint[] = [];
+      let prev: Point = pb.last();
+      const start = prev;
       for (const p of [...route.pts, { x: rx, y: end.y }, { x: rx, y: end.y + r }]) {
         if (Math.hypot(p.x - prev.x, p.y - prev.y) < 1) continue;
         pts.push(p);
         prev = p;
       }
       const ends = pb.polyline(pts, ROUTE_RADIUS, RAIL);
+      pts.forEach((p, k) => p.mark && named.set(p.mark, ends[k]));
       // The last leg only turns down onto the rail; the rail's own keyframes take it from there.
       legs.set(
         i,
         ends.slice(0, -1).map((ix, k) => {
-          const a = k ? pts[k - 1] : { x: ex, y: uy };
+          const a = k ? pts[k - 1] : start;
           const c = pts[k];
           const dx = c.x - a.x;
           const dy = c.y - a.y;
-          return { i: ix, y: c.y, len: Math.hypot(dx, dy), horizontal: Math.abs(dx) > Math.abs(dy) };
+          return {
+            i: ix,
+            y: c.y,
+            len: Math.hypot(dx, dy),
+            horizontal: Math.abs(dx) > Math.abs(dy),
+            key: c.key,
+            gap: c.gap,
+          };
         }),
       );
-    } else if (i < titles.length - 1) {
-      // Back along the underline with the pen up, then down the rail again.
-      pb.line(rx + r, uy, UP);
-      pb.cubic(rx + r * 0.45, uy, rx, uy + r * 0.45, rx, uy + r, RAIL);
-    }
-    const d = detours.find((x) => x.title === i);
-    if (d && i < titles.length - 1 && d.cy > pb.last().y) {
-      const jy = clamp(d.from ?? d.cy, pb.last().y, d.cy);
-      pb.line(rx, jy, RAIL);
+    } else if (!last && !d?.fromTitle) back();
+    if (d && (d.fromTitle || d.cy > pb.last().y)) {
+      const from = pb.last();
+      let jy = from.y;
+      if (!d.fromTitle) {
+        jy = clamp(d.from ?? d.cy, from.y, d.cy);
+        pb.line(rx, jy, RAIL);
+      }
+      const jx = pb.last().x;
       const iJump = pb.count() - 1;
       // An arcing leap, higher the farther it goes.
-      const dx = d.cx - rx;
-      const lift = Math.min(260, dx * 0.32);
-      pb.cubic(rx + dx * 0.3, jy - lift, d.cx - dx * 0.25, Math.min(jy, d.cy) - lift, d.cx, d.cy, JUMP);
+      const dx = d.cx - jx;
+      const lift = clamp(Math.abs(dx) * 0.32, 80, 260);
+      pb.cubic(jx + dx * 0.3, jy - lift, d.cx - dx * 0.25, Math.min(jy, d.cy) - lift, d.cx, d.cy, JUMP);
       const i0 = pb.count() - 1;
       // A radius out to the circle, then the circle itself, counterclockwise as angles are measured.
       pb.line(d.cx + d.r, d.cy, RING);
@@ -318,6 +369,7 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
     runs,
     stations: [],
     legs,
+    marks: new Map(),
     total: 0,
   };
   const { x, y, s, b, kind, maxY } = path;
@@ -335,11 +387,13 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
     r.b0 = b[r.i0];
     r.b1 = b[r.i1];
   }
+  for (const [name, i] of named) path.marks.set(name, s[i]);
   path.stations = marks.map(({ d, jy, iJump, i0, i1 }) => ({
     name: d.name,
     title: d.title,
     cy: d.cy,
     fromY: jy,
+    fromTitle: d.fromTitle === true,
     sJump: s[iJump],
     bJump: b[iJump],
     s0: s[i0],
@@ -389,13 +443,15 @@ export function scrollKeyframes(path: PlotPath, viewportH: number, maxScroll: nu
       // A taller title is finished lower down, so its middle, not its underline, passes the line.
       const anchor = viewportH * WRITE_LINE + Math.min(r.th * 0.5, viewportH * 0.2);
       const lead = clamp((r.s1 - r.s0) * 0.4, 90, viewportH * 0.3);
-      kf.push({ sc: r.uy - anchor - lead, b: r.b0 }, { sc: r.uy - anchor, b: r.b1 });
+      kf.push({ sc: r.ky - anchor - lead, b: r.b0 }, { sc: r.ky - anchor, b: r.b1 });
     }
     // Down a route the pen holds its line on screen; across, it hurries over in a short stretch of scroll.
     let prev = kf[kf.length - 1].sc;
     for (const leg of path.legs.get(i) ?? []) {
-      const gap = leg.horizontal ? clamp(leg.len * 0.15, 80, 180) : MIN_GAP;
-      const sc = leg.horizontal ? prev + gap : Math.max(prev + gap, leg.y - viewportH * ROUTE_LINE);
+      if (leg.key === null) continue;
+      const gap = leg.gap ?? (leg.horizontal && leg.key === undefined ? clamp(leg.len * 0.15, 80, 180) : MIN_GAP);
+      const line = leg.key ?? (leg.horizontal ? null : ROUTE_LINE);
+      const sc = line === null ? prev + gap : Math.max(prev + gap, leg.y - viewportH * line);
       kf.push({ sc, b: path.b[leg.i], gap });
       prev = sc;
     }
@@ -403,8 +459,9 @@ export function scrollKeyframes(path: PlotPath, viewportH: number, maxScroll: nu
     for (const st of path.stations) {
       if (st.title !== i) continue;
       const land = st.cy - viewportH * STATION_LINE;
+      // From the title's line the leap follows straight on from the writing.
+      if (!st.fromTitle) kf.push({ sc: Math.min(land - JUMP_SCROLL, st.fromY - viewportH * ROUTE_LINE), b: st.bJump });
       kf.push(
-        { sc: Math.min(land - JUMP_SCROLL, st.fromY - viewportH * ROUTE_LINE), b: st.bJump },
         { sc: land, b: st.b0, gap: JUMP_SCROLL },
         { sc: land + RING_SCROLL, b: st.b1 },
         { sc: land + RING_SCROLL + RING_REST, b: st.b1, gap: RING_REST },

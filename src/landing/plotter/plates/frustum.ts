@@ -1,5 +1,11 @@
 import { AMBER, SERIF, TAU, circlePts, lerp, type Pt } from '../draw.ts';
-import type { Plate } from './types.ts';
+import type { Plate, Rect } from './types.ts';
+
+/** The camera's eye above the player, in page coordinates, on a page wide enough to put it there. */
+export function frustumEye(player: Rect, title: Rect | null, W: number): Pt | null {
+  if (W < 1000 || !title) return null;
+  return [lerp(player.left, player.right, 0.76), Math.min(player.top - 110, title.bottom - 48)];
+}
 
 /**
  * The camera that sees the video: rays from an eye to the player's corners, near plane and fov. On a wide
@@ -8,6 +14,8 @@ import type { Plate } from './types.ts';
  */
 export const frustum: Plate = {
   at: 'video-player',
+  // The pen sets it off as it touches the eye; a narrow page draws it by scroll.
+  station: 'camera',
   draw({ ink, sy, W, anchor, mobile, title }) {
     const v = anchor('video-player');
     if (!v) return;
@@ -15,11 +23,9 @@ export const frustum: Plate = {
     const T = v.top - sy;
     const R = v.right;
     const B = v.bottom - sy;
-    const above = W >= 1000 && title !== null;
-    // Above: level with the title's last line, clear of the underline the pen runs along.
-    const eye: Pt = above
-      ? [lerp(L, R, 0.76), Math.min(T - 110, title.bottom - sy - 48)]
-      : [lerp(L, R, 0.24), B + Math.min(118, v.h * 0.22)];
+    const top = frustumEye(v, title, W);
+    const above = top !== null;
+    const eye: Pt = top ? [top[0], top[1] - sy] : [lerp(L, R, 0.24), B + Math.min(118, v.h * 0.22)];
     const edge = above ? T : B;
     const corners: Pt[] = [
       [L, T],

@@ -9,8 +9,8 @@ interface SectionProps {
   className?: string;
   /** The background plotter's drawing for this section, by name. */
   plate?: string;
-  /** The pen's way past this section: down the right margin, or between its two columns. */
-  route?: 'right' | 'split';
+  /** The pen's way past this section; see `routeFor` in the plotter's engine. */
+  route?: 'right' | 'camera' | 'split' | 'chart';
 }
 
 /** A page-width landing section. */

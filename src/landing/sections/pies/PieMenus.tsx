@@ -152,7 +152,9 @@ export function PieMenus() {
     return () => {
       io.disconnect();
       plotStore.pie.stage = null;
+      // Cleared too, or a remount would think the loop still runs and never start it again.
       cancelAnimationFrame(followRaf.current);
+      followRaf.current = 0;
     };
   }, []);
 
@@ -281,8 +283,7 @@ export function PieMenus() {
         lead="Hold the key, flick toward an item and let go. Or tap it and the menu stays open for a click. Selection is by angle alone, so a flick far past an item still picks it. Point anywhere around the ring below and click."
       />
 
-      {/* The pen leaps for the pie's centre from the rail level with the top of this block. */}
-      <div className={styles.explorer} data-plot-leap-from="">
+      <div className={styles.explorer}>
         <div className={styles.list} data-reveal="stagger">
           {PIES.map((p) => (
             <PickButton
@@ -335,13 +336,14 @@ export function PieMenus() {
               </svg>
               <span ref={thetaRef} className={styles.theta} />
             </div>
-            {/* The pen leaps into this point after the title, then circles it. */}
+            {/* The pen leaps into this point straight from the end of the title's underline, then circles it. */}
             <div
               key={pie.id}
               ref={centerRef}
               className={styles.pie}
               data-plot-anchor="pie-center"
               data-plot-station="pie"
+              data-plot-leap="title"
               data-plot-radius={(RADIUS * scale * POLAR_RING).toFixed(1)}
             >
               <svg

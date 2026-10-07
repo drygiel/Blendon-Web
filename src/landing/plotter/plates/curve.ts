@@ -1,21 +1,47 @@
 import { AMBER, MONO_S, NEUTRAL, SANS, SERIF_S, clamp, lerp, mix, rgba, type Pt } from '../draw.ts';
 import { TUTORIAL } from '../../sections/tutorial/tutorial-data.ts';
-import type { Plate } from './types.ts';
+import type { Plate, Rect } from './types.ts';
 
 const SENTENCE = 'a task ticks off only when you actually perform it';
 const CHAPTERS = TUTORIAL.chapters.length;
 const TASKS = TUTORIAL.chapters.reduce((n, c) => n + c.tasks.length, 0);
 
+const N = 160;
+const logistic = (u: number) => 1 / (1 + Math.exp(-8.5 * (u - 0.42)));
+
+/** The axes' corner and far ends, and the curve, in page coordinates; the pen draws the same curve. */
+export function curveGeometry(g: Rect) {
+  const x0 = g.left + 44;
+  const x1 = g.right - 8;
+  const yb = g.bottom - 28;
+  const yt = g.top + 12;
+  const l0 = logistic(0);
+  const l1 = logistic(1);
+  const pts: Pt[] = [];
+  for (let i = 0; i <= N; i++) {
+    const u = i / N;
+    pts.push([lerp(x0, x1, u), yb - (yb - yt - 24) * (0.04 + (0.92 * (logistic(u) - l0)) / (l1 - l0))]);
+  }
+  return { x0, x1, yb, yt, pts };
+}
+
 /** A learning curve: a column per chapter, a dot per task, and a sentence riding the curve behind the pen tip. */
 export const curve: Plate = {
   at: 'tutorial-plot',
+  // The pen comes down to the curve's start and draws it, so the plate keeps pace with the pen.
+  track: [
+    ['chart-in', 0],
+    ['chart-0', 0.2],
+    ['chart-1', 0.88],
+    ['chart-out', 1],
+  ],
   draw({ ink, ctx, sy, anchor }) {
     const g = anchor('tutorial-plot');
     if (!g) return;
-    const x0 = g.left + 44;
-    const x1 = g.right - 8;
-    const yb = g.bottom - sy - 28;
-    const yt = g.top - sy + 12;
+    const geo = curveGeometry(g);
+    const { x0, x1 } = geo;
+    const yb = geo.yb - sy;
+    const yt = geo.yt - sy;
     ink.poly(
       [
         [x0, yt],
@@ -53,15 +79,7 @@ export const curve: Plate = {
       );
     }
 
-    const N = 160;
-    const logistic = (u: number) => 1 / (1 + Math.exp(-8.5 * (u - 0.42)));
-    const l0 = logistic(0);
-    const l1 = logistic(1);
-    const pts: Pt[] = [];
-    for (let i = 0; i <= N; i++) {
-      const u = i / N;
-      pts.push([lerp(x0, x1, u), yb - (yb - yt - 24) * (0.04 + (0.92 * (logistic(u) - l0)) / (l1 - l0))]);
-    }
+    const pts: Pt[] = geo.pts.map(([x, y]) => [x, y - sy]);
     ink.poly(pts, 0.2, 0.88, { c: AMBER, hm: 0, a: 0.5, hb: 0.6, w: 1.5, linear: true });
     const q = ink.seg(0.2, 0.88);
     if (q <= 0) return;
