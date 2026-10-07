@@ -125,6 +125,8 @@ const HOT_INK = 380;
 const UP_WAKE = 620;
 const MAX_SPARKS = 280;
 const HERO_PLATE_SECONDS = 3.2;
+/** Ambient motion alone, such as a slow spin or a flicker, redraws at about 30 fps. */
+const AMBIENT_FRAME_MS = 30;
 
 function pageRect(el: Element, sy: number): Rect {
   const r = el.getBoundingClientRect();
@@ -205,6 +207,10 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let dirty = true;
   let lastSy = -1;
   let lastAngle: number | null = null;
+  let lastSlide = -1;
+  let lastRender = 0;
+  /** A plate asked for the next frame while it eases toward a target. */
+  let easing = false;
   let hudAt = 0;
   let raf = 0;
   let alive = true;
@@ -478,6 +484,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   }
 
   const visible = (r: Rect) => r.top - sy < H + 240 && r.bottom - sy > -420;
+  const onScreen = (r: Rect) => r.top - sy < H && r.bottom - sy > 0;
 
   function stepPlates(dt: number): boolean {
     let moving = false;
@@ -528,9 +535,10 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const reach = sig * 3;
     const f = field;
     const fReach = f ? f.r * FIELD_REACH : 0;
-    // Strokes grouped by brightness, so a bent line can fade without a stroke call per segment.
-    const minor = Array.from({ length: LEVELS }, () => new Path2D());
-    const major = Array.from({ length: LEVELS }, () => new Path2D());
+    // Straight stretches are filled as rects, far cheaper to raster than strokes. Bent stretches are strokes
+    // grouped by brightness, so a line can fade without a stroke call per segment. Index 0 is minor, 1 major.
+    const rects = [new Path2D(), new Path2D()];
+    const bent = [0, 1].map(() => Array.from({ length: LEVELS }, () => new Path2D()));
     const pt = [0, 0, 1];
     // Where a grid point lands: pulled in and twisted around the field's centre, then into the pen's well.
     const warp = (x: number, y: number) => {
@@ -565,50 +573,84 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       pt[1] = y;
       pt[2] = a;
     };
-    // One grid line: straight where nothing bends it, sampled where the pen or the field does.
-    const line = (set: Path2D[], ax: number, ay: number, bx: number, by: number, bent: boolean) => {
-      if (!bent) {
-        set[LEVELS - 1].moveTo(ax, ay);
-        set[LEVELS - 1].lineTo(bx, by);
-        return;
-      }
-      const n = Math.max(2, Math.ceil(Math.hypot(bx - ax, by - ay) / 8));
-      warp(ax, ay);
-      let lx = pt[0];
-      let ly = pt[1];
-      let la = pt[2];
-      for (let i = 1; i <= n; i++) {
-        warp(ax + ((bx - ax) * i) / n, ay + ((by - ay) * i) / n);
-        const lv = Math.round(((la + pt[2]) / 2) * (LEVELS - 1));
-        if (lv > 0) {
-          set[lv].moveTo(lx, ly);
-          set[lv].lineTo(pt[0], pt[1]);
-        }
-        lx = pt[0];
-        ly = pt[1];
-        la = pt[2];
-      }
-    };
     const penNear = str > 0 && py > -reach && py < H + reach;
-    for (let x = ((W / 2) % cell) - cell + 0.5; x < W + cell; x += cell) {
-      const set = Math.round((x - W / 2) / cell) % 4 === 0 ? major : minor;
-      const bent = (penNear && Math.abs(x - px) < reach) || (f !== null && Math.abs(x - f.x) < fReach);
-      line(set, x, 0, x, H, bent);
-    }
+    // Stretches along the current line that the pen or the field bends, as [from, to] pairs; nothing moves
+    // outside them, so only they are sampled.
+    const spans: number[] = [];
+    const span = (lo: number, hi: number) => {
+      if (hi > lo) spans.push(lo, hi);
+    };
+    // One grid line at `c` (x of a vertical line, y of a horizontal one), sampled every ~8px where bent.
+    const line = (set: number, vertical: boolean, c: number, len: number) => {
+      const fill = (a0: number, a1: number) => {
+        if (a1 > a0) {
+          if (vertical) rects[set].rect(c - 0.5, a0, 1, a1 - a0);
+          else rects[set].rect(a0, c - 0.5, a1 - a0, 1);
+        }
+      };
+      spans.length = 0;
+      if (vertical) {
+        if (penNear && Math.abs(c - px) < reach) span(py - reach, py + reach);
+        if (f && Math.abs(c - f.x) < fReach)
+          span(Math.max(f.y - fReach, f.top - 40), Math.min(f.y + fReach, f.bottom + 20));
+      } else {
+        if (penNear && Math.abs(c - py) < reach) span(px - reach, px + reach);
+        if (f && Math.abs(c - f.y) < fReach && c > f.top - 40 && c < f.bottom + 20) span(f.x - fReach, f.x + fReach);
+      }
+      // At most two stretches: in order, and an overlap is skipped by starting each where the last ended.
+      if (spans.length === 4 && spans[2] < spans[0]) spans.push(...spans.splice(0, 2));
+      const n = Math.max(2, Math.ceil(len / 8));
+      const step = len / n;
+      const at = (i: number) => (vertical ? warp(c, i * step) : warp(i * step, c));
+      let done = 0;
+      let next = 0;
+      for (let s = 0; s < spans.length; s += 2) {
+        const i0 = Math.max(next, 0, Math.floor(spans[s] / step));
+        const i1 = Math.min(n, Math.ceil(spans[s + 1] / step));
+        if (i1 <= i0) continue;
+        next = i1;
+        fill(done, i0 * step);
+        done = i1 * step;
+        at(i0);
+        let lx = pt[0];
+        let ly = pt[1];
+        let la = pt[2];
+        let open: Path2D | null = null;
+        for (let i = i0 + 1; i <= i1; i++) {
+          at(i);
+          const lv = Math.round(((la + pt[2]) / 2) * (LEVELS - 1));
+          if (lv > 0) {
+            const pa = bent[set][lv];
+            // Runs of one brightness continue a single polyline instead of starting a subpath per segment.
+            if (pa !== open) pa.moveTo(lx, ly);
+            pa.lineTo(pt[0], pt[1]);
+            open = pa;
+          } else open = null;
+          lx = pt[0];
+          ly = pt[1];
+          la = pt[2];
+        }
+      }
+      fill(done, len);
+    };
+    for (let x = ((W / 2) % cell) - cell + 0.5; x < W + cell; x += cell)
+      line(Math.round((x - W / 2) / cell) % 4 === 0 ? 1 : 0, true, x, H);
     for (let k = -1; ; k++) {
       const y = Math.round(y0 + k * cell) + 0.5;
       if (y > H + cell) break;
-      const set = (base + k) % 4 === 0 ? major : minor;
-      const bent = (penNear && Math.abs(y - py) < reach) || (f !== null && Math.abs(y - f.y) < fReach);
-      line(set, 0, y, W, y, bent);
+      line((base + k) % 4 === 0 ? 1 : 0, false, y, W);
+    }
+    const alpha = [0.034 * intensity, 0.062 * intensity];
+    for (let set = 0; set < 2; set++) {
+      ctx.fillStyle = rgba(NEUTRAL, alpha[set]);
+      ctx.fill(rects[set]);
     }
     ctx.lineWidth = 1;
     for (let lv = 1; lv < LEVELS; lv++) {
-      const a = lv / (LEVELS - 1);
-      ctx.strokeStyle = rgba(NEUTRAL, 0.034 * intensity * a);
-      ctx.stroke(minor[lv]);
-      ctx.strokeStyle = rgba(NEUTRAL, 0.062 * intensity * a);
-      ctx.stroke(major[lv]);
+      for (let set = 0; set < 2; set++) {
+        ctx.strokeStyle = rgba(NEUTRAL, (alpha[set] * lv) / (LEVELS - 1));
+        ctx.stroke(bent[set][lv]);
+      }
     }
 
     // No grid over the hero, where it would fight the scene's own floor; it fades in below.
@@ -821,11 +863,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     c.lineJoin = 'round';
     drawGrid();
     ink.I = intensity;
+    easing = false;
     for (const ps of plates) {
       if (!visible(ps.section)) continue;
       ink.p = ps.p;
       c.save();
-      ps.plate.draw(plateCtx(ps));
+      if (ps.plate.draw(plateCtx(ps)) === true) easing = true;
       c.restore();
     }
     drawTrail();
@@ -872,8 +915,9 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const platesMoving = stepPlates(dt);
     updateField();
     while (flashes.length && t - flashes[0].t > 0.9) flashes.shift();
-    const animated = plates.some((ps) => ps.plate.animated && visible(ps.section));
+    const ambient = !reduce && plates.some((ps) => ps.plate.animated && onScreen(ps.section));
     const angle = plotStore.pie.angle;
+    const slide = plotStore.setup.slide;
     const changed =
       dirty ||
       sy !== lastSy ||
@@ -881,14 +925,17 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       sparks.length > 0 ||
       flashes.length > 0 ||
       platesMoving ||
-      (animated && !reduce) ||
+      easing ||
       angle !== lastAngle ||
+      slide !== lastSlide ||
       !introDone;
-    if (changed) {
+    if (changed || (ambient && now - lastRender >= AMBIENT_FRAME_MS)) {
       render();
       dirty = false;
       lastSy = sy;
       lastAngle = angle;
+      lastSlide = slide;
+      lastRender = now;
     }
     updateHud(now);
   }

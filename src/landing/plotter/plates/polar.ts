@@ -17,7 +17,8 @@ let sector = 0;
 let pointer = 0;
 let vis = 0;
 
-const toward = (from: number, to: number, k: number) => from + Math.atan2(Math.sin(to - from), Math.cos(to - from)) * k;
+const turn = (from: number, to: number) => Math.atan2(Math.sin(to - from), Math.cos(to - from));
+const toward = (from: number, to: number, k: number) => from + turn(from, to) * k;
 
 /**
  * Polar paper around the pie demo, set off by the pen landing in the pie's centre: rings, sector bounds every
@@ -112,8 +113,12 @@ export const polar: Plate = {
     vis += ((hot === null ? 0 : 1) - vis) * (reduce ? 1 : 0.18);
     if (hot !== null) sector = toward(sector, hot, k);
     if (angle !== null) pointer = toward(pointer, angle, k);
+    const easing =
+      Math.abs((hot === null ? 0 : 1) - vis) > 0.002 ||
+      (hot !== null && Math.abs(turn(sector, hot)) > 0.002) ||
+      (angle !== null && Math.abs(turn(pointer, angle)) > 0.002);
     const v = vis * ink.seg(0.2, 0.4);
-    if (v <= 0.01) return;
+    if (v <= 0.01) return easing;
 
     // The picked item's sector, fading outward with no edge to stop it.
     const far = Math.min(R * 3.4, Math.max(R * 1.4, reach));
@@ -150,5 +155,6 @@ export const polar: Plate = {
     ctx.textAlign = left ? 'right' : 'left';
     ctx.fillStyle = rgba(HOT, 0.75 * v * ink.I);
     ctx.fillText(`θ = ${Math.round(th)}°`, ex + (left ? -10 : 10), ey - 8);
+    return easing;
   },
 };

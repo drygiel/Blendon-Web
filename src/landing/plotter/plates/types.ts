@@ -38,10 +38,11 @@ export interface PlateCtx {
 }
 
 export interface Plate {
-  draw: (c: PlateCtx) => void;
+  /** Returns true while something eases toward a target, so the plotter draws the next frame too. */
+  draw: (c: PlateCtx) => boolean | void;
   /** Anchor whose top starts the plate drawing; the section's top by default. */
   at?: string;
-  /** Moves on its own while visible, so the plotter keeps rendering. */
+  /** Moves on its own while on screen, so the plotter keeps rendering, at a reduced rate. */
   animated?: boolean;
   /** Draws with the opening animation, by time, instead of by scroll. */
   intro?: boolean;
