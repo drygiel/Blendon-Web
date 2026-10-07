@@ -26,6 +26,9 @@
   margin-bottom: 32px;
 }
 
+$cta-green: #6cc04a;
+$cta-green-light: #9be07a;
+
 .title {
   @include display;
   margin: 0;
@@ -69,6 +72,35 @@
     overflow: hidden;
     font-size: 17px;
     padding: 20px 30px;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease,
+      translate 0.08s ease,
+      scale 0.08s ease;
+
+    // Pointed at, the button and its aurora turn green, and so does the footer's aurora.
+    &:hover,
+    &:focus-visible {
+      background: $cta-green;
+      color: #0e1a09;
+      box-shadow:
+        inset 0 1px 0 $cta-green-light,
+        0 10px 30px rgba(108, 192, 74, 0.35);
+
+      &::before {
+        filter: hue-rotate(85deg) saturate(1.1);
+      }
+    }
+
+    // Held down, it sinks under the mouse: a little lower and smaller, its glow drawn in.
+    &:active {
+      translate: 0 2px;
+      scale: 0.97;
+      box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.28),
+        0 4px 12px rgba(108, 192, 74, 0.25);
+    }
 
     // An aurora in the button's lower half: deeper and brighter oranges drifting under the label.
     &::before {
@@ -85,6 +117,7 @@
         radial-gradient(closest-side, rgba(255, 206, 110, 0.85), transparent) 38% 70% / 30% 90% no-repeat,
         radial-gradient(closest-side, rgba(240, 120, 36, 0.75), transparent) 66% 55% / 32% 100% no-repeat,
         radial-gradient(closest-side, rgba(255, 190, 80, 0.7), transparent) 92% 65% / 30% 90% no-repeat;
+      transition: filter 0.25s ease;
       -webkit-mask-image: linear-gradient(transparent, #000 45%);
       mask-image: linear-gradient(transparent, #000 45%);
       animation:

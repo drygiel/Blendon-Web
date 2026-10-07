@@ -48,8 +48,12 @@ export interface Plate {
   draw: (c: PlateCtx) => boolean | void;
   /** Anchor whose top starts the plate drawing; the section's top by default. */
   at?: string;
+  /** Share of the screen height scrolled while it draws; 0.62 by default. */
+  span?: number;
   /** Moves on its own while on screen, so the plotter keeps rendering, at a reduced rate. */
   animated?: boolean;
+  /** Milliseconds between ambient redraws this plate needs; slow motion can do with fewer. */
+  ambientMs?: number;
   /** Draws with the opening animation, by time, instead of by scroll. */
   intro?: boolean;
   /**

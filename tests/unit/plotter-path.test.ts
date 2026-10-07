@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import {
   FINALE,
+  GHOST,
   INTRO_END,
   JUMP,
   RAIL,
@@ -192,6 +193,29 @@ describe('plotter title lines and marks', () => {
     const keys = scrollKeyframes(leap, H, maxScroll);
     const after = keys.findIndex((k) => k.b === run?.b1);
     expect(keys[after + 1]?.b).toBe(st?.b0);
+  });
+
+  it('hides the pen along legs marked as out of sight', () => {
+    const hidden = buildPath({
+      titles,
+      railX: 94,
+      origin: { x: 720, y: 700 },
+      cta: null,
+      routes: [
+        {
+          title: 2,
+          pts: [
+            { x: 900, y: 2900, r: 0, mark: 'in' },
+            { x: 900, y: 3100, r: 0, ghost: true, mark: 'out' },
+            { x: 900, y: 3200 },
+          ],
+        },
+      ],
+    });
+    const a = hidden.s.findIndex((v) => v >= (hidden.marks.get('in') ?? 0));
+    const b = hidden.s.findIndex((v) => v >= (hidden.marks.get('out') ?? 0));
+    for (let i = a + 1; i <= b; i++) expect(hidden.kind[i]).toBe(GHOST);
+    expect(hidden.kind[b + 1]).not.toBe(GHOST);
   });
 
   it('names route points by their arc length', () => {

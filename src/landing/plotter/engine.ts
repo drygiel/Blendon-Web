@@ -6,6 +6,8 @@ import {
   AMBER,
   HOT,
   Ink,
+  LIME,
+  LIME_HOT,
   MONO,
   MONO_S,
   NEUTRAL,
@@ -15,11 +17,14 @@ import {
   clamp,
   easeInOut,
   easeOut,
+  greenSprites,
   sprites as sharedSprites,
   mix,
   rgba,
 } from './draw.ts';
 import {
+  FINALE,
+  GHOST,
   INTRO_END,
   JUMP,
   RING,
@@ -27,6 +32,7 @@ import {
   WRITE,
   bAtScroll,
   buildPath,
+  ctaEllipse,
   introS,
   posAt,
   sAtB,
@@ -37,6 +43,7 @@ import {
   type PlotPath,
   type Detour,
   type Point,
+  type RoutePoint,
   type Route,
   type Run,
   type SegmentKind,
@@ -113,6 +120,8 @@ interface Spark {
   vy: number;
   life: number;
   age: number;
+  /** Pull downward, in px/s^2. */
+  g: number;
 }
 
 const HOT_INK = 380;
@@ -134,6 +143,9 @@ const WARP_RADIUS = 130;
 const RING_SECONDS = 1.2;
 const STATION_PLATE_SECONDS = 2.6;
 const STATION_UNDO_SECONDS = 1;
+/** Once its journey is over, the pen circles the final button this many radians a second, a comet's tail behind. */
+const ORBIT_SPEED = TAU / 14;
+const ORBIT_TAIL = 2.2;
 /** How far above a section's eyebrow a route that passes over its title runs. */
 const OVER_TITLE = 100;
 /** How far under a section a route crosses back to the rail. */
@@ -241,6 +253,9 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   /** The final button, pulsed once when the pen has finished its journey. */
   let ctaEl: HTMLElement | null = null;
   let ctaDone = false;
+  /** The ellipse round the final button, and the angle the pen has reached circling it, once it is there. */
+  let ell: ReturnType<typeof ctaEllipse> | null = null;
+  let orbit: { from: number; angle: number } | null = null;
   const flashes: Flash[] = [];
   const anchors = new Map<string, Rect>();
   const sparks: Spark[] = [];
@@ -248,6 +263,10 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let dirty = true;
   let lastSy = -1;
   let lastSlide = -1;
+  let lastHover = false;
+  /** How green the pen is, easing with the pointer on the final button. */
+  let tint = 0;
+  const green = greenSprites();
   let lastRender = 0;
   /** A plate asked for the next frame while it eases toward a target. */
   let easing = false;
@@ -358,9 +377,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     });
     stations = path.stations;
     titles.forEach((s, i) => (s.run = path?.runs[i] ?? null));
-    kfs = scrollKeyframes(path, H, maxScroll);
+    // A pixel short of the bottom, which a browser scrolling in fractions may never quite reach.
+    kfs = scrollKeyframes(path, H, Math.max(0, maxScroll - 1));
 
     ctaEl = document.querySelector<HTMLElement>('[data-plot-anchor="cta-button"]');
+    ell = cta ? ctaEllipse({ cx: cta.cx, cy: cta.cy, w: cta.w, h: cta.h }) : null;
     const key = (el: HTMLElement, name: string) => `${el.id}|${name}`;
     const oldPlates = new Map(plates.map((p) => [key(p.el, p.name), p.p]));
     // A section may name several plates, separated by spaces.
@@ -436,6 +457,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const dock = sec.querySelector('[data-plot-anchor="try-dock"]');
       if (!dock) return null;
       const d = pageRect(dock, sy);
+      const mid = (s.top + s.bottom) / 2;
       // Out from under the playground in the middle, clear of the next title's words.
       const cx = Math.max(W / 2, (next?.right ?? 0) + 48);
       return {
@@ -445,11 +467,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         along: ['try-0', 'net'],
         pts: [
           { x: from.x, y: s.top - 60, r: 0, key: null, mark: 'try-0' },
-          { x: from.x, y: (s.top + s.bottom) / 2, r: 0, key: 0.45, mark: 'net' },
-          // Behind the playground from here on.
-          { x: from.x, y: d.top + 60 },
-          { x: cx, y: d.top + 200 },
-          { x: cx, y: d.bottom + 24, key: 0.5 },
+          // Flashes while the section's top is still in the middle of the screen.
+          { x: from.x, y: mid, r: 0, key: 0.5 + (mid - box.top) / H, mark: 'net' },
+          // Gone into the network, then out of sight behind the playground, until it comes out underneath.
+          { x: from.x, y: d.top + 60, ghost: true },
+          { x: cx, y: d.top + 200, ghost: true },
+          { x: cx, y: d.bottom + 24, key: 0.55, ghost: true },
         ],
       };
     }
@@ -495,14 +518,28 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const spot = sec.querySelector('[data-plot-anchor="ruler-space"]');
       if (!spot) return null;
       const [ox, oy] = rulerOrigin(pageRect(spot, sy));
-      // Down the rail, a tap on the ruler's zero as it reaches the middle of the screen, and back.
+      const keys = spot.previousElementSibling;
+      const panel = spot.nextElementSibling;
+      const mods = panel?.nextElementSibling;
+      const cols = mods ? Array.from(mods.children).map((c) => pageRect(c, sy)) : [];
+      // Taps the ruler's zero while the keys above it are still a third of the screen from the bottom.
+      const ky = keys ? pageRect(keys, sy).cy : oy;
+      const tap: RoutePoint[] = [
+        { x: railX, y: oy },
+        { x: ox, y: oy, r: 0, key: 0.66 + (oy - ky) / H, mark: 'ruler' },
+      ];
+      const [m0, m1] = cols;
+      if (!panel || !m0 || !m1 || Math.abs(m0.top - m1.top) > 2 || m1.left < m0.right)
+        return { title: i, fromRail: true, pts: tap };
+      // Then along the ruler, down past the panel's right side, under it and down between the two columns.
+      const p = pageRect(panel, sy);
+      const x = p.right + 28;
+      const y = (p.bottom + m0.top) / 2;
+      const gap = (m0.right + m1.left) / 2;
       return {
         title: i,
         fromRail: true,
-        pts: [
-          { x: railX, y: oy, key: 0.56 },
-          { x: ox, y: oy, r: 0, key: 0.5, mark: 'ruler' },
-        ],
+        pts: [...tap, { x, y: oy }, { x, y }, { x: gap, y }, { x: gap, y: back }],
       };
     }
     if (kind === 'camera') {
@@ -557,6 +594,24 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         ],
       };
     }
+    if (kind === 'middle') {
+      const row = sec.querySelector('[data-plot-gap]');
+      const a = row?.children[0];
+      const b = row?.children[1];
+      if (!a || !b) return null;
+      const l = pageRect(a, sy);
+      const r = pageRect(b, sy);
+      if (r.left < l.right || Math.abs(l.top - r.top) > 2) return null;
+      // Halfway across, down between the tiles and the columns under them.
+      const x = (l.right + r.left) / 2;
+      return {
+        title: i,
+        pts: [
+          { x, y: end.y },
+          { x, y: back },
+        ],
+      };
+    }
     if (kind === 'split') {
       const a = sec.querySelector('[data-plot-col="left"]');
       const b = sec.querySelector('[data-plot-col="right"]');
@@ -564,10 +619,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const l = pageRect(a, sy);
       const r = pageRect(b, sy);
       if (r.left < l.right + 8) return null;
-      // Down past the lead's last word, into the space right above the right column.
+      // Down past the lead's last word, then left halfway between the columns and what comes before them.
       const lead = textRight(sec.querySelector('p'));
       const x = clamp(Math.max(end.x, lead + 24), r.left + 40, r.right - 40);
-      const top = r.top - 12;
+      const before = a.parentElement?.previousElementSibling;
+      const top = before ? (pageRect(before, sy).bottom + Math.min(l.top, r.top)) / 2 : r.top - 12;
       const gap = (l.right + r.left) / 2;
       return {
         title: i,
@@ -640,7 +696,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       emit(p.x, p.y, 40, 300, 0, TAU, 20);
       flashes.push({ x: p.x, y: p.y, t, size: 150 });
     }
-    if (pen.kind !== UP && t - lastMove < 1.5) {
+    // At the end of its journey the pen keeps going round the button, slowly, on ambient time.
+    if (ell && introDone && pen.s >= path.total - 8) {
+      orbit ??= { from: at, angle: 0 };
+      orbit.angle = ell.a0 + ell.sweep + ORBIT_SPEED * (at - orbit.from);
+      pen.x = ell.cx + Math.cos(orbit.angle) * ell.rx;
+      pen.y = ell.cy + Math.sin(orbit.angle) * ell.ry;
+      pen.kind = FINALE;
+      lastMove = t;
+    } else orbit = null;
+    if (pen.kind !== UP && pen.kind !== GHOST && t - lastMove < 1.5) {
       const speed = Math.abs(pen.v);
       const extra = pen.kind === WRITE ? 26 : pen.kind === JUMP ? 110 : 4;
       emitAcc += (Math.min(140, speed * 0.08) + extra) * dt;
@@ -747,6 +812,32 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     reveal(host, 0);
     reveals = reveals.filter((r) => r.el !== host);
   };
+  // Pressing the final button sprays sparks from its edge that fall away down the page.
+  const onPress = (e: PointerEvent) => {
+    const el = e.target instanceof Element ? e.target.closest('[data-plot-anchor="cta-button"]') : null;
+    if (!el) return;
+    const r = pageRect(el, sy);
+    for (let i = 0; i < 110; i++) {
+      if (sparks.length > MAX_SPARKS) sparks.shift();
+      // From a point on the button's outline, mostly up and out, a few straight sideways.
+      const u = Math.random();
+      const x = r.left + u * r.w;
+      const y = r.top + Math.random() * r.h * 0.4;
+      const a = -Math.PI / 2 + (u - 0.5) * 2.2 + (Math.random() - 0.5) * 0.6;
+      const v = 260 + Math.random() * 520;
+      sparks.push({
+        x,
+        y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v,
+        life: 1.1 + Math.random() * 0.9,
+        age: 0,
+        g: 1100,
+      });
+    }
+    flashes.push({ x: r.cx, y: r.cy, t, size: r.w * 0.8 });
+    dirty = true;
+  };
   // The pen follows the mouse over elements marked to hold it, such as the FAQ's questions.
   const onPointerOver = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse') return;
@@ -772,6 +863,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         vy: Math.sin(a) * v - up * Math.random(),
         life: 0.3 + Math.random() * 0.6,
         age: 0,
+        g: 520,
       });
     }
   }
@@ -784,7 +876,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         sparks.splice(i, 1);
         continue;
       }
-      p.vy += 520 * dt;
+      p.vy += p.g * dt;
       p.vx *= 1 - 1.6 * dt;
       p.vy *= 1 - 0.6 * dt;
       p.x += p.vx * dt;
@@ -825,7 +917,9 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         const step = dt / (on ? (ps.plate.seconds ?? STATION_PLATE_SECONDS) : STATION_UNDO_SECONDS);
         next = on ? Math.min(1, ps.p + step) : Math.max(0, ps.p - step);
       } else {
-        const target = hero ? clamp(t / HERO_PLATE_SECONDS) : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
+        const target = hero
+          ? clamp(t / HERO_PLATE_SECONDS)
+          : clamp((sy + H * 0.9 - ps.trigger) / (H * (ps.plate.span ?? 0.62)));
         next = ps.p + (target - ps.p) * (1 - Math.exp(-dt * (hero ? 60 : 5)));
       }
       if (Math.abs(next - ps.p) > 0.0005 && visible(ps.section)) moving = true;
@@ -844,7 +938,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const px = pen.x;
     const py = pen.y - sy;
     const sig = WARP_RADIUS;
-    const str = reduce ? 0 : WARP_STRENGTH;
+    const str = reduce || pen.kind === GHOST ? 0 : WARP_STRENGTH;
     const reach = sig * 3;
     const penNear = str > 0 && py > -reach && py < H + reach;
     // Straight stretches are filled as rects, far cheaper to raster than strokes; only the stretch near the pen
@@ -947,7 +1041,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const ticks = new Path2D();
     let last = -1;
     for (let i = Math.max(1, lo); i < ie; i++) {
-      if ((Y[i] > bot && Y[i - 1] > bot) || K[i] === UP || K[i] === JUMP) {
+      if ((Y[i] > bot && Y[i - 1] > bot) || K[i] === UP || K[i] === JUMP || K[i] === GHOST) {
         last = -1;
         continue;
       }
@@ -963,7 +1057,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         ticks.lineTo(X[i] - 3, Y[i] - sy);
       }
     }
-    if (K[ie] !== UP && K[ie] !== JUMP) {
+    if (K[ie] !== UP && K[ie] !== JUMP && K[ie] !== GHOST) {
       const pa = K[ie] === WRITE ? run : down;
       if (K[ie] !== last) pa.moveTo(X[ie - 1], Y[ie - 1] - sy);
       pa.lineTo(e.x, e.y - sy);
@@ -997,12 +1091,29 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     let open = -1;
     let x2 = p.x;
     let y2 = p.y;
-    for (let i = ip; i >= 1; i--) {
+    // Circling the button, the hot ink is a tail along the ellipse behind the pen.
+    if (orbit && ell) {
+      const n = 64;
+      let px = pen.x;
+      let py = pen.y - sy;
+      for (let k = 1; k <= n; k++) {
+        const a = orbit.angle - (ORBIT_TAIL * k) / n;
+        const x = ell.cx + Math.cos(a) * ell.rx;
+        const y = ell.cy + Math.sin(a) * ell.ry - sy;
+        const band = Math.min(HEAT_BANDS - 1, ((1 - k / n) * HEAT_BANDS) | 0);
+        hot[band].moveTo(px, py);
+        hot[band].lineTo(x, y);
+        px = x;
+        py = y;
+      }
+    }
+    for (let i = orbit ? 0 : ip; i >= 1; i--) {
       const d = pen.s - S[i - 1];
       if (d - (S[i] - S[i - 1]) > UP_WAKE) break;
       const x1 = X[i - 1];
       const y1 = Y[i - 1];
-      if (K[i] === UP || K[i] === JUMP) {
+      if (K[i] === GHOST) open = -1;
+      else if (K[i] === UP || K[i] === JUMP) {
         open = -1;
         const leap = K[i] === JUMP;
         if (Math.floor(S[i] / 7) !== Math.floor(S[i - 1] / 7))
@@ -1026,12 +1137,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const h = (band + 0.5) / HEAT_BANDS;
       c.globalCompositeOperation = 'lighter';
       c.lineWidth = 4;
-      c.strokeStyle = rgba(AMBER, 0.1 * h * intensity);
+      c.strokeStyle = rgba(mix(AMBER, LIME, tint), 0.1 * h * intensity);
       c.stroke(hot[band]);
       c.globalCompositeOperation = 'source-over';
       c.lineWidth = 1 + h * 0.5;
       c.strokeStyle = rgba(
-        mix(NEUTRAL, h > 0.8 ? HOT : AMBER, Math.pow(h, 0.7)),
+        mix(NEUTRAL, mix(h > 0.8 ? HOT : AMBER, h > 0.8 ? LIME_HOT : LIME, tint), Math.pow(h, 0.7)),
         (0.2 + 0.75 * h) * Math.min(1.2, intensity),
       );
       c.stroke(hot[band]);
@@ -1048,7 +1159,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const k = 1 - p.age / p.life;
       const y = p.y - sy;
       if (y < -40 || y > H + 40) continue;
-      c.strokeStyle = rgba(mix(AMBER, HOT, k * k), k * 0.9);
+      c.strokeStyle = rgba(mix(mix(AMBER, LIME, tint), mix(HOT, LIME_HOT, tint), k * k), k * 0.9);
       c.beginPath();
       c.moveTo(p.x, y);
       c.lineTo(p.x - p.vx * 0.025, y - p.vy * 0.025);
@@ -1062,7 +1173,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const c = ctx;
     const x = pen.x;
     const y = pen.y - sy;
-    if (y < -150 || y > H + 150) return;
+    if ((y < -150 || y > H + 150) && !flashes.length) return;
     const up = pen.kind === UP ? 0.5 : 1;
     const flick = 0.84 + 0.16 * Math.sin(t * 41) * Math.sin(t * 17.3);
     c.save();
@@ -1085,13 +1196,23 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       c.stroke();
       ink.sprite(sprites.glowL, fl.x, fl.y - sy, 320 * (1 - q * 0.5), 0.5 * (1 - q));
     }
-    ink.sprite(sprites.glowL, x, y, 230, 0.3 * up * flick);
-    ink.sprite(sprites.glowS, x, y, 36 * flick, 0.95 * up);
-    c.globalAlpha = 0.24 * up * flick;
-    c.drawImage(sprites.streak, x - 130, y - 1.5, 260, 3);
-    c.globalAlpha = 1;
+    // Gone into a drawing, the pen shows nothing of itself.
+    if (pen.kind !== GHOST) {
+      // Orange fading into green while the final button is pointed at.
+      for (const [set, k] of [
+        [sprites, 1 - tint],
+        [green, tint],
+      ] as const) {
+        if (k <= 0.001) continue;
+        ink.sprite(set.glowL, x, y, 230, 0.3 * up * flick * k);
+        ink.sprite(set.glowS, x, y, 36 * flick, 0.95 * up * k);
+        c.globalAlpha = 0.24 * up * flick * k;
+        c.drawImage(set.streak, x - 130, y - 1.5, 260, 3);
+      }
+      c.globalAlpha = 1;
+    }
     c.restore();
-    ink.dot(x, y, 1.8, WHITE, 0.95 * up);
+    if (pen.kind !== GHOST) ink.dot(x, y, 1.8, WHITE, 0.95 * up);
   }
 
   function plateCtx(ps: PlateState): PlateCtx {
@@ -1154,7 +1275,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
           ? 'leap'
           : pen.kind === RING
             ? 'circling'
-            : pen.kind === UP
+            : pen.kind === UP || pen.kind === GHOST
               ? 'pen up'
               : 'pen down';
     const progress = `s ${Math.round(pen.s).toLocaleString('en-US')} px · ${Math.round((pen.s / (path.total || 1)) * 100)} %`;
@@ -1187,7 +1308,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     inkS = hold ? Math.max(inkS, pen.s) : Math.max(pen.s, Math.min(inkS, scrollTarget()));
     // The final button pulses once as the pen closes its ellipse, and again after the pen has left and come back.
     if (ctaEl && path && !reduce) {
-      const done = ctaDone ? pen.s > path.total - 60 : pen.s >= path.total - 2;
+      const done = ctaDone ? pen.s > path.total - 60 : pen.s >= path.total - 8;
       if (done !== ctaDone) ctaEl.toggleAttribute('data-plot-done', (ctaDone = done));
     }
     if (!reduce) {
@@ -1197,8 +1318,19 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     stepSparks(dt);
     const platesMoving = stepPlates(dt);
     while (flashes.length && t - flashes[0].t > 0.9) flashes.shift();
-    const ambient = !reduce && !idle && plates.some((ps) => ps.plate.animated && onScreen(ps.section));
+    // Ambient motion redraws at the pace its slowest-needing part asks for, the orbit included.
+    let ambientMs = Infinity;
+    if (!reduce && !idle) {
+      for (const ps of plates)
+        if (ps.plate.animated && onScreen(ps.section))
+          ambientMs = Math.min(ambientMs, ps.plate.ambientMs ?? AMBIENT_FRAME_MS);
+      if (orbit && near(pen.y, 200)) ambientMs = Math.min(ambientMs, AMBIENT_FRAME_MS);
+    }
     const slide = plotStore.setup.slide;
+    const hover = plotStore.cta.hover;
+    const tintWas = tint;
+    tint += ((hover ? 1 : 0) - tint) * (1 - Math.exp(-dt * 14));
+    if (Math.abs(tint - (hover ? 1 : 0)) < 0.004) tint = hover ? 1 : 0;
     // Motion off screen draws nothing: the pen and its hot ink, sparks and flashes count only near the view.
     const changed =
       dirty ||
@@ -1209,12 +1341,15 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       platesMoving ||
       easing ||
       slide !== lastSlide ||
+      hover !== lastHover ||
+      (tint !== tintWas && near(pen.y, 200)) ||
       !introDone;
-    if (changed || (ambient && now - lastRender >= AMBIENT_FRAME_MS)) {
+    if (changed || now - lastRender >= ambientMs) {
       render();
       dirty = false;
       lastSy = sy;
       lastSlide = slide;
+      lastHover = hover;
       lastRender = now;
     }
     updateHud(now);
@@ -1233,6 +1368,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   if (!reduce) {
     document.addEventListener('focusin', onFocus);
     document.addEventListener('pointerover', onPointerOver);
+    document.addEventListener('pointerdown', onPress);
     root.addEventListener('pointerleave', onPointerLeave);
   }
   const activity = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'touchstart'] as const;
@@ -1272,6 +1408,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     window.removeEventListener('resize', onResize);
     document.removeEventListener('focusin', onFocus);
     document.removeEventListener('pointerover', onPointerOver);
+    document.removeEventListener('pointerdown', onPress);
     root.removeEventListener('pointerleave', onPointerLeave);
     for (const type of activity) window.removeEventListener(type, onActivity);
     root.removeAttribute('data-plot-idle');

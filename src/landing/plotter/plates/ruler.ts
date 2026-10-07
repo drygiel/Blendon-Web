@@ -8,6 +8,7 @@ export const rulerOrigin = (rs: Rect): [number, number] => [rs.left, rs.top + rs
 export const ruler: Plate = {
   at: 'ruler-space',
   station: 'ruler',
+  seconds: 1.1,
   draw({ ink, sy, W, anchor }) {
     const rs = anchor('ruler-space');
     if (!rs) return;

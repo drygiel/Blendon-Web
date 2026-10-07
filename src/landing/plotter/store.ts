@@ -11,6 +11,10 @@ export const plotStore = {
   setup: {
     slide: 0,
   },
+  cta: {
+    /** The pointer or focus is on the final button. */
+    hover: false,
+  },
 };
 
 /** Dispatched on an element when the plotter reveals it. */

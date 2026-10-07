@@ -86,6 +86,8 @@ function pressed(t: number): Map<number, number> {
 /** The keyboard, drawn row by row; every key with a Blendon default is lit, then they are pressed in turn. */
 export const keyboard: Plate = {
   animated: true,
+  // The presses are slow; fifteen frames a second carry them.
+  ambientMs: 66,
   draw({ ink, ctx, sy, t, reduce, W, title, content }) {
     if (!title || W < 1100) return;
     const width = Math.min(430, content.w * 0.36);

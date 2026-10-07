@@ -64,6 +64,12 @@
   height: 620px;
   overflow: hidden;
   pointer-events: none;
+  transition: filter 0.45s ease;
+}
+
+// Green while the final button is pointed at.
+:global(html[data-cta-hover]) .aurora {
+  filter: hue-rotate(85deg) saturate(1.1);
 }
 
 .sky {
