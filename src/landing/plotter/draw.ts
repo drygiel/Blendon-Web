@@ -9,6 +9,9 @@ export const HOT: RGB = [255, 228, 186];
 export const WHITE: RGB = [255, 250, 240];
 export const RED: RGB = [229, 83, 75];
 export const GREEN: RGB = [124, 195, 90];
+/** The pen's colours while the final button is pointed at. */
+export const LIME: RGB = [120, 214, 92];
+export const LIME_HOT: RGB = [214, 255, 190];
 export const BLUE: RGB = [74, 127, 208];
 
 export const MONO = '500 10.5px "JetBrains Mono", ui-monospace, Consolas, monospace';
@@ -95,37 +98,44 @@ export interface Sprites {
 }
 
 let shared: Sprites | null = null;
+let sharedGreen: Sprites | null = null;
 
 /** One set of sprites for the whole page. */
 export function sprites(): Sprites {
-  return (shared ??= makeSprites());
+  return (shared ??= makeSprites(['255,214,150', '242,163,58', '230,110,30', '255,224,170', '255,222,176']));
 }
 
-function makeSprites(): Sprites {
+/** The same sprites in green, for the pen while the final button is pointed at. */
+export function greenSprites(): Sprites {
+  return (sharedGreen ??= makeSprites(['214,255,186', '120,214,92', '60,170,60', '220,255,200', '210,255,190']));
+}
+
+/** Sprites from a palette: core, body and edge of the large glow, the small glow's halo, the streak's middle. */
+function makeSprites([core, body, edge, halo, mid]: string[]): Sprites {
   const streak = document.createElement('canvas');
   streak.width = 256;
   streak.height = 4;
   const g = streak.getContext('2d');
   if (g) {
     const gr = g.createLinearGradient(0, 0, 256, 0);
-    gr.addColorStop(0, 'rgba(242,163,58,0)');
-    gr.addColorStop(0.5, 'rgba(255,222,176,0.9)');
-    gr.addColorStop(1, 'rgba(242,163,58,0)');
+    gr.addColorStop(0, `rgba(${body},0)`);
+    gr.addColorStop(0.5, `rgba(${mid},0.9)`);
+    gr.addColorStop(1, `rgba(${body},0)`);
     g.fillStyle = gr;
     g.fillRect(0, 0, 256, 4);
   }
   return {
     glowL: radial(256, [
-      [0, 'rgba(255,214,150,0.9)'],
-      [0.12, 'rgba(242,163,58,0.5)'],
-      [0.42, 'rgba(230,110,30,0.11)'],
-      [1, 'rgba(230,110,30,0)'],
+      [0, `rgba(${core},0.9)`],
+      [0.12, `rgba(${body},0.5)`],
+      [0.42, `rgba(${edge},0.11)`],
+      [1, `rgba(${edge},0)`],
     ]),
     glowS: radial(64, [
       [0, 'rgba(255,255,255,1)'],
-      [0.22, 'rgba(255,224,170,0.95)'],
-      [0.55, 'rgba(242,163,58,0.35)'],
-      [1, 'rgba(242,163,58,0)'],
+      [0.22, `rgba(${halo},0.95)`],
+      [0.55, `rgba(${body},0.35)`],
+      [1, `rgba(${body},0)`],
     ]),
     streak,
   };

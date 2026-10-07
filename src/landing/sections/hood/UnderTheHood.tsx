@@ -38,7 +38,7 @@ const COLUMNS: [string, ReactNode[]][] = [
 
 export function UnderTheHood() {
   return (
-    <Section id="hood" plate="blueprint">
+    <Section id="hood" plate="blueprint" route="middle">
       <SectionIntro
         eyebrow="11 / UNDER THE HOOD"
         title={
@@ -55,7 +55,7 @@ export function UnderTheHood() {
           </div>
         ))}
       </div>
-      <div className={styles.cards} data-reveal="stagger">
+      <div className={styles.cards} data-reveal="stagger" data-plot-gap="">
         {COLUMNS.map(([label, items]) => (
           <div key={label} className={styles.card}>
             <span className={styles.label}>{label}</span>

@@ -9,7 +9,10 @@ export const UP = 2;
 export const FINALE = 3;
 export const JUMP = 4;
 export const RING = 5;
-export type SegmentKind = typeof RAIL | typeof WRITE | typeof UP | typeof FINALE | typeof JUMP | typeof RING;
+/** The pen out of sight, as if gone into a drawing: nothing drawn, no glow, no sparks. */
+export const GHOST = 6;
+export type SegmentKind =
+  typeof RAIL | typeof WRITE | typeof UP | typeof FINALE | typeof JUMP | typeof RING | typeof GHOST;
 
 export interface Point {
   x: number;
@@ -88,6 +91,8 @@ export interface RoutePoint extends Point {
   gap?: number;
   /** Names the point, so the page can tell when the pen has passed it. */
   mark?: string;
+  /** The pen travels the leg ending here out of sight. */
+  ghost?: boolean;
 }
 
 /**
@@ -223,8 +228,9 @@ function sampler() {
         const ax = c.x - lx;
         const ay = c.y - ly;
         const la = Math.hypot(ax, ay);
+        const kc = c.ghost ? GHOST : k;
         if (!n) {
-          this.line(c.x, c.y, k);
+          this.line(c.x, c.y, kc);
           ends.push(xs.length - 1);
           break;
         }
@@ -232,7 +238,7 @@ function sampler() {
         const by = n.y - c.y;
         const lb = Math.hypot(bx, by);
         const r = Math.min(c.r ?? radius, la / 2, lb / 2);
-        this.line(c.x - (ax / (la || 1)) * r, c.y - (ay / (la || 1)) * r, k);
+        this.line(c.x - (ax / (la || 1)) * r, c.y - (ay / (la || 1)) * r, kc);
         ends.push(xs.length - 1);
         if (r > 0.5) {
           const ux = bx / lb;
@@ -244,7 +250,7 @@ function sampler() {
             c.y + uy * r * 0.45,
             c.x + ux * r,
             c.y + uy * r,
-            k,
+            n.ghost ? GHOST : k,
           );
         }
       }
@@ -261,6 +267,11 @@ function sampler() {
 }
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
+
+/** The ellipse the pen closes round the call to action: centre, radii, start angle and sweep. */
+export function ctaEllipse(cta: Box) {
+  return { cx: cta.cx, cy: cta.cy, rx: cta.w / 2 + 30, ry: cta.h / 2 + 22, a0: -0.35, sweep: Math.PI * 2 * 1.06 };
+}
 
 /** Where writing under a title ends, and the underline's height. */
 export const underlineEnd = (t: TitleBox): Point => ({ x: t.right + 16, y: t.bottom + UNDERLINE_GAP });
@@ -370,13 +381,11 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
   });
   if (cta) {
     const l = pb.last();
-    const erx = cta.w / 2 + 30;
-    const ery = cta.h / 2 + 22;
-    const a0 = -0.35;
-    const ex0 = cta.cx + Math.cos(a0) * erx;
-    const ey0 = cta.cy + Math.sin(a0) * ery;
+    const e = ctaEllipse(cta);
+    const ex0 = e.cx + Math.cos(e.a0) * e.rx;
+    const ey0 = e.cy + Math.sin(e.a0) * e.ry;
     pb.cubic(l.x + 50, l.y + 30, ex0 + 80, ey0 - 30, ex0, ey0, FINALE);
-    pb.ellipse(cta.cx, cta.cy, erx, ery, a0, Math.PI * 2 * 1.06, FINALE);
+    pb.ellipse(e.cx, e.cy, e.rx, e.ry, e.a0, e.sweep, FINALE);
   }
 
   const n = pb.xs.length;

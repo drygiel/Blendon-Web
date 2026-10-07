@@ -2,8 +2,15 @@ import wordmark from '../../../assets/landing/wordmark.png';
 import { MANUAL_URL, NEW_TAB } from '../../../lib/links.ts';
 import { PRICE, RELEASED, STORE_URL, TERMS, VERSION } from '../../../lib/product.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
+import { plotStore } from '../../plotter/store.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import styles from './FinalCta.module.scss';
+
+/** The background draws the protractor's rays in and the footer's aurora turns blue while the button is pointed at. */
+const hover = (on: boolean) => () => {
+  plotStore.cta.hover = on;
+  document.documentElement.toggleAttribute('data-cta-hover', on);
+};
 
 const PERKS = [
   'Full C# source included',
@@ -26,7 +33,14 @@ export function FinalCta() {
           ))}
         </ul>
         {/* The pen ends its path circling this button; a protractor is drawn under it. */}
-        <span className={styles.buy} data-plot-anchor="cta-button">
+        <span
+          className={styles.buy}
+          data-plot-anchor="cta-button"
+          onPointerEnter={hover(true)}
+          onPointerLeave={hover(false)}
+          onFocus={hover(true)}
+          onBlur={hover(false)}
+        >
           <ButtonLink href={STORE_URL}>Get Blendon · {PRICE}</ButtonLink>
         </span>
         <span className={styles.terms} data-reveal="rise">
