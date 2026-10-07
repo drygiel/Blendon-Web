@@ -7,12 +7,11 @@ let lift = 0;
 
 /** The settings window as a fanned stack of pages; the carousel's current page lifts out in amber. */
 export const pages: Plate = {
-  animated: true,
   draw({ ink, sy, W, title, content, store, reduce }) {
     if (!title || W < 1000) return;
     const n = SETTINGS_SLIDES.length;
     const cur = store.setup.slide;
-    lift += (cur - lift) * (reduce ? 1 : 0.2);
+    lift = Math.abs(cur - lift) < 0.002 ? cur : lift + (cur - lift) * (reduce ? 1 : 0.2);
     const hw = 92;
     const hh = 28;
     const gap = 11;
@@ -57,5 +56,6 @@ export const pages: Plate = {
       align: 'right',
       a: 0.5,
     });
+    return lift !== cur;
   },
 };
