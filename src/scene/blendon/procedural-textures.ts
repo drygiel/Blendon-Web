@@ -19,7 +19,7 @@ function newTexture(w: number, h: number): BakedTexture | null {
 
 function write(tex: BakedTexture | null, w: number, h: number, pixel: (px: number, py: number) => Color) {
   if (!tex) return null;
-  const ctx = tex.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+  const ctx = tex.getContext('2d');
   if (!ctx) return null;
   const img = ctx.createImageData(w, h);
   const d = img.data;
