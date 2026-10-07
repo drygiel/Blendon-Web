@@ -22,20 +22,35 @@
   @return calc(var(--k) * #{$v} * 1px);
 }
 
+// No frame and no clipping: the pie floats on the polar paper the background plotter draws, and its
+// highlights reach as far as they need.
 .stage {
   position: relative;
-  border: 1px solid $border-2;
-  border-radius: 16px;
-  // Transparent: the background plotter draws polar paper behind the pie.
-  background: transparent;
-  overflow: hidden;
   cursor: default;
   user-select: none;
   touch-action: manipulation;
   outline: none;
+  border-radius: 16px;
 
   &:focus-visible {
-    border-color: $blue-light;
+    outline: 1px solid $blue-light;
+    outline-offset: 4px;
+  }
+}
+
+// Until the pen lands in its centre the pie waits unseen; then the ring lights and the pills unfold in turn.
+:global(html.plot) .stage:not([data-in]) .pie {
+  opacity: 0;
+}
+
+:global(html.plot) .stage[data-in] {
+  .ring,
+  .title {
+    animation: fade 0.5s ease-out 0.1s backwards;
+  }
+
+  .item {
+    animation: unfoldIn 0.55s cubic-bezier(0.2, 0.7, 0.1, 1) calc(0.18s + var(--n, 0) * 55ms) backwards;
   }
 }
 
@@ -163,6 +178,13 @@
 
 // The plugin's unfold: every pill slides out from the spawn point.
 @keyframes unfold {
+  from {
+    translate: pt(calc(var(--x) * -1)) pt(calc(var(--y) * -1));
+    opacity: 0;
+  }
+}
+
+@keyframes unfoldIn {
   from {
     translate: pt(calc(var(--x) * -1)) pt(calc(var(--y) * -1));
     opacity: 0;

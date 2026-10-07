@@ -17,9 +17,12 @@ import {
   makeSprites,
   mix,
   rgba,
+  smooth,
 } from './draw.ts';
 import {
   INTRO_END,
+  JUMP,
+  RING,
   UP,
   WRITE,
   bAtScroll,
@@ -30,8 +33,10 @@ import {
   scrollKeyframes,
   type Keyframe,
   type PlotPath,
+  type Detour,
   type Run,
   type SegmentKind,
+  type Station,
 } from './path.ts';
 import { HERO_ORIGIN_Y } from './plates/hero.ts';
 import { PLATES, type Plate, type PlateCtx, type Rect } from './plates/index.ts';
@@ -80,7 +85,27 @@ interface RevealState {
   el: HTMLElement;
   kind: string;
   title: TitleState | null;
+  /** A station the pen must reach first, if any. */
+  at: string | null;
   top: number;
+}
+
+/** Where the grid bends like space around a black hole, in screen coordinates, within its section. */
+interface Field {
+  x: number;
+  y: number;
+  r: number;
+  w: number;
+  top: number;
+  bottom: number;
+}
+
+/** A ring of light spreading from a point the pen ignites, in page coordinates. */
+interface Flash {
+  x: number;
+  y: number;
+  t: number;
+  size: number;
 }
 
 interface Spark {
@@ -92,6 +117,10 @@ interface Spark {
   age: number;
 }
 
+/** How far, in multiples of the station's radius, the black-hole field bends the grid. */
+const FIELD_REACH = 4.2;
+/** Brightness steps for grid lines that fade into a field. */
+const LEVELS = 6;
 const HOT_INK = 380;
 const UP_WAKE = 620;
 const MAX_SPARKS = 280;
@@ -167,6 +196,9 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let railX = 6;
   let origin = { x: 0, y: 0 };
   let heroBottom = 0;
+  let stations: Station[] = [];
+  let field: Field | null = null;
+  const flashes: Flash[] = [];
   const anchors = new Map<string, Rect>();
   const sparks: Spark[] = [];
   const pen = { s: 0, x: 0, y: 0, px: 0, py: 0, v: 0, kind: UP as SegmentKind };
@@ -236,12 +268,24 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     origin = stage ? { x: stage.cx, y: stage.top + stage.h * HERO_ORIGIN_Y } : { x: W / 2, y: H * 0.7 };
     heroBottom = stage ? stage.bottom : 0;
     const cta = anchors.get('cta-button');
+    // Stations: points the pen leaps into after their section's title, such as the pie menu's centre.
+    const detours: Detour[] = Array.from(document.querySelectorAll<HTMLElement>('[data-plot-station]')).flatMap(
+      (el) => {
+        const sec = el.closest('section');
+        const title = titles.findIndex((s) => s.section === sec);
+        const r = pageRect(el, sy);
+        const name = el.dataset.plotStation ?? '';
+        return title < 0 || !name ? [] : [{ title, name, cx: r.cx, cy: r.cy, r: Number(el.dataset.plotRadius) || 120 }];
+      },
+    );
     path = buildPath({
       titles: titles.map((s) => ({ left: s.left, right: s.right, top: s.top, bottom: s.bottom })),
       railX,
       origin,
       cta: cta ? { cx: cta.cx, cy: cta.cy, w: cta.w, h: cta.h } : null,
+      detours,
     });
+    stations = path.stations;
     titles.forEach((s, i) => (s.run = path?.runs[i] ?? null));
     kfs = scrollKeyframes(path, H, maxScroll);
 
@@ -271,6 +315,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         el,
         kind: el.dataset.reveal ?? '',
         title: titles.find((s) => s.section === sec) ?? null,
+        at: el.dataset.revealAt ?? null,
         top: el.getBoundingClientRect().top + sy,
       };
     });
@@ -319,9 +364,18 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       ignited = true;
       emit(origin.x, origin.y, 46, 330, -Math.PI / 2, TAU, 40);
     }
+    // Landing in a station going forward ignites it: a burst of sparks and a spreading ring of light.
+    for (const st of stations) {
+      if (prev < st.s0 && pen.s >= st.s0) {
+        const p = posAt(path, st.s0);
+        emit(p.x, p.y, 70, 420, 0, TAU, 30);
+        flashes.push({ x: p.x, y: p.y, t, size: 260 });
+      }
+    }
     if (pen.kind !== UP && t - lastMove < 1.5) {
       const speed = Math.abs(pen.v);
-      emitAcc += (Math.min(140, speed * 0.08) + (pen.kind === WRITE ? 26 : 4)) * dt;
+      const extra = pen.kind === WRITE ? 26 : pen.kind === JUMP ? 110 : 4;
+      emitAcc += (Math.min(140, speed * 0.08) + extra) * dt;
       const n = emitAcc | 0;
       if (n) {
         emitAcc -= n;
@@ -366,6 +420,10 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     reveals = reveals.filter((r) => {
       if (r.top - sy > H * 0.9) return true;
       if (titleP(r.title) < (r.kind === 'type' ? 0.01 : 0.55)) return true;
+      if (r.at) {
+        const st = stations.find((x) => x.name === r.at);
+        if (st && pen.s < st.s0) return true;
+      }
       reveal(r.el, order++ * 0.09);
       fired = true;
       return false;
@@ -425,16 +483,35 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     let moving = false;
     for (const ps of plates) {
       const hero = ps.plate.intro === true;
+      // A station's plate draws as the pen circles the station, so the pen itself sets it off.
+      const st = ps.plate.station ? stations.find((x) => x.name === ps.plate.station) : undefined;
       const target = reduce
         ? 1
         : hero
           ? clamp(t / HERO_PLATE_SECONDS)
-          : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
+          : st
+            ? clamp((pen.s - st.s0) / (st.s1 - st.s0 || 1))
+            : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
       const next = ps.p + (target - ps.p) * (1 - Math.exp(-dt * (hero ? 60 : 5)));
       if (Math.abs(next - ps.p) > 0.0005 && visible(ps.section)) moving = true;
       ps.p = next;
     }
     return moving;
+  }
+
+  // The black-hole field follows a warping plate's station, as strong as the plate is drawn.
+  function updateField() {
+    field = null;
+    if (!path) return;
+    for (const ps of plates) {
+      const st = ps.plate.warp ? stations.find((x) => x.name === ps.plate.station) : undefined;
+      if (!st || ps.p < 0.001) continue;
+      const c = posAt(path, st.s0);
+      const r = plotStore.pie.radius || 120;
+      const y = c.y - sy;
+      if (y < -r * FIELD_REACH || y > H + r * FIELD_REACH) continue;
+      field = { x: c.x, y, r, w: easeOut(ps.p), top: ps.section.top - sy, bottom: ps.section.bottom - sy };
+    }
   }
 
   // ---------- drawing
@@ -449,47 +526,90 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const sig = 85;
     const str = reduce ? 0 : 15;
     const reach = sig * 3;
-    const minor = new Path2D();
-    const major = new Path2D();
-    // Lines bend toward the pen like a gravity well.
-    const warp = (x: number, y: number): [number, number] => {
+    const f = field;
+    const fReach = f ? f.r * FIELD_REACH : 0;
+    // Strokes grouped by brightness, so a bent line can fade without a stroke call per segment.
+    const minor = Array.from({ length: LEVELS }, () => new Path2D());
+    const major = Array.from({ length: LEVELS }, () => new Path2D());
+    const pt = [0, 0, 1];
+    // Where a grid point lands: pulled in and twisted around the field's centre, then into the pen's well.
+    const warp = (x: number, y: number) => {
+      let a = 1;
+      if (f) {
+        const dx = x - f.x;
+        const dy = y - f.y;
+        const r = Math.hypot(dx, dy);
+        // The bend eases off toward the section's edges, so the grid above and below stays straight.
+        const w = f.w * smooth(f.top - 40, f.top + 160, y) * (1 - smooth(f.bottom - 220, f.bottom + 20, y));
+        if (r < fReach && w > 0) {
+          const u = r / f.r;
+          const pull = 0.55 * w * Math.exp(-((u / 2.3) ** 2));
+          const twist = 1.15 * w * Math.exp(-((u / 1.9) ** 2));
+          const rr = r * (1 - pull);
+          const ang = Math.atan2(dy, dx) + twist;
+          x = f.x + Math.cos(ang) * rr;
+          y = f.y + Math.sin(ang) * rr;
+          // Near the centre the grid gives way to the polar paper drawn there.
+          a = 1 - w * (1 - smooth(0.5, 1.35, rr / f.r));
+        }
+      }
       const dx = x - px;
       const dy = y - py;
       const r2 = dx * dx + dy * dy;
-      if (r2 > reach * reach) return [x, y];
-      const k = (str * Math.exp(-r2 / (2 * sig * sig))) / (Math.sqrt(r2) + sig * 0.5);
-      return [x - dx * k, y - dy * k];
-    };
-    const near = str > 0 && py > -reach && py < H + reach;
-    for (let x = ((W / 2) % cell) - cell + 0.5; x < W + cell; x += cell) {
-      const pa = Math.round((x - W / 2) / cell) % 4 === 0 ? major : minor;
-      pa.moveTo(x, 0);
-      if (near && Math.abs(x - px) < reach) {
-        const yA = Math.max(0, py - reach);
-        const yB = Math.min(H, py + reach);
-        pa.lineTo(x, yA);
-        for (let y = yA; y <= yB; y += 12) pa.lineTo(...warp(x, y));
+      if (str > 0 && r2 < reach * reach) {
+        const k = (str * Math.exp(-r2 / (2 * sig * sig))) / (Math.sqrt(r2) + sig * 0.5);
+        x -= dx * k;
+        y -= dy * k;
       }
-      pa.lineTo(x, H);
+      pt[0] = x;
+      pt[1] = y;
+      pt[2] = a;
+    };
+    // One grid line: straight where nothing bends it, sampled where the pen or the field does.
+    const line = (set: Path2D[], ax: number, ay: number, bx: number, by: number, bent: boolean) => {
+      if (!bent) {
+        set[LEVELS - 1].moveTo(ax, ay);
+        set[LEVELS - 1].lineTo(bx, by);
+        return;
+      }
+      const n = Math.max(2, Math.ceil(Math.hypot(bx - ax, by - ay) / 8));
+      warp(ax, ay);
+      let lx = pt[0];
+      let ly = pt[1];
+      let la = pt[2];
+      for (let i = 1; i <= n; i++) {
+        warp(ax + ((bx - ax) * i) / n, ay + ((by - ay) * i) / n);
+        const lv = Math.round(((la + pt[2]) / 2) * (LEVELS - 1));
+        if (lv > 0) {
+          set[lv].moveTo(lx, ly);
+          set[lv].lineTo(pt[0], pt[1]);
+        }
+        lx = pt[0];
+        ly = pt[1];
+        la = pt[2];
+      }
+    };
+    const penNear = str > 0 && py > -reach && py < H + reach;
+    for (let x = ((W / 2) % cell) - cell + 0.5; x < W + cell; x += cell) {
+      const set = Math.round((x - W / 2) / cell) % 4 === 0 ? major : minor;
+      const bent = (penNear && Math.abs(x - px) < reach) || (f !== null && Math.abs(x - f.x) < fReach);
+      line(set, x, 0, x, H, bent);
     }
     for (let k = -1; ; k++) {
       const y = Math.round(y0 + k * cell) + 0.5;
       if (y > H + cell) break;
-      const pa = (base + k) % 4 === 0 ? major : minor;
-      pa.moveTo(0, y);
-      if (near && Math.abs(y - py) < reach) {
-        const xA = Math.max(0, px - reach);
-        const xB = Math.min(W, px + reach);
-        pa.lineTo(xA, y);
-        for (let x = xA; x <= xB; x += 12) pa.lineTo(...warp(x, y));
-      }
-      pa.lineTo(W, y);
+      const set = (base + k) % 4 === 0 ? major : minor;
+      const bent = (penNear && Math.abs(y - py) < reach) || (f !== null && Math.abs(y - f.y) < fReach);
+      line(set, 0, y, W, y, bent);
     }
     ctx.lineWidth = 1;
-    ctx.strokeStyle = rgba(NEUTRAL, 0.034 * intensity);
-    ctx.stroke(minor);
-    ctx.strokeStyle = rgba(NEUTRAL, 0.062 * intensity);
-    ctx.stroke(major);
+    for (let lv = 1; lv < LEVELS; lv++) {
+      const a = lv / (LEVELS - 1);
+      ctx.strokeStyle = rgba(NEUTRAL, 0.034 * intensity * a);
+      ctx.stroke(minor[lv]);
+      ctx.strokeStyle = rgba(NEUTRAL, 0.062 * intensity * a);
+      ctx.stroke(major[lv]);
+    }
 
     // No grid over the hero, where it would fight the scene's own floor; it fades in below.
     const fadeTop = heroBottom - sy;
@@ -527,7 +647,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const ticks = new Path2D();
     let last = -1;
     for (let i = Math.max(1, lo); i < ip; i++) {
-      if ((Y[i] > bot && Y[i - 1] > bot) || K[i] === UP) {
+      if ((Y[i] > bot && Y[i - 1] > bot) || K[i] === UP || K[i] === JUMP) {
         last = -1;
         continue;
       }
@@ -543,7 +663,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         ticks.lineTo(X[i] - 3, Y[i] - sy);
       }
     }
-    if (K[ip] !== UP) {
+    if (K[ip] !== UP && K[ip] !== JUMP) {
       const pa = K[ip] === WRITE ? run : down;
       if (K[ip] !== last) pa.moveTo(X[ip - 1], Y[ip - 1] - sy);
       pa.lineTo(p.x, p.y - sy);
@@ -571,7 +691,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       }
     }
 
-    // Fresh ink near the pen is hot and cools to grey; a pen-up move leaves only a short dotted wake.
+    // Fresh ink near the pen is hot and cools to grey; a pen-up move leaves only a short dotted wake,
+    // amber where the pen leapt.
     let x2 = p.x;
     let y2 = p.y;
     c.save();
@@ -580,9 +701,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       if (d - (S[i] - S[i - 1]) > UP_WAKE) break;
       const x1 = X[i - 1];
       const y1 = Y[i - 1];
-      if (K[i] === UP) {
+      if (K[i] === UP || K[i] === JUMP) {
+        const leap = K[i] === JUMP;
         if (Math.floor(S[i] / 7) !== Math.floor(S[i - 1] / 7))
-          ink.dot(x1, y1 - sy, 0.9, NEUTRAL, 0.4 * clamp(1 - d / UP_WAKE) * intensity);
+          ink.dot(
+            x1,
+            y1 - sy,
+            leap ? 1.2 : 0.9,
+            leap ? AMBER : NEUTRAL,
+            (leap ? 0.7 : 0.4) * clamp(1 - d / UP_WAKE) * intensity,
+          );
       } else if (d < HOT_INK) {
         const h = clamp(1 - d / HOT_INK);
         c.globalCompositeOperation = 'lighter';
@@ -646,6 +774,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       c.arc(origin.x, origin.y - sy, easeOut(q) * 170, 0, TAU);
       c.stroke();
     }
+    for (const fl of flashes) {
+      const q = (t - fl.t) / 0.9;
+      if (q < 0 || q > 1) continue;
+      c.strokeStyle = rgba(AMBER, (1 - q) * 0.7);
+      c.lineWidth = 1.4;
+      c.beginPath();
+      c.arc(fl.x, fl.y - sy, easeOut(q) * fl.size, 0, TAU);
+      c.stroke();
+      ink.sprite(sprites.glowL, fl.x, fl.y - sy, 320 * (1 - q * 0.5), 0.5 * (1 - q));
+    }
     ink.sprite(sprites.glowL, x, y, 230, 0.3 * up * flick);
     ink.sprite(sprites.glowS, x, y, 36 * flick, 0.95 * up);
     c.globalAlpha = 0.24 * up * flick;
@@ -701,7 +839,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     let cur: TitleState | undefined = titles[0];
     for (const s of titles) if (s.run && pen.s >= s.run.s0 - 1) cur = s;
     const [num, name] = sectionLabel(cur?.section);
-    const state = pen.kind === WRITE ? 'writing' : pen.kind === UP ? 'pen up' : 'pen down';
+    const state =
+      pen.kind === WRITE
+        ? 'writing'
+        : pen.kind === JUMP
+          ? 'leap'
+          : pen.kind === RING
+            ? 'circling'
+            : pen.kind === UP
+              ? 'pen up'
+              : 'pen down';
     hud.state.textContent = `Plot · ${state}`;
     hud.section.textContent = `§ ${num || '--'} · ${name}`;
     hud.progress.textContent = `s ${Math.round(pen.s).toLocaleString('en-US')} px · ${Math.round((pen.s / (path.total || 1)) * 100)} %`;
@@ -723,6 +870,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     }
     stepSparks(dt);
     const platesMoving = stepPlates(dt);
+    updateField();
+    while (flashes.length && t - flashes[0].t > 0.9) flashes.shift();
     const animated = plates.some((ps) => ps.plate.animated && visible(ps.section));
     const angle = plotStore.pie.angle;
     const changed =
@@ -730,6 +879,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       sy !== lastSy ||
       Math.abs(pen.s - before) > 0.05 ||
       sparks.length > 0 ||
+      flashes.length > 0 ||
       platesMoving ||
       (animated && !reduce) ||
       angle !== lastAngle ||
