@@ -1,7 +1,7 @@
-import { AMBER, HOT, Ink, MONO, MONO_S, TAU, circlePts, rgba, smooth, type Sprites } from '../draw.ts';
+import { AMBER, Ink, MONO_S, TAU, circlePts, rgba, smooth, type Sprites } from '../draw.ts';
 import type { Plate } from './types.ts';
 
-/** Rings in multiples of the pie's radius; the page grid winds into them from outside. */
+/** Rings in multiples of the pie's radius. */
 const RINGS = [0.24, 0.5, 0.78, 1.0, 1.24, 1.6, 2.05, 2.6, 3.3];
 /** Sector bounds run out in three steps, each fainter than the last. */
 const RAY_STEPS: [number, number, number][] = [
@@ -16,16 +16,9 @@ const SETTLED = 0.9;
 /** How far the paper reaches from the pie's centre, in multiples of its radius. */
 const EXTENT = 3.6;
 
-// The sector eases toward the picked item and the angle arc toward the pointer, instead of jumping.
-let sector = 0;
-let pointer = 0;
-let vis = 0;
-let glow = -1;
+let lit = '';
 /** The settled paper, kept as an image and copied while the pie is on screen. */
 let paper: { key: string; img: HTMLCanvasElement; o: number } | null = null;
-
-const turn = (from: number, to: number) => Math.atan2(Math.sin(to - from), Math.cos(to - from));
-const toward = (from: number, to: number, k: number) => from + turn(from, to) * k;
 
 /**
  * The pie's ring burning like an accretion disc, painted once into a square `size` px wide (four radii):
@@ -50,6 +43,44 @@ export function paintGlow(ctx: CanvasRenderingContext2D, sprites: Sprites, size:
     ctx.stroke();
   }
   ctx.globalCompositeOperation = 'source-over';
+}
+
+/** How far the picked item's sector reaches, given how far below the pie's centre the paper must stop. */
+export function sectorReach(R: number, below: number) {
+  const reach = Math.min(R * EXTENT, Math.max(R * 1.4, below));
+  return Math.min(R * 3.4, Math.max(R * 1.4, reach));
+}
+
+/** The box around the picked item's sector pointing along +X, relative to the pie's centre. */
+export function sectorBox(far: number, R: number) {
+  const x = R * 0.24 * Math.cos(Math.PI / 8) - 2;
+  const half = far * Math.sin(Math.PI / 8) + 2;
+  return { x, y: -half, w: far + 2 - x, h: 2 * half };
+}
+
+/**
+ * The picked item's sector, pointing along +X from the origin and fading outward with no edge to stop it,
+ * painted once: the page turns it toward the item and fades it with the pointer.
+ */
+export function paintSector(ctx: CanvasRenderingContext2D, far: number, R: number) {
+  const r0 = R * 0.24;
+  const grad = ctx.createRadialGradient(0, 0, r0, 0, 0, far);
+  grad.addColorStop(0, rgba(AMBER, 0.11));
+  grad.addColorStop(0.45, rgba(AMBER, 0.05));
+  grad.addColorStop(1, rgba(AMBER, 0));
+  ctx.beginPath();
+  ctx.arc(0, 0, far, -Math.PI / 8, Math.PI / 8);
+  ctx.arc(0, 0, r0, Math.PI / 8, -Math.PI / 8, true);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  const edge = ctx.createRadialGradient(0, 0, r0, 0, 0, far);
+  edge.addColorStop(0, rgba(AMBER, 0.45));
+  edge.addColorStop(1, rgba(AMBER, 0));
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 1;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
 }
 
 /** Rings, sector bounds every 45 degrees and their angles, none of them crossing `floor`. */
@@ -125,13 +156,12 @@ function bakePaper(ink: Ink, R: number, below: number, dpr: number, key: string)
 
 /**
  * Polar paper around the pie demo, set off by the pen landing in the pie's centre: rings, sector bounds every
- * 45 degrees, angles and the sector of the item under the pointer. The glow on the pie's own ring is a layer
- * of the page (see `paintGlow`); the plate only lights it.
+ * 45 degrees and angles. The glow on the pie's ring and what follows the pointer are layers of the page (see
+ * `paintGlow` and `paintSector`), so the pointer never redraws the background; the plate only lights them.
  */
 export const polar: Plate = {
   station: 'pie',
-  warp: true,
-  draw({ ink, ctx, sy, anchor, store, reduce, section, dpr, epoch }) {
+  draw({ ink, ctx, sy, anchor, store, section, dpr, epoch }) {
     const c = anchor('pie-center');
     if (!c) return;
     const cx = c.cx;
@@ -139,13 +169,16 @@ export const polar: Plate = {
     const R = store.pie.radius || 120;
     // Nothing reaches below the section, where the next section's straight grid begins.
     const floor = section.bottom - sy + 40;
-    const reach = Math.min(R * EXTENT, Math.max(R * 1.4, floor - cy));
 
-    const lit = Math.round(ink.seg(0, 0.3) * ink.I * 1000) / 1000;
-    if (store.pie.glow && lit !== glow) {
-      store.pie.glow.style.setProperty('--glow', String(lit));
-      store.pie.glow.toggleAttribute('data-lit', lit > 0);
-      glow = lit;
+    // The glow as the pen lights the ring, then the pointer's layer as the paper's rays are drawn.
+    const stage = store.pie.stage;
+    const glow = (ink.seg(0, 0.3) * ink.I).toFixed(3);
+    const live = (ink.seg(0.2, 0.4) * ink.I).toFixed(3);
+    if (stage && glow + live !== lit) {
+      stage.style.setProperty('--glow', glow);
+      stage.style.setProperty('--paper', live);
+      stage.toggleAttribute('data-lit', Number(glow) > 0);
+      lit = glow + live;
     }
 
     if (ink.p < SETTLED) drawPaper(ink, cx, cy, R, floor);
@@ -159,54 +192,5 @@ export const polar: Plate = {
       ctx.drawImage(paper.img, Math.round((cx - paper.o) * dpr), Math.round((cy - paper.o) * dpr));
       ctx.restore();
     }
-
-    const { angle, hot } = store.pie;
-    const k = reduce ? 1 : 0.25;
-    vis += ((hot === null ? 0 : 1) - vis) * (reduce ? 1 : 0.18);
-    if (hot !== null) sector = toward(sector, hot, k);
-    if (angle !== null) pointer = toward(pointer, angle, k);
-    const easing =
-      Math.abs((hot === null ? 0 : 1) - vis) > 0.002 ||
-      (hot !== null && Math.abs(turn(sector, hot)) > 0.002) ||
-      (angle !== null && Math.abs(turn(pointer, angle)) > 0.002);
-    const v = vis * ink.seg(0.2, 0.4);
-    if (v <= 0.01) return easing;
-
-    // The picked item's sector, fading outward with no edge to stop it.
-    const far = Math.min(R * 3.4, Math.max(R * 1.4, reach));
-    const a0 = sector - Math.PI / 8;
-    const a1 = sector + Math.PI / 8;
-    const grad = ctx.createRadialGradient(cx, cy, R * 0.24, cx, cy, far);
-    grad.addColorStop(0, rgba(AMBER, 0.11 * v * ink.I));
-    grad.addColorStop(0.45, rgba(AMBER, 0.05 * v * ink.I));
-    grad.addColorStop(1, rgba(AMBER, 0));
-    ctx.beginPath();
-    ctx.arc(cx, cy, far, a0, a1);
-    ctx.arc(cx, cy, R * 0.24, a1, a0, true);
-    ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
-    const edge = ctx.createRadialGradient(cx, cy, R * 0.24, cx, cy, far);
-    edge.addColorStop(0, rgba(AMBER, 0.45 * v * ink.I));
-    edge.addColorStop(1, rgba(AMBER, 0));
-    ctx.strokeStyle = edge;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // The pointer's angle on the ring the pen drew.
-    const th = (((-pointer % TAU) + TAU) % TAU) * (180 / Math.PI);
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * POLAR_RING, 0, pointer, true);
-    ctx.strokeStyle = rgba(AMBER, 0.55 * v * ink.I);
-    ctx.stroke();
-    const ex = cx + Math.cos(pointer) * R * POLAR_RING;
-    const ey = cy + Math.sin(pointer) * R * POLAR_RING;
-    ink.dot(ex, ey, 2.5, AMBER, 0.9 * v * ink.I);
-    const left = Math.cos(pointer) < -0.2;
-    ctx.font = MONO;
-    ctx.textAlign = left ? 'right' : 'left';
-    ctx.fillStyle = rgba(HOT, 0.75 * v * ink.I);
-    ctx.fillText(`θ = ${Math.round(th)}°`, ex + (left ? -10 : 10), ey - 8);
-    return easing;
   },
 };
