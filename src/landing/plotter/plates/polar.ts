@@ -1,4 +1,4 @@
-import { AMBER, HOT, MONO, MONO_S, TAU, circlePts, rgba, smooth } from '../draw.ts';
+import { AMBER, HOT, Ink, MONO, MONO_S, TAU, circlePts, rgba, smooth, type Sprites } from '../draw.ts';
 import type { Plate } from './types.ts';
 
 /** Rings in multiples of the pie's radius; the page grid winds into them from outside. */
@@ -11,24 +11,127 @@ const RAY_STEPS: [number, number, number][] = [
 ];
 /** The radius the pen circles when it lands, as a multiple of the pie's radius. */
 export const POLAR_RING = 1.24;
+/** Plate progress from which the rings, bounds and angles are drawn and cooled, so they stop changing. */
+const SETTLED = 0.9;
+/** How far the paper reaches from the pie's centre, in multiples of its radius. */
+const EXTENT = 3.6;
 
 // The sector eases toward the picked item and the angle arc toward the pointer, instead of jumping.
 let sector = 0;
 let pointer = 0;
 let vis = 0;
+let glow = -1;
+/** The settled paper, kept as an image and copied while the pie is on screen. */
+let paper: { key: string; img: HTMLCanvasElement; o: number } | null = null;
 
 const turn = (from: number, to: number) => Math.atan2(Math.sin(to - from), Math.cos(to - from));
 const toward = (from: number, to: number, k: number) => from + turn(from, to) * k;
 
 /**
+ * The pie's ring burning like an accretion disc, painted once into a square `size` px wide (four radii):
+ * the page shows it in a layer of its own, lit and flickering through its opacity.
+ */
+export function paintGlow(ctx: CanvasRenderingContext2D, sprites: Sprites, size: number, R: number) {
+  const c = size / 2;
+  ctx.clearRect(0, 0, size, size);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 0.16;
+  ctx.drawImage(sprites.glowL, 0, 0, size, size);
+  ctx.globalAlpha = 1;
+  for (const [w, a] of [
+    [14, 0.05],
+    [7, 0.1],
+    [2, 0.45],
+  ]) {
+    ctx.lineWidth = w;
+    ctx.strokeStyle = rgba(AMBER, a);
+    ctx.beginPath();
+    ctx.arc(c, c, R * 0.25, 0, TAU);
+    ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+/** Rings, sector bounds every 45 degrees and their angles, none of them crossing `floor`. */
+function drawPaper(ink: Ink, cx: number, cy: number, R: number, floor: number) {
+  RINGS.forEach((f, i) => {
+    const rr = R * f;
+    const fade = 1 - smooth(1.4, 3.6, f) * 0.75;
+    // A ring that would cross the floor is drawn as the arc above it.
+    const s0 = (floor - cy) / rr;
+    if (s0 <= -0.9) return;
+    const pts =
+      s0 >= 1
+        ? circlePts(cx, cy, rr, 0, -TAU, 140)
+        : circlePts(cx, cy, rr, Math.PI - Math.asin(s0), Math.PI + 2 * Math.asin(s0), 140);
+    ink.poly(pts, 0.02 + i * 0.035, 0.3 + i * 0.035, {
+      a: (f === 1 || f === POLAR_RING ? 0.22 : 0.13) * fade,
+    });
+  });
+  for (let k = 0; k < 8; k++) {
+    const a = ((k * 45 + 22.5) * Math.PI) / 180;
+    const ca = Math.cos(a);
+    const sa = Math.sin(a);
+    // Rays pointing down stop at the floor.
+    const limit = sa > 0.01 ? Math.min(EXTENT, (floor - cy) / (sa * R)) : EXTENT;
+    RAY_STEPS.forEach(([r0, r1, alpha], j) => {
+      if (r0 >= limit) return;
+      const end = Math.min(r1, limit);
+      const w0 = 0.25 + k * 0.02 + j * 0.06;
+      ink.poly(
+        [
+          [cx + ca * R * r0, cy + sa * R * r0],
+          [cx + ca * R * end, cy + sa * R * end],
+        ],
+        w0,
+        w0 + 0.14,
+        { a: alpha, noTip: j > 0, linear: true },
+      );
+    });
+  }
+  // Angles as mathematics counts them: counterclockwise from +X.
+  for (let k = 0; k < 8; k++) {
+    const a = (-k * Math.PI) / 4;
+    ink.label(
+      `${k * 45}°`,
+      cx + Math.cos(a) * R * 1.42,
+      cy + Math.sin(a) * R * 1.42 + 3,
+      0.5 + k * 0.02,
+      0.6 + k * 0.02,
+      { align: 'center', a: 0.36, font: MONO_S },
+    );
+  }
+}
+
+/** The settled paper in a canvas of its own, centred `o` CSS px from its left and top edges. */
+function bakePaper(ink: Ink, R: number, below: number, dpr: number, key: string) {
+  const o = R * EXTENT + 16;
+  const bottom = Math.max(16, Math.min(o, below + 16));
+  const img = document.createElement('canvas');
+  img.width = Math.ceil(2 * o * dpr);
+  img.height = Math.ceil((o + bottom) * dpr);
+  const g = img.getContext('2d');
+  if (g) {
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    const local = new Ink(g, ink.sprites);
+    local.p = 1;
+    local.I = ink.I;
+    drawPaper(local, o, o, R, o + below);
+  }
+  return { key, img, o };
+}
+
+/**
  * Polar paper around the pie demo, set off by the pen landing in the pie's centre: rings, sector bounds every
- * 45 degrees, angles, a glow where the pie's own ring sits and the sector of the item under the pointer.
+ * 45 degrees, angles and the sector of the item under the pointer. The glow on the pie's own ring is a layer
+ * of the page (see `paintGlow`); the plate only lights it.
  */
 export const polar: Plate = {
   station: 'pie',
   warp: true,
-  animated: true,
-  draw({ ink, ctx, sy, t, anchor, store, reduce, section }) {
+  draw({ ink, ctx, sy, anchor, store, reduce, section, dpr, epoch }) {
     const c = anchor('pie-center');
     if (!c) return;
     const cx = c.cx;
@@ -36,76 +139,25 @@ export const polar: Plate = {
     const R = store.pie.radius || 120;
     // Nothing reaches below the section, where the next section's straight grid begins.
     const floor = section.bottom - sy + 40;
-    const reach = Math.min(R * 3.6, Math.max(R * 1.4, floor - cy));
+    const reach = Math.min(R * EXTENT, Math.max(R * 1.4, floor - cy));
 
-    // The pie's ring burns like an accretion disc once the pen has lit it.
-    const lit = ink.seg(0, 0.3);
-    if (lit > 0) {
-      const flick = reduce ? 1 : 0.85 + 0.15 * Math.sin(t * 3.1) * Math.sin(t * 1.7);
-      const rc = R * 0.25;
+    const lit = Math.round(ink.seg(0, 0.3) * ink.I * 1000) / 1000;
+    if (store.pie.glow && lit !== glow) {
+      store.pie.glow.style.setProperty('--glow', String(lit));
+      store.pie.glow.toggleAttribute('data-lit', lit > 0);
+      glow = lit;
+    }
+
+    if (ink.p < SETTLED) drawPaper(ink, cx, cy, R, floor);
+    else {
+      // Page coordinates, so scrolling never invalidates it.
+      const below = Math.round((section.bottom + 40 - c.cy) * 4) / 4;
+      const key = `${R}|${below}|${dpr}|${ink.I}|${epoch}`;
+      if (paper?.key !== key) paper = bakePaper(ink, R, below, dpr, key);
       ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      ink.sprite(ink.sprites.glowL, cx, cy, R * 4, 0.16 * lit * flick * ink.I);
-      for (const [w, a] of [
-        [14, 0.05],
-        [7, 0.1],
-        [2, 0.45],
-      ]) {
-        ctx.lineWidth = w;
-        ctx.strokeStyle = rgba(AMBER, a * lit * flick * ink.I);
-        ctx.beginPath();
-        ctx.arc(cx, cy, rc, 0, TAU);
-        ctx.stroke();
-      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(paper.img, Math.round((cx - paper.o) * dpr), Math.round((cy - paper.o) * dpr));
       ctx.restore();
-    }
-
-    RINGS.forEach((f, i) => {
-      const rr = R * f;
-      const fade = 1 - smooth(1.4, 3.6, f) * 0.75;
-      // A ring that would cross the floor is drawn as the arc above it.
-      const s0 = (floor - cy) / rr;
-      if (s0 <= -0.9) return;
-      const pts =
-        s0 >= 1
-          ? circlePts(cx, cy, rr, 0, -TAU, 140)
-          : circlePts(cx, cy, rr, Math.PI - Math.asin(s0), Math.PI + 2 * Math.asin(s0), 140);
-      ink.poly(pts, 0.02 + i * 0.035, 0.3 + i * 0.035, {
-        a: (f === 1 || f === POLAR_RING ? 0.22 : 0.13) * fade,
-      });
-    });
-    for (let k = 0; k < 8; k++) {
-      const a = ((k * 45 + 22.5) * Math.PI) / 180;
-      const ca = Math.cos(a);
-      const sa = Math.sin(a);
-      // Rays pointing down stop at the floor.
-      const limit = sa > 0.01 ? Math.min(3.6, (floor - cy) / (sa * R)) : 3.6;
-      RAY_STEPS.forEach(([r0, r1, alpha], j) => {
-        if (r0 >= limit) return;
-        const end = Math.min(r1, limit);
-        const w0 = 0.25 + k * 0.02 + j * 0.06;
-        ink.poly(
-          [
-            [cx + ca * R * r0, cy + sa * R * r0],
-            [cx + ca * R * end, cy + sa * R * end],
-          ],
-          w0,
-          w0 + 0.14,
-          { a: alpha, noTip: j > 0, linear: true },
-        );
-      });
-    }
-    // Angles as mathematics counts them: counterclockwise from +X.
-    for (let k = 0; k < 8; k++) {
-      const a = (-k * Math.PI) / 4;
-      ink.label(
-        `${k * 45}°`,
-        cx + Math.cos(a) * R * 1.42,
-        cy + Math.sin(a) * R * 1.42 + 3,
-        0.5 + k * 0.02,
-        0.6 + k * 0.02,
-        { align: 'center', a: 0.36, font: MONO_S },
-      );
     }
 
     const { angle, hot } = store.pie;

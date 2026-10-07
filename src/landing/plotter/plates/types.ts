@@ -18,8 +18,12 @@ export interface PlateCtx {
   ctx: CanvasRenderingContext2D;
   /** Scroll offset; subtract it from page y to get screen y. */
   sy: number;
-  /** Seconds since the plotter started. */
+  /** Seconds of ambient motion: it stops while the visitor is idle, so nothing jumps when it resumes. */
   t: number;
+  /** Canvas pixels per CSS pixel. */
+  dpr: number;
+  /** Changes whenever the page is measured again or fonts load; caches keyed on it stay valid in between. */
+  epoch: number;
   W: number;
   H: number;
   mobile: boolean;

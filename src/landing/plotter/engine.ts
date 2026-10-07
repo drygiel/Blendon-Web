@@ -14,7 +14,7 @@ import {
   WHITE,
   clamp,
   easeOut,
-  makeSprites,
+  sprites as sharedSprites,
   mix,
   rgba,
   smooth,
@@ -127,6 +127,12 @@ const MAX_SPARKS = 280;
 const HERO_PLATE_SECONDS = 3.2;
 /** Ambient motion alone, such as a slow spin or a flicker, redraws at about 30 fps. */
 const AMBIENT_FRAME_MS = 30;
+/** Ambient motion stops once the visitor has neither scrolled nor pointed nor typed for this long. */
+const AMBIENT_IDLE_MS = 8000;
+/** The background is soft and faint; more canvas pixels than this per CSS pixel cost more than they show. */
+const MAX_DPR = 1.5;
+/** Heat steps of the fresh ink behind the pen. */
+const HEAT_BANDS = 16;
 
 function pageRect(el: Element, sy: number): Rect {
   const r = el.getBoundingClientRect();
@@ -173,7 +179,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   if (!maybeCtx) return () => {};
   const ctx: CanvasRenderingContext2D = maybeCtx;
   const { reduce, hud } = opts;
-  const sprites = makeSprites();
+  const sprites = sharedSprites();
   const ink = new Ink(ctx, sprites);
   const root = document.documentElement;
 
@@ -186,6 +192,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let intensity = 1;
   const t0 = performance.now();
   let t = 0;
+  /** Ambient time: as `t`, but it stands still while the visitor is idle. */
+  let at = 0;
+  let lastActivity = t0;
+  let idle = false;
+  let epoch = 0;
   let introDone = reduce;
   let ignited = false;
   let emitAcc = 0;
@@ -212,6 +223,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   /** A plate asked for the next frame while it eases toward a target. */
   let easing = false;
   let hudAt = 0;
+  let hudText = '';
   let raf = 0;
   let alive = true;
 
@@ -223,11 +235,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     W = root.clientWidth || window.innerWidth;
     H = root.clientHeight || window.innerHeight;
     mobile = W < 760;
-    dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
+    dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     intensity = mobile ? 0.75 : 1;
     maxScroll = Math.max(0, root.scrollHeight - H);
+    epoch++;
     measureAnchors();
 
     const old = new Map(titles.map((s) => [s.el, s]));
@@ -733,17 +746,19 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       }
     }
 
-    // Fresh ink near the pen is hot and cools to grey; a pen-up move leaves only a short dotted wake,
-    // amber where the pen leapt.
+    // Fresh ink near the pen is hot and cools to grey, stroked in heat bands to keep stroke calls few; a pen-up
+    // move leaves only a short dotted wake, amber where the pen leapt.
+    const hot = Array.from({ length: HEAT_BANDS }, () => new Path2D());
+    let open = -1;
     let x2 = p.x;
     let y2 = p.y;
-    c.save();
     for (let i = ip; i >= 1; i--) {
       const d = pen.s - S[i - 1];
       if (d - (S[i] - S[i - 1]) > UP_WAKE) break;
       const x1 = X[i - 1];
       const y1 = Y[i - 1];
       if (K[i] === UP || K[i] === JUMP) {
+        open = -1;
         const leap = K[i] === JUMP;
         if (Math.floor(S[i] / 7) !== Math.floor(S[i - 1] / 7))
           ink.dot(
@@ -754,29 +769,28 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
             (leap ? 0.7 : 0.4) * clamp(1 - d / UP_WAKE) * intensity,
           );
       } else if (d < HOT_INK) {
-        const h = clamp(1 - d / HOT_INK);
-        c.globalCompositeOperation = 'lighter';
-        c.lineWidth = 4;
-        c.strokeStyle = rgba(AMBER, 0.1 * h * intensity);
-        c.beginPath();
-        c.moveTo(x1, y1 - sy);
-        c.lineTo(x2, y2 - sy);
-        c.stroke();
-        c.globalCompositeOperation = 'source-over';
-        c.lineWidth = 1 + h * 0.5;
-        c.strokeStyle = rgba(
-          mix(NEUTRAL, h > 0.8 ? HOT : AMBER, Math.pow(h, 0.7)),
-          (0.2 + 0.75 * h) * Math.min(1.2, intensity),
-        );
-        c.beginPath();
-        c.moveTo(x1, y1 - sy);
-        c.lineTo(x2, y2 - sy);
-        c.stroke();
-      }
+        const band = Math.min(HEAT_BANDS - 1, (clamp(1 - d / HOT_INK) * HEAT_BANDS) | 0);
+        if (band !== open) hot[band].moveTo(x2, y2 - sy);
+        hot[band].lineTo(x1, y1 - sy);
+        open = band;
+      } else open = -1;
       x2 = x1;
       y2 = y1;
     }
-    c.restore();
+    for (let band = 0; band < HEAT_BANDS; band++) {
+      const h = (band + 0.5) / HEAT_BANDS;
+      c.globalCompositeOperation = 'lighter';
+      c.lineWidth = 4;
+      c.strokeStyle = rgba(AMBER, 0.1 * h * intensity);
+      c.stroke(hot[band]);
+      c.globalCompositeOperation = 'source-over';
+      c.lineWidth = 1 + h * 0.5;
+      c.strokeStyle = rgba(
+        mix(NEUTRAL, h > 0.8 ? HOT : AMBER, Math.pow(h, 0.7)),
+        (0.2 + 0.75 * h) * Math.min(1.2, intensity),
+      );
+      c.stroke(hot[band]);
+    }
   }
 
   function drawSparks() {
@@ -840,7 +854,9 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       ink,
       ctx: ctx,
       sy,
-      t,
+      t: at,
+      dpr,
+      epoch,
       W,
       H,
       mobile,
@@ -892,12 +908,19 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
             : pen.kind === UP
               ? 'pen up'
               : 'pen down';
+    const progress = `s ${Math.round(pen.s).toLocaleString('en-US')} px · ${Math.round((pen.s / (path.total || 1)) * 100)} %`;
+    const text = `${state}|${num}|${name}|${progress}`;
+    if (text === hudText) return;
+    hudText = text;
     hud.state.textContent = `Plot · ${state}`;
     hud.section.textContent = `§ ${num || '--'} · ${name}`;
-    hud.progress.textContent = `s ${Math.round(pen.s).toLocaleString('en-US')} px · ${Math.round((pen.s / (path.total || 1)) * 100)} %`;
+    hud.progress.textContent = progress;
   }
 
   // ---------- loop: draws only when something on screen changes
+
+  const near = (y: number, m: number) => y - sy > -m && y - sy < H + m;
+  const onActivity = () => (lastActivity = performance.now());
 
   let last = performance.now();
   function tick(now: number) {
@@ -905,6 +928,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     last = now;
     t = (now - t0) / 1000;
     sy = window.scrollY;
+    if (sy !== lastSy) lastActivity = now;
+    const wasIdle = idle;
+    idle = !reduce && now - lastActivity > AMBIENT_IDLE_MS;
+    if (idle !== wasIdle) root.toggleAttribute('data-plot-idle', idle);
+    if (!idle) at += dt;
     const before = pen.s;
     updatePen(dt);
     if (!reduce) {
@@ -915,15 +943,16 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const platesMoving = stepPlates(dt);
     updateField();
     while (flashes.length && t - flashes[0].t > 0.9) flashes.shift();
-    const ambient = !reduce && plates.some((ps) => ps.plate.animated && onScreen(ps.section));
+    const ambient = !reduce && !idle && plates.some((ps) => ps.plate.animated && onScreen(ps.section));
     const angle = plotStore.pie.angle;
     const slide = plotStore.setup.slide;
+    // Motion off screen draws nothing: the pen and its hot ink, sparks and flashes count only near the view.
     const changed =
       dirty ||
       sy !== lastSy ||
-      Math.abs(pen.s - before) > 0.05 ||
-      sparks.length > 0 ||
-      flashes.length > 0 ||
+      (Math.abs(pen.s - before) > 0.05 && near(pen.y, HOT_INK + 80)) ||
+      sparks.some((p) => near(p.y, 40)) ||
+      flashes.some((fl) => near(fl.y, fl.size)) ||
       platesMoving ||
       easing ||
       angle !== lastAngle ||
@@ -951,9 +980,14 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   ro.observe(document.body);
   window.addEventListener('resize', onResize);
   if (!reduce) document.addEventListener('focusin', onFocus);
+  const activity = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'touchstart'] as const;
+  for (const type of activity) window.addEventListener(type, onActivity, { passive: true });
   layout();
   void document.fonts.ready.then(() => alive && layout());
-  void Promise.all([document.fonts.load(SERIF_S), document.fonts.load(MONO)]).then(() => (dirty = true));
+  void Promise.all([document.fonts.load(SERIF_S), document.fonts.load(MONO)]).then(() => {
+    epoch++;
+    dirty = true;
+  });
   // Tells the page's failsafe in index.html that the hidden reveal states will be uncovered.
   if (!reduce) root.setAttribute('data-plot-ready', '');
   raf = requestAnimationFrame(frame);
@@ -980,5 +1014,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     ro.disconnect();
     window.removeEventListener('resize', onResize);
     document.removeEventListener('focusin', onFocus);
+    for (const type of activity) window.removeEventListener(type, onActivity);
+    root.removeAttribute('data-plot-idle');
   };
 }
