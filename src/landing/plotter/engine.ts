@@ -17,7 +17,6 @@ import {
   sprites as sharedSprites,
   mix,
   rgba,
-  smooth,
 } from './draw.ts';
 import {
   INTRO_END,
@@ -90,16 +89,6 @@ interface RevealState {
   top: number;
 }
 
-/** Where the grid bends like space around a black hole, in screen coordinates, within its section. */
-interface Field {
-  x: number;
-  y: number;
-  r: number;
-  w: number;
-  top: number;
-  bottom: number;
-}
-
 /** A ring of light spreading from a point the pen ignites, in page coordinates. */
 interface Flash {
   x: number;
@@ -117,10 +106,6 @@ interface Spark {
   age: number;
 }
 
-/** How far, in multiples of the station's radius, the black-hole field bends the grid. */
-const FIELD_REACH = 4.2;
-/** Brightness steps for grid lines that fade into a field. */
-const LEVELS = 6;
 const HOT_INK = 380;
 const UP_WAKE = 620;
 const MAX_SPARKS = 280;
@@ -210,14 +195,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let origin = { x: 0, y: 0 };
   let heroBottom = 0;
   let stations: Station[] = [];
-  let field: Field | null = null;
   const flashes: Flash[] = [];
   const anchors = new Map<string, Rect>();
   const sparks: Spark[] = [];
   const pen = { s: 0, x: 0, y: 0, px: 0, py: 0, v: 0, kind: UP as SegmentKind };
   let dirty = true;
   let lastSy = -1;
-  let lastAngle: number | null = null;
   let lastSlide = -1;
   let lastRender = 0;
   /** A plate asked for the next frame while it eases toward a target. */
@@ -519,21 +502,6 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     return moving;
   }
 
-  // The black-hole field follows a warping plate's station, as strong as the plate is drawn.
-  function updateField() {
-    field = null;
-    if (!path) return;
-    for (const ps of plates) {
-      const st = ps.plate.warp ? stations.find((x) => x.name === ps.plate.station) : undefined;
-      if (!st || ps.p < 0.001) continue;
-      const c = posAt(path, st.s0);
-      const r = plotStore.pie.radius || 120;
-      const y = c.y - sy;
-      if (y < -r * FIELD_REACH || y > H + r * FIELD_REACH) continue;
-      field = { x: c.x, y, r, w: easeOut(ps.p), top: ps.section.top - sy, bottom: ps.section.bottom - sy };
-    }
-  }
-
   // ---------- drawing
 
   function drawGrid() {
@@ -546,105 +514,50 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const sig = 85;
     const str = reduce ? 0 : 15;
     const reach = sig * 3;
-    const f = field;
-    const fReach = f ? f.r * FIELD_REACH : 0;
-    // Straight stretches are filled as rects, far cheaper to raster than strokes. Bent stretches are strokes
-    // grouped by brightness, so a line can fade without a stroke call per segment. Index 0 is minor, 1 major.
+    const penNear = str > 0 && py > -reach && py < H + reach;
+    // Straight stretches are filled as rects, far cheaper to raster than strokes; only the stretch near the pen
+    // bends, sampled every ~8px into one polyline. Index 0 is minor, 1 major.
     const rects = [new Path2D(), new Path2D()];
-    const bent = [0, 1].map(() => Array.from({ length: LEVELS }, () => new Path2D()));
-    const pt = [0, 0, 1];
-    // Where a grid point lands: pulled in and twisted around the field's centre, then into the pen's well.
+    const bent = [new Path2D(), new Path2D()];
+    const pt = [0, 0];
+    // Lines bend toward the pen like a gravity well.
     const warp = (x: number, y: number) => {
-      let a = 1;
-      if (f) {
-        const dx = x - f.x;
-        const dy = y - f.y;
-        const r = Math.hypot(dx, dy);
-        // The bend eases off toward the section's edges, so the grid above and below stays straight.
-        const w = f.w * smooth(f.top - 40, f.top + 160, y) * (1 - smooth(f.bottom - 220, f.bottom + 20, y));
-        if (r < fReach && w > 0) {
-          const u = r / f.r;
-          const pull = 0.55 * w * Math.exp(-((u / 2.3) ** 2));
-          const twist = 1.15 * w * Math.exp(-((u / 1.9) ** 2));
-          const rr = r * (1 - pull);
-          const ang = Math.atan2(dy, dx) + twist;
-          x = f.x + Math.cos(ang) * rr;
-          y = f.y + Math.sin(ang) * rr;
-          // Near the centre the grid gives way to the polar paper drawn there.
-          a = 1 - w * (1 - smooth(0.5, 1.35, rr / f.r));
-        }
-      }
       const dx = x - px;
       const dy = y - py;
       const r2 = dx * dx + dy * dy;
-      if (str > 0 && r2 < reach * reach) {
+      if (r2 < reach * reach) {
         const k = (str * Math.exp(-r2 / (2 * sig * sig))) / (Math.sqrt(r2) + sig * 0.5);
         x -= dx * k;
         y -= dy * k;
       }
       pt[0] = x;
       pt[1] = y;
-      pt[2] = a;
     };
-    const penNear = str > 0 && py > -reach && py < H + reach;
-    // Stretches along the current line that the pen or the field bends, as [from, to] pairs; nothing moves
-    // outside them, so only they are sampled.
-    const spans: number[] = [];
-    const span = (lo: number, hi: number) => {
-      if (hi > lo) spans.push(lo, hi);
-    };
-    // One grid line at `c` (x of a vertical line, y of a horizontal one), sampled every ~8px where bent.
+    // One grid line at `c` (x of a vertical line, y of a horizontal one).
     const line = (set: number, vertical: boolean, c: number, len: number) => {
       const fill = (a0: number, a1: number) => {
-        if (a1 > a0) {
-          if (vertical) rects[set].rect(c - 0.5, a0, 1, a1 - a0);
-          else rects[set].rect(a0, c - 0.5, a1 - a0, 1);
-        }
+        if (a1 <= a0) return;
+        if (vertical) rects[set].rect(c - 0.5, a0, 1, a1 - a0);
+        else rects[set].rect(a0, c - 0.5, a1 - a0, 1);
       };
-      spans.length = 0;
-      if (vertical) {
-        if (penNear && Math.abs(c - px) < reach) span(py - reach, py + reach);
-        if (f && Math.abs(c - f.x) < fReach)
-          span(Math.max(f.y - fReach, f.top - 40), Math.min(f.y + fReach, f.bottom + 20));
-      } else {
-        if (penNear && Math.abs(c - py) < reach) span(px - reach, px + reach);
-        if (f && Math.abs(c - f.y) < fReach && c > f.top - 40 && c < f.bottom + 20) span(f.x - fReach, f.x + fReach);
-      }
-      // At most two stretches: in order, and an overlap is skipped by starting each where the last ended.
-      if (spans.length === 4 && spans[2] < spans[0]) spans.push(...spans.splice(0, 2));
       const n = Math.max(2, Math.ceil(len / 8));
       const step = len / n;
-      const at = (i: number) => (vertical ? warp(c, i * step) : warp(i * step, c));
-      let done = 0;
-      let next = 0;
-      for (let s = 0; s < spans.length; s += 2) {
-        const i0 = Math.max(next, 0, Math.floor(spans[s] / step));
-        const i1 = Math.min(n, Math.ceil(spans[s + 1] / step));
-        if (i1 <= i0) continue;
-        next = i1;
-        fill(done, i0 * step);
-        done = i1 * step;
-        at(i0);
-        let lx = pt[0];
-        let ly = pt[1];
-        let la = pt[2];
-        let open: Path2D | null = null;
-        for (let i = i0 + 1; i <= i1; i++) {
-          at(i);
-          const lv = Math.round(((la + pt[2]) / 2) * (LEVELS - 1));
-          if (lv > 0) {
-            const pa = bent[set][lv];
-            // Runs of one brightness continue a single polyline instead of starting a subpath per segment.
-            if (pa !== open) pa.moveTo(lx, ly);
-            pa.lineTo(pt[0], pt[1]);
-            open = pa;
-          } else open = null;
-          lx = pt[0];
-          ly = pt[1];
-          la = pt[2];
-        }
+      const along = vertical ? py : px;
+      const i0 = Math.max(0, Math.floor((along - reach) / step));
+      const i1 = Math.min(n, Math.ceil((along + reach) / step));
+      if (!penNear || Math.abs(c - (vertical ? px : py)) >= reach || i1 <= i0) {
+        fill(0, len);
+        return;
       }
-      fill(done, len);
+      const at = (i: number) => (vertical ? warp(c, i * step) : warp(i * step, c));
+      fill(0, i0 * step);
+      at(i0);
+      bent[set].moveTo(pt[0], pt[1]);
+      for (let i = i0 + 1; i <= i1; i++) {
+        at(i);
+        bent[set].lineTo(pt[0], pt[1]);
+      }
+      fill(i1 * step, len);
     };
     for (let x = ((W / 2) % cell) - cell + 0.5; x < W + cell; x += cell)
       line(Math.round((x - W / 2) / cell) % 4 === 0 ? 1 : 0, true, x, H);
@@ -654,16 +567,13 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       line((base + k) % 4 === 0 ? 1 : 0, false, y, W);
     }
     const alpha = [0.034 * intensity, 0.062 * intensity];
-    for (let set = 0; set < 2; set++) {
-      ctx.fillStyle = rgba(NEUTRAL, alpha[set]);
-      ctx.fill(rects[set]);
-    }
     ctx.lineWidth = 1;
-    for (let lv = 1; lv < LEVELS; lv++) {
-      for (let set = 0; set < 2; set++) {
-        ctx.strokeStyle = rgba(NEUTRAL, (alpha[set] * lv) / (LEVELS - 1));
-        ctx.stroke(bent[set][lv]);
-      }
+    for (let set = 0; set < 2; set++) {
+      const col = rgba(NEUTRAL, alpha[set]);
+      ctx.fillStyle = col;
+      ctx.fill(rects[set]);
+      ctx.strokeStyle = col;
+      ctx.stroke(bent[set]);
     }
 
     // No grid over the hero, where it would fight the scene's own floor; it fades in below.
@@ -941,10 +851,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     }
     stepSparks(dt);
     const platesMoving = stepPlates(dt);
-    updateField();
     while (flashes.length && t - flashes[0].t > 0.9) flashes.shift();
     const ambient = !reduce && !idle && plates.some((ps) => ps.plate.animated && onScreen(ps.section));
-    const angle = plotStore.pie.angle;
     const slide = plotStore.setup.slide;
     // Motion off screen draws nothing: the pen and its hot ink, sparks and flashes count only near the view.
     const changed =
@@ -955,14 +863,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       flashes.some((fl) => near(fl.y, fl.size)) ||
       platesMoving ||
       easing ||
-      angle !== lastAngle ||
       slide !== lastSlide ||
       !introDone;
     if (changed || (ambient && now - lastRender >= AMBIENT_FRAME_MS)) {
       render();
       dirty = false;
       lastSy = sy;
-      lastAngle = angle;
       lastSlide = slide;
       lastRender = now;
     }

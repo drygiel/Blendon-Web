@@ -12,6 +12,12 @@ html {
   }
 }
 
+// Layers that reach past the viewport, such as the glow and sector around the pie demo, never widen the page;
+// clip, unlike hidden, leaves vertical overflow and sticky positioning alone.
+main {
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   // Transparent, so the plotter's canvas behind the content shows; html paints the page colour.
