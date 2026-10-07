@@ -5,7 +5,7 @@ const at = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1
 
 /** De Casteljau's construction of a cubic Bezier curve, its parameter t driven by the scroll. */
 export const bezier: Plate = {
-  draw({ ink, sy, W, title, content, scrub }) {
+  draw({ ink, sy, W, H, title, content }) {
     if (!title || W < 1000) return;
     const w = Math.min(400, content.w * 0.34);
     const h = 170;
@@ -17,7 +17,9 @@ export const bezier: Plate = {
       [x0 + w * 0.78, y0 + h * 0.08],
       [x0 + w, y0 + h * 0.86],
     ];
-    const t = clamp(0.08 + scrub * 1.1, 0.08, 0.92);
+    // t runs from the title entering the screen to its top nearing the screen's top, so the curve is whole
+    // before the drawing scrolls away.
+    const t = 0.08 + 0.92 * clamp((sy + H * 0.85 - title.top) / (H * 0.75));
 
     ink.poly(P, 0.04, 0.3, { a: 0.22, dash: [3, 4] });
     P.forEach((p, i) => {

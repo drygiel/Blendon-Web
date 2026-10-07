@@ -1,15 +1,19 @@
 import { RED, SERIF } from '../draw.ts';
-import type { Plate } from './types.ts';
+import type { Plate, Rect } from './types.ts';
+
+/** The rule's zero, in page coordinates: the pen taps it to set the plate off. */
+export const rulerOrigin = (rs: Rect): [number, number] => [rs.left, rs.top + rs.h * 0.6];
 
 /** A metre rule under the G, X, 2, Enter sequence, with the typed 2.000 m as a vector. */
 export const ruler: Plate = {
   at: 'ruler-space',
+  station: 'ruler',
   draw({ ink, sy, W, anchor }) {
     const rs = anchor('ruler-space');
     if (!rs) return;
-    const x0 = rs.left;
+    const [x0, oy] = rulerOrigin(rs);
     const x1 = Math.min(rs.right, rs.left + 980);
-    const y = rs.top - sy + rs.h * 0.6;
+    const y = oy - sy;
     const um = (x1 - x0) / 6.2;
     ink.poly(
       [

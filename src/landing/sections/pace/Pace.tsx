@@ -25,7 +25,7 @@ function Owner({ does, other, to }: { does: string; other: string; to: Contested
 
 export function Pace() {
   return (
-    <Section id="pace" plate="waves" route="right">
+    <Section id="pace" plate="waves" route="tiles">
       <SectionIntro
         eyebrow="08 / YOUR PACE"
         title={
@@ -68,7 +68,7 @@ export function Pace() {
         </p>
       </div>
 
-      <div className={styles.cards} data-reveal="stagger">
+      <div className={styles.cards} data-reveal="stagger" data-plot-tiles="">
         {FEATURE_PRESETS.map(([title, text]) => (
           <div key={title} className={styles.card}>
             <span className={styles.label}>Feature preset</span>

@@ -30,12 +30,13 @@ import {
   introS,
   posAt,
   sAtB,
-  sAtRailY,
+  sAtY,
   scrollKeyframes,
   underlineEnd,
   type Keyframe,
   type PlotPath,
   type Detour,
+  type Point,
   type Route,
   type Run,
   type SegmentKind,
@@ -44,6 +45,7 @@ import {
 import { curveGeometry } from './plates/curve.ts';
 import { frustumEye } from './plates/frustum.ts';
 import { HERO_ORIGIN_Y } from './plates/hero.ts';
+import { rulerOrigin } from './plates/ruler.ts';
 import { PLATES, type Plate, type PlateCtx, type Rect } from './plates/index.ts';
 import { REVEAL_EVENT, plotStore } from './store.ts';
 
@@ -78,6 +80,7 @@ interface TitleState {
 
 interface PlateState {
   el: HTMLElement;
+  name: string;
   plate: Plate;
   section: Rect;
   content: Rect;
@@ -186,6 +189,9 @@ const debounce = (fn: () => void, ms: number) => {
   };
 };
 
+/** A route as the page lays it out: also the line its title is written along, or the stretch that uncovers it. */
+type LaidRoute = Route & { lineY?: number; along?: [string, string] };
+
 export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): () => void {
   const maybeCtx = canvas.getContext('2d');
   if (!maybeCtx) return () => {};
@@ -230,6 +236,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let hold: { el: HTMLElement; s: number | null; epoch: number } | null = null;
   /** How far the drawn line reaches; ahead of the pen while it holds. */
   let inkS = 0;
+  /** Where a route that runs on into the next section left off, while routes are laid out. */
+  let carry: Point | null = null;
+  /** The final button, pulsed once when the pen has finished its journey. */
+  let ctaEl: HTMLElement | null = null;
+  let ctaDone = false;
   const flashes: Flash[] = [];
   const anchors = new Map<string, Rect>();
   const sparks: Spark[] = [];
@@ -319,14 +330,17 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       },
     );
     // Routes need the margin the section numbers use; narrow layouts keep the plain rail.
-    const routes: (Route & { lineY?: number })[] =
+    carry = null;
+    const routes: LaidRoute[] =
       railX > 34
         ? titles.flatMap((s, i) => {
             const route = s.section?.dataset.plotRoute ? routeFor(s, i) : null;
+            carry = route?.continues ? (route.pts[route.pts.length - 1] ?? null) : null;
             return route ? [route] : [];
           })
         : [];
     const lines = new Map(routes.map((r) => [r.title, r.lineY]));
+    const alongs = new Map(routes.map((r) => [r.title, r.along]));
     path = buildPath({
       titles: titles.map((s, i) => ({
         left: s.left,
@@ -334,6 +348,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         top: s.top,
         bottom: s.bottom,
         lineY: lines.get(i),
+        along: alongs.get(i),
       })),
       railX,
       origin,
@@ -345,25 +360,31 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     titles.forEach((s, i) => (s.run = path?.runs[i] ?? null));
     kfs = scrollKeyframes(path, H, maxScroll);
 
-    const oldPlates = new Map(plates.map((p) => [p.el, p.p]));
-    plates = Array.from(document.querySelectorAll<HTMLElement>('[data-plate]')).flatMap((sec) => {
-      const plate = PLATES[sec.dataset.plate ?? ''];
-      if (!plate) return [];
-      const section = pageRect(sec, sy);
-      const titleEl = sec.querySelector('[data-pen]');
-      const trigger = (plate.at ? anchors.get(plate.at)?.top : undefined) ?? section.top;
-      return [
-        {
-          el: sec,
-          plate,
-          section,
-          content: contentRect(sec, sy),
-          title: titleEl ? pageRect(titleEl, sy) : null,
-          trigger,
-          p: reduce ? 1 : (oldPlates.get(sec) ?? 0),
-        },
-      ];
-    });
+    ctaEl = document.querySelector<HTMLElement>('[data-plot-anchor="cta-button"]');
+    const key = (el: HTMLElement, name: string) => `${el.id}|${name}`;
+    const oldPlates = new Map(plates.map((p) => [key(p.el, p.name), p.p]));
+    // A section may name several plates, separated by spaces.
+    plates = Array.from(document.querySelectorAll<HTMLElement>('[data-plate]')).flatMap((sec) =>
+      (sec.dataset.plate ?? '').split(' ').flatMap((name) => {
+        const plate = PLATES[name];
+        if (!plate) return [];
+        const section = pageRect(sec, sy);
+        const titleEl = sec.querySelector('[data-pen]');
+        const trigger = (plate.at ? anchors.get(plate.at)?.top : undefined) ?? section.top;
+        return [
+          {
+            el: sec,
+            name,
+            plate,
+            section,
+            content: contentRect(sec, sy),
+            title: titleEl ? pageRect(titleEl, sy) : null,
+            trigger,
+            p: reduce ? 1 : (oldPlates.get(key(sec, name)) ?? 0),
+          },
+        ];
+      }),
+    );
 
     reveals = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]:not([data-in])')).map((el) => {
       const sec = el.closest('section');
@@ -393,9 +414,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
    * line above it, drops onto the video camera's eye, follows its ray out to the right margin and goes down
    * there. `split` drops from the underline to just above the right column, turns left and runs down between
    * the two columns. `chart` runs down the rail ahead of the scroll, draws the learning curve and comes back
-   * round its right side. All of them cross back to the rail under the section.
+   * round its right side. `touch` taps the point its plate starts from. `tiles` comes down the right margin,
+   * turns left over the last tile and runs on between the last two into the next section, which takes it
+   * over (`net`, then `right`) without writing its title along an underline. The rest cross back to the rail
+   * under the section.
    */
-  function routeFor(s: TitleState, i: number): (Route & { lineY?: number }) | null {
+  function routeFor(s: TitleState, i: number): LaidRoute | null {
     const sec = s.section;
     if (!sec) return null;
     const box = pageRect(sec, sy);
@@ -407,6 +431,80 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const right = content.right + (content.left - railX);
     if (right > W - 6) return null;
     const kind = sec.dataset.plotRoute;
+    const from = carry;
+    if (kind === 'net' && from) {
+      const dock = sec.querySelector('[data-plot-anchor="try-dock"]');
+      if (!dock) return null;
+      const d = pageRect(dock, sy);
+      // Out from under the playground in the middle, clear of the next title's words.
+      const cx = Math.max(W / 2, (next?.right ?? 0) + 48);
+      return {
+        title: i,
+        continues: true,
+        // The title is uncovered as the pen comes down beside it, whole by the time it flashes.
+        along: ['try-0', 'net'],
+        pts: [
+          { x: from.x, y: s.top - 60, r: 0, key: null, mark: 'try-0' },
+          { x: from.x, y: (s.top + s.bottom) / 2, r: 0, key: 0.45, mark: 'net' },
+          // Behind the playground from here on.
+          { x: from.x, y: d.top + 60 },
+          { x: cx, y: d.top + 200 },
+          { x: cx, y: d.bottom + 24, key: 0.5 },
+        ],
+      };
+    }
+    if (kind === 'right' && from)
+      return {
+        title: i,
+        along: ['keys-0', 'keys-1'],
+        pts: [
+          { x: from.x, y: s.top, r: 0, key: null, mark: 'keys-0' },
+          { x: from.x, y: end.y, mark: 'keys-1' },
+          { x: right, y: end.y },
+          { x: right, y: back },
+        ],
+      };
+    if (kind === 'tiles') {
+      const row = sec.querySelector('[data-plot-tiles]');
+      const tiles = row ? Array.from(row.children).map((c) => pageRect(c, sy)) : [];
+      const a = tiles[tiles.length - 2];
+      const b = tiles[tiles.length - 1];
+      // Only while the tiles sit in one row.
+      if (row && a && b && Math.abs(a.top - b.top) < 2 && b.left > a.right) {
+        const above = row.previousElementSibling;
+        const y = above ? (pageRect(above, sy).bottom + b.top) / 2 : b.top - 12;
+        return {
+          title: i,
+          continues: true,
+          pts: [
+            { x: right, y: end.y },
+            { x: right, y },
+            { x: (a.right + b.left) / 2, y },
+          ],
+        };
+      }
+      return {
+        title: i,
+        pts: [
+          { x: right, y: end.y },
+          { x: right, y: back },
+        ],
+      };
+    }
+    if (kind === 'touch') {
+      const spot = sec.querySelector('[data-plot-anchor="ruler-space"]');
+      if (!spot) return null;
+      const [ox, oy] = rulerOrigin(pageRect(spot, sy));
+      // Down the rail, a tap on the ruler's zero as it reaches the middle of the screen, and back.
+      return {
+        title: i,
+        fromRail: true,
+        pts: [
+          { x: railX, y: oy, key: 0.56 },
+          { x: ox, y: oy, r: 0, key: 0.5, mark: 'ruler' },
+        ],
+      };
+    }
     if (kind === 'camera') {
       const player = sec.querySelector('[data-plot-anchor="video-player"]');
       const eyebrow = sec.querySelector('[data-eyebrow]');
@@ -421,7 +519,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
           lineY: pageRect(eyebrow, sy).top - OVER_TITLE,
           pts: [
             { x: ex, y: pageRect(eyebrow, sy).top - OVER_TITLE },
-            { x: ex, y: ey, r: 0, mark: 'camera' },
+            // Reached while the section is only halfway up the screen, so a quick scroll still sees it set off.
+            { x: ex, y: ey, r: 0, key: 0.65, mark: 'camera' },
             { x: right, y: yd },
             { x: right, y: back },
           ],
@@ -466,7 +565,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       const r = pageRect(b, sy);
       if (r.left < l.right + 8) return null;
       // Down past the lead's last word, into the space right above the right column.
-      const lead = textRight(s.el.parentElement?.querySelector('p'));
+      const lead = textRight(sec.querySelector('p'));
       const x = clamp(Math.max(end.x, lead + 24), r.left + 40, r.right - 40);
       const top = r.top - 12;
       const gap = (l.right + r.left) / 2;
@@ -588,7 +687,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       if (run) {
         const r = (hold.el.querySelector(':scope > summary') ?? hold.el).getBoundingClientRect();
         const end = titles[k + 1]?.run?.i0 ?? path.n - 1;
-        hold.s = sAtRailY(path, r.top + sy + r.height / 2, run.i1, end, railX);
+        hold.s = sAtY(path, r.top + sy + r.height / 2, run.i1, end);
       }
     }
     return hold.s;
@@ -723,7 +822,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       else if (mark !== undefined) {
         // Draws by time once the pen is past its point, and undraws by time when the pen goes back.
         const on = pen.s >= mark;
-        const step = dt / (on ? STATION_PLATE_SECONDS : STATION_UNDO_SECONDS);
+        const step = dt / (on ? (ps.plate.seconds ?? STATION_PLATE_SECONDS) : STATION_UNDO_SECONDS);
         next = on ? Math.min(1, ps.p + step) : Math.max(0, ps.p - step);
       } else {
         const target = hero ? clamp(t / HERO_PLATE_SECONDS) : clamp((sy + H * 0.9 - ps.trigger) / (H * 0.62));
@@ -1011,6 +1110,10 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       content: ps.content,
       title: ps.title,
       anchor: (name) => anchors.get(name) ?? null,
+      markAt: (name) => {
+        const s = path?.marks.get(name);
+        return path && s !== undefined ? posAt(path, s) : null;
+      },
       progressAt: (r) => (reduce ? 1 : clamp((sy + H * 0.92 - r.top) / (H * 0.5))),
       scrub: clamp((sy + H * 0.6 - ps.section.top) / Math.max(1, ps.section.h)),
       store: plotStore,
@@ -1082,6 +1185,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const before = pen.s;
     updatePen(dt);
     inkS = hold ? Math.max(inkS, pen.s) : Math.max(pen.s, Math.min(inkS, scrollTarget()));
+    // The final button pulses once as the pen closes its ellipse, and again after the pen has left and come back.
+    if (ctaEl && path && !reduce) {
+      const done = ctaDone ? pen.s > path.total - 60 : pen.s >= path.total - 2;
+      if (done !== ctaDone) ctaEl.toggleAttribute('data-plot-done', (ctaDone = done));
+    }
     if (!reduce) {
       updateTitles();
       updateReveals();
@@ -1142,6 +1250,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     (window as unknown as { __plot?: object }).__plot = {
       render,
       layout,
+      /** Where along its path the pen heads at a scroll position. */
+      sAtScroll: (sc: number) => (path ? sAtB(path, bAtScroll(kfs, sc)) : 0),
       /** Runs one loop iteration at a given time, for a page whose animation frames are paused. */
       step: (now: number) => tick(now),
       get pen() {

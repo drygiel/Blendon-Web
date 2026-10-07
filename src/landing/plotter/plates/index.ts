@@ -6,6 +6,7 @@ import { frame } from './frame.ts';
 import { frustum } from './frustum.ts';
 import { hero } from './hero.ts';
 import { keyboard } from './keyboard.ts';
+import { network } from './network.ts';
 import { orbits } from './orbits.ts';
 import { pages } from './pages.ts';
 import { polar } from './polar.ts';
@@ -26,6 +27,7 @@ export const PLATES: Record<string, Plate> = {
   pages,
   waves,
   frame,
+  network,
   keyboard,
   blueprint,
   bezier,

@@ -34,7 +34,7 @@ const MODIFIERS: [KeyTokens, string, string][] = [
 
 export function Precision() {
   return (
-    <Section id="precision" plate="ruler">
+    <Section id="precision" plate="ruler" route="touch">
       <div className={styles.intro}>
         <Eyebrow>04 / PRECISION</Eyebrow>
         <SectionTitle>

@@ -45,7 +45,7 @@ export function Setup() {
   }, [slide]);
 
   return (
-    <Section id="setup" plate="pages">
+    <Section id="setup" plate="pages" route="split">
       <SectionIntro
         eyebrow="07 / SETUP"
         title={
@@ -60,7 +60,7 @@ export function Setup() {
       </p>
 
       <div className={styles.split}>
-        <div className={styles.viewer} data-reveal="print">
+        <div className={styles.viewer} data-reveal="print" data-plot-col="left">
           <div
             className={styles.carousel}
             onTouchStart={(e) => {
@@ -104,7 +104,7 @@ export function Setup() {
           </div>
         </div>
 
-        <div className={styles.details} aria-live="polite" data-reveal="rise">
+        <div className={styles.details} aria-live="polite" data-reveal="rise" data-plot-col="right">
           {SETTINGS_SLIDES.map((s, i) => (
             <div key={s.title} aria-hidden={i !== slide} className={cx(styles.detail, i === slide && styles.current)}>
               <div className={styles.counter}>

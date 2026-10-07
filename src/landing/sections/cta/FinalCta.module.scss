@@ -59,12 +59,106 @@
 
 // Room around the button for the pen's ellipse.
 .buy {
+  position: relative;
   display: inline-flex;
   margin-top: 70px;
 
   a {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     font-size: 17px;
     padding: 20px 30px;
+
+    // An aurora in the button's lower half: deeper and brighter oranges drifting under the label.
+    &::before {
+      content: '';
+      position: absolute;
+      left: -50%;
+      right: -50%;
+      top: 35%;
+      bottom: -40%;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(closest-side, rgba(226, 88, 32, 0.7), transparent) 8% 60% / 34% 100% no-repeat,
+        radial-gradient(closest-side, rgba(255, 206, 110, 0.85), transparent) 38% 70% / 30% 90% no-repeat,
+        radial-gradient(closest-side, rgba(240, 120, 36, 0.75), transparent) 66% 55% / 32% 100% no-repeat,
+        radial-gradient(closest-side, rgba(255, 190, 80, 0.7), transparent) 92% 65% / 30% 90% no-repeat;
+      -webkit-mask-image: linear-gradient(transparent, #000 45%);
+      mask-image: linear-gradient(transparent, #000 45%);
+      animation:
+        cta-drift 9s ease-in-out infinite alternate,
+        cta-glow 5s ease-in-out infinite alternate;
+    }
+  }
+
+  // One ring and a beat of the button when the pen has finished its journey round it.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid $accent;
+    border-radius: 12px;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  &[data-plot-done] {
+    a {
+      animation: cta-beat 0.9s cubic-bezier(0.3, 0.7, 0.3, 1);
+    }
+
+    &::after {
+      animation: cta-ring 1.1s cubic-bezier(0.2, 0.6, 0.3, 1);
+    }
+  }
+}
+
+@keyframes cta-drift {
+  from {
+    transform: translateX(-14%);
+  }
+  to {
+    transform: translateX(14%);
+  }
+}
+
+@keyframes cta-glow {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cta-beat {
+  35% {
+    scale: 1.08;
+  }
+}
+
+@keyframes cta-ring {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35, 1.8);
+  }
+}
+
+:global(html[data-plot-idle]) .buy a::before {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buy a::before,
+  .buy[data-plot-done] a,
+  .buy[data-plot-done]::after {
+    animation: none;
   }
 }
 

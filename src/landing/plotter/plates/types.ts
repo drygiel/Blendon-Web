@@ -34,6 +34,8 @@ export interface PlateCtx {
   /** The section's title box, if it has one. */
   title: Rect | null;
   anchor: (name: string) => Rect | null;
+  /** Where a named point of the pen's route is, in page coordinates, if the route has it. */
+  markAt: (name: string) => { x: number; y: number } | null;
   /** Progress of a part of the plate that starts drawing when `r` comes into view. */
   progressAt: (r: Rect) => number;
   /** How far the section has scrolled through the viewport, 0 to 1, for scrubbed values. */
@@ -55,6 +57,8 @@ export interface Plate {
    * by time when the pen goes back before it. Without one on the page it draws by scroll.
    */
   station?: string;
+  /** Seconds a plate set off by the pen takes to draw. */
+  seconds?: number;
   /** Progress that follows the pen through named route points: the plate's progress at each. */
   track?: [mark: string, p: number][];
 }
