@@ -10,7 +10,7 @@ interface SectionProps {
   /** The background plotter's drawing for this section, by name. */
   plate?: string;
   /** The pen's way past this section; see `routeFor` in the plotter's engine. */
-  route?: 'right' | 'camera' | 'split' | 'chart';
+  route?: 'right' | 'camera' | 'split' | 'chart' | 'touch' | 'tiles';
 }
 
 /** A page-width landing section. */

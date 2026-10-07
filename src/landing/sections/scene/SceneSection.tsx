@@ -7,8 +7,8 @@ import styles from './SceneSection.module.scss';
 /** A Scene view running Blendon and Blendon's settings window, side by side or as tabs. */
 export function SceneSection() {
   return (
-    <section id="try" className={styles.section} data-plate="frame">
-      <div className={styles.intro}>
+    <section id="try" className={styles.section} data-plate="frame network" data-plot-route="net">
+      <div className={styles.intro} data-plot-anchor="try-intro">
         <SectionIntro
           eyebrow="09 / TRY IT"
           title={

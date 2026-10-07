@@ -24,6 +24,11 @@ export interface TitleBox {
   bottom: number;
   /** Where the pen writes the title, if not along its underline: a line above the title, say. */
   lineY?: number;
+  /**
+   * The previous title's route runs on past this title instead of the rail branching under it: the title is
+   * uncovered while the pen travels between these two named route points.
+   */
+  along?: [string, string];
 }
 
 export interface Box {
@@ -51,6 +56,8 @@ export interface Run {
   th: number;
   /** The underline's height, which times the writing even when the pen writes along another line. */
   ky: number;
+  /** Uncovered by a stretch of a route rather than written along a branch of the rail. */
+  along?: boolean;
 }
 
 /** A detour after a title: the pen leaps from the rail into a point, ignites there and circles it. */
@@ -94,6 +101,8 @@ export interface Route {
   fromRail?: boolean;
   /** Names the route's start, where the title's line ends. */
   startMark?: string;
+  /** Runs on into the next section instead of crossing back to the rail. */
+  continues?: boolean;
 }
 
 /** One straight leg of a route, ending at path index `i`. */
@@ -274,15 +283,22 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
     const uy = t.lineY ?? ky;
     const sx = t.left - 14;
     const r = clamp((t.left - rx) * 0.5, 6, 26);
-    if (i === 0) pb.cubic(origin.x - 40, origin.y - 170, sx - 130, uy + 70, sx, uy, UP);
-    else {
-      pb.line(rx, uy - r, RAIL);
-      pb.cubic(rx, uy - r * 0.45, rx + r * 0.45, uy, rx + r, uy, RAIL);
-      if (sx > rx + r + 1) pb.line(sx, uy, RAIL);
+    const th = t.bottom - t.top;
+    if (t.along) {
+      // Filled in from the named points once the route through this section is laid.
+      const at = pb.count() - 1;
+      runs.push({ i0: at, i1: at, s0: 0, s1: 0, b0: 0, b1: 0, sx, ex, uy: ky, th, ky, along: true });
+    } else {
+      if (i === 0) pb.cubic(origin.x - 40, origin.y - 170, sx - 130, uy + 70, sx, uy, UP);
+      else {
+        pb.line(rx, uy - r, RAIL);
+        pb.cubic(rx, uy - r * 0.45, rx + r * 0.45, uy, rx + r, uy, RAIL);
+        if (sx > rx + r + 1) pb.line(sx, uy, RAIL);
+      }
+      const i0 = pb.count() - 1;
+      pb.line(ex, uy, WRITE);
+      runs.push({ i0, i1: pb.count() - 1, s0: 0, s1: 0, b0: 0, b1: 0, sx, ex, uy, th, ky });
     }
-    const i0 = pb.count() - 1;
-    pb.line(ex, uy, WRITE);
-    runs.push({ i0, i1: pb.count() - 1, s0: 0, s1: 0, b0: 0, b1: 0, sx, ex, uy, th: t.bottom - t.top, ky });
     const last = i === titles.length - 1;
     const route = last ? undefined : routes.find((x) => x.title === i && x.pts.length);
     const d = last ? undefined : detours.find((x) => x.title === i);
@@ -298,7 +314,13 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
       const pts: RoutePoint[] = [];
       let prev: Point = pb.last();
       const start = prev;
-      for (const p of [...route.pts, { x: rx, y: end.y }, { x: rx, y: end.y + r }]) {
+      const home = route.continues
+        ? []
+        : [
+            { x: rx, y: end.y },
+            { x: rx, y: end.y + r },
+          ];
+      for (const p of [...route.pts, ...home]) {
         if (Math.hypot(p.x - prev.x, p.y - prev.y) < 1) continue;
         pts.push(p);
         prev = p;
@@ -308,7 +330,7 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
       // The last leg only turns down onto the rail; the rail's own keyframes take it from there.
       legs.set(
         i,
-        ends.slice(0, -1).map((ix, k) => {
+        (route.continues ? ends : ends.slice(0, -1)).map((ix, k) => {
           const a = k ? pts[k - 1] : start;
           const c = pts[k];
           const dx = c.x - a.x;
@@ -323,7 +345,7 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
           };
         }),
       );
-    } else if (!last && !d?.fromTitle) back();
+    } else if (!last && !d?.fromTitle && !t.along) back();
     if (d && (d.fromTitle || d.cy > pb.last().y)) {
       const from = pb.last();
       let jy = from.y;
@@ -381,6 +403,15 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
     maxY[i] = Math.max(maxY[i - 1], y[i]);
   }
   path.total = n ? s[n - 1] : 0;
+  titles.forEach((t, k) => {
+    const run = runs[k];
+    const a = t.along ? named.get(t.along[0]) : undefined;
+    const b = t.along ? named.get(t.along[1]) : undefined;
+    if (run && a !== undefined && b !== undefined) {
+      run.i0 = a;
+      run.i1 = b;
+    }
+  });
   for (const r of runs) {
     r.s0 = s[r.i0];
     r.s1 = s[r.i1];
@@ -439,19 +470,27 @@ export function scrollKeyframes(path: PlotPath, viewportH: number, maxScroll: nu
   if (!first || path.n < 2) return [{ sc: 0, b: 0 }];
   const kf: Keyframe[] = [{ sc: 0, b: first.b1 }];
   path.runs.forEach((r, i) => {
-    if (i > 0) {
+    // A title along a route is timed by the route's own keyframes.
+    if (i > 0 && !r.along) {
       // A taller title is finished lower down, so its middle, not its underline, passes the line.
       const anchor = viewportH * WRITE_LINE + Math.min(r.th * 0.5, viewportH * 0.2);
       const lead = clamp((r.s1 - r.s0) * 0.4, 90, viewportH * 0.3);
-      kf.push({ sc: r.ky - anchor - lead, b: r.b0 }, { sc: r.ky - anchor, b: r.b1 });
+      // When a later point pulls the writing earlier, it keeps its length of scroll.
+      kf.push({ sc: r.ky - anchor - lead, b: r.b0 }, { sc: r.ky - anchor, b: r.b1, gap: lead });
     }
     // Down a route the pen holds its line on screen; across, it hurries over in a short stretch of scroll.
     let prev = kf[kf.length - 1].sc;
     for (const leg of path.legs.get(i) ?? []) {
       if (leg.key === null) continue;
       const gap = leg.gap ?? (leg.horizontal && leg.key === undefined ? clamp(leg.len * 0.15, 80, 180) : MIN_GAP);
-      const line = leg.key ?? (leg.horizontal ? null : ROUTE_LINE);
-      const sc = line === null ? prev + gap : Math.max(prev + gap, leg.y - viewportH * line);
+      // A point given its own line is reached exactly there: the keyframes before it give way, and the pen
+      // hurries to make it. By default the pen only holds its line while it can.
+      const sc =
+        typeof leg.key === 'number'
+          ? leg.y - viewportH * leg.key
+          : leg.horizontal
+            ? prev + gap
+            : Math.max(prev + gap, leg.y - viewportH * ROUTE_LINE);
       kf.push({ sc, b: path.b[leg.i], gap });
       prev = sc;
     }
@@ -477,13 +516,13 @@ export function scrollKeyframes(path: PlotPath, viewportH: number, maxScroll: nu
   return kf;
 }
 
-/** Arc length where the rail, between path indices `i0` and `i1`, first reaches height `y`. */
-export function sAtRailY(path: PlotPath, y: number, i0: number, i1: number, railX: number): number | null {
+/** Arc length where a downward vertical stretch between path indices `i0` and `i1` reaches height `y`. */
+export function sAtY(path: PlotPath, y: number, i0: number, i1: number): number | null {
   let best: number | null = null;
   for (let i = Math.max(1, i0); i <= Math.min(i1, path.n - 1); i++) {
-    if (path.kind[i] !== RAIL || Math.abs(path.x[i] - railX) > 0.5) continue;
-    best = path.s[i];
-    if (path.y[i] >= y) break;
+    if (path.kind[i] !== RAIL || Math.abs(path.x[i] - path.x[i - 1]) > 0.5 || path.y[i] <= path.y[i - 1]) continue;
+    best ??= path.s[i];
+    if (path.y[i] >= y) return path.s[i];
   }
   return best;
 }

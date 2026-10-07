@@ -59,6 +59,7 @@ export function Features() {
               key={f.id}
               selected={f.id === cur.id}
               onPick={() => setFeatureId(f.id)}
+              hold
               title={f.title}
               aside={<Keys tokens={f.keys} size="sm" end />}
             />

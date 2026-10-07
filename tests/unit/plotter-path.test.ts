@@ -17,7 +17,7 @@ import {
   introS,
   posAt,
   sAtB,
-  sAtRailY,
+  sAtY,
   scrollKeyframes,
   type TitleBox,
 } from '../../src/landing/plotter/path.ts';
@@ -218,6 +218,54 @@ describe('plotter title lines and marks', () => {
   });
 });
 
+describe('plotter routes through several sections', () => {
+  // The fourth title's route runs on past the fifth title, which it uncovers on the way down.
+  const through = buildPath({
+    titles: titles.map((t, i) => (i === 4 ? { ...t, along: ['in', 'out'] as [string, string] } : t)),
+    railX: 94,
+    origin: { x: 720, y: 700 },
+    cta: null,
+    routes: [
+      {
+        title: 3,
+        continues: true,
+        pts: [
+          { x: 1300, y: titles[3].bottom + 6 },
+          { x: 1300, y: 3800 },
+        ],
+      },
+      {
+        title: 4,
+        pts: [
+          { x: 1300, y: titles[4].top, r: 0, key: null, mark: 'in' },
+          { x: 1300, y: titles[4].bottom, r: 0, key: 0.3, mark: 'out' },
+          { x: 1300, y: 4300 },
+        ],
+      },
+    ],
+  });
+  const keys = scrollKeyframes(through, H, maxScroll);
+
+  it('uncovers the title along the route, with no branch of the rail under it', () => {
+    const run = through.runs[4];
+    expect(run?.along).toBe(true);
+    expect(run?.s0).toBe(through.marks.get('in'));
+    expect(run?.s1).toBe(through.marks.get('out'));
+    expect(posAt(through, run?.s0 ?? 0).x).toBeCloseTo(1300, 0);
+    // Nothing on the rail between the fourth title and the route's return under the fifth section.
+    for (let i = through.runs[3]?.i1 ?? 0; i < (through.runs[5]?.i0 ?? 0); i++) {
+      if (through.y[i] > (titles[3]?.bottom ?? 0) + 40 && through.y[i] < 4260)
+        expect(through.x[i]).toBeGreaterThan(1200);
+    }
+  });
+
+  it('reaches a point at its own screen line, the scroll before it giving way', () => {
+    const out = keys.find((k) => k.b === through.b[through.legs.get(4)?.[1]?.i ?? 0]);
+    expect(out?.sc).toBe((titles[4]?.bottom ?? 0) - H * 0.3);
+    for (let j = 1; j < keys.length; j++) expect(keys[j]?.sc).toBeGreaterThan(keys[j - 1]?.sc ?? Infinity);
+  });
+});
+
 describe('plotter routes', () => {
   // The second title passes its section down the right margin and crosses back under it.
   const back = 2120;
@@ -267,10 +315,10 @@ describe('plotter routes', () => {
     expect(at?.sc).toBeLessThanOrEqual((down?.y ?? 0) - H * ROUTE_LINE);
   });
 
-  it('finds the rail point level with a row, within a stretch', () => {
+  it('finds the point of a downward stretch level with a row', () => {
     const run = path.runs[2];
     const next = path.runs[3];
-    const s = sAtRailY(path, 2500, run?.i1 ?? 0, next?.i0 ?? 0, 94);
+    const s = sAtY(path, 2500, run?.i1 ?? 0, next?.i0 ?? 0);
     const p = posAt(path, s ?? 0);
     expect(p.x).toBeCloseTo(94, 0);
     expect(p.y).toBeGreaterThanOrEqual(2500);
