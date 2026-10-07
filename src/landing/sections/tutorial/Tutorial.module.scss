@@ -174,3 +174,9 @@
   border-radius: 6px;
   background: #1c1d21;
 }
+
+// The plotter's learning curve.
+.plot {
+  height: clamp(230px, 27vw, 330px);
+  margin-top: 28px;
+}

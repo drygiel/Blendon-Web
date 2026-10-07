@@ -25,10 +25,14 @@ function Owner({ does, other, to }: { does: string; other: string; to: Contested
 
 export function Pace() {
   return (
-    <Section id="pace">
+    <Section id="pace" plate="waves">
       <SectionIntro
         eyebrow="08 / YOUR PACE"
-        title="Keep your Unity habits. Pick up Blender's at your own pace."
+        title={
+          <>
+            Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
+          </>
+        }
         lead="On first load Blendon asks one question: which keys it may take. Nothing is written until you answer, and the answer can be changed any time on the Overview page of Tools → Blendon."
       />
 
@@ -42,7 +46,7 @@ export function Pace() {
               <th scope="col">Unity preset</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody data-reveal="sweep">
             {CONTESTED_KEYS.map((row) => (
               <tr key={row.id}>
                 <th scope="row">
@@ -64,7 +68,7 @@ export function Pace() {
         </p>
       </div>
 
-      <div className={styles.cards}>
+      <div className={styles.cards} data-reveal="stagger">
         {FEATURE_PRESETS.map(([title, text]) => (
           <div key={title} className={styles.card}>
             <span className={styles.label}>Feature preset</span>

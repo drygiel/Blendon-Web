@@ -26,8 +26,8 @@
   position: relative;
   border: 1px solid $border-2;
   border-radius: 16px;
-  // Unity's scene view grey, which the real pie is drawn over.
-  background: radial-gradient(ellipse 75% 75% at 50% 50%, #4b4b4b 0%, #3d3d3d 100%);
+  // Transparent: the background plotter draws polar paper behind the pie.
+  background: transparent;
   overflow: hidden;
   cursor: default;
   user-select: none;
@@ -76,7 +76,7 @@
 }
 
 .wedge {
-  stroke: rgba(71, 115, 179, 0.96);
+  stroke: rgba(242, 163, 58, 0.96);
 }
 
 // A device-pixel hairline at any scale, as the plugin's OutlineThickness.
@@ -141,17 +141,18 @@
 }
 
 .hot {
-  --fill: rgba(79, 79, 79, 0.98);
-  --text: #fff;
+  --fill: rgba(242, 163, 58, 0.96);
+  --text: #1a1206;
 }
 
 .current {
   --fill: rgba(71, 115, 179, 0.96);
   --text: #fff;
 
-  // PieCurrentHoverBoost: the current item brightens rather than turning grey.
+  // The item under the pointer is amber even when it is the current one.
   &.hot {
-    --fill: rgba(87, 140, 217, 0.96);
+    --fill: rgba(242, 163, 58, 0.96);
+    --text: #1a1206;
   }
 }
 

@@ -1,16 +1,20 @@
 import type { ReactNode } from 'react';
+import { PenTitle } from '../plotter/PenTitle.tsx';
+import { TypeText } from '../plotter/TypeText.tsx';
 import styles from './Section.module.scss';
 
 interface SectionProps {
   id: string;
   children: ReactNode;
   className?: string;
+  /** The background plotter's drawing for this section, by name. */
+  plate?: string;
 }
 
 /** A page-width landing section. */
-export function Section({ id, children, className }: SectionProps) {
+export function Section({ id, children, className, plate }: SectionProps) {
   return (
-    <section id={id} className={[styles.section, className].filter(Boolean).join(' ')}>
+    <section id={id} className={[styles.section, className].filter(Boolean).join(' ')} data-plate={plate}>
       {children}
     </section>
   );
@@ -29,20 +33,31 @@ export function SectionIntro({ eyebrow, title, lead, className }: IntroProps) {
   return (
     <div className={[styles.intro, className].filter(Boolean).join(' ')}>
       <Eyebrow>{eyebrow}</Eyebrow>
-      <h2 className={styles.title}>{title}</h2>
-      {lead && <p className={styles.lead}>{lead}</p>}
+      <SectionTitle>{title}</SectionTitle>
+      {lead && <Lead>{lead}</Lead>}
     </div>
   );
 }
 
-export function Eyebrow({ children }: { children: ReactNode }) {
-  return <span className={styles.eyebrow}>{children}</span>;
+/** Typed out when the pen starts the section's title; the number before " / " takes the accent. */
+export function Eyebrow({ children }: { children: string }) {
+  const cut = children.indexOf(' / ');
+  return (
+    <span className={styles.eyebrow} data-eyebrow="">
+      <TypeText text={children} accent={Math.max(0, cut)} />
+    </span>
+  );
 }
 
+/** Written by the background plotter's pen. */
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className={styles.title}>{children}</h2>;
+  return <PenTitle className={styles.title}>{children}</PenTitle>;
 }
 
 export function Lead({ children }: { children: ReactNode }) {
-  return <p className={styles.lead}>{children}</p>;
+  return (
+    <p className={styles.lead} data-reveal="rise">
+      {children}
+    </p>
+  );
 }

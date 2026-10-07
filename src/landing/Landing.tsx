@@ -3,6 +3,7 @@ import { FinalCta } from './sections/cta/FinalCta.tsx';
 import { Faq } from './sections/faq/Faq.tsx';
 import { Features } from './sections/features/Features.tsx';
 import { Footer } from './sections/footer/Footer.tsx';
+import { PlotterLayer } from './plotter/PlotterLayer.tsx';
 import { Hero } from './sections/hero/Hero.tsx';
 import { UnderTheHood } from './sections/hood/UnderTheHood.tsx';
 import { PromoVideo } from './sections/video/PromoVideo.tsx';
@@ -17,6 +18,7 @@ import { Tutorial } from './sections/tutorial/Tutorial.tsx';
 export function Landing() {
   return (
     <>
+      <PlotterLayer />
       <Hero />
       <main>
         <PromoVideo />

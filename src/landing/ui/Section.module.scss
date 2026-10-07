@@ -8,21 +8,36 @@
 .intro {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   max-width: 760px;
 }
 
 .eyebrow {
-  @include caption(12px, 0.16em, $accent);
+  @include caption(11.5px, 0.16em, $text-4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-transform: uppercase;
+
+  &::before {
+    content: '';
+    flex: none;
+    width: 22px;
+    height: 1px;
+    background: $accent;
+    box-shadow: 0 0 6px rgba($accent, 0.8);
+  }
 }
 
 .title {
   @include display;
   margin: 0;
-  font-size: clamp(30px, 3.4vw, 46px);
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  font-size: clamp(32px, 4.4vw, 60px);
+  font-stretch: $display-stretch;
+  line-height: 1.03;
+  letter-spacing: -0.025em;
   font-weight: 800;
+  text-wrap: balance;
 }
 
 .lead {

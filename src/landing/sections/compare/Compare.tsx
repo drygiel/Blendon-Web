@@ -9,10 +9,14 @@ import styles from './Compare.module.scss';
 /** Everyday Scene view tasks, as Unity does them out of the box and with Blendon. */
 export function Compare() {
   return (
-    <Section id="compare">
+    <Section id="compare" plate="orbits">
       <SectionIntro
         eyebrow="02 / WHAT CHANGES"
-        title="Same Scene view. Fewer detours."
+        title={
+          <>
+            Same Scene view. <em>Fewer detours.</em>
+          </>
+        }
         lead="Never used Blender? This is what changes in an ordinary working day, next to how Unity does it out of the box."
       />
       <div className={table.panel}>
@@ -27,7 +31,7 @@ export function Compare() {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody data-reveal="sweep">
             {COMPARISON.map((row) => (
               <tr key={row.task}>
                 <th scope="row" className={styles.task}>

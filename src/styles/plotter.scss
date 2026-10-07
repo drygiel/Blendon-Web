@@ -1,0 +1,367 @@
+// The background plotter's layer and the reveals it drives. Hidden starting states apply only under
+// `html.plot`, which index.html sets before first paint and removes again if the plotter never starts.
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+$reveal-ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+$type-step: 24ms;
+
+// ---------- layer
+
+// Below the page's content: html paints the background, body stays transparent.
+.plot-canvas,
+.plot-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.plot-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.plot-vignette {
+  background: radial-gradient(130% 95% at 50% 42%, transparent 58%, rgba($bg, 0.72) 100%);
+}
+
+.plot-hud {
+  @include mono;
+  position: fixed;
+  left: 34px;
+  bottom: 30px;
+  z-index: 5;
+  display: grid;
+  gap: 3px;
+  font-size: 10px;
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: rgba($text, 0.42);
+  pointer-events: none;
+
+  span:first-child {
+    color: rgba($accent, 0.8);
+  }
+
+  html:not(.plot) & {
+    display: none;
+  }
+
+  // Only where the margin beside the content column is wide enough to hold it.
+  @media (max-width: 1539px) {
+    display: none;
+  }
+}
+
+// ---------- titles: ink uncovered left to right over an outline ghost
+
+.plot-title {
+  position: relative;
+
+  em {
+    font-style: normal;
+    color: $accent;
+  }
+}
+
+.plot-ink {
+  display: block;
+}
+
+.plot-ghost {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-text-stroke: 1px rgba($text, 0.22);
+
+  &,
+  * {
+    color: transparent !important;
+  }
+
+  em {
+    -webkit-text-stroke-color: rgba($accent, 0.4);
+  }
+
+  html:not(.plot) & {
+    display: none;
+  }
+}
+
+html.plot {
+  .plot-ink {
+    clip-path: inset(-0.3em calc(100% - var(--rv, 0px)) -0.4em -0.4em);
+  }
+
+  .plot-ghost {
+    clip-path: inset(-0.3em -0.4em -0.4em var(--rv, 0px));
+  }
+
+  // The pen's writing edge.
+  .plot-title::after {
+    content: '';
+    position: absolute;
+    top: -0.08em;
+    bottom: -0.12em;
+    // Kept inside the title, so a finished title never widens the page.
+    left: min(var(--rv, 0px), calc(100% - 2px));
+    width: 2px;
+    pointer-events: none;
+    background: linear-gradient(transparent, $accent-light 30%, $accent-light 70%, transparent);
+    box-shadow: 0 0 16px 2px rgba($accent, 0.55);
+    opacity: var(--edge, 0);
+    transition: opacity 0.35s;
+  }
+}
+
+// ---------- reveals
+
+.plot-ch-accent {
+  color: $accent;
+}
+
+.plot-scramble {
+  font-variant-numeric: tabular-nums;
+}
+
+html.plot {
+  // Typed with a block cursor: each character shows as a block for one step, then as itself.
+  [data-reveal='type'] .plot-ch {
+    opacity: 0;
+  }
+
+  [data-reveal='type'][data-in] .plot-ch {
+    opacity: 1;
+    animation:
+      plot-type-hide calc(var(--i) * #{$type-step}) linear var(--d, 0s) backwards,
+      plot-type-cursor $type-step steps(1) calc(var(--d, 0s) + var(--i) * #{$type-step});
+  }
+
+  [data-reveal='rise']:not([data-in]) {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(8px);
+  }
+
+  [data-reveal='rise'] {
+    transition:
+      opacity 0.9s $reveal-ease var(--d, 0s),
+      transform 1s $reveal-ease var(--d, 0s),
+      filter 0.9s $reveal-ease var(--d, 0s);
+  }
+
+  // Opacity only, for heavy live content such as the WebGL Scene view, where a blur would cost every frame.
+  [data-reveal='fade']:not([data-in]) {
+    opacity: 0;
+  }
+
+  [data-reveal='fade'] {
+    transition: opacity 0.8s ease var(--d, 0s);
+  }
+
+  // Printed top to bottom under a scan line.
+  [data-reveal='print'] {
+    &::after {
+      content: '';
+      position: absolute;
+      left: -1px;
+      right: -1px;
+      top: 0;
+      z-index: 2;
+      height: 1px;
+      pointer-events: none;
+      opacity: 0;
+      background: $accent-light;
+      box-shadow: 0 0 12px 1px rgba($accent, 0.85);
+    }
+  }
+
+  // Hidden by opacity, not clipping, so a control inside still takes clicks and focus.
+  [data-reveal='print']:not([data-in]) {
+    opacity: 0;
+  }
+
+  [data-reveal='print'][data-in] {
+    animation: plot-print 1s $reveal-ease var(--d, 0s) backwards;
+
+    &::after {
+      animation: plot-scan 1s $reveal-ease var(--d, 0s) backwards;
+    }
+  }
+
+  // Children rise one after another.
+  [data-reveal='stagger']:not([data-in]) > * {
+    opacity: 0;
+  }
+
+  [data-reveal='stagger'][data-in] > * {
+    animation: plot-rise 0.8s $reveal-ease calc(var(--d, 0s) + var(--n, 0) * 70ms) backwards;
+  }
+
+  // Key sequence: steps pop in turn and each key flashes amber.
+  [data-reveal='keys']:not([data-in]) > * {
+    opacity: 0;
+  }
+
+  [data-reveal='keys'][data-in] > * {
+    animation: plot-pop 0.7s $reveal-ease calc(var(--d, 0s) + var(--n, 0) * 90ms) backwards;
+  }
+
+  [data-reveal='keys'][data-in] [data-key] {
+    animation: plot-key-flash 1.3s ease-out calc(var(--d, 0s) + var(--n, 0) * 90ms + 0.15s);
+  }
+
+  // Table rows: each cell is uncovered left to right, row after row, its hairline drawn by the sweep.
+  [data-reveal='sweep']:not([data-in]) > tr > * {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  [data-reveal='sweep'][data-in] > tr > * {
+    position: relative;
+    animation: plot-sweep 0.45s cubic-bezier(0.5, 0, 0.3, 1) var(--sweep-at) backwards;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      pointer-events: none;
+      opacity: 0;
+      background: $accent-light;
+      box-shadow: 0 0 10px 1px rgba($accent, 0.8);
+      animation: plot-sweep-edge 0.45s cubic-bezier(0.5, 0, 0.3, 1) var(--sweep-at) backwards;
+    }
+  }
+}
+
+// Anchors the scan line, without outranking a component's own positioning.
+:where(html.plot [data-reveal='print']) {
+  position: relative;
+}
+
+// Stagger indices; the sweep's delay walks rows, then cells within a row.
+@for $i from 1 through 40 {
+  [data-reveal='stagger'] > :nth-child(#{$i}),
+  [data-reveal='keys'] > :nth-child(#{$i}) {
+    --n: #{$i - 1};
+  }
+
+  [data-reveal='sweep'] > tr:nth-child(#{$i}) {
+    --row: #{$i - 1};
+  }
+}
+
+@for $i from 1 through 4 {
+  [data-reveal='sweep'] > tr > :nth-child(#{$i}) {
+    --sweep-at: calc(var(--d, 0s) + var(--row, 0) * 110ms + #{($i - 1) * 140ms});
+  }
+}
+
+@keyframes plot-type-hide {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes plot-type-cursor {
+  from,
+  to {
+    color: transparent;
+    background: $accent;
+    box-shadow: 0 0 8px rgba($accent, 0.7);
+  }
+}
+
+// A mask rather than a clip: masking leaves hit-testing alone, so a click during the print still lands.
+// It exists only while the animation runs, so it never trims a box shadow afterwards.
+@keyframes plot-print {
+  from {
+    -webkit-mask-image: linear-gradient(#000, #000);
+    mask-image: linear-gradient(#000, #000);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 0%;
+    mask-size: 100% 0%;
+  }
+  to {
+    -webkit-mask-image: linear-gradient(#000, #000);
+    mask-image: linear-gradient(#000, #000);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+}
+
+@keyframes plot-scan {
+  0% {
+    top: 0;
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 1px);
+    opacity: 0;
+  }
+}
+
+@keyframes plot-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+}
+
+@keyframes plot-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+  }
+}
+
+@keyframes plot-key-flash {
+  0% {
+    border-color: $accent;
+    color: $accent-light;
+    box-shadow: 0 0 18px rgba($accent, 0.65);
+  }
+}
+
+@keyframes plot-sweep {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes plot-sweep-edge {
+  0% {
+    left: 0;
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 2px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plot-title::after {
+    display: none;
+  }
+}

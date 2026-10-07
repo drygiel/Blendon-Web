@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type PointerEvent } from 'react';
 import tutorialCard from '../../../assets/landing/tutorial-card.png';
 import { cx } from '../../../lib/cx.ts';
+import { Scramble } from '../../plotter/Scramble.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
 import { TaskTip } from './TaskTip.tsx';
 import { TUTORIAL, type TutorialTask } from './tutorial-data.ts';
@@ -52,28 +53,34 @@ export function Tutorial() {
 
   if (!chapter) return null;
   return (
-    <Section id="tutorial">
+    <Section id="tutorial" plate="curve">
       <div className={styles.split}>
         <div className={styles.intro}>
           <Eyebrow>06 / TUTORIAL</Eyebrow>
-          <SectionTitle>Never touched Blender? The Scene view teaches you.</SectionTitle>
+          <SectionTitle>
+            Never touched Blender? <em>The Scene view teaches you.</em>
+          </SectionTitle>
           <Lead>
             A checklist card walks through the gestures right in the Scene view. A task ticks off only when you actually
             perform it, not when you read about it. Progress follows you across projects.
           </Lead>
-          <div className={styles.stats}>
+          <div className={styles.stats} data-reveal="rise">
             <span className={styles.stat}>
-              <span className={styles.statValue}>{CHAPTERS.length}</span>
+              <span className={styles.statValue}>
+                <Scramble value={String(CHAPTERS.length)} />
+              </span>
               <span className={styles.statLabel}>CHAPTERS</span>
             </span>
             <span className={styles.stat}>
-              <span className={styles.statValue}>{TASK_COUNT}</span>
+              <span className={styles.statValue}>
+                <Scramble value={String(TASK_COUNT)} />
+              </span>
               <span className={styles.statLabel}>TASKS</span>
             </span>
           </div>
         </div>
         <div className={styles.media}>
-          <div className={styles.card}>
+          <div className={styles.card} data-reveal="print">
             <img
               src={tutorialCard}
               width={619}
@@ -82,7 +89,7 @@ export function Tutorial() {
               loading="lazy"
             />
           </div>
-          <div role="tablist" aria-label="Tutorial chapters" className={styles.chapters}>
+          <div role="tablist" aria-label="Tutorial chapters" className={styles.chapters} data-reveal="stagger">
             {CHAPTERS.map((c, i) => (
               <button
                 key={c.title}
@@ -126,6 +133,8 @@ export function Tutorial() {
           </ol>
         </div>
       </div>
+      {/* The plotter draws the learning curve here. */}
+      <div className={styles.plot} data-plot-anchor="tutorial-plot" aria-hidden="true" />
       {tip && <TaskTip id={tipId} task={tip.task} anchor={tip.anchor} />}
     </Section>
   );

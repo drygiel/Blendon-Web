@@ -92,7 +92,7 @@ test('faq answers open on click', async ({ page }) => {
 test('ships the landing prerendered, with its structured data', async ({ page, request }) => {
   const html = await (await request.get('')).text();
   expect(html).toContain('rewired for');
-  expect(html).toContain('Questions before you buy.');
+  expect(html).toContain('before you buy.');
 
   const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(
     (m) => JSON.parse(m[1] ?? '') as { '@type': string; offers?: { price: string }; mainEntity?: unknown[] },
@@ -100,4 +100,48 @@ test('ships the landing prerendered, with its structured data', async ({ page, r
   expect(data.find((d) => d['@type'] === 'SoftwareApplication')?.offers?.price).toBe('40.00');
   const faq = data.find((d) => d['@type'] === 'FAQPage');
   await expect(page.locator('#faq details')).toHaveCount(faq?.mainEntity?.length ?? -1);
+});
+
+test('the pen writes a title as it scrolls into view, then its lead appears', async ({ page }) => {
+  const title = page.locator('#compare [data-pen]');
+  await expect(title).not.toHaveAttribute('data-pen-p', '1');
+  // Scroll a notch at a time, as a reader would, until the pen has finished the title.
+  await expect
+    .poll(
+      async () => {
+        await page.mouse.wheel(0, 120);
+        return title.getAttribute('data-pen-p');
+      },
+      { timeout: 20_000, intervals: [150] },
+    )
+    .toBe('1');
+  await expect(page.locator('#compare [data-reveal="rise"]').first()).toHaveAttribute('data-in', '');
+});
+
+test('with reduced motion everything shows at once', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('');
+  await expect(page.locator('html')).not.toHaveClass(/\bplot\b/);
+  const lead = page.locator('#faq [data-reveal]').first();
+  await expect(lead).toHaveCSS('opacity', '1');
+  await expect(page.locator('#compare .plot-ghost')).toBeHidden();
+});
+
+test('fits a phone screen without sideways scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('');
+  // A string, since this project's test config has no DOM types.
+  const overflow = await page.evaluate<number>(
+    'document.documentElement.scrollWidth - document.documentElement.clientWidth',
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('without scripts the prerendered page shows all its content', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto(baseURL ?? '');
+  await expect(page.locator('#compare [data-reveal="rise"]').first()).toHaveCSS('opacity', '1');
+  await expect(page.locator('#compare .plot-ink')).toHaveCSS('clip-path', 'none');
+  await context.close();
 });

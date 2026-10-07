@@ -194,7 +194,13 @@ export function Dock({ page = false }: { page?: boolean }) {
   const blendonTab = <Tab pane="blendon" active={active} split={split} onPick={pick} />;
 
   return (
-    <div ref={ref} className={cx(styles.dock, page && styles.page, full && styles.full)} data-playground="">
+    <div
+      ref={ref}
+      className={cx(styles.dock, page && styles.page, full && styles.full)}
+      data-playground=""
+      data-plot-anchor={page ? undefined : 'try-dock'}
+      data-reveal={page ? undefined : 'fade'}
+    >
       {!page && <span id="playground" className={styles.anchor} />}
       {split ? (
         <>

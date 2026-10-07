@@ -4,9 +4,16 @@ import styles from './Faq.module.scss';
 
 export function Faq() {
   return (
-    <Section id="faq">
-      <SectionIntro eyebrow="12 / FAQ" title="Questions before you buy." />
-      <div className={styles.list}>
+    <Section id="faq" plate="bezier">
+      <SectionIntro
+        eyebrow="12 / FAQ"
+        title={
+          <>
+            Questions <em>before you buy.</em>
+          </>
+        }
+      />
+      <div className={styles.list} data-reveal="stagger">
         {FAQ.map(({ q, a, link }) => (
           <details key={q} className={styles.item}>
             <summary className={styles.question}>{q}</summary>

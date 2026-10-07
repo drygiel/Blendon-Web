@@ -16,13 +16,17 @@ export function PromoVideo() {
   const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
 
   return (
-    <Section id="video">
+    <Section id="video" plate="frustum">
       <SectionIntro
         eyebrow="01 / VIDEO"
-        title="See it in motion."
+        title={
+          <>
+            See it in <em>motion.</em>
+          </>
+        }
         lead="A short tour of Blendon in the Unity 6 Scene view."
       />
-      <div className={styles.player}>
+      <div className={styles.player} data-plot-anchor="video-player" data-reveal="print">
         {playing ? (
           <iframe
             className={styles.frame}

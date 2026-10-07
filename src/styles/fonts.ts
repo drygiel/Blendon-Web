@@ -6,6 +6,7 @@ import '@fontsource/ibm-plex-sans/700.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';
 import '@fontsource/jetbrains-mono/700.css';
-import '@fontsource/montserrat/600.css';
-import '@fontsource/montserrat/700.css';
-import '@fontsource/montserrat/800.css';
+// Headlines: one variable file with the weight and width axes.
+import '@fontsource-variable/archivo/wdth.css';
+// Figure captions drawn on the background canvas.
+import '@fontsource/instrument-serif/400-italic.css';
