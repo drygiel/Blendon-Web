@@ -13,7 +13,7 @@ const WHILE_DRAGGING = [
 
 export function Shortcuts() {
   return (
-    <Section id="shortcuts" plate="keyboard">
+    <Section id="shortcuts" plate="keyboard" route="right">
       <div className={styles.head}>
         <div className={styles.intro}>
           <Eyebrow>10 / SHORTCUTS</Eyebrow>

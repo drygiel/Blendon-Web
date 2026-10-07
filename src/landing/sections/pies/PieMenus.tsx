@@ -281,7 +281,8 @@ export function PieMenus() {
         lead="Hold the key, flick toward an item and let go. Or tap it and the menu stays open for a click. Selection is by angle alone, so a flick far past an item still picks it. Point anywhere around the ring below and click."
       />
 
-      <div className={styles.explorer}>
+      {/* The pen leaps for the pie's centre from the rail level with the top of this block. */}
+      <div className={styles.explorer} data-plot-leap-from="">
         <div className={styles.list} data-reveal="stagger">
           {PIES.map((p) => (
             <PickButton

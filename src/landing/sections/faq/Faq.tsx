@@ -15,7 +15,7 @@ export function Faq() {
       />
       <div className={styles.list} data-reveal="stagger">
         {FAQ.map(({ q, a, link }) => (
-          <details key={q} className={styles.item}>
+          <details key={q} className={styles.item} data-plot-hold="">
             <summary className={styles.question}>{q}</summary>
             <p className={styles.answer}>
               {a}

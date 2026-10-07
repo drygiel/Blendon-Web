@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useReducedMotion } from '../../../lib/hooks.ts';
 import { PROMO_VIDEO_ID } from '../../../lib/links.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PromoVideo.module.scss';
@@ -13,10 +14,12 @@ const POSTERS = ['maxresdefault', 'sddefault', 'hqdefault'].map(
 export function PromoVideo() {
   const [playing, setPlaying] = useState(false);
   const [poster, setPoster] = useState(0);
+  const player = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
   const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
 
   return (
-    <Section id="video" plate="frustum">
+    <Section id="video" plate="frustum" route="right">
       <SectionIntro
         eyebrow="01 / VIDEO"
         title={
@@ -26,7 +29,7 @@ export function PromoVideo() {
         }
         lead="A short tour of Blendon in the Unity 6 Scene view."
       />
-      <div className={styles.player} data-plot-anchor="video-player" data-reveal="print">
+      <div ref={player} className={styles.player} data-plot-anchor="video-player" data-reveal="print">
         {playing ? (
           <iframe
             className={styles.frame}
@@ -37,7 +40,15 @@ export function PromoVideo() {
             referrerPolicy="strict-origin-when-cross-origin"
           />
         ) : (
-          <button type="button" className={styles.cover} onClick={() => setPlaying(true)} aria-label={`Play ${TITLE}`}>
+          <button
+            type="button"
+            className={styles.cover}
+            onClick={() => {
+              setPlaying(true);
+              player.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+            }}
+            aria-label={`Play ${TITLE}`}
+          >
             <img
               className={styles.poster}
               src={POSTERS[poster]}
