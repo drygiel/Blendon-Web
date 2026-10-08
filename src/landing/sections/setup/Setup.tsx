@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { cx } from '../../../lib/cx.ts';
-import { SETTINGS_SLIDES } from '../../data/content.ts';
+import { SETTINGS_SLIDES } from '../../content/setup.ts';
 import { plotPart } from '../../plotter/contract.ts';
 import { KeyCap } from '../../ui/KeyCap.tsx';
 import { plotStore } from '../../plotter/store.ts';

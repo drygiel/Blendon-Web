@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { plotAnchor, plotPart } from '../../plotter/contract.ts';
+import { CardGrid, InfoCard } from '../../ui/InfoCard.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './UnderTheHood.module.scss';
 
@@ -56,18 +57,17 @@ export function UnderTheHood() {
           </div>
         ))}
       </div>
-      <div className={styles.cards} data-reveal="stagger" {...plotPart('cols')}>
+      <CardGrid min={320} data-reveal="stagger" {...plotPart('cols')}>
         {COLUMNS.map(([label, items]) => (
-          <div key={label} className={styles.card}>
-            <span className={styles.label}>{label}</span>
+          <InfoCard key={label} label={label}>
             <ul className={styles.list}>
               {items.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
             </ul>
-          </div>
+          </InfoCard>
         ))}
-      </div>
+      </CardGrid>
       {/* The plotter draws a drawing's title block here. */}
       <div className={styles.block} {...plotAnchor('hood-block')} aria-hidden="true" />
     </Section>

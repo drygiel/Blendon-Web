@@ -17,5 +17,11 @@ export const plotStore = {
   },
 };
 
+/** The pointer or focus on the final button: the plotter reads the store, the footer's aurora `html[data-cta-hover]`. */
+export function setCtaHover(on: boolean) {
+  plotStore.cta.hover = on;
+  document.documentElement.toggleAttribute('data-cta-hover', on);
+}
+
 /** Dispatched on an element when the plotter reveals it. */
 export const REVEAL_EVENT = 'plot:reveal';

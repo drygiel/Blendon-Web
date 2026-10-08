@@ -2,6 +2,7 @@
 // Slides in at the Scene view's bottom right corner, the spot the tutorial card leaves free once done.
 import { useSyncExternalStore } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
+import { publicUrl } from '../../lib/links.ts';
 import { ShortcutTipCard as Tips, type TipSide } from '../blendon/shortcut-tips.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
@@ -14,9 +15,8 @@ const Height = 44 + 72 * 2 + 24;
 const RightMargin = 12;
 const BottomMargin = 26;
 
-const base = import.meta.env.BASE_URL;
-const BlendonLogo = `${base}plugin/icons/B@2x.png`;
-const BulbIcon = `${base}plugin/icons/Notice_TipBulb@2x.png`;
+const BlendonLogo = publicUrl('plugin/icons/B@2x.png');
+const BulbIcon = publicUrl('plugin/icons/Notice_TipBulb@2x.png');
 
 const openKeyboard = (id?: string) => PlaygroundEvents.emit('openKeyboard', { id });
 

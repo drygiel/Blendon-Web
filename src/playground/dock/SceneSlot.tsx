@@ -1,5 +1,6 @@
 import { useRef, type ComponentType } from 'react';
 import { useMediaQuery } from '../../lib/hooks.ts';
+import { publicUrl } from '../../lib/links.ts';
 import { loadWindowData } from '../../plugin/window-data.ts';
 import { useCalmMount } from './calm.ts';
 import styles from './Slot.module.scss';
@@ -27,7 +28,7 @@ export function SceneSlot() {
       <div className={styles.slot}>
         <img
           className={styles.poster}
-          src={`${import.meta.env.BASE_URL}scene/poster.webp`}
+          src={publicUrl('scene/poster.webp')}
           alt="The Scene view with Blendon's Draw Mode pie menu open"
           loading="lazy"
         />

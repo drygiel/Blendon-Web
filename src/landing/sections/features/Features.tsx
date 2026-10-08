@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react';
 import { useInView, useReducedMotion } from '../../../lib/hooks.ts';
+import { publicUrl } from '../../../lib/links.ts';
 import { cx } from '../../../lib/cx.ts';
-import { FEATURE_GROUPS, FEATURES, posterOf, type FeatureGroupId } from '../../data/content.ts';
+import { FEATURE_GROUPS, FEATURES, posterOf, type FeatureGroupId } from '../../content/features.ts';
 import { plotPart } from '../../plotter/contract.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { PickButton } from '../../ui/PickButton.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './Features.module.scss';
 
-const videoUrl = (clip: string) => `${import.meta.env.BASE_URL}plugin/video/${clip}.mp4`;
+const videoUrl = (clip: string) => publicUrl(`plugin/video/${clip}.mp4`);
 // The player's width: the page column beside the 380px list, or the whole column once they stack.
 const PLAYER_SIZES = '(max-width: 900px) calc(100vw - 56px), (max-width: 1240px) calc(100vw - 464px), 776px';
 

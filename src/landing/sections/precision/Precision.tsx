@@ -1,8 +1,7 @@
 import { plotAnchor, plotPart } from '../../plotter/contract.ts';
-import { KeyCap, Keys } from '../../ui/KeyCap.tsx';
+import { KeyCap, Keys, type KeyTokens } from '../../ui/KeyCap.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
 import { Scramble } from '../../plotter/Scramble.tsx';
-import type { KeyTokens } from '../../data/content.ts';
 import styles from './Precision.module.scss';
 
 const SEQUENCE = [

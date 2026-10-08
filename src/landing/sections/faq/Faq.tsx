@@ -1,4 +1,4 @@
-import { FAQ } from '../../data/content.ts';
+import { FAQ } from '../../content/faq.ts';
 import { plotHold } from '../../plotter/contract.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './Faq.module.scss';

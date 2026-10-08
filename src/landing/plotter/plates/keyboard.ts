@@ -1,4 +1,4 @@
-import { SHORTCUTS } from '../../data/content.ts';
+import { SHORTCUTS } from '../../content/shortcuts.ts';
 import { AMBER, NEUTRAL, SERIF_S, rgba, smooth } from '../draw.ts';
 import type { Plate } from './types.ts';
 

@@ -2,6 +2,7 @@
 // header clip looping over it where it has one. Drawn beside the tutorial card, level with the row.
 import { useLayoutEffect, useRef } from 'react';
 import type { TutorialTask as TipTask } from '../../plugin/tutorial.ts';
+import { publicUrl } from '../../lib/links.ts';
 import { useReducedMotion } from '../../lib/hooks.ts';
 import styles from './TutorialCard.module.scss';
 
@@ -13,8 +14,6 @@ const Padding = 10;
 const CardGap = 6;
 const Margin = 6;
 const TopMargin = 30;
-
-const publicUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 interface TutorialTipProps {
   tip: TipTask;

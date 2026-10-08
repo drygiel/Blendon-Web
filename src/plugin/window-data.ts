@@ -1,9 +1,10 @@
+import { publicUrl } from '../lib/links.ts';
 import type { WindowData } from './schema.ts';
 
 /** The window data, set once by loadWindowData before anything renders. */
 export let D: WindowData;
 
-export const assetUrl = (path: string) => (path ? import.meta.env.BASE_URL + path : '');
+export const assetUrl = (path: string) => (path ? publicUrl(path) : '');
 
 let pending: Promise<WindowData> | null = null;
 

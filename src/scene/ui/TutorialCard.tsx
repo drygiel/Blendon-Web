@@ -1,6 +1,7 @@
 // Blendon's Scene View tutorial card: one chapter at a time, three task rows, the current task's hint,
 // and the way on once the chapter is done. Docked bottom right, draggable by its header, foldable.
 import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import { publicUrl } from '../../lib/links.ts';
 import { tutorialTip } from '../../plugin/tutorial.ts';
 import { D } from '../../plugin/window-data.ts';
 import { TutorialTasks } from '../blendon/tutorial/curriculum.ts';
@@ -73,7 +74,7 @@ export function KeyCaps({
       {tokens(binding).map((t, i) => {
         const mouse = /^Mouse (\d)$/.exec(t);
         const name = mouse ? D.mouseIcons[Number(mouse[1])] : null;
-        const url = name ? `${import.meta.env.BASE_URL}plugin/icons/icon_${name.replace(/ /g, '_')}.png` : null;
+        const url = name ? publicUrl(`plugin/icons/icon_${name.replace(/ /g, '_')}.png`) : null;
         const cap = (
           <span key={i} className={styles.cap + (dim ? ' ' + styles.dim : '')} style={{ color }}>
             {url ? (

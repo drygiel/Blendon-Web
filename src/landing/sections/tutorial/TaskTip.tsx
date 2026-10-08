@@ -1,13 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '../../../lib/hooks.ts';
+import { publicUrl } from '../../../lib/links.ts';
 import type { TutorialTask } from '../../../plugin/tutorial.ts';
 import styles from './Tutorial.module.scss';
 
 const GAP = 12;
 const MARGIN = 16;
 const WIDTH = 360;
-
-const publicUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 interface TaskTipProps {
   id: string;
