@@ -1,7 +1,7 @@
 # Blendon Web
 
 Website for [Blendon](https://github.com/drygiel/Blendon) - a Blender-style workflow extension for the Unity Scene view.
-Live at **https://drygiel.github.io/Blendon-Web/**.
+Live at **https://blendon.drygiel.com/**.
 
 This repository is mounted as a Git submodule at `Web~/` in the main Blendon repository. Unity skips folders ending
 with `~`, so nothing here (including `node_modules`) is imported into the project.
@@ -89,4 +89,6 @@ not hold back a deploy.
 
 One-time repository setup: **Settings > Pages > Build and deployment > Source: GitHub Actions**.
 
-The site is built for the `/Blendon-Web/` path. For a custom domain, build with `BASE_PATH=/` and add a `public/CNAME`.
+The site is served from the root of the custom domain `blendon.drygiel.com` (`public/CNAME`, plus the same domain in
+**Settings > Pages > Custom domain**). To serve it from a project path instead, build with `BASE_PATH=/Blendon-Web/`
+`SITE_URL=https://drygiel.github.io/Blendon-Web/` and remove `public/CNAME`.
