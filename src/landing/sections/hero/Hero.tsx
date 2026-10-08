@@ -1,4 +1,5 @@
 import wordmark from '../../../assets/landing/wordmark.png';
+import { NEW_TAB, PLAYGROUND_URL } from '../../../lib/links.ts';
 import { STORE_URL } from '../../../lib/product.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
 import { TypeText } from '../../plotter/TypeText.tsx';
@@ -12,7 +13,7 @@ const NAV = [
   ['#pies', 'Pie menus'],
   ['#tutorial', 'Tutorial'],
   ['#setup', 'Setup'],
-  ['#try', 'Try it'],
+  [PLAYGROUND_URL, 'Try it'],
   ['#shortcuts', 'Shortcuts'],
   ['#faq', 'FAQ'],
 ] as const;
@@ -26,7 +27,7 @@ export function Hero() {
         </a>
         <nav className={styles.nav} aria-label="Main">
           {NAV.map(([href, label]) => (
-            <a key={href} href={href}>
+            <a key={href} href={href} {...(href === PLAYGROUND_URL && NEW_TAB)}>
               {label}
             </a>
           ))}

@@ -72,6 +72,16 @@ test('manual links open the PDF in a new tab', async ({ page, request }) => {
   expect(res.headers()['content-type']).toContain('pdf');
 });
 
+test('the header and footer open the Playground page in a new tab', async ({ page }) => {
+  for (const link of [
+    page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Try it' }),
+    page.getByRole('navigation', { name: 'Footer' }).getByRole('link', { name: 'Playground' }),
+  ]) {
+    await expect(link).toHaveAttribute('href', /\/playground\/$/);
+    await expect(link).toHaveAttribute('target', '_blank');
+  }
+});
+
 test('promo video loads the player only when asked', async ({ page }) => {
   // The tests stay offline: YouTube answers with blanks.
   await page.route(/youtube-nocookie\.com|ytimg\.com/, (route) => route.fulfill({ status: 200, body: '' }));
