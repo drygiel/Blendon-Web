@@ -1,6 +1,7 @@
 // Blendon's shortcut tip card: the key just pressed, whose it is now and where the Editor's command went.
 // Slides in at the Scene view's bottom right corner, the spot the tutorial card leaves free once done.
 import { useSyncExternalStore } from 'react';
+import { PlaygroundEvents } from '../../bridge/events.ts';
 import { ShortcutTipCard as Tips, type TipSide } from '../blendon/shortcut-tips.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
@@ -17,8 +18,7 @@ const base = import.meta.env.BASE_URL;
 const BlendonLogo = `${base}plugin/icons/B@2x.png`;
 const BulbIcon = `${base}plugin/icons/Notice_TipBulb@2x.png`;
 
-const openKeyboard = (id?: string) =>
-  window.dispatchEvent(new CustomEvent('blendon:open-keyboard', { detail: { id } }));
+const openKeyboard = (id?: string) => PlaygroundEvents.emit('openKeyboard', { id });
 
 function Side({ side }: { side: TipSide }) {
   const open = () => {

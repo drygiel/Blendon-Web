@@ -1,7 +1,7 @@
 // The page layout builder: runs a page's draw ops (SettingsControls calls) into rows of cells,
 // with the two-column grid, cards and folds of SettingsEditorWindow.
-import type { Cond, Op, PageHeader, Tip } from '../data/schema.ts';
-import { D } from '../data/store.ts';
+import type { Cond, Op, PageHeader, Tip } from '../../plugin/schema.ts';
+import { D } from '../../plugin/window-data.ts';
 import { type WindowModel, pageInfo } from './model.ts';
 import type { TipSource } from './state.ts';
 import { type Run, rich } from './text.ts';

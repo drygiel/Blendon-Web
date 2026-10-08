@@ -44,15 +44,6 @@ const MODIFIER_CODES = new Set<number>([
   KeyCode.RightCommand,
 ]);
 
-export interface HostListeners {
-  /** Keyboard capture switched on or off. */
-  onActiveChange?(active: boolean): void;
-  /** A key or button went down while active, for the key display. */
-  onInput?(ev: Event): void;
-  /** After every frame, for UI that mirrors engine state. */
-  onFrame?(): void;
-}
-
 export class SceneHost {
   readonly scene = new Scene();
   readonly view = new SceneView();
@@ -76,7 +67,6 @@ export class SceneHost {
   private lastMouse: Vector2 | null = null;
   private dpr = 1;
   active = false;
-  listeners: HostListeners = {};
   /** Called after every frame, for overlays that mirror the view. */
   readonly frameListeners = new Set<() => void>();
   /** Where the canvases live and the mouse is read. */
@@ -152,7 +142,6 @@ export class SceneHost {
     EditorApplication.tick();
     const animating = this.view.tick(dt);
     this.repaint();
-    this.listeners.onFrame?.();
     for (const f of this.frameListeners) f();
     if (this.dirty || animating || EditorApplication.busy) this.requestFrame();
     else this.lastFrame = 0;
@@ -310,7 +299,6 @@ export class SceneHost {
     if (on === this.active) return;
     this.active = on;
     if (!on) this.releaseAll();
-    this.listeners.onActiveChange?.(on);
     this.requestFrame();
   }
 
@@ -446,7 +434,6 @@ export class SceneHost {
       if (passThrough(e)) return;
       e.preventDefault();
       if (ev.keyCode === KeyCode.None) return;
-      this.listeners.onInput?.(ev);
       if (MODIFIER_CODES.has(ev.keyCode)) this.endStaleClutches(ev);
       if (
         !MODIFIER_CODES.has(ev.keyCode) &&
@@ -495,7 +482,6 @@ export class SceneHost {
     this.pressed.add(button);
     const ev = this.mouseEvent(EventType.MouseDown, e, button);
     this.lastMouse = ev.mousePosition;
-    this.listeners.onInput?.(ev);
     if (!this.mouseShortcut(button, ev, true)) this.runPass(ev);
   }
 

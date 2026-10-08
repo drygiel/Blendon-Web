@@ -53,8 +53,9 @@ import { curveGeometry } from './plates/curve.ts';
 import { frustumEye } from './plates/frustum.ts';
 import { HERO_ORIGIN_Y } from './plates/hero.ts';
 import { rulerOrigin } from './plates/ruler.ts';
-import { PLATES, type Plate, type PlateCtx, type Rect } from './plates/index.ts';
+import { plateNamed, type Plate, type PlateCtx, type Rect } from './plates/index.ts';
 import { REVEAL_EVENT, plotStore } from './store.ts';
+import { anchorIn, partIn } from './contract.ts';
 
 export interface HudParts {
   state: HTMLElement;
@@ -398,7 +399,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     // A section may name several plates, separated by spaces.
     plates = Array.from(document.querySelectorAll<HTMLElement>('[data-plate]')).flatMap((sec) =>
       (sec.dataset.plate ?? '').split(' ').flatMap((name) => {
-        const plate = PLATES[name];
+        const plate = plateNamed(name);
         if (!plate) return [];
         const section = pageRect(sec, sy);
         const titleEl = sec.querySelector('[data-pen]');
@@ -470,7 +471,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const kind = sec.dataset.plotRoute;
     const from = carry;
     if (kind === 'net' && from) {
-      const dock = sec.querySelector('[data-plot-anchor="try-dock"]');
+      const dock = anchorIn(sec, 'try-dock');
       if (!dock) return null;
       const d = pageRect(dock, sy);
       const mid = (s.top + s.bottom) / 2;
@@ -504,13 +505,13 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         ],
       };
     if (kind === 'tiles') {
-      const row = sec.querySelector('[data-plot-tiles]');
+      const row = partIn(sec, 'tiles');
       const tiles = row ? Array.from(row.children).map((c) => pageRect(c, sy)) : [];
       const a = tiles[tiles.length - 2];
       const b = tiles[tiles.length - 1];
       // Only while the tiles sit in one row.
       if (row && a && b && Math.abs(a.top - b.top) < 2 && b.left > a.right) {
-        const above = row.previousElementSibling;
+        const above = partIn(sec, 'above');
         const y = above ? (pageRect(above, sy).bottom + b.top) / 2 : b.top - 12;
         return {
           title: i,
@@ -531,12 +532,12 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       };
     }
     if (kind === 'touch') {
-      const spot = sec.querySelector('[data-plot-anchor="ruler-space"]');
+      const spot = anchorIn(sec, 'ruler-space');
       if (!spot) return null;
       const [ox, oy] = rulerOrigin(pageRect(spot, sy));
-      const keys = spot.previousElementSibling;
-      const panel = spot.nextElementSibling;
-      const mods = panel?.nextElementSibling;
+      const keys = partIn(sec, 'keys');
+      const panel = partIn(sec, 'panel');
+      const mods = partIn(sec, 'cols');
       const cols = mods ? Array.from(mods.children).map((c) => pageRect(c, sy)) : [];
       // Taps the ruler's zero while the keys above it are still a third of the screen from the bottom.
       const ky = keys ? pageRect(keys, sy).cy : oy;
@@ -559,7 +560,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       };
     }
     if (kind === 'camera') {
-      const player = sec.querySelector('[data-plot-anchor="video-player"]');
+      const player = anchorIn(sec, 'video-player');
       const eyebrow = sec.querySelector('[data-eyebrow]');
       const v = player ? pageRect(player, sy) : null;
       const eye = v ? frustumEye(v, pageRect(s.el, sy), W) : null;
@@ -589,7 +590,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         ],
       };
     if (kind === 'chart') {
-      const plot = sec.querySelector('[data-plot-anchor="tutorial-plot"]');
+      const plot = anchorIn(sec, 'tutorial-plot');
       if (!plot) return null;
       const { pts } = curveGeometry(pageRect(plot, sy));
       const first = pts[0];
@@ -611,7 +612,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       };
     }
     if (kind === 'middle') {
-      const row = sec.querySelector('[data-plot-gap]');
+      const row = partIn(sec, 'cols');
       const a = row?.children[0];
       const b = row?.children[1];
       if (!a || !b) return null;
@@ -629,8 +630,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       };
     }
     if (kind === 'split') {
-      const a = sec.querySelector('[data-plot-col="left"]');
-      const b = sec.querySelector('[data-plot-col="right"]');
+      const a = partIn(sec, 'left');
+      const b = partIn(sec, 'right');
       if (!a || !b) return null;
       const l = pageRect(a, sy);
       const r = pageRect(b, sy);
@@ -638,7 +639,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       // Down past the lead's last word, then left halfway between the columns and what comes before them.
       const lead = textRight(sec.querySelector('p'));
       const x = clamp(Math.max(end.x, lead + 24), r.left + 40, r.right - 40);
-      const before = a.parentElement?.previousElementSibling;
+      const before = partIn(sec, 'above');
       const top = before ? (pageRect(before, sy).bottom + Math.min(l.top, r.top)) / 2 : r.top - 12;
       const gap = (l.right + r.left) / 2;
       return {

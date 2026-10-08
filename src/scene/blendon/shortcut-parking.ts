@@ -1,6 +1,6 @@
 // ShortcutParking: a switched-off feature's keys are parked, so they go back to the Editor's own
 // commands, as if Blendon weren't installed.
-import { D } from '../../window/data/store.ts';
+import { D } from '../../plugin/window-data.ts';
 import { GeneralSettings, sBool } from './settings.ts';
 
 const on = (cls: string) => sBool(cls + '.Enabled', true);

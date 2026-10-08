@@ -1,4 +1,4 @@
-import type { PropValue, Tip } from '../data/schema.ts';
+import type { PropValue, Tip } from '../../plugin/schema.ts';
 import type { Run } from './text.ts';
 
 export interface TipSource extends Partial<Tip> {

@@ -1,8 +1,8 @@
 // Blendon's Scene View tutorial card: one chapter at a time, three task rows, the current task's hint,
 // and the way on once the chapter is done. Docked bottom right, draggable by its header, foldable.
 import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
-import { tutorialTip } from '../../landing/sections/tutorial/tutorial-data.ts';
-import { D } from '../../window/data/store.ts';
+import { tutorialTip } from '../../plugin/tutorial.ts';
+import { D } from '../../plugin/window-data.ts';
 import { TutorialTasks } from '../blendon/tutorial/curriculum.ts';
 import { SceneTutorialCard, TutorialProgress } from '../blendon/tutorial/scene-tutorial.ts';
 import type { SceneHost } from '../engine/host.ts';

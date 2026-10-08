@@ -45,52 +45,6 @@
   }
 }
 
-// Each pane's content fills it; the dock sizes the panes.
-.slot {
-  position: absolute;
-  inset: 0;
-}
-
-.placeholder {
-  position: absolute;
-  inset: 0;
-  background: #474747;
-}
-
-.windowPlaceholder {
-  position: absolute;
-  inset: 0;
-  background: #383838;
-}
-
-.poster {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #2a2a2a;
-}
-
-.desktopOnly {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 6px;
-  background: rgba(20, 20, 22, 0.88);
-  font-size: 14px;
-  line-height: 1.45;
-  color: $text-2;
-
-  a {
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-}
-
 // The buy prompt under the dock, for whoever just tried it.
 .buyRow {
   @include section(28px);

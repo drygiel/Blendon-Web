@@ -1,7 +1,7 @@
 // The Playground on a page of its own: the Try It dock filling the window, under a thin bar back to the
 // main page that can be closed for the whole view.
 import { useState } from 'react';
-import { Dock } from '../landing/sections/scene/Dock.tsx';
+import { Dock } from './dock/Dock.tsx';
 import { WORDMARK } from '../lib/images.ts';
 import styles from './PlaygroundPage.module.scss';
 

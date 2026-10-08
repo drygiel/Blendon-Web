@@ -1,4 +1,4 @@
-// Builds the settings window's data (src/window/data/schema.ts) from the Blendon sources and the
+// Builds the settings window's data (src/plugin/schema.ts) from the Blendon sources and the
 // Unity model dumps in Metadata~/PlaygroundRef.
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
@@ -14,7 +14,7 @@ import type {
   ShortcutInfo,
   Tip,
   WindowData,
-} from '../../src/window/data/schema.ts';
+} from '../../src/plugin/schema.ts';
 import type { AssetPlan } from './assets.ts';
 import { drawMethods, parse, type Stmt } from './csharp.ts';
 import { convert, Ctx, type Helper } from './ops.ts';

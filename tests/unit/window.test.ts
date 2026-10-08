@@ -4,7 +4,7 @@ import { newInstance, WindowModel } from '../../src/window/core/model.ts';
 import { initialState, reduce, type StatePatch, type WindowState } from '../../src/window/core/state.ts';
 import { bindingFromEvent, capTokens, rich } from '../../src/window/core/text.ts';
 import { roundToRange, unityPx } from '../../src/window/core/util.ts';
-import { D, loadWindowData } from '../../src/window/data/store.ts';
+import { D, loadWindowData } from '../../src/plugin/window-data.ts';
 import { extent, preferredHeight, settings } from '../../src/window/gizmo/gizmo.ts';
 
 /** A model over a plain state object, with updates applied in place. */

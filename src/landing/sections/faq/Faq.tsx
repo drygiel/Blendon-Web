@@ -1,4 +1,5 @@
 import { FAQ } from '../../data/content.ts';
+import { plotHold } from '../../plotter/contract.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './Faq.module.scss';
 
@@ -15,7 +16,7 @@ export function Faq() {
       />
       <div className={styles.list} data-reveal="stagger">
         {FAQ.map(({ q, a, link }) => (
-          <details key={q} className={styles.item} data-plot-hold="">
+          <details key={q} className={styles.item} {...plotHold}>
             <summary className={styles.question}>{q}</summary>
             <p className={styles.answer}>
               {a}

@@ -1,8 +1,8 @@
 // The window's settings model and its interaction plumbing: a port of the C# SettingsEditorWindow
 // state handling. A model wraps one rendered state; changes go through `update`.
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
-import type { PropValue } from '../data/schema.ts';
-import { D } from '../data/store.ts';
+import type { PropValue } from '../../plugin/schema.ts';
+import { D } from '../../plugin/window-data.ts';
 import type { DialogState, FrameStep, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
 import { rich } from './text.ts';
 import { clamp, M } from './util.ts';

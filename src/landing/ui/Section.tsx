@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { cx } from '../../lib/cx.ts';
+import { plotSection, type PlateName, type RouteKind } from '../plotter/contract.ts';
 import { PenTitle } from '../plotter/PenTitle.tsx';
 import { TypeText } from '../plotter/TypeText.tsx';
 import styles from './Section.module.scss';
@@ -7,21 +9,16 @@ interface SectionProps {
   id: string;
   children: ReactNode;
   className?: string;
-  /** The background plotter's drawing for this section, by name. */
-  plate?: string;
-  /** The pen's way past this section; see `routeFor` in the plotter's engine. */
-  route?: 'right' | 'camera' | 'split' | 'chart' | 'touch' | 'tiles' | 'middle';
+  /** The background plotter's drawing for this section. */
+  plate?: PlateName;
+  /** The pen's way past this section. */
+  route?: RouteKind;
 }
 
 /** A page-width landing section. */
 export function Section({ id, children, className, plate, route }: SectionProps) {
   return (
-    <section
-      id={id}
-      className={[styles.section, className].filter(Boolean).join(' ')}
-      data-plate={plate}
-      data-plot-route={route}
-    >
+    <section id={id} className={cx(styles.section, className)} {...plotSection({ plate, route })}>
       {children}
     </section>
   );
@@ -38,7 +35,7 @@ interface IntroProps {
 /** The numbered label, heading and lead paragraph every section opens with. */
 export function SectionIntro({ eyebrow, title, lead, className }: IntroProps) {
   return (
-    <div className={[styles.intro, className].filter(Boolean).join(' ')}>
+    <div className={cx(styles.intro, className)}>
       <Eyebrow>{eyebrow}</Eyebrow>
       <SectionTitle>{title}</SectionTitle>
       {lead && <Lead>{lead}</Lead>}

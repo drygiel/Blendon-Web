@@ -1,8 +1,8 @@
-// Builds src/generated/tutorial.json from the plugin's TutorialCurriculum.cs: every chapter's tasks with the
+// Builds src/plugin/generated/tutorial.json from the plugin's TutorialCurriculum.cs: every chapter's tasks with the
 // picture and clip the Scene View tutorial shows when a task is hovered.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { TutorialChapter, TutorialData, TutorialTask } from '../../src/landing/sections/tutorial/tutorial-data.ts';
+import type { TutorialChapter, TutorialData, TutorialTask } from '../../src/plugin/tutorial.ts';
 import type { AssetPlan } from './assets.ts';
 import { stripComments } from './csharp.ts';
 import { HEADER_CLIP } from './window-data.ts';

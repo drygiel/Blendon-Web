@@ -2,7 +2,7 @@ dist
 dist-ssr
 coverage
 pnpm-lock.yaml
-src/generated
+src/plugin/generated
 public
 playwright-report
 test-results

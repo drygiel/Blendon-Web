@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import data from '../../src/generated/window-data.json';
+import data from '../../src/plugin/generated/window-data.json';
 import { CONTESTED_KEYS, FEATURES, SHORTCUTS, type KeyTokens } from '../../src/landing/data/content.ts';
 
 // Contested keys from the plugin: `uMove` is where the Editor's command goes on the Blendon preset.

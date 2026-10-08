@@ -1,7 +1,7 @@
 // TutorialTip: the hover card of a tutorial row - title and hint over the feature's own picture, with its
 // header clip looping over it where it has one. Drawn beside the tutorial card, level with the row.
 import { useLayoutEffect, useRef } from 'react';
-import type { TutorialTask as TipTask } from '../../landing/sections/tutorial/tutorial-data.ts';
+import type { TutorialTask as TipTask } from '../../plugin/tutorial.ts';
 import { useReducedMotion } from '../../lib/hooks.ts';
 import styles from './TutorialCard.module.scss';
 

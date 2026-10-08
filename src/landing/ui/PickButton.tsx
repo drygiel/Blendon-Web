@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../../lib/cx.ts';
+import { plotHold } from '../plotter/contract.ts';
 import styles from './PickButton.module.scss';
 
 interface PickButtonProps {
@@ -28,7 +29,7 @@ export function PickButton({
     <button
       type="button"
       aria-pressed={selected}
-      data-plot-hold={hold ? '' : undefined}
+      {...(hold && plotHold)}
       onClick={onPick}
       className={cx(styles.row, compact && styles.compact, selected && styles.on, accent === 'blue' && styles.blue)}
     >

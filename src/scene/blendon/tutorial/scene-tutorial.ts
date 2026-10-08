@@ -1,5 +1,6 @@
 // SceneTutorial + TutorialProgress: which tasks are done, which chapter is open, and the card's own
 // state. Kept per visitor in the browser; the card reads it through subscribe().
+import { PlaygroundEvents } from '../../../bridge/events.ts';
 import { SceneTutorial as Reports } from '../foundation.ts';
 import { reducedMotion } from '../navigation/camera.ts';
 import { GeneralSettings } from '../settings.ts';
@@ -239,10 +240,10 @@ export const SceneTutorialCard = {
 
   install() {
     // Blendon's settings are the Blendon tab beside the Scene view; showing or using it is opening them.
-    window.addEventListener('blendon:settings-opened', () => Reports.report('SettingsOpened'));
+    PlaygroundEvents.on('settingsOpened', () => Reports.report('SettingsOpened'));
     // The dock's reset button and the window's Start Over both start the tutorial over, card shown again.
-    window.addEventListener('blendon:reset', () => SceneTutorialCard.restart());
-    window.addEventListener('blendon:tutorial-restart', () => SceneTutorialCard.restart());
+    PlaygroundEvents.on('reset', () => SceneTutorialCard.restart());
+    PlaygroundEvents.on('tutorialRestart', () => SceneTutorialCard.restart());
     Reports.listen((r) => {
       if (!SceneTutorialCard.active) return;
       let any = false;

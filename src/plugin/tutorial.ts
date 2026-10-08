@@ -1,5 +1,5 @@
-// Shape of src/generated/tutorial.json, written by `pnpm sync` from the plugin's TutorialCurriculum.cs.
-import tutorial from '../../../generated/tutorial.json';
+// Shape of src/plugin/generated/tutorial.json, written by `pnpm sync` from the plugin's TutorialCurriculum.cs.
+import tutorial from './generated/tutorial.json';
 
 export interface TutorialTask {
   id: string;

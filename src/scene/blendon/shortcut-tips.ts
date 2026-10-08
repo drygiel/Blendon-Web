@@ -1,8 +1,9 @@
 // ShortcutTips: the first press of a Blendon key the Editor's own command stepped aside from raises a card
 // naming both. Once per key per visit, armed again when the binding changes. Only the curated pairs
 // (D.known) are told here: the browser has no Editor shortcut registry to scan for clashes.
-import { SharedSettings } from '../../lib/shared-settings.ts';
-import { D } from '../../window/data/store.ts';
+import { PlaygroundEvents } from '../../bridge/events.ts';
+import { SharedSettings } from '../../bridge/settings.ts';
+import { D } from '../../plugin/window-data.ts';
 import { Prefs, ShortcutManager } from '../unity/editor.ts';
 import { GUIUtility } from '../unity/imgui.ts';
 import { ShortcutTips as Hook } from './foundation.ts';
@@ -176,8 +177,8 @@ export const ShortcutTipCard = {
 
   install() {
     Hook.onNote = note;
-    window.addEventListener('blendon:tips-reset', () => ShortcutTipCard.resetAll());
-    window.addEventListener('blendon:reset', () => {
+    PlaygroundEvents.on('tipsReset', () => ShortcutTipCard.resetAll());
+    PlaygroundEvents.on('reset', () => {
       seen.clear();
       waiting = null;
       card = null;

@@ -3,6 +3,7 @@ import coverWidths from '../../../assets/landing/promo-cover.jpg?w=640;960;1280&
 import { useReducedMotion } from '../../../lib/hooks.ts';
 import { responsive } from '../../../lib/images.ts';
 import { PROMO_VIDEO_ID } from '../../../lib/links.ts';
+import { plotAnchor } from '../../plotter/contract.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PromoVideo.module.scss';
 
@@ -28,7 +29,7 @@ export function PromoVideo() {
         }
         lead="A short tour of Blendon in the Unity 6 Scene view."
       />
-      <div ref={player} className={styles.player} data-plot-anchor="video-player" data-reveal="print">
+      <div ref={player} className={styles.player} {...plotAnchor('video-player')} data-reveal="print">
         {playing ? (
           <iframe
             className={styles.frame}

@@ -1,4 +1,4 @@
-// The Try It dock's heavy parts (the Scene view, the settings window) stall the page for a moment as they mount.
+// The dock's heavy parts (the Scene view, the settings window) stall the page for a moment as they mount.
 // They load as soon as they come near, then mount one at a time while the visitor is not scrolling, so the stall
 // never shows mid-scroll.
 import { useEffect, useState, type RefObject } from 'react';

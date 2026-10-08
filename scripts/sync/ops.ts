@@ -1,5 +1,5 @@
-// Turns parsed DrawSettings bodies into the settings window's op lists (see src/window/data/schema.ts).
-import type { Cond, Op } from '../../src/window/data/schema.ts';
+// Turns parsed DrawSettings bodies into the settings window's op lists (see src/plugin/schema.ts).
+import type { Cond, Op } from '../../src/plugin/schema.ts';
 import { splitArgs, stringConcat, type Stmt } from './csharp.ts';
 
 // Static owners referenced from other settings classes.

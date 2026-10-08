@@ -1,4 +1,5 @@
 // One builder item -> its row, by kind.
+import { PlaygroundEvents } from '../../bridge/events.ts';
 import { MANUAL_URL } from '../../lib/links.ts';
 import type { Item, ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
@@ -167,9 +168,9 @@ function ActionRow({ it }: { it: ItemOf<'action'> }) {
         title: 'Start the tutorial over?',
         body: 'Every task will be un-ticked and the card goes back to chapter one.',
         ok: 'Start Over',
-        run: () => window.dispatchEvent(new Event('blendon:tutorial-restart')),
+        run: () => PlaygroundEvents.emit('tutorialRestart'),
       });
-    else window.dispatchEvent(new Event('blendon:tips-reset'));
+    else PlaygroundEvents.emit('tipsReset');
   };
   return (
     <div className={itemBase(app, it).cls}>

@@ -1,10 +1,11 @@
 import { useEffect, useId, useRef, useState, type PointerEvent } from 'react';
 import tutorialCard from '../../../assets/landing/tutorial-card.png';
 import { cx } from '../../../lib/cx.ts';
+import { plotAnchor } from '../../plotter/contract.ts';
 import { Scramble } from '../../plotter/Scramble.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
 import { TaskTip } from './TaskTip.tsx';
-import { TUTORIAL, type TutorialTask } from './tutorial-data.ts';
+import { TUTORIAL, type TutorialTask } from '../../../plugin/tutorial.ts';
 import styles from './Tutorial.module.scss';
 
 const CHAPTERS = TUTORIAL.chapters;
@@ -139,7 +140,7 @@ export function Tutorial() {
         </div>
       </div>
       {/* The plotter draws the learning curve here. */}
-      <div className={styles.plot} data-plot-anchor="tutorial-plot" aria-hidden="true" />
+      <div className={styles.plot} {...plotAnchor('tutorial-plot')} aria-hidden="true" />
       {tip && <TaskTip id={tipId} task={tip.task} anchor={tip.anchor} />}
     </Section>
   );

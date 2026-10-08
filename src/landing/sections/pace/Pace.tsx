@@ -1,5 +1,6 @@
 import { cx } from '../../../lib/cx.ts';
 import { CONTESTED_KEYS, FEATURE_PRESETS, type ContestedKey } from '../../data/content.ts';
+import { plotPart } from '../../plotter/contract.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import table from '../../ui/Table.module.scss';
@@ -36,7 +37,7 @@ export function Pace() {
         lead="On first load Blendon asks one question: which keys it may take. Nothing is written until you answer, and the answer can be changed any time on the Overview page of Tools → Blendon."
       />
 
-      <div className={table.panel}>
+      <div className={table.panel} {...plotPart('above')}>
         <table className={table.table}>
           <caption className={table.caption}>Who keeps a contested key, on each keyboard preset</caption>
           <thead>
@@ -68,7 +69,7 @@ export function Pace() {
         </p>
       </div>
 
-      <div className={styles.cards} data-reveal="stagger" data-plot-tiles="">
+      <div className={styles.cards} data-reveal="stagger" {...plotPart('tiles')}>
         {FEATURE_PRESETS.map(([title, text]) => (
           <div key={title} className={styles.card}>
             <span className={styles.label}>Feature preset</span>

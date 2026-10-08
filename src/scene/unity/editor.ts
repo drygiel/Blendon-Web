@@ -1,6 +1,6 @@
 // Editor services the tools lean on: EditorApplication's clock and update loop, Selection, Undo,
 // Tools, EditorSnapSettings, settings (EditorPrefs) and the Shortcut Manager.
-import { Event, EventType, IS_MAC, KeyCode, keyCodeName } from './imgui.ts';
+import { Event, IS_MAC, KeyCode, keyCodeName } from './imgui.ts';
 import { Bounds, Quaternion, Vector3 } from './math.ts';
 import type { GameObject, Scene, Transform, TransformState } from './scene.ts';
 import { Hook } from './sceneview.ts';
@@ -792,5 +792,3 @@ export const ShortcutManager = {
     for (const k of [...activeClutches.keys()]) ShortcutManager.dispatchUp(k, context);
   },
 };
-
-export const EventTypeOf = (ev: Event): EventType => ev.type;

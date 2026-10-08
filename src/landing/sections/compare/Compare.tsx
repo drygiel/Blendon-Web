@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { cx } from '../../../lib/cx.ts';
 import { COMPARISON } from '../../data/content.ts';
+import { plotAnchor } from '../../plotter/contract.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import table from '../../ui/Table.module.scss';
@@ -19,7 +20,7 @@ export function Compare() {
         }
         lead="Never used Blender? This is what changes in an ordinary working day, next to how Unity does it out of the box."
       />
-      <div className={table.panel} data-plot-anchor="compare-table">
+      <div className={table.panel} {...plotAnchor('compare-table')}>
         <table className={table.table} style={{ '--first-col': '25%' } as CSSProperties}>
           <caption className={table.caption}>Scene view tasks in Unity and with Blendon</caption>
           <thead>
