@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { cx } from '../../../lib/cx.ts';
 import { SETTINGS_SLIDES } from '../../data/content.ts';
+import { plotPart } from '../../plotter/contract.ts';
 import { KeyCap } from '../../ui/KeyCap.tsx';
 import { plotStore } from '../../plotter/store.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
@@ -54,13 +55,13 @@ export function Setup() {
           </>
         }
       />
-      <p className={styles.lead} data-reveal="rise">
+      <p className={styles.lead} data-reveal="rise" {...plotPart('above')}>
         Every feature gets its own page in Tools → Blendon: an illustrated card with how it works and its keys, then the
         settings. Flip through a few.
       </p>
 
       <div className={styles.split}>
-        <div className={styles.viewer} data-reveal="print" data-plot-col="left">
+        <div className={styles.viewer} data-reveal="print" {...plotPart('left')}>
           <div
             className={styles.carousel}
             onTouchStart={(e) => {
@@ -104,7 +105,7 @@ export function Setup() {
           </div>
         </div>
 
-        <div className={styles.details} aria-live="polite" data-reveal="rise" data-plot-col="right">
+        <div className={styles.details} aria-live="polite" data-reveal="rise" {...plotPart('right')}>
           {SETTINGS_SLIDES.map((s, i) => (
             <div key={s.title} aria-hidden={i !== slide} className={cx(styles.detail, i === slide && styles.current)}>
               <div className={styles.counter}>

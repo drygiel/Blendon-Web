@@ -1,7 +1,8 @@
 // The browser Scene view: an engine host on a canvas, Blendon installed into it, Unity's chrome on top.
 import { useEffect, useRef, useState } from 'react';
-import { SharedSettings } from '../lib/shared-settings.ts';
-import { loadWindowData, D } from '../window/data/store.ts';
+import { PlaygroundEvents } from '../bridge/events.ts';
+import { SharedSettings } from '../bridge/settings.ts';
+import { loadWindowData, D } from '../plugin/window-data.ts';
 import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import { installBlendon } from './blendon/install.ts';
 import { OrientationGizmoSettings } from './blendon/navigation/orientation/gizmo.ts';
@@ -20,10 +21,6 @@ import { TutorialCard } from './ui/TutorialCard.tsx';
 import type { PivotPointApi } from './ui/pivot.ts';
 import styles from './ui/Scene.module.scss';
 
-interface Props {
-  onActiveChange?: (active: boolean) => void;
-}
-
 // Blendon's pivot point, which the toolbar dropdown edits in place of Unity's Pivot/Center.
 const pivotPoint: PivotPointApi = {
   get: () => SharedGizmoSettings.PivotPoint,
@@ -31,14 +28,10 @@ const pivotPoint: PivotPointApi = {
   blendon: () => GeneralSettings.Enabled && SharedGizmoSettings.PivotMenuEnabled && SharedGizmoSettings.AnyToolEnabled,
 };
 
-export default function ScenePlayground({ onActiveChange }: Props) {
+export default function ScenePlayground() {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [host, setHost] = useState<SceneHost | null>(null);
-  const activeCb = useRef(onActiveChange);
-  useEffect(() => {
-    activeCb.current = onActiveChange;
-  });
 
   useEffect(() => {
     let disposed = false;
@@ -70,7 +63,6 @@ export default function ScenePlayground({ onActiveChange }: Props) {
         },
       };
       h = new SceneHost(canvasRef.current, frameRef.current);
-      h.listeners.onActiveChange = (a) => activeCb.current?.(a);
       installBlendon();
       buildDemoScene(h);
       stopAttract = startAttractOrbit(h);
@@ -105,8 +97,7 @@ export default function ScenePlayground({ onActiveChange }: Props) {
       resetDemoScene(host);
       SceneOverlays.reset();
     };
-    window.addEventListener('blendon:reset', reset);
-    return () => window.removeEventListener('blendon:reset', reset);
+    return PlaygroundEvents.on('reset', reset);
   }, [host]);
 
   const overlays = useOverlays();

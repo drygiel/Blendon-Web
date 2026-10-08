@@ -24,8 +24,6 @@ export function sColor(key: string, d: Color): Color {
 export const sModifier = (key: string, d: ModifierKey): ModifierKey =>
   ModifierKeys.parse(Prefs.get<string | number | boolean>(key, d));
 
-export const CursorWrapMode = { Native: 0, Unity: 1, Clamp: 2 } as const;
-
 export const GeneralSettings = {
   get Enabled() {
     return sBool('GeneralSettings.Enabled', true);

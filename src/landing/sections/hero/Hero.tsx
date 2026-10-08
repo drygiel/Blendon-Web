@@ -1,6 +1,7 @@
 import { WORDMARK, wordmarkMask } from '../../../lib/images.ts';
 import { NEW_TAB, PLAYGROUND_URL } from '../../../lib/links.ts';
 import { STORE_URL } from '../../../lib/product.ts';
+import { plotAnchor, plotSection } from '../../plotter/contract.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
 import { TypeText } from '../../plotter/TypeText.tsx';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
@@ -20,7 +21,7 @@ const NAV = [
 
 export function Hero() {
   return (
-    <section id="top" className={styles.hero} data-plate="hero" data-hud="00 / SCENE VIEW">
+    <section id="top" className={styles.hero} {...plotSection({ plate: 'hero', hud: '00 / SCENE VIEW' })}>
       <header className={styles.header}>
         <a className={styles.homeLink} style={wordmarkMask(141)} href="#top" aria-label="Blendon home">
           <img src={WORDMARK.src} srcSet={WORDMARK.srcSet} sizes="141px" alt="Blendon" width={602} height={120} />
@@ -58,7 +59,7 @@ export function Hero() {
       </div>
 
       {/* The plotter draws the Scene view here: floor, axes, the selected cube, its gizmo and the orbit. */}
-      <div className={styles.stage} data-plot-anchor="hero-stage" aria-hidden="true" />
+      <div className={styles.stage} {...plotAnchor('hero-stage')} aria-hidden="true" />
     </section>
   );
 }

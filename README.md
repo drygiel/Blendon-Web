@@ -44,7 +44,7 @@ is mounted in (`../`, or `BLENDON_DIR`):
 - `Metadata~/Video` - the feature clips
 - `Documentation/Blendon_Manual.pdf` - the manual the page links to
 
-It writes `src/generated/window-data.json`, `public/plugin/` and `public/docs/`. Both are committed, so CI never needs the plugin.
+It writes `src/plugin/generated/` (`window-data.json`, `tutorial.json`), `public/plugin/` and `public/docs/`. Both are committed, so CI never needs the plugin.
 Run it after changing the plugin's settings pages, then commit the result.
 
 ### Refreshing the Unity dump
@@ -63,11 +63,16 @@ The exporter reads Blendon only through reflection, so it compiles in any assemb
 | Path                      | Contents                                                                         |
 | ------------------------- | -------------------------------------------------------------------------------- |
 | `src/landing/`            | The landing page: one folder per section under `sections/`, shared bits in `ui/` |
+| `src/landing/plotter/`    | The background plotter; `contract.ts` lists what the page marks up for it        |
+| `src/playground/`         | The Playground page and its dock, which the landing's Try It section embeds too  |
+| `src/scene/`              | The Scene view running Blendon, loaded as its own chunk                          |
 | `src/window/`             | The settings window, loaded as its own chunk when its section comes near         |
 | `src/window/core/`        | Layout builder, settings model and helpers - plain TypeScript, unit-tested       |
 | `src/window/gizmo/`       | The 3D gizmo preview, a port of the plugin's `GizmoPreview` to canvas            |
 | `src/window/styles/`      | The window's styles, scoped under `.uw`                                          |
-| `src/generated/`          | `pnpm sync` output                                                               |
+| `src/bridge/`             | What the Scene view and the settings window share: settings and events           |
+| `src/plugin/`             | Data from the plugin: `pnpm sync` output in `generated/` and its typed loaders   |
+| `src/lib/`                | Small helpers every part uses                                                    |
 | `scripts/sync/`           | `pnpm sync`: reads the plugin's C# sources and the Unity dump                    |
 | `src/entry-server.tsx`    | `pnpm prerender`'s server entry; `scripts/prerender.ts` writes its output        |
 | `tools/unity/`            | The Unity-side exporter for `Metadata~/PlaygroundRef`                            |

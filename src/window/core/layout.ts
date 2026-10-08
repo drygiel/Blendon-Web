@@ -1,6 +1,6 @@
 // Window geometry and the page body for one render: SettingsEditorWindow.OnGUI's layout pass.
-import type { CatalogPage } from '../data/schema.ts';
-import { D } from '../data/store.ts';
+import type { CatalogPage } from '../../plugin/schema.ts';
+import { D } from '../../plugin/window-data.ts';
 import { Builder, type Row } from './builder.ts';
 import type { WindowModel } from './model.ts';
 import { clamp, M, MIN_QUERY } from './util.ts';

@@ -5,7 +5,7 @@ import type { ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { capsWidth, rich } from '../core/text.ts';
 import { clamp, M, PAL } from '../core/util.ts';
-import { D } from '../data/store.ts';
+import { D } from '../../plugin/window-data.ts';
 import { Caps, Runs } from './common.tsx';
 import { useApp, useTip } from './context.ts';
 import { itemBase } from './item-base.ts';

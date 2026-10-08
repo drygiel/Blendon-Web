@@ -1,16 +1,17 @@
-// The landing's settings window, filling its pane of the Try It dock. Loaded as a chunk of its own,
+// Blendon's settings window, filling its pane of the Playground dock. Loaded as a chunk of its own,
 // together with the generated window data.
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/700.css';
 import './styles/window.scss';
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { SharedSettings } from '../lib/shared-settings.ts';
+import { PlaygroundEvents } from '../bridge/events.ts';
+import { SharedSettings } from '../bridge/settings.ts';
 import { useReducedMotion } from '../lib/hooks.ts';
 import { iconVars } from './core/icons.ts';
 import { layoutWindow } from './core/layout.ts';
 import { newInstance, WindowModel } from './core/model.ts';
 import { initialState, reduce } from './core/state.ts';
-import { D, loadWindowData } from './data/store.ts';
+import { D, loadWindowData } from '../plugin/window-data.ts';
 import { draw, settings, SPEED } from './gizmo/gizmo.ts';
 import styles from './PlaygroundWindow.module.scss';
 import { SettingsWindow } from './ui/Window.tsx';
@@ -60,7 +61,7 @@ export default function PlaygroundWindow() {
   const vars = useMemo(() => iconVars(), []);
   const reduced = useReducedMotion();
 
-  // The Scene view above reads the window's values; every change is published to it.
+  // The Scene view reads the window's values; every change is published to it.
   useEffect(
     () =>
       SharedSettings.publish({
@@ -73,11 +74,7 @@ export default function PlaygroundWindow() {
   );
 
   // A shortcut tip's "Open in Blendon": the Keyboard page with that shortcut's row lit.
-  useEffect(() => {
-    const open = (e: Event) => app.goTo('Keyboard', (e as CustomEvent<{ id?: string }>).detail?.id);
-    window.addEventListener('blendon:open-keyboard', open);
-    return () => window.removeEventListener('blendon:open-keyboard', open);
-  }, [app]);
+  useEffect(() => PlaygroundEvents.on('openKeyboard', ({ id }) => app.goTo('Keyboard', id)), [app]);
 
   // The dock's reset button: every value, override and binding back to its default; the layout stays.
   useEffect(() => {
@@ -93,8 +90,7 @@ export default function PlaygroundWindow() {
         li: s.li,
         page: s.page,
       }));
-    window.addEventListener('blendon:reset', reset);
-    return () => window.removeEventListener('blendon:reset', reset);
+    return PlaygroundEvents.on('reset', reset);
   }, []);
 
   const latest = useRef({ app, reduced });

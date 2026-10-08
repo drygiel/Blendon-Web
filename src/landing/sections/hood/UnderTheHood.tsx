@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { plotAnchor, plotPart } from '../../plotter/contract.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './UnderTheHood.module.scss';
 
@@ -55,7 +56,7 @@ export function UnderTheHood() {
           </div>
         ))}
       </div>
-      <div className={styles.cards} data-reveal="stagger" data-plot-gap="">
+      <div className={styles.cards} data-reveal="stagger" {...plotPart('cols')}>
         {COLUMNS.map(([label, items]) => (
           <div key={label} className={styles.card}>
             <span className={styles.label}>{label}</span>
@@ -68,7 +69,7 @@ export function UnderTheHood() {
         ))}
       </div>
       {/* The plotter draws a drawing's title block here. */}
-      <div className={styles.block} data-plot-anchor="hood-block" aria-hidden="true" />
+      <div className={styles.block} {...plotAnchor('hood-block')} aria-hidden="true" />
     </Section>
   );
 }

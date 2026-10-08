@@ -1,4 +1,4 @@
-// Shape of src/generated/window-data.json, written by `pnpm sync` from the Blendon sources and the
+// Shape of src/plugin/generated/window-data.json, written by `pnpm sync` from the Blendon sources and the
 // Unity model dumps. Asset fields hold paths relative to the site root (see assetUrl).
 
 /** A boolean-ish expression over setting values, mirroring the C# conditions of the DrawSettings code. */

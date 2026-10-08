@@ -1,4 +1,4 @@
-// The Try It dock: Unity's Scene view and the Blendon window as two tabs of one dock area, or side by
+// The Playground dock: Unity's Scene view and the Blendon window as two tabs of one dock area, or side by
 // side on a wide screen. Both panes stay mounted whatever the layout, so neither loses its state.
 import {
   useEffect,
@@ -6,11 +6,14 @@ import {
   useState,
   useSyncExternalStore,
   type CSSProperties,
+  type HTMLAttributes,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
-import { cx } from '../../../lib/cx.ts';
-import { useMediaQuery } from '../../../lib/hooks.ts';
+import { PlaygroundEvents } from '../../bridge/events.ts';
+import { cx } from '../../lib/cx.ts';
+import { useMediaQuery } from '../../lib/hooks.ts';
+import { NEW_TAB, PLAYGROUND_URL, publicUrl } from '../../lib/links.ts';
 import styles from './Dock.module.scss';
 import { SceneSlot } from './SceneSlot.tsx';
 import { WindowSlot } from './WindowSlot.tsx';
@@ -29,7 +32,7 @@ function defaultFraction(width: number) {
   const win = Math.min(Math.max(width * 0.38, 480), 620);
   return Math.max(0.3, 1 - win / width);
 }
-const SCENE_ICON = `${import.meta.env.BASE_URL}scene/icons/d_UnityEditor.SceneView.png`;
+const SCENE_ICON = publicUrl('scene/icons/d_UnityEditor.SceneView.png');
 
 interface KeyboardLock {
   lock?(keys: string[]): Promise<void>;
@@ -41,10 +44,15 @@ const keyboard = () => (navigator as Navigator & { keyboard?: KeyboardLock }).ke
 const noChange = () => () => {};
 
 // The Scene view tutorial's "Open Blendon's settings" task: showing or using the window is opening them.
-const settingsOpened = () => window.dispatchEvent(new Event('blendon:settings-opened'));
+const settingsOpened = () => PlaygroundEvents.emit('settingsOpened');
 
-/** `page`: the dock is the whole page (the stand-alone Playground), with no link out to itself. */
-export function Dock({ page = false }: { page?: boolean }) {
+interface DockProps extends HTMLAttributes<HTMLDivElement> {
+  /** The dock is the whole page (the stand-alone Playground), with no link out to itself. */
+  page?: boolean;
+}
+
+/** Other attributes go on the dock's root, for the page that hosts it. */
+export function Dock({ page = false, className, ...rest }: DockProps) {
   const ref = useRef<HTMLDivElement>(null);
   const wide = useMediaQuery(SPLIT_SCREEN);
   // Side by side by default only where there is room; the button switches it anywhere.
@@ -85,25 +93,8 @@ export function Dock({ page = false }: { page?: boolean }) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // A link to #playground, and a shortcut tip's "Open in Blendon", open the Blendon tab.
-  useEffect(() => {
-    const fromHash = () => {
-      if (location.hash === '#playground') setActive('blendon');
-    };
-    const onClick = (e: MouseEvent) => {
-      if ((e.target as Element | null)?.closest?.('a[href="#playground"]')) setActive('blendon');
-    };
-    const toKeyboard = () => setActive('blendon');
-    fromHash();
-    window.addEventListener('hashchange', fromHash);
-    window.addEventListener('blendon:open-keyboard', toKeyboard);
-    document.addEventListener('click', onClick);
-    return () => {
-      window.removeEventListener('hashchange', fromHash);
-      window.removeEventListener('blendon:open-keyboard', toKeyboard);
-      document.removeEventListener('click', onClick);
-    };
-  }, []);
+  // A shortcut tip's "Open in Blendon" opens the Blendon tab.
+  useEffect(() => PlaygroundEvents.on('openKeyboard', () => setActive('blendon')), []);
 
   const pick = (pane: Pane) => {
     setActive(pane);
@@ -151,7 +142,7 @@ export function Dock({ page = false }: { page?: boolean }) {
       <ToolButton
         label="Reset the scene and every setting"
         pressed={false}
-        onClick={() => window.dispatchEvent(new Event('blendon:reset'))}
+        onClick={() => PlaygroundEvents.emit('reset')}
       >
         <path d="M2.5 8a5.5 5.5 0 1 0 1.7-4" />
         <path d="M2.2 1.8v3.4h3.4" />
@@ -176,9 +167,8 @@ export function Dock({ page = false }: { page?: boolean }) {
       {!page && (
         <a
           className={styles.tool}
-          href={`${import.meta.env.BASE_URL}playground/`}
-          target="_blank"
-          rel="noopener"
+          href={PLAYGROUND_URL}
+          {...NEW_TAB}
           title="Open the Playground on a page of its own"
           aria-label="Open the Playground on a page of its own"
         >
@@ -195,13 +185,11 @@ export function Dock({ page = false }: { page?: boolean }) {
 
   return (
     <div
+      {...rest}
       ref={ref}
-      className={cx(styles.dock, page && styles.page, full && styles.full)}
+      className={cx(styles.dock, page && styles.page, full && styles.full, className)}
       data-playground=""
-      data-plot-anchor={page ? undefined : 'try-dock'}
-      data-reveal={page ? undefined : 'fade'}
     >
-      {!page && <span id="playground" className={styles.anchor} />}
       {split ? (
         <>
           <Strip style={paneStyle('scene')} tabs={sceneTab} />

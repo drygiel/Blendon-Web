@@ -2,7 +2,7 @@
 // Move/Rotate/Scale/Transform *GizmoPreview draw paths onto a 2D canvas. Geometry is built in
 // Unity's world space exactly as the C# builds it and projected through the same camera; every
 // Handles polygon becomes one canvas fill, in the same order, so translucent parts stack the same.
-import type { PropValue } from '../data/schema.ts';
+import type { PropValue } from '../../plugin/schema.ts';
 import { clamp, hexToRgb } from '../core/util.ts';
 
 type V3 = [number, number, number];

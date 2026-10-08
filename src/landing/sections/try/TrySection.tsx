@@ -1,14 +1,15 @@
 import { STORE_URL, TERMS } from '../../../lib/product.ts';
+import { plotAnchor, plotSection } from '../../plotter/contract.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import { SectionIntro } from '../../ui/Section.tsx';
-import { Dock } from './Dock.tsx';
-import styles from './SceneSection.module.scss';
+import { Dock } from '../../../playground/dock/Dock.tsx';
+import styles from './TrySection.module.scss';
 
 /** A Scene view running Blendon and Blendon's settings window, side by side or as tabs. */
-export function SceneSection() {
+export function TrySection() {
   return (
-    <section id="try" className={styles.section} data-plate="frame network" data-plot-route="net">
-      <div className={styles.intro} data-plot-anchor="try-intro">
+    <section id="try" {...plotSection({ plate: ['frame', 'network'], route: 'net' })}>
+      <div className={styles.intro} {...plotAnchor('try-intro')}>
         <SectionIntro
           eyebrow="09 / TRY IT"
           title={
@@ -34,7 +35,7 @@ export function SceneSection() {
           </span>
         </p>
       </div>
-      <Dock />
+      <Dock {...plotAnchor('try-dock')} data-reveal="fade" />
       <div className={styles.buyRow}>
         <div className={styles.buy}>
           <div className={styles.buyText}>

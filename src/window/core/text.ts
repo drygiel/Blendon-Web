@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { D } from '../data/store.ts';
+import { D } from '../../plugin/window-data.ts';
 import { unityPx } from './util.ts';
 
 export interface Run {

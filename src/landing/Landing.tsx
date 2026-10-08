@@ -10,7 +10,7 @@ import { PromoVideo } from './sections/video/PromoVideo.tsx';
 import { Pace } from './sections/pace/Pace.tsx';
 import { PieMenus } from './sections/pies/PieMenus.tsx';
 import { Precision } from './sections/precision/Precision.tsx';
-import { SceneSection } from './sections/scene/SceneSection.tsx';
+import { TrySection } from './sections/try/TrySection.tsx';
 import { Setup } from './sections/setup/Setup.tsx';
 import { Shortcuts } from './sections/shortcuts/Shortcuts.tsx';
 import { Tutorial } from './sections/tutorial/Tutorial.tsx';
@@ -29,7 +29,7 @@ export function Landing() {
         <Tutorial />
         <Setup />
         <Pace />
-        <SceneSection />
+        <TrySection />
         <Shortcuts />
         <UnderTheHood />
         <Faq />

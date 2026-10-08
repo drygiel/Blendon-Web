@@ -1,3 +1,4 @@
+import { plotAnchor, plotPart } from '../../plotter/contract.ts';
 import { KeyCap, Keys } from '../../ui/KeyCap.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
 import { Scramble } from '../../plotter/Scramble.tsx';
@@ -47,7 +48,7 @@ export function Precision() {
         </Lead>
       </div>
 
-      <ol className={styles.sequence} data-reveal="keys">
+      <ol className={styles.sequence} data-reveal="keys" {...plotPart('keys')}>
         {SEQUENCE.map(([key, label]) => (
           <li key={key} className={styles.step}>
             <KeyCap size="xl" wide={key.length > 1}>
@@ -59,9 +60,9 @@ export function Precision() {
       </ol>
 
       {/* The plotter draws a metre rule here, with the typed 2.000 m as a vector. */}
-      <div className={styles.ruler} data-plot-anchor="ruler-space" aria-hidden="true" />
+      <div className={styles.ruler} {...plotAnchor('ruler-space')} aria-hidden="true" />
 
-      <div className={styles.panel} data-reveal="print">
+      <div className={styles.panel} data-reveal="print" {...plotPart('panel')}>
         <div className={styles.panelHead}>
           <span className={styles.panelLabel}>WHILE DRAGGING</span>
           <span className={styles.readout}>
@@ -78,7 +79,7 @@ export function Precision() {
         </div>
       </div>
 
-      <div className={styles.mods} data-reveal="stagger">
+      <div className={styles.mods} data-reveal="stagger" {...plotPart('cols')}>
         {MODIFIERS.map(([keys, title, text]) => (
           <div key={title} className={styles.mod}>
             <Keys tokens={keys} className={styles.modKeys} />

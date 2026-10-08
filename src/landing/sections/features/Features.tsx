@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useInView, useReducedMotion } from '../../../lib/hooks.ts';
 import { cx } from '../../../lib/cx.ts';
 import { FEATURE_GROUPS, FEATURES, posterOf, type FeatureGroupId } from '../../data/content.ts';
+import { plotPart } from '../../plotter/contract.ts';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { PickButton } from '../../ui/PickButton.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
@@ -38,7 +39,13 @@ export function Features() {
         lead="Navigation, gizmos, scene tools and menus, each tuned from one settings window: Tools → Blendon. Pick a feature to watch it run."
       />
 
-      <div role="tablist" aria-label="Feature groups" className={styles.tabs} data-reveal="stagger">
+      <div
+        role="tablist"
+        aria-label="Feature groups"
+        className={styles.tabs}
+        data-reveal="stagger"
+        {...plotPart('above')}
+      >
         {FEATURE_GROUPS.map((g) => (
           <button
             key={g.id}
@@ -58,7 +65,7 @@ export function Features() {
       </div>
 
       <div className={styles.explorer}>
-        <div className={styles.list} data-reveal="stagger" data-plot-col="left">
+        <div className={styles.list} data-reveal="stagger" {...plotPart('left')}>
           {inGroup.map((f) => (
             <PickButton
               key={f.id}
@@ -71,7 +78,7 @@ export function Features() {
           ))}
         </div>
 
-        <div ref={panel} className={styles.player} data-reveal="print" data-plot-col="right">
+        <div ref={panel} className={styles.player} data-reveal="print" {...plotPart('right')}>
           <div className={styles.screen}>
             <img
               className={styles.poster}

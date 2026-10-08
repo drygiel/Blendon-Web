@@ -7,6 +7,7 @@ import { Keys } from '../../ui/KeyCap.tsx';
 import { PickButton } from '../../ui/PickButton.tsx';
 import { TAU, sprites } from '../../plotter/draw.ts';
 import { POLAR_RING, paintGlow, paintSector, sectorBox, sectorReach } from '../../plotter/plates/polar.ts';
+import { plotAnchor, plotStation } from '../../plotter/contract.ts';
 import { plotStore } from '../../plotter/store.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PieMenus.module.scss';
@@ -341,10 +342,8 @@ export function PieMenus() {
               key={pie.id}
               ref={centerRef}
               className={styles.pie}
-              data-plot-anchor="pie-center"
-              data-plot-station="pie"
-              data-plot-leap="title"
-              data-plot-radius={(RADIUS * scale * POLAR_RING).toFixed(1)}
+              {...plotAnchor('pie-center')}
+              {...plotStation({ name: 'pie', radius: RADIUS * scale * POLAR_RING, fromTitle: true })}
             >
               <svg
                 className={styles.ring}

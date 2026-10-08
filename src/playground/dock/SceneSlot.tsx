@@ -1,17 +1,17 @@
 import { useRef, type ComponentType } from 'react';
-import { useMediaQuery } from '../../../lib/hooks.ts';
-import { loadWindowData } from '../../../window/data/store.ts';
+import { useMediaQuery } from '../../lib/hooks.ts';
+import { loadWindowData } from '../../plugin/window-data.ts';
 import { useCalmMount } from './calm.ts';
-import styles from './SceneSection.module.scss';
+import styles from './Slot.module.scss';
 
 let Scene: ComponentType | null = null;
 // The engine reads the window data and lights the scene with the baked sky as it starts, so all three are in
 // hand before the mount. The sky comes in its own import, which keeps three.js out of the page's bundle.
 const loadScene = () =>
   Promise.all([
-    import('../../../scene/ScenePlayground.tsx'),
+    import('../../scene/ScenePlayground.tsx'),
     loadWindowData(),
-    import('../../../scene/render/sky.ts').then((m) => m.loadSkyEnvironment()),
+    import('../../scene/render/sky.ts').then((m) => m.loadSkyEnvironment()),
   ]).then(([m]) => void (Scene = m.default));
 
 // A device with no mouse to hover with: the view is driven by mouse buttons and keys, so it gets a picture.

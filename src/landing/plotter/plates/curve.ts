@@ -1,5 +1,5 @@
 import { AMBER, MONO_S, NEUTRAL, SANS, SERIF_S, clamp, lerp, mix, rgba, type Pt } from '../draw.ts';
-import { TUTORIAL } from '../../sections/tutorial/tutorial-data.ts';
+import { TUTORIAL } from '../../../plugin/tutorial.ts';
 import type { Plate, Rect } from './types.ts';
 
 const SENTENCE = 'a task ticks off only when you actually perform it';

@@ -1,6 +1,6 @@
 // schema.org data for the landing, written into the prerendered page as JSON-LD.
-import { FAQ } from '../landing/data/content.ts';
-import { RELEASED, VERSION } from './product.ts';
+import { FAQ } from './data/content.ts';
+import { RELEASED, VERSION } from '../lib/product.ts';
 
 /** The product and the FAQ, with every link absolute against the deployed `siteUrl`. */
 export function structuredData(siteUrl: string): object[] {

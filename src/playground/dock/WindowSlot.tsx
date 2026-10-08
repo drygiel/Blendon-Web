@@ -1,12 +1,12 @@
 import { useRef, type ComponentType } from 'react';
 import { useCalmMount } from './calm.ts';
-import styles from './SceneSection.module.scss';
+import styles from './Slot.module.scss';
 
 let Win: ComponentType | null = null;
 // The window's font comes with its chunk, in its Latin and Latin Extended subsets. Loaded before the mount,
 // it spares the window a second layout pass.
 const loadWindow = async () => {
-  const m = await import('../../../window/PlaygroundWindow.tsx');
+  const m = await import('../../window/PlaygroundWindow.tsx');
   await Promise.all(['400', '700'].map((w) => document.fonts.load(`${w} 12px Inter`, 'AĀ'))).catch(() => {});
   Win = m.default;
 };

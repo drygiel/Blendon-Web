@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '../../../lib/hooks.ts';
-import type { TutorialTask } from './tutorial-data.ts';
+import type { TutorialTask } from '../../../plugin/tutorial.ts';
 import styles from './Tutorial.module.scss';
 
 const GAP = 12;

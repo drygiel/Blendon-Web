@@ -18,7 +18,7 @@ import { pageInfo, type WindowModel } from '../core/model.ts';
 import { NEW_PIE } from '../core/state.ts';
 import { bindingFromEvent, capTokens } from '../core/text.ts';
 import { accented } from '../core/util.ts';
-import { D } from '../data/store.ts';
+import { D } from '../../plugin/window-data.ts';
 import { Caps } from '../ui/common.tsx';
 import {
   assign,

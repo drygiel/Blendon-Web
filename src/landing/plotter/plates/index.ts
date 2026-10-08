@@ -16,7 +16,7 @@ import type { Plate } from './types.ts';
 import { waves } from './waves.ts';
 
 /** Plates by the name a section gives in its `data-plate` attribute. */
-export const PLATES: Record<string, Plate> = {
+export const PLATES = {
   hero,
   frustum,
   orbits,
@@ -32,6 +32,9 @@ export const PLATES: Record<string, Plate> = {
   blueprint,
   bezier,
   finale,
-};
+} satisfies Record<string, Plate>;
+
+/** The plate a `data-plate` attribute names, if it is one. */
+export const plateNamed = (name: string): Plate | undefined => (PLATES as Record<string, Plate>)[name];
 
 export type { Plate, PlateCtx, Rect } from './types.ts';

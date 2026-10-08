@@ -5,7 +5,7 @@ import { iconStyle } from '../core/icons.ts';
 import { pageInfo } from '../core/model.ts';
 import { bindingFromEvent, capTokens } from '../core/text.ts';
 import { accented, clamp, fmtNum, hexToRgb, roundToRange } from '../core/util.ts';
-import { D } from '../data/store.ts';
+import { D } from '../../plugin/window-data.ts';
 import { Caps, Check } from './common.tsx';
 import { useApp, useTip } from './context.ts';
 import { indent, itemBase } from './item-base.ts';

@@ -9,7 +9,7 @@ let pending: Promise<WindowData> | null = null;
 
 /** Loads the generated data (a chunk of its own) and points its asset paths at the deployed site. */
 export function loadWindowData(): Promise<WindowData> {
-  pending ??= import('../../generated/window-data.json').then((m) => {
+  pending ??= import('./generated/window-data.json').then((m) => {
     const d = m.default as unknown as WindowData;
     const urls = (rec: Record<string, string>) => {
       for (const k of Object.keys(rec)) rec[k] = assetUrl(rec[k] ?? '');
