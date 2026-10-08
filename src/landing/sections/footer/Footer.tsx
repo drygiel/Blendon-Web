@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { MANUAL_URL, NEW_TAB } from '../../../lib/links.ts';
+import { MANUAL_URL, NEW_TAB, PLAYGROUND_URL } from '../../../lib/links.ts';
 import styles from './Footer.module.scss';
 
 /** Scroll before the very bottom over which the aurora rises. */
 const RISE_PX = 520;
 
 const LINKS = [
-  ['#playground', 'Playground'],
+  [PLAYGROUND_URL, 'Playground'],
   [MANUAL_URL, 'Manual (PDF)'],
   ['#get', 'Changelog'],
   ['#get', 'Support [SUPPORT_URL]'],
@@ -83,7 +83,7 @@ export function Footer() {
         </div>
         <nav className={styles.nav} aria-label="Footer">
           {LINKS.map(([href, label]) => (
-            <a key={label} href={href} {...(href === MANUAL_URL && NEW_TAB)}>
+            <a key={label} href={href} {...((href === MANUAL_URL || href === PLAYGROUND_URL) && NEW_TAB)}>
               {label}
             </a>
           ))}

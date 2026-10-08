@@ -85,7 +85,7 @@ export function Dock({ page = false }: { page?: boolean }) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // The page's Playground links, and a shortcut tip's "Open in Blendon", open the Blendon tab.
+  // A link to #playground, and a shortcut tip's "Open in Blendon", open the Blendon tab.
   useEffect(() => {
     const fromHash = () => {
       if (location.hash === '#playground') setActive('blendon');
