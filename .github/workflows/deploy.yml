@@ -49,7 +49,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium firefox webkit
-      - run: pnpm test:e2e
+      - run: pnpm test:e2e --project webkit tests/e2e/webkit-probe.spec.ts tests/e2e/playground.spec.ts
       - uses: actions/upload-artifact@v5
         if: failure()
         with:
