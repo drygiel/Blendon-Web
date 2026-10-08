@@ -33,7 +33,7 @@ export function Hero() {
             </a>
           ))}
         </nav>
-        <ButtonLink href={STORE_URL} variant="secondary" small>
+        <ButtonLink href={STORE_URL} newTab variant="secondary" small>
           Get Blendon
         </ButtonLink>
       </header>
@@ -51,8 +51,10 @@ export function Hero() {
           every key rebindable, nothing added to your builds.
         </p>
         <div className={styles.actions} data-reveal="rise">
-          <ButtonLink href={STORE_URL}>Get it on the Asset Store</ButtonLink>
-          <ButtonLink href="#try" variant="secondary">
+          <ButtonLink href={STORE_URL} newTab>
+            Get it on the Asset Store
+          </ButtonLink>
+          <ButtonLink href={PLAYGROUND_URL} variant="secondary" newTab>
             Try it in your browser
           </ButtonLink>
         </div>
