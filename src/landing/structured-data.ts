@@ -19,7 +19,7 @@ export function structuredData(siteUrl: string): object[] {
       datePublished: RELEASED,
       url: siteUrl,
       image: new URL('og.jpg', siteUrl).href,
-      publisher: { '@type': 'Organization', name: 'VeraCorp' },
+      publisher: { '@type': 'Organization', name: 'Drygiel' },
     },
     {
       '@context': 'https://schema.org',

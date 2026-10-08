@@ -75,7 +75,7 @@ export function Footer() {
       </div>
       <div className={styles.inner}>
         <div className={styles.legal}>
-          <span className={styles.owner}>© 2026 VeraCorp</span>
+          <span className={styles.owner}>© 2026 Drygiel</span>
           <span className={styles.note}>
             Blender is a trademark of the Blender Foundation. Unity is a trademark of Unity Technologies. Blendon is an
             independent product, not affiliated with either.
