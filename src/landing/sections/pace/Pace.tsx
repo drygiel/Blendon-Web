@@ -1,6 +1,6 @@
-import { cx } from '../../../lib/cx.ts';
-import { CONTESTED_KEYS, FEATURE_PRESETS, type ContestedKey } from '../../data/content.ts';
+import { CONTESTED_KEYS, FEATURE_PRESETS, type ContestedKey } from '../../content/pace.ts';
 import { plotPart } from '../../plotter/contract.ts';
+import { CardGrid, InfoCard } from '../../ui/InfoCard.tsx';
 import { Keys } from '../../ui/KeyCap.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import table from '../../ui/Table.module.scss';
@@ -69,23 +69,17 @@ export function Pace() {
         </p>
       </div>
 
-      <div className={styles.cards} data-reveal="stagger" {...plotPart('tiles')}>
+      <CardGrid min={250} data-reveal="stagger" {...plotPart('tiles')}>
         {FEATURE_PRESETS.map(([title, text]) => (
-          <div key={title} className={styles.card}>
-            <span className={styles.label}>Feature preset</span>
-            <span className={styles.cardTitle}>{title}</span>
-            <span className={styles.cardText}>{text}</span>
-          </div>
+          <InfoCard key={title} label="Feature preset" title={title}>
+            {text}
+          </InfoCard>
         ))}
-        <div className={cx(styles.card, styles.back)}>
-          <span className={styles.label}>The way back</span>
-          <span className={styles.cardTitle}>One switch</span>
-          <span className={styles.cardText}>
-            The master switch parks every Blendon key and hands each Unity command back, your settings kept. Default in
-            Edit → Shortcuts undoes every key change at once.
-          </span>
-        </div>
-      </div>
+        <InfoCard label="The way back" title="One switch" accent>
+          The master switch parks every Blendon key and hands each Unity command back, your settings kept. Default in
+          Edit → Shortcuts undoes every key change at once.
+        </InfoCard>
+      </CardGrid>
     </Section>
   );
 }

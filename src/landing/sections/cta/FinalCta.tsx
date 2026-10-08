@@ -3,15 +3,12 @@ import { MANUAL_URL, NEW_TAB } from '../../../lib/links.ts';
 import { RELEASED, STORE_URL, TERMS, VERSION } from '../../../lib/product.ts';
 import { plotAnchor, plotSection } from '../../plotter/contract.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
-import { plotStore } from '../../plotter/store.ts';
+import { setCtaHover } from '../../plotter/store.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import styles from './FinalCta.module.scss';
 
-/** The background draws the protractor's rays in and the footer's aurora turns blue while the button is pointed at. */
-const hover = (on: boolean) => () => {
-  plotStore.cta.hover = on;
-  document.documentElement.toggleAttribute('data-cta-hover', on);
-};
+/** The background draws the protractor's rays in and the footer's aurora turns green while the button is pointed at. */
+const hover = (on: boolean) => () => setCtaHover(on);
 
 const PERKS = [
   'Full C# source included',

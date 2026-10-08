@@ -1,4 +1,4 @@
-import { SETTINGS_SLIDES } from '../../data/content.ts';
+import { SETTINGS_SLIDES } from '../../content/setup.ts';
 import { AMBER, MONO_S, NEUTRAL, SERIF_S } from '../draw.ts';
 import type { Plate } from './types.ts';
 

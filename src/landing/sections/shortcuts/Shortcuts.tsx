@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { SHORTCUTS } from '../../data/content.ts';
+import { SHORTCUTS } from '../../content/shortcuts.ts';
 import { KeyCap, Keys } from '../../ui/KeyCap.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
 import styles from './Shortcuts.module.scss';

@@ -302,28 +302,3 @@ $flicker-steps: 252;
   margin: 8px 0 0;
   text-align: center;
 }
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.card {
-  @include card;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cardTitle {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.cardText {
-  font-size: 14px;
-  line-height: 1.55;
-  color: $text-3;
-}

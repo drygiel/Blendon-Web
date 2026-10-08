@@ -1,0 +1,40 @@
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--card-min), 100%), 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accent {
+  border-color: rgba($accent, 0.4);
+}
+
+.label {
+  @include caption(11px, 0.14em, $text-dim);
+  text-transform: uppercase;
+
+  .accent & {
+    color: $accent;
+  }
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: $text-3;
+}

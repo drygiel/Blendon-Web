@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Dock } from './dock/Dock.tsx';
 import { WORDMARK } from '../lib/images.ts';
+import { HOME_URL } from '../lib/links.ts';
 import styles from './PlaygroundPage.module.scss';
 
 export function PlaygroundPage() {
@@ -11,11 +12,11 @@ export function PlaygroundPage() {
     <div className={styles.page}>
       {header && (
         <header className={styles.header}>
-          <a className={styles.home} href={import.meta.env.BASE_URL}>
+          <a className={styles.home} href={HOME_URL}>
             <img src={WORDMARK.src} srcSet={WORDMARK.srcSet} sizes="80px" alt="Blendon" width={80} height={16} />
           </a>
           <span className={styles.title}>Playground</span>
-          <a className={styles.back} href={import.meta.env.BASE_URL}>
+          <a className={styles.back} href={HOME_URL}>
             Back to the Blendon page
           </a>
           <span className={styles.spacer} />

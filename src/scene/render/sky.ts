@@ -1,6 +1,7 @@
 // Unity's default procedural sky as the Scene view's environment: it lights the ambient and the reflections.
 // Prefiltering it (PMREM) compiles a shader heavy enough to stall the page for most of a second, so the result
 // is baked once into public/scene/sky-env.png by `pnpm bake:sky` and loaded as a ready texture.
+import { publicUrl } from '../../lib/links.ts';
 import * as THREE from 'three';
 
 /** The sky's gradient, as a scene for the PMREM prefilter. */
@@ -39,7 +40,7 @@ let baked: HTMLImageElement | null = null;
 export function loadSkyEnvironment(): Promise<HTMLImageElement> {
   pending ??= (async () => {
     const img = new Image();
-    img.src = `${import.meta.env.BASE_URL}scene/sky-env.png`;
+    img.src = publicUrl('scene/sky-env.png');
     await img.decode();
     return (baked = img);
   })();

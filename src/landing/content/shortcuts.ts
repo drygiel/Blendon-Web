@@ -1,0 +1,31 @@
+// The Shortcuts section's sheet of default keys.
+import type { KeyTokens } from '../ui/KeyCap.tsx';
+
+export const SHORTCUTS: [string, KeyTokens][] = [
+  ['Orbit', ['MMB']],
+  ['Quick Roll', ['Alt', '~+', 'MMB', '~flick']],
+  ['Pan', ['Shift', '~+', 'MMB']],
+  ['Zoom', ['Scroll', 'Num +', 'Num −']],
+  ['Front / Right / Top', ['Num 1', 'Num 3', 'Num 7']],
+  ['Opposite side', ['Ctrl', '~+', 'Num 1', 'Num 3', 'Num 7']],
+  ['Perspective / Ortho', ['Num 5']],
+  ['Orbit steps', ['Num 2', 'Num 4', 'Num 6', 'Num 8']],
+  ['Reverse view', ['Num 9']],
+  ['Camera view', ['Num 0']],
+  ['Selection history', ['Mouse 3', 'Mouse 4']],
+  ['View history', ['Shift', '~+', 'Mouse 3', 'Mouse 4']],
+  ['Box Select', ['LMB', '~drag']],
+  ['Grab / Rotate / Scale', ['G', 'R', 'S']],
+  ['Vertex snap', ['~hold', 'V']],
+  ['Virtual pivot', ['Shift', '~+', 'V']],
+  ['Move / Rotate / Transform tool', ['W', 'E', 'Y']],
+  ['Scale tool', ['Shift', '~+', 'R']],
+  ['Frame Selected / Isolate View', ['Num .', '~/', 'Num /']],
+  ['Snap to Floor', ['End']],
+  ['Select parent / children', ['[', ']']],
+  ['Draw Mode pie / Wireframe', ['Z', '~/', 'Shift', '~+', 'Z']],
+  ['Add Object / Snapping pie', ['Shift', '~+', 'A', '~/', 'Shift', '~+', 'S']],
+  ['Orientation / Pivot Point pie', [',', '~/', '.']],
+  ['Reset / View / Tools pie', ['/', '`', 'Q']],
+  ['Context menu', ['RMB']],
+];

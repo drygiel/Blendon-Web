@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import data from '../../src/plugin/generated/window-data.json';
-import { CONTESTED_KEYS, FEATURES, SHORTCUTS, type KeyTokens } from '../../src/landing/data/content.ts';
+import { FEATURES } from '../../src/landing/content/features.ts';
+import { CONTESTED_KEYS } from '../../src/landing/content/pace.ts';
+import { SHORTCUTS } from '../../src/landing/content/shortcuts.ts';
+import type { KeyTokens } from '../../src/landing/ui/KeyCap.tsx';
 
 // Contested keys from the plugin: `uMove` is where the Editor's command goes on the Blendon preset.
 const known: Record<string, { key: string; uMove: string; bMove: string }> = data.known;
