@@ -1,5 +1,6 @@
 // The pen's route down the page and the mapping from scroll position to how far along it the pen is.
 // Pure functions in page coordinates, so they run (and are tested) without a DOM.
+import { clamp, easeInOut } from './draw.ts';
 
 /** Segment kinds: the rail in the margin, writing under a title, a pen-up move, the closing ellipse,
  *  a sparking leap into a station and the circle the pen draws there. */
@@ -265,8 +266,6 @@ function sampler() {
     },
   };
 }
-
-const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
 /** The ellipse the pen closes round the call to action: centre, radii, start angle and sweep. */
 export function ctaEllipse(cta: Box) {
@@ -588,7 +587,6 @@ export function posAt(path: PlotPath, s: number): PenPoint {
 /** How long the opening takes: ignition, the flight up to the headline, writing it. */
 export const INTRO_END = 2.1;
 
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 
 /** Arc length during the opening, by time since load. */
