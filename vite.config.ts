@@ -4,10 +4,10 @@ import type { Plugin } from 'vite';
 import { imagetools } from 'vite-imagetools';
 import { defineConfig } from 'vitest/config';
 
-// GitHub Pages serves the site from /<repo>/; BASE_PATH overrides it (e.g. "/" for a custom domain).
-const base = process.env.BASE_PATH ?? '/Blendon-Web/';
+// Served from the root of its custom domain (public/CNAME); BASE_PATH overrides it (e.g. "/Blendon-Web/").
+const base = process.env.BASE_PATH ?? '/';
 // Absolute URL of the deployed site, for the social preview tags in index.html.
-const siteUrl = process.env.SITE_URL ?? `https://drygiel.github.io${base}`;
+const siteUrl = process.env.SITE_URL ?? `https://blendon.drygiel.com${base}`;
 
 // Fonts the landing needs on its first frame: the hero headline and the plotter's captions and readouts.
 // Each name is followed directly by Vite's 8-character hash.
