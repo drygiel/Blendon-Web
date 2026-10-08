@@ -11,6 +11,8 @@ $text: #c4c4c4;
 
 .dock {
   position: relative;
+  // Above the plotter's fixed HUD, which would otherwise draw over the editor.
+  z-index: 6;
   box-sizing: border-box;
   height: clamp(560px, calc(100vh - 72px), 940px);
   // The small viewport: the whole dock fits while a phone's URL bar is shown.
