@@ -1,7 +1,7 @@
 // three.js view of the Unity scene: mirrored into a right-handed space (z flipped), lit like the
 // default URP setup, with Unity's grid and selection outline drawn on top.
 import * as THREE from 'three';
-import { EditorSnapSettings } from '../unity/editor.ts';
+import { EditorApplication, EditorSnapSettings } from '../unity/editor.ts';
 import { Quaternion, Vector3 } from '../unity/math.ts';
 import { Ground, type GameObject, type Mesh, type Scene } from '../unity/scene.ts';
 import { DrawCameraMode, type SceneView } from '../unity/sceneview.ts';
@@ -15,6 +15,7 @@ import {
   POST_FRAG,
   QUAD_VERT,
 } from './shaders.ts';
+import { applySkyEnvironment } from './sky.ts';
 
 const toThreeV = (v: Vector3) => new THREE.Vector3(v.x, v.y, -v.z);
 const toThreeQ = (q: Quaternion) => new THREE.Quaternion(-q.x, -q.y, q.z, q.w);
@@ -58,35 +59,11 @@ interface Entry {
 /** Unity's scene-view lighting for this demo: the scene's directional light and a sky ambient. */
 const LIGHT_EULER = new Vector3(50, 330, 0);
 // Unity lights without the 1/pi three.js puts on diffuse, so its intensity 4 is about 4 * pi here;
-// these and the sky below were matched to the reference capture's face colours.
+// these and the sky in sky.ts were matched to the reference capture's face colours.
 const LIGHT_INTENSITY = 12;
 const ENV_INTENSITY = 0.7;
 // sRGB input that comes out of the tonemapper as #454545.
 const GROUND_RGB = 0.265;
-
-/** The default procedural skybox as an environment: lights the ambient and the reflections. */
-function skyEnvironment(renderer: THREE.WebGLRenderer) {
-  const env = new THREE.Scene();
-  const mat = new THREE.ShaderMaterial({
-    side: THREE.BackSide,
-    depthWrite: false,
-    uniforms: {
-      uZenith: { value: new THREE.Vector3(0.14, 0.22, 0.45) },
-      uHorizon: { value: new THREE.Vector3(0.55, 0.66, 0.85) },
-      uGround: { value: new THREE.Vector3(0.11, 0.1, 0.095) },
-    },
-    vertexShader:
-      'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `uniform vec3 uZenith; uniform vec3 uHorizon; uniform vec3 uGround; varying vec3 vDir;
-      void main(){ vec3 d = normalize(vDir); vec3 c = d.y >= 0.0 ? mix(uHorizon, uZenith, pow(d.y, 0.45)) : mix(uHorizon, uGround, pow(-d.y, 0.25));
-      gl_FragColor = vec4(c, 1.0); }`,
-  });
-  env.add(new THREE.Mesh(new THREE.SphereGeometry(10, 64, 32), mat));
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const tex = pmrem.fromScene(env, 0, 0.1, 100).texture;
-  pmrem.dispose();
-  return tex;
-}
 
 export interface OutlineSets {
   selected: GameObject[];
@@ -159,6 +136,9 @@ export class SceneRenderer {
     fragmentShader: 'uniform vec4 uId; void main(){ gl_FragColor = uId; }',
   });
   private dpr = 1;
+  private warm = false;
+  private warming: Promise<void> | null = null;
+  private readonly skyReady: Promise<void>;
   private readonly hdrTarget: THREE.WebGLRenderTarget;
   private readonly postMat: THREE.ShaderMaterial;
   private readonly postScene = new THREE.Scene();
@@ -208,7 +188,7 @@ export class SceneRenderer {
     light.position.copy(toThreeV(dir.mul(-100)));
     light.target.position.set(0, 0, 0);
     this.three.add(light, light.target);
-    this.three.environment = skyEnvironment(this.renderer);
+    this.skyReady = applySkyEnvironment(this.three, this.renderer);
     this.three.environmentIntensity = ENV_INTENSITY;
 
     this.gridMat = new THREE.ShaderMaterial({
@@ -400,9 +380,47 @@ export class SceneRenderer {
     return cam;
   }
 
+  /**
+   * Compiles the programs the first frames use in parallel, off the main thread where the browser can. Linking
+   * them on first use instead stalls the page for a moment. Until they are ready the canvas stays hidden.
+   */
+  private warmUp(cam: THREE.Camera) {
+    if (this.warming) return;
+    const r = this.renderer;
+    const canvas = r.domElement;
+    canvas.style.visibility = 'hidden';
+    // The environment is part of a lit program, so the sky goes on first.
+    this.warming = this.skyReady
+      .then(() => {
+        // A program depends on the target it draws into, so each pass compiles against its own.
+        r.setRenderTarget(this.hdrTarget);
+        const scene = r.compileAsync(this.three, cam);
+        // The selection outline's passes: the demo starts with an object selected.
+        const probe = new THREE.Mesh(new THREE.PlaneGeometry(), this.maskMat);
+        r.setRenderTarget(this.maskTarget);
+        const mask = r.compileAsync(probe, cam, this.three);
+        r.setRenderTarget(this.distTarget);
+        const dist = r.compileAsync(this.distScene, this.quadCam);
+        r.setRenderTarget(null);
+        const post = r.compileAsync(this.postScene, this.quadCam);
+        const rim = r.compileAsync(this.quadScene, this.quadCam);
+        return Promise.all([scene, mask, dist, post, rim]).finally(() => probe.geometry.dispose());
+      })
+      .catch(() => {})
+      .then(() => {
+        this.warm = true;
+        canvas.style.visibility = '';
+        EditorApplication.wake();
+      });
+  }
+
   render(view: SceneView, outline: OutlineSets) {
     this.sync();
     const cam = this.camera(view);
+    if (!this.warm) {
+      this.warmUp(cam);
+      return;
+    }
     const mode = view.drawMode;
     const wireOnly = mode === DrawCameraMode.Wireframe;
     // Unity's Unlit is the Textured draw mode with the scene lighting toggle off.

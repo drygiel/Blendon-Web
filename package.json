@@ -21,7 +21,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
-    "sync": "tsx scripts/sync/index.ts"
+    "sync": "tsx scripts/sync/index.ts",
+    "bake:sky": "tsx scripts/bake-sky.ts"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

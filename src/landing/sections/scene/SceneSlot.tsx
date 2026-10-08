@@ -1,8 +1,18 @@
-import { lazy, Suspense, useRef } from 'react';
-import { useInView, useMediaQuery } from '../../../lib/hooks.ts';
+import { useRef, type ComponentType } from 'react';
+import { useMediaQuery } from '../../../lib/hooks.ts';
+import { loadWindowData } from '../../../window/data/store.ts';
+import { useCalmMount } from './calm.ts';
 import styles from './SceneSection.module.scss';
 
-const ScenePlayground = lazy(() => import('../../../scene/ScenePlayground.tsx'));
+let Scene: ComponentType | null = null;
+// The engine reads the window data and lights the scene with the baked sky as it starts, so all three are in
+// hand before the mount. The sky comes in its own import, which keeps three.js out of the page's bundle.
+const loadScene = () =>
+  Promise.all([
+    import('../../../scene/ScenePlayground.tsx'),
+    loadWindowData(),
+    import('../../../scene/render/sky.ts').then((m) => m.loadSkyEnvironment()),
+  ]).then(([m]) => void (Scene = m.default));
 
 // A device with no mouse to hover with: the view is driven by mouse buttons and keys, so it gets a picture.
 const TOUCH_ONLY = '(hover: none) and (pointer: coarse)';
@@ -10,8 +20,8 @@ const TOUCH_ONLY = '(hover: none) and (pointer: coarse)';
 /** Space for the Scene view, which loads (three.js, the engine, the data) once the section comes near. */
 export function SceneSlot() {
   const ref = useRef<HTMLDivElement>(null);
-  const near = useInView(ref, { margin: '1200px', once: true });
   const touchOnly = useMediaQuery(TOUCH_ONLY);
+  const ready = useCalmMount(ref, loadScene, !touchOnly);
   if (touchOnly)
     return (
       <div className={styles.slot}>
@@ -27,12 +37,13 @@ export function SceneSlot() {
         </p>
       </div>
     );
-  const placeholder = (
-    <div className={styles.placeholder} role="status" aria-busy="true" aria-label="Loading the Scene view" />
-  );
   return (
     <div ref={ref} className={styles.slot}>
-      {near ? <Suspense fallback={placeholder}>{<ScenePlayground />}</Suspense> : placeholder}
+      {ready && Scene ? (
+        <Scene />
+      ) : (
+        <div className={styles.placeholder} role="status" aria-busy="true" aria-label="Loading the Scene view" />
+      )}
     </div>
   );
 }
