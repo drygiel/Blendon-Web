@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useReducedMotion } from '../../lib/hooks.ts';
-import { startPlotter } from './engine.ts';
+import { startPlotter } from './engine/index.ts';
 import { ViewportReadout } from './ViewportReadout.tsx';
 
 /**
