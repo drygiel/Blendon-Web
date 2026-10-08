@@ -1,21 +1,5 @@
 // Copy and media for the landing page sections.
-import posterAllTools from '../../assets/landing/posters/AllTools.jpg';
-import posterBoxSelect from '../../assets/landing/posters/BoxSelect.jpg';
-import posterContextMenu from '../../assets/landing/posters/ContextMenu.jpg';
-import posterFrameSelected from '../../assets/landing/posters/FrameSelected.jpg';
-import posterIsolateView from '../../assets/landing/posters/IsolateView.jpg';
-import posterMove from '../../assets/landing/posters/Move.jpg';
-import posterNumpadViews from '../../assets/landing/posters/NumpadViews.jpg';
-import posterOrbitSelected from '../../assets/landing/posters/OrbitSelected.jpg';
-import posterOrientationGizmo from '../../assets/landing/posters/OrientationGizmo.jpg';
-import posterPan from '../../assets/landing/posters/Pan.jpg';
-import posterPieMenus from '../../assets/landing/posters/PieMenus.jpg';
-import posterRotate from '../../assets/landing/posters/Rotate.jpg';
-import posterScale from '../../assets/landing/posters/Scale.jpg';
-import posterSnapToFloor from '../../assets/landing/posters/SnapToFloor.jpg';
-import posterTransform from '../../assets/landing/posters/Transform.jpg';
-import posterViewHistory from '../../assets/landing/posters/ViewHistory.jpg';
-import posterZoom from '../../assets/landing/posters/Zoom.jpg';
+import { responsive, type ImageWidth } from '../../lib/images.ts';
 import slideOverview from '../../assets/landing/slides/overview.jpg';
 import slideKeyboard from '../../assets/landing/slides/keyboard.jpg';
 import slideOrbitSelected from '../../assets/landing/slides/orbit-selected.jpg';
@@ -47,8 +31,17 @@ export interface Feature {
   desc: string;
   /** Clip in public/plugin/video, shared with the settings window's page headers. */
   clip: string;
-  poster: string;
 }
+
+// Posters share the clips' names, each in a few WebP widths for the player's srcset.
+const POSTERS = import.meta.glob<ImageWidth[]>('../../assets/landing/posters/*.jpg', {
+  eager: true,
+  import: 'default',
+  query: '?w=640;960;1280&format=webp&as=meta:src;width',
+});
+
+/** The still shown in the player until a clip's first frame. */
+export const posterOf = (clip: string) => responsive(POSTERS[`../../assets/landing/posters/${clip}.jpg`] ?? []);
 
 export const FEATURES: Feature[] = [
   {
@@ -58,7 +51,6 @@ export const FEATURES: Feature[] = [
     keys: ['MMB', '~drag'],
     desc: 'Orbit around the selection. Hold Alt to snap to a world axis, flick Alt + MMB to roll 90°.',
     clip: 'OrbitSelected',
-    poster: posterOrbitSelected,
   },
   {
     id: 'pan',
@@ -67,7 +59,6 @@ export const FEATURES: Feature[] = [
     keys: ['Shift', '~+', 'MMB'],
     desc: 'The point under the cursor stays under the cursor, and the drag wraps past the view edge.',
     clip: 'Pan',
-    poster: posterPan,
   },
   {
     id: 'zoom',
@@ -76,7 +67,6 @@ export const FEATURES: Feature[] = [
     keys: ['Scroll'],
     desc: "Blender's Scale, Dolly and Continue methods, toward the cursor. Numpad + and − step it from the keyboard.",
     clip: 'Zoom',
-    poster: posterZoom,
   },
   {
     id: 'numpad',
@@ -85,7 +75,6 @@ export const FEATURES: Feature[] = [
     keys: ['1', '3', '7', '5', '0'],
     desc: 'Axis views, perspective toggle, orbit steps, reverse view and looking through the camera.',
     clip: 'NumpadViews',
-    poster: posterNumpadViews,
   },
   {
     id: 'ogizmo',
@@ -94,7 +83,6 @@ export const FEATURES: Feature[] = [
     keys: ['LMB'],
     desc: "Blender's axis ball in the corner. Click an axis to look down it, drag to orbit, middle-click to toggle perspective.",
     clip: 'OrientationGizmo',
-    poster: posterOrientationGizmo,
   },
   {
     id: 'history',
@@ -103,7 +91,6 @@ export const FEATURES: Feature[] = [
     keys: ['Shift', '~+', 'Mouse 3', 'Mouse 4'],
     desc: 'Back and forward through camera positions, like a browser. Selections get the same, without Shift.',
     clip: 'ViewHistory',
-    poster: posterViewHistory,
   },
   {
     id: 'move',
@@ -112,7 +99,6 @@ export const FEATURES: Feature[] = [
     keys: ['W'],
     desc: 'Arrows, plane handles and a free-move ring. Hold Alt to drop the selection onto the surface under the cursor.',
     clip: 'Move',
-    poster: posterMove,
   },
   {
     id: 'rotate',
@@ -121,7 +107,6 @@ export const FEATURES: Feature[] = [
     keys: ['E'],
     desc: 'Rings that follow the cursor, a trackball and an angle arc. Hold Alt to aim the selection at a surface.',
     clip: 'Rotate',
-    poster: posterRotate,
   },
   {
     id: 'scale',
@@ -130,7 +115,6 @@ export const FEATURES: Feature[] = [
     keys: ['Shift', '~+', 'R'],
     desc: "Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. R alone starts a grab rotate; on the Unity keyboard preset the Scale tool keeps R.",
     clip: 'Scale',
-    poster: posterScale,
   },
   {
     id: 'transform',
@@ -139,7 +123,6 @@ export const FEATURES: Feature[] = [
     keys: ['Y'],
     desc: 'All three in one, nested so they never fight. Every gizmo honors Pivot/Center and Local/Global, works with multi-selection and grid snapping, and cancels on right-click.',
     clip: 'Transform',
-    poster: posterTransform,
   },
   {
     id: 'feedback',
@@ -148,7 +131,6 @@ export const FEATURES: Feature[] = [
     keys: ['Ctrl', 'Shift'],
     desc: 'Live readout, drag ghost, constraint line and snap ticks. Hold Ctrl to step from tick to tick, Shift for a slow, precise drag.',
     clip: 'AllTools',
-    poster: posterAllTools,
   },
   {
     id: 'box',
@@ -157,7 +139,6 @@ export const FEATURES: Feature[] = [
     keys: ['LMB', '~drag'],
     desc: 'Selects everything the box touches, tested against real triangles. C includes hidden objects, Space moves the box. Off until you switch it on.',
     clip: 'BoxSelect',
-    poster: posterBoxSelect,
   },
   {
     id: 'frame',
@@ -166,7 +147,6 @@ export const FEATURES: Feature[] = [
     keys: ['Num .'],
     desc: 'Each press steps on: the selection, its pivot, a close-up, then back to where you started.',
     clip: 'FrameSelected',
-    poster: posterFrameSelected,
   },
   {
     id: 'isolate',
@@ -175,7 +155,6 @@ export const FEATURES: Feature[] = [
     keys: ['Num /'],
     desc: 'Hides everything but the selection. Press again to bring the scene back.',
     clip: 'IsolateView',
-    poster: posterIsolateView,
   },
   {
     id: 'floor',
@@ -184,7 +163,6 @@ export const FEATURES: Feature[] = [
     keys: ['End'],
     desc: 'Drops the selection onto whatever is below it, optionally aligned to the slope.',
     clip: 'SnapToFloor',
-    poster: posterSnapToFloor,
   },
   {
     id: 'pies',
@@ -193,7 +171,6 @@ export const FEATURES: Feature[] = [
     keys: ['Z', 'Q', 'Shift', '~+', 'A'],
     desc: 'Hold, flick, let go, or tap to keep it open. Eight built-in pies, plus a visual editor for your own that can run any menu command.',
     clip: 'PieMenus',
-    poster: posterPieMenus,
   },
   {
     id: 'context',
@@ -202,7 +179,6 @@ export const FEATURES: Feature[] = [
     keys: ['RMB'],
     desc: "Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. Shift + RMB opens Unity's own.",
     clip: 'ContextMenu',
-    poster: posterContextMenu,
   },
 ];
 

@@ -1,4 +1,4 @@
-import wordmark from '../../../assets/landing/wordmark.png';
+import { WORDMARK, wordmarkMask } from '../../../lib/images.ts';
 import { NEW_TAB, PLAYGROUND_URL } from '../../../lib/links.ts';
 import { STORE_URL } from '../../../lib/product.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
@@ -22,8 +22,8 @@ export function Hero() {
   return (
     <section id="top" className={styles.hero} data-plate="hero" data-hud="00 / SCENE VIEW">
       <header className={styles.header}>
-        <a className={styles.homeLink} href="#top" aria-label="Blendon home">
-          <img src={wordmark} alt="Blendon" width={602} height={120} />
+        <a className={styles.homeLink} style={wordmarkMask(141)} href="#top" aria-label="Blendon home">
+          <img src={WORDMARK.src} srcSet={WORDMARK.srcSet} sizes="141px" alt="Blendon" width={602} height={120} />
         </a>
         <nav className={styles.nav} aria-label="Main">
           {NAV.map(([href, label]) => (

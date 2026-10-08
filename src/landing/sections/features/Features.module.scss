@@ -62,11 +62,23 @@
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
 }
 
-.video {
-  display: block;
-  width: 100%;
+.screen {
+  display: grid;
   aspect-ratio: 16 / 9;
   background: #2a2d33;
+
+  // The poster sits under the video, which stays transparent until its first frame.
+  > * {
+    grid-area: 1 / 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+  }
+}
+
+.poster {
+  object-fit: cover;
 }
 
 .caption {

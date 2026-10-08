@@ -18,6 +18,7 @@ export function Tutorial() {
   const [tip, setTip] = useState<{ task: TutorialTask; anchor: DOMRect } | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const tipId = useId();
+  const tabsId = useId();
   const chapter = CHAPTERS[chapterIndex] ?? CHAPTERS[0];
 
   const cancel = () => window.clearTimeout(timer.current);
@@ -95,7 +96,9 @@ export function Tutorial() {
                 key={c.title}
                 type="button"
                 role="tab"
+                id={`${tabsId}-tab-${i}`}
                 aria-selected={i === chapterIndex}
+                aria-controls={`${tabsId}-panel`}
                 className={cx(styles.chapter, i === chapterIndex && styles.chapterOn)}
                 onClick={() => {
                   hide();
@@ -107,30 +110,32 @@ export function Tutorial() {
               </button>
             ))}
           </div>
-          <ol role="tabpanel" aria-label={chapter.title} className={styles.tasks}>
-            {chapter.tasks.map((task) => {
-              const open = tip?.task.id === task.id;
-              return (
-                <li key={task.id}>
-                  <button
-                    type="button"
-                    className={cx(styles.task, open && styles.taskOn)}
-                    aria-describedby={open ? tipId : undefined}
-                    aria-expanded={open}
-                    onPointerEnter={onEnter(task)}
-                    onPointerLeave={(e) => e.pointerType === 'mouse' && hide()}
-                    onFocus={(e) => e.currentTarget.matches(':focus-visible') && show(task, e.currentTarget)}
-                    onBlur={hide}
-                    // Touch has no hover: a tap opens the card and a second tap closes it.
-                    onClick={(e) => (open ? hide() : show(task, e.currentTarget))}
-                  >
-                    <span className={styles.box} aria-hidden="true" />
-                    <span>{task.title}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+          <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-tab-${chapterIndex}`}>
+            <ol className={styles.tasks}>
+              {chapter.tasks.map((task) => {
+                const open = tip?.task.id === task.id;
+                return (
+                  <li key={task.id}>
+                    <button
+                      type="button"
+                      className={cx(styles.task, open && styles.taskOn)}
+                      aria-describedby={open ? tipId : undefined}
+                      aria-expanded={open}
+                      onPointerEnter={onEnter(task)}
+                      onPointerLeave={(e) => e.pointerType === 'mouse' && hide()}
+                      onFocus={(e) => e.currentTarget.matches(':focus-visible') && show(task, e.currentTarget)}
+                      onBlur={hide}
+                      // Touch has no hover: a tap opens the card and a second tap closes it.
+                      onClick={(e) => (open ? hide() : show(task, e.currentTarget))}
+                    >
+                      <span className={styles.box} aria-hidden="true" />
+                      <span>{task.title}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         </div>
       </div>
       {/* The plotter draws the learning curve here. */}

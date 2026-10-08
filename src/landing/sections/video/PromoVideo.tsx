@@ -1,19 +1,18 @@
 import { useRef, useState } from 'react';
+import coverWidths from '../../../assets/landing/promo-cover.jpg?w=640;960;1280&format=webp&as=meta:src;width';
 import { useReducedMotion } from '../../../lib/hooks.ts';
+import { responsive } from '../../../lib/images.ts';
 import { PROMO_VIDEO_ID } from '../../../lib/links.ts';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './PromoVideo.module.scss';
 
 const TITLE = 'Blendon - Unity 6 Plugin';
-// YouTube only has a full-resolution cover for some uploads; the smaller ones always exist.
-const POSTERS = ['maxresdefault', 'sddefault', 'hqdefault'].map(
-  (q) => `https://i.ytimg.com/vi/${PROMO_VIDEO_ID}/${q}.jpg`,
-);
+// The video's YouTube cover, served from here so the page asks YouTube for nothing until it plays.
+const COVER = responsive(coverWidths);
 
 /** The promo video. YouTube's player loads only once it is asked to play. */
 export function PromoVideo() {
   const [playing, setPlaying] = useState(false);
-  const [poster, setPoster] = useState(0);
   const player = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
@@ -51,12 +50,14 @@ export function PromoVideo() {
           >
             <img
               className={styles.poster}
-              src={POSTERS[poster]}
+              src={COVER.src}
+              srcSet={COVER.srcSet}
+              sizes="(max-width: 1240px) calc(100vw - 56px), 1184px"
               alt=""
+              width={1280}
+              height={720}
               loading="lazy"
-              // A missing cover still answers, with YouTube's 120 x 90 placeholder.
-              onLoad={(e) => e.currentTarget.naturalWidth < 200 && poster < POSTERS.length - 1 && setPoster(poster + 1)}
-              onError={() => poster < POSTERS.length - 1 && setPoster(poster + 1)}
+              decoding="async"
             />
             <span className={styles.play} aria-hidden="true">
               <svg width="30" height="34" viewBox="0 0 30 34">

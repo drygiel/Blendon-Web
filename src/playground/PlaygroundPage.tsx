@@ -1,8 +1,8 @@
 // The Playground on a page of its own: the Try It dock filling the window, under a thin bar back to the
 // main page that can be closed for the whole view.
 import { useState } from 'react';
-import wordmark from '../assets/landing/wordmark.png';
 import { Dock } from '../landing/sections/scene/Dock.tsx';
+import { WORDMARK } from '../lib/images.ts';
 import styles from './PlaygroundPage.module.scss';
 
 export function PlaygroundPage() {
@@ -12,7 +12,7 @@ export function PlaygroundPage() {
       {header && (
         <header className={styles.header}>
           <a className={styles.home} href={import.meta.env.BASE_URL}>
-            <img src={wordmark} alt="Blendon" width={80} height={16} />
+            <img src={WORDMARK.src} srcSet={WORDMARK.srcSet} sizes="80px" alt="Blendon" width={80} height={16} />
           </a>
           <span className={styles.title}>Playground</span>
           <a className={styles.back} href={import.meta.env.BASE_URL}>
