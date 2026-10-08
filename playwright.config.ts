@@ -11,7 +11,7 @@ export default defineConfig({
   // The Scene view renders in software WebGL on CI-class machines; a slow one needs the headroom.
   timeout: 60_000,
   reporter: 'list',
-  use: { baseURL: `http://localhost:${port}${base}`, trace: 'retain-on-failure' },
+  use: { baseURL: `http://localhost:${port}${base}` },
   webServer: {
     command: `pnpm build && pnpm preview --port ${port} --strictPort`,
     url: `http://localhost:${port}${base}`,

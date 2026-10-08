@@ -49,22 +49,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium firefox webkit
-      - run: pnpm test:e2e tests/e2e/webkit-probe.spec.ts --project=webkit
-      - uses: actions/upload-artifact@v5
-        if: failure()
-        with:
-          name: e2e-results
-          path: test-results
-          retention-days: 7
-      # Temporary: the failure context in the log, for debugging the WebKit hangs.
-      - if: failure()
-        run: |
-          for d in test-results/*webkit*/; do
-            echo "::group::$d"
-            cat "$d/error-context.md" 2>/dev/null | head -n 150
-            unzip -p "$d/trace.zip" '*.trace' 2>/dev/null | grep -E '"type":"(console|event|log|error)"' | cut -c1-300 | tail -n 150
-            echo "::endgroup::"
-          done
+      - run: pnpm test:e2e
 
   deploy:
     if: github.event_name != 'pull_request'

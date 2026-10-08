@@ -2,14 +2,6 @@ import { expect, type Page, test } from '@playwright/test';
 
 let errors: string[] = [];
 
-const HEARTBEAT = `let raf = 0, ro = 0, mut = 0, last = performance.now(), gap = 0;
-const RO = window.ResizeObserver;
-window.ResizeObserver = class extends RO { constructor(cb) { super((...a) => { ro++; cb(...a); }); } };
-const loop = () => { raf++; requestAnimationFrame(loop); };
-requestAnimationFrame(loop);
-addEventListener('DOMContentLoaded', () => new MutationObserver((l) => (mut += l.length)).observe(document, { subtree: true, childList: true, attributes: true, characterData: true }));
-setInterval(() => { const now = performance.now(); gap = now - last; last = now; console.log('hb raf=' + raf + ' ro=' + ro + ' mut=' + mut + ' gap=' + Math.round(gap) + ' y=' + scrollY); raf = ro = mut = 0; }, 500);`;
-
 async function openWindow(page: Page) {
   await page.locator('#try').scrollIntoViewIfNeeded();
   await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
@@ -32,8 +24,16 @@ test.beforeEach(async ({ page, browserName }) => {
         return id.startsWith('webgl') ? null : getContext.call(this, id, ...rest);
       };
     });
-  // Temporary: a heartbeat in the trace, to see what WebKit is doing while it hangs.
-  if (browserName === 'webkit') await page.addInitScript({ content: HEARTBEAT });
+  // CI's WebKit composites in software and freezes once the window shows while the "rise" reveal's blur can
+  // still transition; the reveal is not what these tests are about.
+  if (browserName === 'webkit')
+    await page.addInitScript({
+      content: `addEventListener('DOMContentLoaded', () => {
+        const s = document.createElement('style');
+        s.textContent = "[data-reveal='rise'] { filter: none !important; }";
+        document.head.append(s);
+      });`,
+    });
   await page.goto('');
 });
 
