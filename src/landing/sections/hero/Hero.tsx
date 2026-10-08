@@ -1,5 +1,5 @@
 import wordmark from '../../../assets/landing/wordmark.png';
-import { PRICE, STORE_URL } from '../../../lib/product.ts';
+import { STORE_URL } from '../../../lib/product.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
 import { TypeText } from '../../plotter/TypeText.tsx';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
@@ -49,7 +49,7 @@ export function Hero() {
           every key rebindable, nothing added to your builds.
         </p>
         <div className={styles.actions} data-reveal="rise">
-          <ButtonLink href={STORE_URL}>Get it on the Asset Store · {PRICE}</ButtonLink>
+          <ButtonLink href={STORE_URL}>Get it on the Asset Store</ButtonLink>
           <ButtonLink href="#try" variant="secondary">
             Try it in your browser
           </ButtonLink>

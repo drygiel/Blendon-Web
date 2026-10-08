@@ -1,6 +1,6 @@
 import wordmark from '../../../assets/landing/wordmark.png';
 import { MANUAL_URL, NEW_TAB } from '../../../lib/links.ts';
-import { PRICE, RELEASED, STORE_URL, TERMS, VERSION } from '../../../lib/product.ts';
+import { RELEASED, STORE_URL, TERMS, VERSION } from '../../../lib/product.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
 import { plotStore } from '../../plotter/store.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
@@ -41,7 +41,7 @@ export function FinalCta() {
           onFocus={hover(true)}
           onBlur={hover(false)}
         >
-          <ButtonLink href={STORE_URL}>Get Blendon · {PRICE}</ButtonLink>
+          <ButtonLink href={STORE_URL}>Get Blendon</ButtonLink>
         </span>
         <span className={styles.terms} data-reveal="rise">
           {TERMS}

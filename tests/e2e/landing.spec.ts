@@ -103,9 +103,12 @@ test('ships the landing prerendered, with its structured data', async ({ page, r
   expect(html).toContain('before you buy.');
 
   const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(
-    (m) => JSON.parse(m[1] ?? '') as { '@type': string; offers?: { price: string }; mainEntity?: unknown[] },
+    (m) => JSON.parse(m[1] ?? '') as { '@type': string; offers?: unknown; mainEntity?: unknown[] },
   );
-  expect(data.find((d) => d['@type'] === 'SoftwareApplication')?.offers?.price).toBe('40.00');
+  // The price lives only on the Asset Store, where it may change with a sale.
+  expect(data.find((d) => d['@type'] === 'SoftwareApplication')).toBeDefined();
+  expect(data.find((d) => d['@type'] === 'SoftwareApplication')?.offers).toBeUndefined();
+  expect(html).not.toMatch(/\$\s?\d/);
   const faq = data.find((d) => d['@type'] === 'FAQPage');
   await expect(page.locator('#faq details')).toHaveCount(faq?.mainEntity?.length ?? -1);
 });

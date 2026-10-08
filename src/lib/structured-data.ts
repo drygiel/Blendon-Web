@@ -1,6 +1,6 @@
 // schema.org data for the landing, written into the prerendered page as JSON-LD.
 import { FAQ } from '../landing/data/content.ts';
-import { PRICE_USD, RELEASED, STORE_URL, VERSION } from './product.ts';
+import { RELEASED, VERSION } from './product.ts';
 
 /** The product and the FAQ, with every link absolute against the deployed `siteUrl`. */
 export function structuredData(siteUrl: string): object[] {
@@ -20,13 +20,6 @@ export function structuredData(siteUrl: string): object[] {
       url: siteUrl,
       image: new URL('og.jpg', siteUrl).href,
       publisher: { '@type': 'Organization', name: 'VeraCorp' },
-      offers: {
-        '@type': 'Offer',
-        price: PRICE_USD.toFixed(2),
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-        url: new URL(STORE_URL, siteUrl).href,
-      },
     },
     {
       '@context': 'https://schema.org',

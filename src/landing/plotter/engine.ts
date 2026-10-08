@@ -849,7 +849,6 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
         g: 1100,
       });
     }
-    flashes.push({ x: r.cx, y: r.cy, t, size: r.w * 0.8 });
     dirty = true;
   };
   // The pen follows the mouse over elements marked to hold it, such as the FAQ's questions.
