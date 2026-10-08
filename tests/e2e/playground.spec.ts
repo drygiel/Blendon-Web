@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page, test } from './fixtures.ts';
 
 let errors: string[] = [];
 
@@ -23,16 +23,6 @@ test.beforeEach(async ({ page, browserName }) => {
       proto.getContext = function (id, ...rest) {
         return id.startsWith('webgl') ? null : getContext.call(this, id, ...rest);
       };
-    });
-  // CI's WebKit composites in software and freezes once the window shows while the "rise" reveal's blur can
-  // still transition; the reveal is not what these tests are about.
-  if (browserName === 'webkit')
-    await page.addInitScript({
-      content: `addEventListener('DOMContentLoaded', () => {
-        const s = document.createElement('style');
-        s.textContent = "[data-reveal='rise'] { filter: none !important; }";
-        document.head.append(s);
-      });`,
     });
   await page.goto('');
 });
