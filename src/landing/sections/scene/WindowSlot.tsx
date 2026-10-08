@@ -1,25 +1,25 @@
-import { useEffect, useRef, useState, type ComponentType } from 'react';
-import { useInView } from '../../../lib/hooks.ts';
+import { useRef, type ComponentType } from 'react';
+import { useCalmMount } from './calm.ts';
 import styles from './SceneSection.module.scss';
 
-const loadWindow = () => import('../../../window/PlaygroundWindow.tsx').then((m) => m.default);
+let Win: ComponentType | null = null;
+// The window's font comes with its chunk, in its Latin and Latin Extended subsets. Loaded before the mount,
+// it spares the window a second layout pass.
+const loadWindow = async () => {
+  const m = await import('../../../window/PlaygroundWindow.tsx');
+  await Promise.all(['400', '700'].map((w) => document.fonts.load(`${w} 12px Inter`, 'AĀ'))).catch(() => {});
+  Win = m.default;
+};
 
 /** The Blendon pane: the settings window, which loads (code and data) once the section comes near. */
 export function WindowSlot() {
   const ref = useRef<HTMLDivElement>(null);
-  const near = useInView(ref, { margin: '1200px', once: true });
   // Mounted from a plain state update rather than a Suspense retry: a retry renders time-sliced, and with
   // the Scene view drawing every frame (its idle orbit) the slices never add up to a finished render.
-  const [Win, setWin] = useState<ComponentType | null>(null);
-  useEffect(() => {
-    if (!near) return;
-    let live = true;
-    void loadWindow().then((c) => live && setWin(() => c));
-    return () => void (live = false);
-  }, [near]);
+  const ready = useCalmMount(ref, loadWindow);
   return (
     <div ref={ref} className={styles.slot}>
-      {Win ? (
+      {ready && Win ? (
         <Win />
       ) : (
         <div
