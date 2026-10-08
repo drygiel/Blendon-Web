@@ -9,21 +9,22 @@ HTMLCanvasElement.prototype.getContext = function (id, ...r) { return id.startsW
 const HB = `let raf = 0; const loop = () => { raf++; requestAnimationFrame(loop); }; requestAnimationFrame(loop);
 setInterval(() => { console.log('hb raf=' + raf); raf = 0; }, 1000);`;
 
-for (const variant of ['base', 'reduced', 'noplot', 'noreveal'])
+const CSS: Record<string, string> = {
+  nofilter: '*{filter:none!important}',
+  notransition: '*{transition:none!important}',
+  noanim: '*,*::before,*::after{animation:none!important}',
+  novideo: '#video *,#video *::before,#video *::after{animation:none!important}',
+};
+
+for (const variant of Object.keys(CSS))
   for (const n of [1, 2, 3])
     test(`${variant} ${n}`, async ({ page }) => {
       await page.addInitScript({ content: NO_WEBGL });
       await page.addInitScript({ content: HB });
       const hb: string[] = [];
       page.on('console', (m) => hb.push(m.text()));
-      if (variant === 'reduced') await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto('');
-      if (variant === 'noplot')
-        await page.addStyleTag({ content: '.plot-canvas,.plot-vignette,.plot-hud{display:none!important}' });
-      if (variant === 'noreveal')
-        await page.addStyleTag({
-          content: '*{filter:none!important;transition:none!important;animation:none!important}',
-        });
+      await page.addStyleTag({ content: CSS[variant] });
       await page.locator('#try').scrollIntoViewIfNeeded();
       await page.waitForTimeout(1500);
       const before = hb.slice(-2).join(' ');
