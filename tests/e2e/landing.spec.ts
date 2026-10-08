@@ -145,6 +145,22 @@ test('fits a phone screen without sideways scrolling', async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(0);
 });
 
+test('the plotter keeps its drawing unstretched when its box outgrows the root, as under a hiding URL bar', async ({
+  page,
+}) => {
+  // Bitmap pixels per CSS pixel down, over those across; 1 when the drawing is not stretched.
+  const stretch = () =>
+    page.evaluate<number>(`(() => {
+      const c = document.querySelector('.plot-canvas');
+      const r = c.getBoundingClientRect();
+      return c.height / r.height / (c.width / r.width);
+    })()`);
+  await expect.poll(stretch).toBeCloseTo(1, 2);
+  await page.evaluate(`document.querySelector('.plot-canvas').style.height =
+    document.documentElement.clientHeight + 64 + 'px'`);
+  await expect.poll(stretch).toBeCloseTo(1, 2);
+});
+
 test('without scripts the prerendered page shows all its content', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

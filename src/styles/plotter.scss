@@ -17,10 +17,13 @@ $type-step: 24ms;
   pointer-events: none;
 }
 
+// As tall as the viewport with the URL bar hidden, so the box holds still while the bar slides on a phone or tablet.
 .plot-canvas {
   display: block;
+  inset: 0 auto auto 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100lvh;
 }
 
 .plot-vignette {
@@ -53,6 +56,27 @@ $type-step: 24ms;
 
   // Only where the margin beside the content column is wide enough to hold it.
   @media (max-width: 1539px) {
+    display: none;
+  }
+}
+
+.plot-readout {
+  @include mono;
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 50;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba($accent, 0.5);
+  border-radius: 4px;
+  background: rgba($bg, 0.88);
+  font-size: 11px;
+  line-height: 1.4;
+  color: $text;
+  pointer-events: none;
+
+  &[hidden] {
     display: none;
   }
 }
