@@ -1,0 +1,380 @@
+// Switch cards, header cards, presets and the Overview's master card.
+@mixin rules {
+  // switch-card / header card
+  .it-master {
+    display: block;
+    margin-top: 0;
+  }
+  .msw {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 34px;
+  }
+  .it-master > .msw {
+    height: auto;
+    padding: 12px 13px;
+    background: #3f3f3f;
+    border: 1px solid #212121;
+    border-radius: 6px;
+  }
+  .mtile {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: #4a4a4a;
+    border: 1px solid #212121;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+  }
+  .mtx {
+    flex: 1;
+    min-width: 0;
+    margin-right: 12px;
+  }
+  .mt {
+    height: 17px;
+    line-height: 17px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #a7a7a7;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .ms {
+    height: 14px;
+    line-height: 14px;
+    font-size: 10.286px;
+    color: #898989;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sw {
+    flex: none;
+    width: 40px;
+    height: 21px;
+    border-radius: 11px;
+    background: #212d3d !important;
+    border: 1px solid #212121 !important;
+    position: relative;
+    cursor: pointer !important;
+  }
+  .sw:hover {
+    background: #2d3b4d !important;
+  }
+  .sw i {
+    position: absolute;
+    left: 1.5px;
+    top: 1.5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #a6a6a6;
+    transition: left 0.12s ease;
+  }
+  .sw.on {
+    background: #46607c !important;
+  }
+  .sw.on:hover {
+    background: #597089 !important;
+  }
+  .sw.on i {
+    left: 20.5px;
+    background: #fff;
+  }
+  .it.dis .sw {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .hc {
+    display: flex;
+    gap: 20px;
+    padding: 12px 13px;
+    background: #3f3f3f;
+    border: 1px solid #212121;
+    border-radius: 6px;
+  }
+  .hcl {
+    flex: none;
+    width: 320px;
+  }
+  .hcr {
+    flex: 1;
+    min-width: 0;
+  }
+  .himg {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .himg img,
+  .himg video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+  .hvid {
+    animation: vfade 0.25s ease;
+  }
+  .hc.beside .stack-img,
+  .hc.beside .stack-prs {
+    display: none;
+  }
+  .hc.stacked {
+    display: block;
+  }
+  .hc.stacked .hcl {
+    display: none;
+  }
+  .hc.stacked .stack-img {
+    margin-top: 14px;
+    margin-bottom: 14px;
+    max-width: 320px;
+  }
+  .hrule {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.055);
+    margin: 7px 0 6px;
+  }
+  .hc.stacked .msw + .hrule {
+    display: none;
+  }
+  .hbody {
+    display: block;
+  }
+  .hbody[data-off='true'] .hsecs,
+  .hbody[data-off='true'] .hkeys {
+    opacity: 0.5;
+  }
+  .hc.hsplit .hbody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 22px;
+  }
+  .hc:not(.hsplit) .hkeys {
+    margin-top: 8px;
+  }
+  .hsec + .hsec {
+    margin-top: 8px;
+  }
+  .hcap {
+    height: 14px;
+    line-height: 14px;
+    font-size: 9.143px;
+    font-weight: 700;
+    color: #696969;
+  }
+
+  // Unity wraps ~5.5pt short of the column and sets 12pt text ~1.4% narrower than Chrome:
+  // the wrap width is (w - 5.5) / 0.986.
+  .hrt {
+    font-size: 12px;
+    line-height: 1.2125;
+    color: #d9d9d9;
+    white-space: pre-wrap;
+    padding-right: calc(5.58px - 1.42%);
+  }
+  .hkg {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 10px;
+  }
+  .uhk {
+    display: contents;
+  }
+  .krun {
+    display: flex;
+    align-items: center;
+    height: 20px;
+    white-space: nowrap;
+  }
+  .kplus {
+    width: 14px;
+    text-align: center;
+    font-family: Consolas, Menlo, monospace;
+    font-size: 10.286px;
+    font-weight: 700;
+    color: #5f5f5f;
+  }
+  .kslash {
+    width: 12px;
+    text-align: center;
+    font-size: 10.286px;
+    color: #808080;
+  }
+  .kact {
+    font-size: 12px;
+    line-height: 1.2125;
+    color: #d9d9d9;
+    padding-top: 2.725px;
+    padding-right: calc(5.58px - 1.42%);
+  }
+  .uhk.dis .krun,
+  .uhk.dis .kact {
+    opacity: 0.5;
+  }
+  .hfoot {
+    margin-top: 6px;
+    font-size: 10.286px;
+    line-height: 1.2125;
+    color: #808080;
+    white-space: pre-wrap;
+  }
+  .prs {
+    margin-top: 14px;
+  }
+  .prs.stack-prs {
+    margin-top: 0;
+  }
+  .prh {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #a7a7a7;
+  }
+  .segs {
+    margin-top: 4px;
+    height: 26px;
+    display: flex;
+    border-radius: 4px;
+    background: #4a4a4a;
+    border: 1px solid #212121;
+    padding: 0;
+    overflow: hidden;
+  }
+  .seg {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    font-size: 10.857px !important;
+    font-weight: 700 !important;
+    color: #a6a6a6 !important;
+    text-align: center !important;
+    position: relative;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer !important;
+  }
+  .seg + .seg::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .seg:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #d9d9d9 !important;
+  }
+  .seg.sel {
+    background: #46607c !important;
+    color: #fff !important;
+  }
+  .seg.sel:hover {
+    background: #597089 !important;
+  }
+  .seg.sel::before,
+  .seg.sel + .seg::before,
+  .seg:hover::before,
+  .seg:hover + .seg::before {
+    display: none;
+  }
+  .prn {
+    margin-top: 6px;
+    font-size: 10.286px;
+    line-height: 1.2125;
+    color: #696969;
+  }
+
+  // Overview master
+  .ovm {
+    display: flex;
+    align-items: stretch;
+    padding: 13px 14px;
+    min-height: 80px;
+  }
+  .ovl {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 18px;
+  }
+  .ovlogo {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    margin-right: 8px;
+  }
+  .ovl .sw {
+    flex: none;
+  }
+  .ovlogo img {
+    display: block;
+    width: 100px;
+    height: 20px;
+    margin-left: 12px;
+  }
+  .ovsub {
+    margin-left: 17px;
+    margin-top: 4px;
+    font-size: 10.286px;
+    color: #898989;
+    white-space: nowrap;
+  }
+  .ovdiv {
+    flex: none;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.055);
+    margin: 2px 0;
+  }
+  .ovr2 {
+    flex: 1;
+    min-width: 0;
+    padding-left: 18px;
+  }
+  .ovm.stacked {
+    flex-direction: column;
+  }
+  .ovm.stacked .ovdiv {
+    height: 1px;
+    width: auto;
+    margin: 7px 0 6px;
+  }
+  .ovm.stacked .ovr2 {
+    padding-left: 0;
+  }
+  .ovm.stacked .ovl {
+    padding-right: 0;
+    min-height: 54px;
+  }
+  .it-kbPreset {
+    display: block;
+    padding-left: var(--li);
+  }
+  .it.it-kbPreset {
+    margin-top: 0;
+  }
+  .it-kbPreset .segs {
+    margin-top: 0;
+  }
+  .kbl {
+    height: 15px;
+    line-height: 15px;
+  }
+}

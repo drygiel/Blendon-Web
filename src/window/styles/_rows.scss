@@ -1,0 +1,184 @@
+// Rows and cells of the page layout, foldouts and section cards.
+@mixin rules {
+  // rows / cells
+  .row {
+    position: relative;
+  }
+  .cells {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 18px;
+    align-items: stretch;
+  }
+  .cell {
+    grid-column: span 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .cell.span2 {
+    grid-column: 1 / -1;
+  }
+  .cell.boxed {
+    background: #3f3f3f;
+    border: 1px solid #212121;
+    border-radius: 6px;
+    padding: 9px 9px 15px;
+  }
+  .cell.bare {
+    padding: 0;
+  }
+  .cell.master {
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+  .row.bare .cells {
+    display: block;
+  }
+
+  // Fold (Appearance) and section cards are drawn as stacked row segments.
+  .row.in-fold,
+  .row.in-card {
+    background: #2b2b2b;
+    border-left: 1px solid #212121;
+    border-right: 1px solid #212121;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .row.in-card {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .row.in-fold::before,
+  .row.in-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--acc);
+  }
+  .row.wfirst {
+    border-top: 1px solid #212121;
+    border-radius: 6px 6px 0 0;
+  }
+  .row.wlast {
+    border-bottom: 1px solid #212121;
+    border-radius: 0 0 6px 6px;
+    padding-bottom: 18px;
+    margin-bottom: 4px;
+  }
+  .row.in-card.wlast {
+    padding-bottom: 13px;
+    margin-bottom: 0;
+  }
+  .row.wfirst.wlast {
+    border-radius: 6px;
+  }
+  .row.in-fold.wfirst::before {
+    top: 29px;
+  }
+  .row.in-fold.wlast::before,
+  .row.in-card.wlast::before {
+    bottom: 6px;
+  }
+  .row.in-card.wfirst::before {
+    top: 6px;
+  }
+  .row.in-card.wfirst {
+    padding-top: 11px;
+  }
+  .row.shut {
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .row.shut::before {
+    display: none;
+  }
+  .fh {
+    position: relative;
+    height: 29px;
+    margin: 0 -20px;
+    padding: 6px 20px 5px;
+    background: #4a4a4a;
+    border-bottom: 1px solid #212121;
+    border-radius: 5px 5px 0 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+  .fh:hover {
+    background: #545454;
+  }
+  .row.shut .fh {
+    border-radius: 5px;
+    border-bottom: 0;
+    height: 27.7px;
+    padding-bottom: 3.7px;
+    margin-bottom: 0;
+  }
+  .fbox {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: #2b2b2b;
+    border: 1px solid #212121;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.286px;
+    line-height: 1;
+    color: #808080;
+    margin-right: 6px;
+  }
+  .fh:hover .fbox {
+    color: #d9d9d9;
+  }
+  .fic {
+    flex: none;
+    margin-left: 1px;
+  }
+  .fot {
+    margin-left: 6px;
+    font-size: 10.286px;
+    font-weight: 700;
+    color: #d9d9d9;
+    flex: 1;
+  }
+  .fcnt {
+    font-size: 10.286px;
+    color: #808080;
+    width: 90px;
+    text-align: right;
+  }
+  .ch {
+    height: 18px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .chtile {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 7px;
+  }
+  .chl {
+    font-size: 10.857px;
+    font-weight: 700;
+  }
+  .chl.lk:hover {
+    color: #d9d9d9 !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}

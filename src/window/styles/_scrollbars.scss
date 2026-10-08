@@ -1,0 +1,51 @@
+// Scrollbars, as Unity 6's dark skin draws them.
+@mixin rules {
+  // Scrollbars (Unity 6 dark)
+  .vsb {
+    background: #323232;
+    display: flex;
+    flex-direction: column;
+  }
+  .sba {
+    flex: none;
+    height: 14px;
+    width: 100%;
+    position: relative;
+  }
+  .sba::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 5px;
+    margin-left: -4px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+  }
+  .sba.up::after {
+    border-bottom: 4px solid #c4c4c4;
+  }
+  .sba.dn::after {
+    border-top: 4px solid #c4c4c4;
+    top: 5px;
+  }
+  .sba:hover::after {
+    filter: brightness(1.25);
+  }
+  .sbt {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+  .sbth {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 0;
+    border-radius: 5px;
+    background: #5f5f5f;
+    display: none;
+  }
+  .sbth:hover {
+    background: #6a6a6a;
+  }
+}

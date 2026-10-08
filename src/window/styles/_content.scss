@@ -1,0 +1,250 @@
+// The page area: its header, search box, scroll view, page body and the tip bar.
+@mixin rules {
+  // Content chrome
+  .content {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: #383838;
+  }
+  .hdr {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 60px;
+    border-bottom: 1px solid #212121;
+  }
+  .badge {
+    position: absolute;
+    left: 14px;
+    top: 17px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .htx {
+    position: absolute;
+    left: 51px;
+    top: 13px;
+    overflow: hidden;
+  }
+  .htitle {
+    height: 19px;
+    line-height: 19px;
+    font-size: 14.857px;
+    font-weight: 700;
+    color: #d9d9d9;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .hsub {
+    height: 15px;
+    line-height: 15px;
+    font-size: 10.857px;
+    color: #a6a6a6;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sbox {
+    position: absolute;
+    right: 26px;
+    top: 16px;
+    height: 28px;
+    border-radius: 14px;
+    background: #2b2b2b;
+    border: 1px solid #212121;
+    cursor: text;
+  }
+  .sbox.foc {
+    border-color: #46607c;
+  }
+  .smag {
+    position: absolute;
+    left: 8px;
+    top: 7px;
+  }
+  .sin {
+    position: absolute;
+    left: 28px;
+    right: 30px;
+    top: 0;
+    height: 26px;
+    border: 0;
+    outline: 0;
+    background: none;
+    padding: 0;
+    font-size: 10.857px;
+    color: #d9d9d9;
+    caret-color: #d9d9d9;
+  }
+  .sph {
+    position: absolute;
+    left: 28px;
+    top: 0;
+    line-height: 26px;
+    font-size: 10.857px;
+    color: #808080;
+    pointer-events: none;
+  }
+  .sclr {
+    position: absolute;
+    right: 8px;
+    top: 2px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.55;
+  }
+  .sclr:hover {
+    opacity: 1;
+    filter: sepia(1) saturate(6) hue-rotate(-30deg);
+  }
+  .view {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 60px;
+    bottom: 46px;
+  }
+  .scroll {
+    position: absolute;
+    left: 0;
+    right: 14px;
+    top: 0;
+    bottom: 0;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .view.hx .scroll {
+    overflow-x: auto;
+  }
+  .scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .main-sb {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+  }
+  .hsb {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 14px;
+    bottom: 0;
+    height: 14px;
+    background: #323232;
+    flex-direction: row;
+  }
+  .view.hx .hsb {
+    display: flex;
+  }
+  .view.hx .scroll,
+  .view.hx .main-sb {
+    bottom: 14px;
+  }
+  .hsb .sba {
+    width: 14px;
+    height: 14px;
+  }
+  .hsb .sbth {
+    top: 2px;
+    bottom: 2px;
+    left: 0;
+    right: auto;
+    height: auto;
+  }
+  .sba.lf::after {
+    top: 3px;
+    margin-left: -2px;
+    border: 4px solid transparent;
+    border-left: 0;
+    border-right: 4px solid #c4c4c4;
+  }
+  .sba.rt::after {
+    top: 3px;
+    margin-left: -2px;
+    border: 4px solid transparent;
+    border-right: 0;
+    border-left: 4px solid #c4c4c4;
+  }
+  .pagebody {
+    padding: 12px 12px 5px 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  .ftr {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 46px;
+    border-top: 1px solid #212121;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    gap: 14px;
+  }
+  .tipbar {
+    display: flex;
+    align-items: center;
+    height: 24px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 10.286px;
+    color: #808080;
+  }
+  .bulb {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #4a4a4a;
+    border: 1px solid #212121;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 7px;
+  }
+  .tlead {
+    flex: none;
+    white-space: pre;
+  }
+  .rbtn {
+    flex: none;
+    margin-left: auto;
+    height: 26px;
+    padding: 0 18px 1px;
+    border-radius: 5px;
+    background: #46607c !important;
+    border: 1px solid #303030 !important;
+    color: #eeeeee !important;
+    font-size: 10.857px !important;
+    white-space: pre;
+    text-align: center !important;
+    cursor: pointer !important;
+  }
+  .rbtn:hover {
+    background: #597089 !important;
+  }
+  .rbtn:active {
+    background: #3c5269 !important;
+  }
+  .rbtn.danger {
+    background: #654240 !important;
+  }
+  .rbtn.danger:hover {
+    background: #7a4d4a !important;
+  }
+}

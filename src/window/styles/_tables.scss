@@ -1,0 +1,466 @@
+// The contested-key table, feature tables, small tables and the pie list.
+@mixin rules {
+  // contested table
+  .it-contested {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 6px;
+    padding-left: var(--li);
+  }
+  .cth {
+    position: relative;
+    height: 24px;
+    border-bottom: 0;
+  }
+  .cth::after {
+    content: '';
+    position: absolute;
+    left: -22px;
+    right: 0;
+    bottom: 5px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.11);
+  }
+  .cthl,
+  .cthr {
+    position: absolute;
+    top: 0;
+    height: 13px;
+    line-height: 13px;
+    font-size: 9.143px;
+    font-weight: 700;
+    color: #696969;
+  }
+  .cthl {
+    left: 0;
+  }
+  .cthr {
+    left: calc(50% + 14px);
+  }
+  .ct {
+    position: relative;
+    height: 20px;
+    display: grid;
+    align-items: center;
+    margin-left: -22px;
+    padding-left: 22px;
+  }
+  .ct.odd {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .ctn {
+    font-size: 12px;
+    color: #b9b9b9;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .ctk {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .ctdiv {
+    align-self: stretch;
+    justify-self: center;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .ctu {
+    font-size: 10.857px;
+    color: #808080;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .ctk.dim .ukc {
+    color: #898989;
+  }
+  .ctn.lk:hover,
+  .ctu.lk:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  // feature tables
+  .it-fhead {
+    position: relative;
+    height: 24px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+  }
+  .it-fhead::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.11);
+  }
+  .fhf,
+  .fhs {
+    position: absolute;
+    top: 0;
+    height: 13px;
+    line-height: 13px;
+    font-size: 9.143px;
+    font-weight: 700;
+    color: #808080;
+  }
+  .fhf {
+    left: 60px;
+  }
+  .fhs {
+    right: 10px;
+  }
+  .it-frow,
+  .it-fpie,
+  .it-fsub {
+    display: block;
+    margin-top: 2px;
+  }
+  .it-fpie {
+    margin-bottom: 4px;
+  }
+  .fr {
+    position: relative;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+  }
+  .fr.sub {
+    height: 20px;
+  }
+  .fr.odd {
+    background: rgba(255, 255, 255, 0.032);
+  }
+  .it-frow .fr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .fr .tg {
+    position: absolute;
+    left: 12px;
+    top: 5px;
+  }
+  .fr.sub .tg {
+    left: 14px;
+    top: 3px;
+  }
+  .fi {
+    position: absolute;
+    left: 36px;
+    top: 4px;
+  }
+  .fi.sm {
+    left: 40px;
+  }
+  .fi.off {
+    opacity: 0.45;
+  }
+  .ftt {
+    position: absolute;
+    left: 60px;
+    font-size: 12px;
+    color: #d9d9d9;
+    white-space: nowrap;
+  }
+  .ftt[data-off='true'] {
+    opacity: 0.5;
+  }
+  .ft2 {
+    position: absolute;
+    left: 60px;
+    font-size: 10.857px;
+    color: #808080;
+    white-space: nowrap;
+  }
+  .ft2.muted {
+    color: #626262;
+  }
+  .ftt.lk:hover,
+  .ft2.lk:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .fkey {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .fkey[data-dim='true'] .ukc {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(217, 217, 217, 0.5);
+  }
+
+  // small tables
+  .it-frameSeq,
+  .it-extras {
+    display: block;
+    margin-top: 2px;
+  }
+  .tbh {
+    position: relative;
+    height: 18px;
+  }
+  .tbh::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.11);
+  }
+  .tbo,
+  .tbi {
+    position: absolute;
+    top: 0;
+    height: 13px;
+    line-height: 13px;
+    font-size: 9.143px;
+    font-weight: 700;
+    color: #696969;
+  }
+  .tbo {
+    right: 6px;
+    width: 36px;
+  }
+  .tbi {
+    right: 50px;
+    width: 52px;
+  }
+  .tr {
+    position: relative;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+  }
+  .tr.odd {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .tr .tg {
+    margin: 0 10px 0 2px;
+  }
+  .tnum {
+    width: 16px;
+    font-size: 12px;
+    color: #d9d9d9;
+    margin-right: 8px;
+  }
+  .tnm {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #b9b9b9;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .tnum.muted {
+    color: #808080;
+  }
+  .tnm.muted {
+    color: #6d6d6d;
+  }
+  .tin {
+    flex: none;
+    width: 52px;
+    display: flex;
+    justify-content: center;
+    margin-right: 8px;
+  }
+  .dash {
+    font-size: 12px;
+    color: #808080;
+  }
+  .mv {
+    flex: none;
+    width: 18px;
+    height: 22px;
+    font-size: 10.857px;
+    color: #808080 !important;
+    text-align: center !important;
+    cursor: pointer !important;
+  }
+  .mv:hover {
+    color: #d9d9d9 !important;
+  }
+  .mv.off {
+    pointer-events: none;
+    color: #484848 !important;
+  }
+  .tcap {
+    height: 20px;
+    line-height: 20px;
+    padding-left: 6px;
+    font-size: 9.143px;
+    font-weight: 700;
+    color: #696969;
+  }
+  .tin .tg.dis {
+    opacity: 0.5;
+  }
+
+  // pie list
+  .it-pieTable {
+    display: block;
+  }
+  .cap + .it-pieTable,
+  .it-pieTable {
+    margin-top: 10.7px;
+  }
+  .pth {
+    position: relative;
+    height: 16px;
+    font-size: 10.286px;
+    font-weight: 700;
+    color: #808080;
+    margin-bottom: 7px;
+  }
+  .pth::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .pth span {
+    position: absolute;
+    top: 0;
+  }
+  .ph1 {
+    left: 18px;
+  }
+  .ph2 {
+    left: 62px;
+  }
+  .ph3 {
+    right: 202px;
+  }
+  .ph4 {
+    right: 96px;
+  }
+  .pr {
+    position: relative;
+    height: 28px;
+    margin-bottom: 3px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+  }
+  .pr.odd {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .pr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .pr:hover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    border-radius: 1px;
+    background: #598cf2;
+  }
+  .pr .tg {
+    position: absolute;
+    left: 16px;
+    top: 7px;
+  }
+  .pi {
+    position: absolute;
+    left: 39px;
+    top: 6px;
+  }
+  .pi.off {
+    opacity: 0.45;
+  }
+  .pt {
+    position: absolute;
+    left: 62px;
+    font-size: 12px;
+    color: #b9b9b9;
+  }
+  .pt.muted {
+    color: #808080;
+  }
+  .pt.lk:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pkey {
+    position: absolute;
+    right: 164px;
+    width: 100px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .pc {
+    position: absolute;
+    right: 102px;
+    width: 56px;
+    text-align: right;
+    font-size: 10.286px;
+    color: #808080;
+  }
+  .ib {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    top: 3px;
+    border-radius: 5px;
+    background: #585858 !important;
+    border: 1px solid #303030 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13.143px;
+    color: #eeeeee !important;
+  }
+  .ib:hover {
+    background: #676767 !important;
+  }
+  .pr .ib:nth-last-of-type(2) {
+    right: 43px;
+  }
+  .pr .ib:last-of-type {
+    right: 14px;
+  }
+  .ib.off {
+    opacity: 0.3;
+  }
+  .it-pieEmpty {
+    justify-content: center;
+    font-size: 10.286px;
+    color: #808080;
+  }
+  .it-pieFooter {
+    justify-content: space-between;
+    padding: 8px 14px 6px;
+    min-height: 24px;
+  }
+  .nb.cfg {
+    width: 90px;
+    height: 24px;
+  }
+  .nb.add {
+    width: 56px;
+    height: 24px;
+  }
+  .nores {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 10.286px;
+    color: #808080;
+  }
+}
