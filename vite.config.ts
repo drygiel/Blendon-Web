@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
+import type { Plugin } from 'vite';
+import { imagetools } from 'vite-imagetools';
 import { defineConfig } from 'vitest/config';
 
 // GitHub Pages serves the site from /<repo>/; BASE_PATH overrides it (e.g. "/" for a custom domain).
@@ -7,9 +9,45 @@ const base = process.env.BASE_PATH ?? '/Blendon-Web/';
 // Absolute URL of the deployed site, for the social preview tags in index.html.
 const siteUrl = process.env.SITE_URL ?? `https://drygiel.github.io${base}`;
 
+// Fonts the landing needs on its first frame: the hero headline and the plotter's captions and readouts.
+// Each name is followed directly by Vite's 8-character hash.
+const PRELOAD_FONTS = [
+  /^archivo-800-112-latin-[\w-]{8}\.woff2$/,
+  /^instrument-serif-latin-400-italic-[\w-]{8}\.woff2$/,
+  /^jetbrains-mono-latin-500-normal-[\w-]{8}\.woff2$/,
+];
+
+/** Preloads the landing's first-frame fonts, so they load in parallel with the stylesheet that names them. */
+function preloadFonts(): Plugin {
+  return {
+    name: 'preload-fonts',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        if (!ctx.bundle || !ctx.filename.endsWith('index.html') || ctx.filename.includes('playground')) return;
+        const files = Object.keys(ctx.bundle).filter((f) =>
+          PRELOAD_FONTS.some((re) => re.test(f.split('/').pop() ?? '')),
+        );
+        if (files.length !== PRELOAD_FONTS.length)
+          throw new Error(`preload-fonts: found ${files.join(', ') || 'none'}`);
+        return files.map((f) => ({
+          tag: 'link',
+          attrs: { rel: 'preload', href: base + f, as: 'font', type: 'font/woff2', crossorigin: '' },
+          injectTo: 'head' as const,
+        }));
+      },
+    },
+  };
+}
+
 export default defineConfig(({ isSsrBuild }) => ({
   base,
-  plugins: [react(), { name: 'site-url', transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl) }],
+  plugins: [
+    react(),
+    imagetools(),
+    preloadFonts(),
+    { name: 'site-url', transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl) },
+  ],
   css: {
     preprocessorOptions: {
       // Lets any module `@use 'tokens'` / `@use 'mixins'` without relative paths.

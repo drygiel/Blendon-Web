@@ -48,3 +48,52 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/// A light sweep across a logo image on hover, left to right. Put it on the image's box; `$mask` is the image's url().
+/// The highlight is masked by the image itself, so it lights only the letters.
+@mixin logo-shine($mask, $duration: 0.45s) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    // A slanted band, orange at the rim and white in the core, parked just off the left edge so it enters at once.
+    background: linear-gradient(
+        100deg,
+        transparent 43%,
+        rgba($accent-light, 0.8) 47.5%,
+        #fff 50%,
+        rgba($accent-light, 0.8) 52.5%,
+        transparent 57%
+      )
+      96% 0 / 250% 100% no-repeat;
+    -webkit-mask: $mask 0 0 / 100% 100% no-repeat;
+    mask: $mask 0 0 / 100% 100% no-repeat;
+    opacity: 0;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    animation: logo-shine $duration cubic-bezier(0.25, 0.4, 0.45, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover::after,
+    &:focus-visible::after {
+      animation: none;
+    }
+  }
+
+  @keyframes logo-shine {
+    from {
+      opacity: 1;
+      background-position: 96% 0;
+    }
+    to {
+      opacity: 1;
+      background-position: 4% 0;
+    }
+  }
+}

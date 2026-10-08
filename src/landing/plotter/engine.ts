@@ -217,6 +217,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   let H = 0;
   let dpr = 1;
   let sy = window.scrollY;
+  // Reading scrollY forces a layout whenever the page changed since the last one, so frames read it only after a scroll.
+  let scrolled = false;
   let maxScroll = 0;
   let mobile = false;
   let intensity = 1;
@@ -294,11 +296,6 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     [W, H] = canvasBox();
     mobile = W < 760;
     dpr = pixelRatio();
-    // Setting the size clears the bitmap even when it stays the same.
-    const bw = Math.round(W * dpr);
-    const bh = Math.round(H * dpr);
-    if (canvas.width !== bw) canvas.width = bw;
-    if (canvas.height !== bh) canvas.height = bh;
     intensity = mobile ? 0.75 : 1;
     // H is the viewport with the URL bar hidden, as it always is once the visitor has scrolled to the bottom.
     maxScroll = Math.max(0, root.scrollHeight - H);
@@ -441,6 +438,11 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
       pen.y = pen.py = q.y;
       inkS = Math.max(pen.s, hold ? free : pen.s);
     }
+    // Resized only after every measurement, so the page is laid out once. Setting the size clears the bitmap.
+    const bw = Math.round(W * dpr);
+    const bh = Math.round(H * dpr);
+    if (canvas.width !== bw) canvas.width = bw;
+    if (canvas.height !== bh) canvas.height = bh;
     dirty = true;
   }
 
@@ -1310,7 +1312,10 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     t = (now - t0) / 1000;
-    sy = window.scrollY;
+    if (scrolled) {
+      scrolled = false;
+      sy = window.scrollY;
+    }
     if (sy !== lastSy) lastActivity = now;
     const wasIdle = idle;
     idle = !reduce && now - lastActivity > AMBIENT_IDLE_MS;
@@ -1379,10 +1384,21 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     const [w, h] = canvasBox();
     if (Math.abs(w - W) > 0.5 || Math.abs(h - H) > 0.5 || pixelRatio() !== dpr) layout();
   }, 120);
-  const ro = new ResizeObserver(debounce(layout, 150));
+  // The observer's first call comes after the browser's own layout, so measuring there forces none.
+  const relayout = debounce(layout, 150);
+  let measured = false;
+  const ro = new ResizeObserver(() => {
+    if (measured) relayout();
+    else {
+      measured = true;
+      layout();
+    }
+  });
   ro.observe(document.body);
   ro.observe(canvas);
   window.addEventListener('resize', onResize);
+  const onScroll = () => (scrolled = true);
+  window.addEventListener('scroll', onScroll, { passive: true });
   // A font arriving late rewraps titles without changing the page's height, which the observer would miss.
   const onFonts = debounce(() => alive && layout(), 150);
   document.fonts.addEventListener('loadingdone', onFonts);
@@ -1394,8 +1410,8 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
   }
   const activity = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'touchstart'] as const;
   for (const type of activity) window.addEventListener(type, onActivity, { passive: true });
-  layout();
-  void document.fonts.ready.then(() => alive && layout());
+  // Before the observer's first call, that call measures with the fonts in place.
+  void document.fonts.ready.then(() => alive && measured && layout());
   void Promise.all([document.fonts.load(SERIF_S), document.fonts.load(MONO)]).then(() => {
     epoch++;
     dirty = true;
@@ -1427,6 +1443,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     cancelAnimationFrame(raf);
     ro.disconnect();
     window.removeEventListener('resize', onResize);
+    window.removeEventListener('scroll', onScroll);
     document.fonts.removeEventListener('loadingdone', onFonts);
     document.removeEventListener('focusin', onFocus);
     document.removeEventListener('pointerover', onPointerOver);

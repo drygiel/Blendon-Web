@@ -40,7 +40,7 @@ test('feature explorer switches groups and items', async ({ page }) => {
   await features.getByRole('tab', { name: /Transform gizmos/ }).click();
   await features.getByRole('button', { name: /Rotate/ }).click();
   await expect(features.getByRole('heading', { level: 3 })).toHaveText('Rotate');
-  await expect(features.locator('video')).toHaveAttribute('poster', /Rotate/);
+  await expect(features.locator('img[srcset]')).toHaveAttribute('srcset', /Rotate/);
 });
 
 test('pie demo switches menus', async ({ page }) => {

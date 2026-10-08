@@ -1,4 +1,4 @@
-import wordmark from '../../../assets/landing/wordmark.png';
+import { WORDMARK, wordmarkMask } from '../../../lib/images.ts';
 import { MANUAL_URL, NEW_TAB } from '../../../lib/links.ts';
 import { RELEASED, STORE_URL, TERMS, VERSION } from '../../../lib/product.ts';
 import { PenTitle } from '../../plotter/PenTitle.tsx';
@@ -23,7 +23,17 @@ export function FinalCta() {
   return (
     <section id="get" className={styles.cta} data-plate="finale" data-hud="13 / GET BLENDON">
       <div className={styles.content}>
-        <img className={styles.logo} src={wordmark} alt="Blendon" width={602} height={120} loading="lazy" />
+        <span className={styles.logo} style={wordmarkMask(281)}>
+          <img
+            src={WORDMARK.src}
+            srcSet={WORDMARK.srcSet}
+            sizes="281px"
+            alt="Blendon"
+            width={602}
+            height={120}
+            loading="lazy"
+          />
+        </span>
         <PenTitle className={styles.title}>
           Make the Scene view move the way your hands <em>already do.</em>
         </PenTitle>

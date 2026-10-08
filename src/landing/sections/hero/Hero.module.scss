@@ -21,6 +21,7 @@
 }
 
 .homeLink {
+  @include logo-shine(var(--logo-mask));
   display: flex;
   align-items: center;
 
