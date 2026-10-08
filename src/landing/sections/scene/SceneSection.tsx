@@ -1,4 +1,4 @@
-import { PRICE, STORE_URL, TERMS } from '../../../lib/product.ts';
+import { STORE_URL, TERMS } from '../../../lib/product.ts';
 import { ButtonLink } from '../../ui/ButtonLink.tsx';
 import { SectionIntro } from '../../ui/Section.tsx';
 import { Dock } from './Dock.tsx';
@@ -42,7 +42,7 @@ export function SceneSection() {
             <span>The real thing runs in your Unity 6 Editor, in every scene you open.</span>
           </div>
           <div className={styles.buyAction}>
-            <ButtonLink href={STORE_URL}>Get Blendon · {PRICE}</ButtonLink>
+            <ButtonLink href={STORE_URL}>Get Blendon</ButtonLink>
             <span className={styles.terms}>{TERMS}</span>
           </div>
         </div>
