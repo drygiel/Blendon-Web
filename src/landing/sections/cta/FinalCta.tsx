@@ -49,7 +49,9 @@ export function FinalCta() {
           onFocus={hover(true)}
           onBlur={hover(false)}
         >
-          <ButtonLink href={STORE_URL}>Get Blendon</ButtonLink>
+          <ButtonLink href={STORE_URL} newTab>
+            Get Blendon
+          </ButtonLink>
         </span>
         <span className={styles.terms} data-reveal="rise">
           {TERMS}

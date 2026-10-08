@@ -43,7 +43,9 @@ export function TrySection() {
             <span>The real thing runs in your Unity 6 Editor, in every scene you open.</span>
           </div>
           <div className={styles.buyAction}>
-            <ButtonLink href={STORE_URL}>Get Blendon</ButtonLink>
+            <ButtonLink href={STORE_URL} newTab>
+              Get Blendon
+            </ButtonLink>
             <span className={styles.terms}>{TERMS}</span>
           </div>
         </div>

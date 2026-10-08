@@ -1,6 +1,6 @@
 // schema.org data for the landing, written into the prerendered page as JSON-LD.
 import { FAQ } from './content/faq.ts';
-import { RELEASED, VERSION } from '../lib/product.ts';
+import { RELEASED, STORE_URL, VERSION } from '../lib/product.ts';
 
 /** The product and the FAQ, with every link absolute against the deployed `siteUrl`. */
 export function structuredData(siteUrl: string): object[] {
@@ -18,6 +18,7 @@ export function structuredData(siteUrl: string): object[] {
       softwareVersion: VERSION,
       datePublished: RELEASED,
       url: siteUrl,
+      sameAs: STORE_URL,
       image: new URL('og.jpg', siteUrl).href,
       publisher: { '@type': 'Organization', name: 'Drygiel' },
     },
