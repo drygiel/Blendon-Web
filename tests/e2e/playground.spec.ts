@@ -10,9 +10,20 @@ async function openWindow(page: Page) {
   return win;
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, browserName }) => {
   errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  // Off Chromium, CI's WebGL is missing (Firefox) or software-rendered slow enough to stall the page (WebKit).
+  // These tests are about the settings window, so the Scene view falls back to its poster there.
+  if (browserName !== 'chromium')
+    await page.addInitScript(() => {
+      type Canvas = { prototype: { getContext: (this: unknown, id: string, ...rest: unknown[]) => unknown } };
+      const proto = (globalThis as unknown as { HTMLCanvasElement: Canvas }).HTMLCanvasElement.prototype;
+      const getContext = proto.getContext;
+      proto.getContext = function (id, ...rest) {
+        return id.startsWith('webgl') ? null : getContext.call(this, id, ...rest);
+      };
+    });
   await page.goto('');
 });
 
@@ -88,6 +99,8 @@ test('opens a new, empty pie menu from Add', async ({ page }) => {
 test('opens the manual from the Overview', async ({ page }) => {
   const win = await openWindow(page);
   const popup = page.waitForEvent('popup');
+  // The popup's URL is still blank when it opens, and a PDF may become a download that never commits it.
+  const request = page.context().waitForEvent('request', (r) => /Blendon_Manual\.pdf$/.test(r.url()));
   await win.getByText('Blendon manual (PDF)').click();
-  expect((await popup).url()).toMatch(/Blendon_Manual\.pdf$/);
+  await Promise.all([popup, request]);
 });
