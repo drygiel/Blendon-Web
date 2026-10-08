@@ -10,10 +10,10 @@ const HB = `let raf = 0; const loop = () => { raf++; requestAnimationFrame(loop)
 setInterval(() => { console.log('hb raf=' + raf); raf = 0; }, 1000);`;
 
 const CSS: Record<string, string> = {
-  nofilter: '*{filter:none!important}',
-  notransition: '*{transition:none!important}',
-  noanim: '*,*::before,*::after{animation:none!important}',
-  novideo: '#video *,#video *::before,#video *::after{animation:none!important}',
+  norise: "[data-reveal='rise']{filter:none!important}",
+  nofade: "[data-reveal='fade']{transition:none!important}",
+  notryfilter: '#try *{filter:none!important}',
+  notrytransition: '#try,#try *{transition:none!important}',
 };
 
 for (const variant of Object.keys(CSS))
