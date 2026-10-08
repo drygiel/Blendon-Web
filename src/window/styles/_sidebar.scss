@@ -1,0 +1,187 @@
+// The page list on the left, its search and the splitter beside it.
+@mixin rules {
+  // Sidebar
+  .side {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: #2b2b2b;
+    border-right: 1px solid #212121;
+  }
+  .slist {
+    position: relative;
+    overflow: hidden;
+  }
+  .sscroll {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .sscroll::-webkit-scrollbar {
+    display: none;
+  }
+  .side-sb {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 15px;
+  }
+  .sg {
+    height: 16px;
+    line-height: 16px;
+    padding-left: 14px;
+    font-size: 9.143px;
+    font-weight: 700;
+    color: #808080;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sg.gap {
+    margin-top: 3px;
+  }
+  .sr {
+    height: 9px;
+    position: relative;
+    margin-top: 3px;
+  }
+  .sr i {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 4px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .si {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 32px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .si .pill {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: 2px;
+    bottom: 2px;
+    border-radius: 4px;
+  }
+  .si:hover .pill {
+    background: rgba(255, 255, 255, 0.045);
+  }
+  .si.sel .pill {
+    background: #46607c;
+  }
+  .si .sic {
+    position: absolute;
+    left: 14px;
+    top: 8px;
+  }
+  .si.ind .sic {
+    left: 26px;
+  }
+  .si .sic.hov,
+  .si .sic.selc {
+    display: none;
+  }
+  .si:hover .sic.idle {
+    display: none;
+  }
+  .si:hover .sic.hov {
+    display: block;
+  }
+  .si.sel .sic.idle,
+  .si.sel .sic.hov {
+    display: none !important;
+  }
+  .si.sel .sic.selc {
+    display: block;
+  }
+  .si.off .sic {
+    opacity: 0.45;
+  }
+  .si .stx {
+    position: absolute;
+    left: 39px;
+    right: 14px;
+    top: 0;
+    line-height: 32px;
+    font-size: 12px;
+    color: #a6a6a6;
+    overflow: hidden;
+  }
+  .si.ind .stx {
+    left: 51px;
+  }
+  .si.sel .stx {
+    color: #fff;
+    font-weight: 700;
+  }
+  .si.off .stx {
+    opacity: 0.45;
+  }
+  // Room for the match count badge while searching.
+  &.searching .si .stx {
+    right: 36px;
+  }
+  .si .sbadge {
+    position: absolute;
+    right: 14px;
+    top: 0;
+    line-height: 32px;
+    font-size: 10.286px;
+    font-weight: 700;
+    text-align: right;
+    width: 22px;
+  }
+  &.collapsed .si {
+    height: 30px;
+  }
+  &.collapsed .si .pill {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+  &.collapsed .si .sic {
+    left: 9px;
+    top: 7px;
+  }
+  &.collapsed .si .stx,
+  &.collapsed .si .sbadge {
+    display: none;
+  }
+  .sfoot {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 26px;
+    width: 100%;
+    background: #2b2b2b !important;
+    border: 1px solid #212121 !important;
+    border-radius: 5px;
+    color: #a6a6a6 !important;
+    font-size: 10.857px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+  }
+  .sfoot:hover {
+    background: #383838 !important;
+  }
+  .split {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    z-index: 3;
+  }
+}

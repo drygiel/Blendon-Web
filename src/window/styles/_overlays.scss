@@ -1,0 +1,166 @@
+// Tooltips, menus, dialogs and the resize grip drawn over the window, and the hidden label measure.
+@use 'tokens' as *;
+
+@mixin rules {
+  // overlays
+  .rtip {
+    position: absolute;
+    z-index: 40;
+    padding: 8px;
+    background: #212124;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 6px;
+    pointer-events: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+  .rtx {
+    font-size: 12px;
+    line-height: 1.2125;
+    color: #c4c4c4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .rimg {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .ntip {
+    position: absolute;
+    z-index: 40;
+    padding: 4px 6px 5px;
+    background: #3f3f3f;
+    border: 1px solid #1a1a1a;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1.2125;
+    color: #d2d2d2;
+    white-space: pre-wrap;
+    pointer-events: none;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  }
+  .mshield {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+  }
+  .menu {
+    position: absolute;
+    z-index: 51;
+    padding: 3px 0;
+    background: #2b2b2b;
+    border: 1px solid #191919;
+    border-radius: 4px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+    max-height: 70%;
+    overflow-y: auto;
+  }
+  .mi {
+    display: block;
+    width: 100%;
+    height: 22px;
+    line-height: 22px;
+    padding: 0 22px 0 22px !important;
+    white-space: nowrap;
+    color: #c4c4c4 !important;
+    font-size: 12px !important;
+    position: relative;
+    text-align: left !important;
+  }
+  .mi:hover {
+    background: #3e5f96 !important;
+    color: #fff !important;
+  }
+  .mi.on::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    width: 4px;
+    height: 8px;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+  }
+  .mi.dis {
+    color: #6a6a6a !important;
+    pointer-events: none;
+  }
+  .dshade {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dlg {
+    width: min(380px, 90%);
+    background: #383838;
+    border: 1px solid #191919;
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    padding: 16px 16px 14px;
+  }
+  .dtt {
+    font-size: 13.143px;
+    font-weight: 700;
+    color: #d9d9d9;
+    margin-bottom: 8px;
+  }
+  .dbd {
+    font-size: 12px;
+    line-height: 16px;
+    color: #c4c4c4;
+    white-space: pre-wrap;
+  }
+  .dbt {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .dbt .nb {
+    min-width: 76px;
+    height: 24px;
+  }
+  .grip {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
+    cursor: nwse-resize;
+    z-index: 30;
+    background: linear-gradient(
+      135deg,
+      transparent 0 55%,
+      rgba(255, 255, 255, 0.18) 55% 60%,
+      transparent 60% 70%,
+      rgba(255, 255, 255, 0.18) 70% 75%,
+      transparent 75%
+    );
+  }
+  .sizetag {
+    position: absolute;
+    right: 22px;
+    bottom: 22px;
+    z-index: 31;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-family: $font-mono;
+    font-size: 12px;
+  }
+  .lim {
+    position: absolute;
+    visibility: hidden;
+    white-space: pre;
+    font:
+      12px 'Inter',
+      system-ui,
+      sans-serif;
+  }
+}

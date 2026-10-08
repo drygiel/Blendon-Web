@@ -1,0 +1,466 @@
+// Item rows and their fields: labels, toggles, sliders, popups, colours, shortcuts and key caps.
+@mixin rules {
+  // items
+  .it {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 18px;
+    margin-top: 2px;
+  }
+  .cap + .it {
+    margin-top: 2px;
+  }
+  .it.dis .lbl,
+  .it.dis .fld {
+    opacity: 0.5;
+  }
+  .it.dis button,
+  .it.dis .trk,
+  .it.dis .nbox,
+  .it.dis input {
+    pointer-events: none;
+  }
+  .mk {
+    position: absolute;
+    left: -1px;
+    top: 2px;
+    bottom: 2px;
+    width: 3px;
+  }
+  .mk[hidden] {
+    display: none;
+  }
+  .it.hl {
+    background: rgba(255, 235, 59, 0.14);
+    box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.75);
+  }
+  .lbl {
+    flex: none;
+    width: var(--lw);
+    padding-left: 1px;
+    height: 18px;
+    line-height: 18px;
+    white-space: pre;
+    overflow: hidden;
+    color: #c4c4c4;
+  }
+  .it:focus-within .lbl {
+    color: #81b4ff;
+  }
+  .fld {
+    flex: 1;
+    min-width: 0;
+    margin-left: 2px;
+    display: flex;
+    align-items: center;
+    height: 18px;
+  }
+  .cap {
+    height: 18px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .cap .cic {
+    position: absolute;
+    left: calc(var(--li) - 21px);
+    top: 1px;
+  }
+  .cap .ctx {
+    position: absolute;
+    left: var(--li);
+    font-size: 10.286px;
+    font-weight: 700;
+    color: #d9d9d9;
+    white-space: nowrap;
+  }
+  .cell > .cap:first-child {
+    margin-top: 0;
+  }
+
+  // General override column (Override toggle + source link)
+  .ovb {
+    flex: none;
+    display: flex;
+    align-items: center;
+    height: 18px;
+    margin-left: 3px;
+    opacity: 1;
+  }
+  .ovb .tg {
+    margin-right: 4px;
+  }
+  .ovt {
+    width: 58px;
+    font-size: 10.286px;
+    color: #d2d2d2;
+    white-space: nowrap;
+    cursor: default;
+  }
+  .src {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: #585858 !important;
+    border: 1px solid #303030 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+    margin-right: 3px;
+    cursor: pointer !important;
+  }
+  .src:hover {
+    background: #676767 !important;
+  }
+  .it.ovr .fld {
+    opacity: 1;
+  }
+  .it.ovr {
+    margin-top: 1px;
+  }
+  .it.fol .lbl,
+  .it.fol .fld {
+    opacity: 0.5;
+  }
+  .it.fol .fld button,
+  .it.fol .fld .trk,
+  .it.fol .fld input {
+    pointer-events: none;
+  }
+
+  // checkbox
+  .tg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: #2a2a2a !important;
+    border: 1px solid #212121 !important;
+    border-top-color: #0d0d0d !important;
+    position: relative;
+  }
+  .tg .ck {
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    width: 14px;
+    height: 14px;
+    display: none;
+    fill: none;
+    stroke: #e6e6e6;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .tg.on .ck {
+    display: block;
+  }
+  .tg.mixed::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 5px;
+    width: 6px;
+    height: 2px;
+    background: #e6e6e6;
+  }
+  .tg:focus-visible,
+  .it .tg:focus {
+    border-color: #3a79bb !important;
+    outline: 0;
+  }
+  .tg.lock {
+    opacity: 0.5;
+  }
+
+  // slider + number box
+  .trk {
+    position: relative;
+    flex: 1;
+    height: 18px;
+    margin-right: 5px;
+    cursor: default;
+  }
+  .trk .line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 8px;
+    height: 2px;
+    border-radius: 1px;
+    background: #5e5e5e;
+  }
+  .trk .th {
+    position: absolute;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #999999;
+  }
+  .trk .th.act,
+  .trk:active .th {
+    background: #b4b4b4;
+  }
+  .nbox {
+    flex: none;
+    width: 50px;
+    height: 18px;
+    border-radius: 4px;
+    background: #2b2b2b;
+    border: 1px solid #212121;
+    padding: 0 3px 0 3px;
+    font-size: 12px;
+    color: #d9d9d9;
+    outline: 0;
+  }
+  .nbox:focus {
+    border-color: #3a79bb;
+  }
+
+  // popup
+  .pp {
+    flex: 1;
+    min-width: 0;
+    height: 18px;
+    border-radius: 3px;
+    background: #515151 !important;
+    border: 1px solid #303030 !important;
+    border-top-color: #5e5e5e !important;
+    display: flex;
+    align-items: center;
+    padding: 0 16px 0 4px !important;
+    position: relative;
+    color: #e4e4e4 !important;
+  }
+  .pp:hover {
+    background: #585858 !important;
+  }
+  .ppt {
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 16px;
+  }
+  .pp .arr {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #c4c4c4;
+  }
+
+  // color field
+  .cf {
+    flex: 1;
+    min-width: 0;
+    height: 18px;
+    position: relative;
+    display: block;
+    background: #2b2b2b;
+    border: 1px solid #212121;
+    border-right: 0;
+    border-radius: 3px 0 0 3px;
+    overflow: hidden;
+  }
+  .cfs {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 4px;
+  }
+  .cfa {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    height: 2px;
+    background: #000;
+  }
+  .cfa i {
+    display: block;
+    height: 2px;
+    background: #fff;
+  }
+  .cf input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+  }
+  .cfe {
+    flex: none;
+    width: 19px;
+    height: 18px;
+    background: #383838;
+    border: 1px solid #212121;
+    border-radius: 0 3px 3px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // shortcut field
+  .it-sc {
+    min-height: 24px;
+  }
+  .it-sc .lbl {
+    height: 16px;
+    line-height: 16px;
+  }
+  .scf {
+    height: 24px;
+    position: relative;
+  }
+  .scp {
+    width: 100%;
+    height: 24px;
+    border-radius: 5px;
+    background: #2b2b2b !important;
+    border: 1px solid #212121 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    outline: 0;
+  }
+  .scp:hover {
+    background: #383838 !important;
+  }
+  .scp .pt {
+    font-size: 10.857px;
+    font-weight: 700;
+    color: #eeeeee;
+  }
+  .scp.cap .pt {
+    color: #eeeeee;
+  }
+  .caps {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .gb {
+    position: absolute;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.857px;
+    color: #808080 !important;
+  }
+  .gb.rs {
+    right: 24px;
+    padding-top: 1px;
+  }
+  .gb.cl {
+    right: 4px;
+  }
+  .gb.cl span {
+    opacity: 0.42;
+  }
+  .gb.rs:hover {
+    color: #d9d9d9 !important;
+  }
+  .gb.cl:hover span {
+    opacity: 1;
+    filter: sepia(1) saturate(8) hue-rotate(-35deg) brightness(1.2);
+  }
+  .gb.off {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .ukc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 16px;
+    min-width: 12px;
+    padding: 0 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    font-family: Consolas, Menlo, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', monospace;
+    font-size: 11.7px;
+    font-size-adjust: 0.4917;
+    font-weight: 700;
+    color: #b3b3b3;
+    white-space: pre;
+    line-height: 14px;
+  }
+  .ukc.ms {
+    padding: 0 6px;
+    width: 23px;
+    height: 16px;
+  }
+  .msi {
+    display: block;
+  }
+  .dim .ukc,
+  .ukc.dim {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .kun {
+    font-size: 10.286px;
+    color: #696969;
+    white-space: nowrap;
+  }
+  .it-nat {
+    min-height: 18px;
+  }
+  .nat {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .nlead {
+    font-size: 10.286px;
+    color: #696969;
+    white-space: pre;
+    padding-left: 0;
+  }
+  .lnk {
+    color: #58a6ff;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .lnk:hover {
+    color: #79b8ff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .lnk.sm {
+    font-size: 10.286px;
+  }
+  .lnk.sm2 {
+    font-size: 10.286px;
+  }
+
+  // IMGUI tints multiply the style colour: link blue x miniLabel (#D2) / x label (#C4).
+  .nat .nlead {
+    color: #808080;
+  }
+  .lnk.sm {
+    color: #4889d2;
+  }
+  .lnk.sm:hover {
+    color: #6498d2;
+  }
+  .lnk.sm2 {
+    color: #4480c4;
+  }
+  .lnk.sm2:hover {
+    color: #5d8dc4;
+  }
+}
