@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useReducedMotion } from '../../lib/hooks.ts';
 import { startPlotter } from './engine.ts';
+import { ViewportReadout } from './ViewportReadout.tsx';
 
 /**
  * The background plotter: canvas, vignette and the plot readout. The page tells it what to use through data
@@ -34,6 +35,7 @@ export function PlotterLayer() {
         <span ref={section}>§ 00 · Scene view</span>
         <span ref={progress}>s 0 px · 0 %</span>
       </div>
+      <ViewportReadout />
     </>
   );
 }

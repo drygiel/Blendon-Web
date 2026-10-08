@@ -277,16 +277,30 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
 
   // ---------- layout: everything the plotter reads from the page, in page coordinates
 
+  /**
+   * The canvas's own CSS box. On a phone or tablet it is taller than the root's client height, which stays at
+   * the size with the URL bar shown. Before the stylesheet applies, the window stands in.
+   */
+  function canvasBox(): [number, number] {
+    if (getComputedStyle(canvas).position !== 'fixed') return [window.innerWidth, window.innerHeight];
+    const r = canvas.getBoundingClientRect();
+    return [r.width || window.innerWidth, r.height || window.innerHeight];
+  }
+
+  const pixelRatio = () => Math.min(window.devicePixelRatio || 1, MAX_DPR);
+
   function layout() {
     sy = window.scrollY;
-    // The viewport, not the canvas: its stylesheet may not apply yet on the first layout.
-    W = root.clientWidth || window.innerWidth;
-    H = root.clientHeight || window.innerHeight;
+    [W, H] = canvasBox();
     mobile = W < 760;
-    dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
-    canvas.width = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
+    dpr = pixelRatio();
+    // Setting the size clears the bitmap even when it stays the same.
+    const bw = Math.round(W * dpr);
+    const bh = Math.round(H * dpr);
+    if (canvas.width !== bw) canvas.width = bw;
+    if (canvas.height !== bh) canvas.height = bh;
     intensity = mobile ? 0.75 : 1;
+    // H is the viewport with the URL bar hidden, as it always is once the visitor has scrolled to the bottom.
     maxScroll = Math.max(0, root.scrollHeight - H);
     epoch++;
     measureAnchors();
@@ -1361,10 +1375,18 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     raf = requestAnimationFrame(frame);
   }
 
-  const onResize = debounce(layout, 120);
+  // A URL bar sliding in or out resizes the window on every scroll turn, but not the canvas; that needs no layout.
+  const onResize = debounce(() => {
+    const [w, h] = canvasBox();
+    if (Math.abs(w - W) > 0.5 || Math.abs(h - H) > 0.5 || pixelRatio() !== dpr) layout();
+  }, 120);
   const ro = new ResizeObserver(debounce(layout, 150));
   ro.observe(document.body);
+  ro.observe(canvas);
   window.addEventListener('resize', onResize);
+  // A font arriving late rewraps titles without changing the page's height, which the observer would miss.
+  const onFonts = debounce(() => alive && layout(), 150);
+  document.fonts.addEventListener('loadingdone', onFonts);
   if (!reduce) {
     document.addEventListener('focusin', onFocus);
     document.addEventListener('pointerover', onPointerOver);
@@ -1406,6 +1428,7 @@ export function startPlotter(canvas: HTMLCanvasElement, opts: PlotterOptions): (
     cancelAnimationFrame(raf);
     ro.disconnect();
     window.removeEventListener('resize', onResize);
+    document.fonts.removeEventListener('loadingdone', onFonts);
     document.removeEventListener('focusin', onFocus);
     document.removeEventListener('pointerover', onPointerOver);
     document.removeEventListener('pointerdown', onPress);

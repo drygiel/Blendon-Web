@@ -28,7 +28,8 @@ export function Footer() {
     let target = 0;
     const update = () => {
       raf = 0;
-      const left = root.scrollHeight - root.clientHeight - window.scrollY;
+      // The window, not the root: on a phone the root keeps the height with the URL bar shown.
+      const left = root.scrollHeight - window.innerHeight - window.scrollY;
       const rise = Math.min(1, Math.max(0, 1 - left / RISE_PX));
       el.style.setProperty('--rise', rise.toFixed(3));
       el.toggleAttribute('data-on', rise > 0);

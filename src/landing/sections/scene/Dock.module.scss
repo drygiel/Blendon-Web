@@ -13,6 +13,8 @@ $text: #c4c4c4;
   position: relative;
   box-sizing: border-box;
   height: clamp(560px, calc(100vh - 72px), 940px);
+  // The small viewport: the whole dock fits while a phone's URL bar is shown.
+  height: clamp(560px, calc(100svh - 72px), 940px);
   margin: 48px 16px 0;
   border: 1px solid #0d0d0d;
   border-radius: 6px;
