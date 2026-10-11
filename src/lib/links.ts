@@ -11,6 +11,9 @@ export const MANUAL_URL = publicUrl(MANUAL_FILE);
 /** The Playground on a page of its own. */
 export const PLAYGROUND_URL = publicUrl('playground/');
 
+/** Questions, bug reports and feature requests. */
+export const SUPPORT_URL = 'mailto:blendon@drygiel.com';
+
 export const PROMO_VIDEO_ID = 'hrjcGZ32UHI';
 
 /** Opens a page in a new tab, cut off from this one. */

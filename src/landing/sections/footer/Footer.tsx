@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { MANUAL_URL, NEW_TAB, PLAYGROUND_URL } from '../../../lib/links.ts';
+import { MANUAL_URL, NEW_TAB, PLAYGROUND_URL, SUPPORT_URL } from '../../../lib/links.ts';
 import styles from './Footer.module.scss';
 
 /** Scroll before the very bottom over which the aurora rises. */
@@ -8,8 +8,7 @@ const RISE_PX = 520;
 const LINKS = [
   [PLAYGROUND_URL, 'Playground'],
   [MANUAL_URL, 'Manual (PDF)'],
-  ['#get', 'Changelog'],
-  ['#get', 'Support [SUPPORT_URL]'],
+  [SUPPORT_URL, 'Support'],
 ] as const;
 
 export function Footer() {
