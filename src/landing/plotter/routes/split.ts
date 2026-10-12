@@ -1,5 +1,6 @@
 import { clamp } from '../draw.ts';
 import { partIn } from '../contract.ts';
+import { ROUTE_RADIUS } from '../path.ts';
 import type { RouteFn } from './types.ts';
 
 /** Right edge of an element's text, which may stop well short of its box. */
@@ -24,7 +25,8 @@ export const split: RouteFn = ({ section, index, end, back, rect }) => {
   const r = rect(b);
   if (r.left < l.right + 8) return null;
   const lead = textRight(section.querySelector('p'));
-  const x = clamp(Math.max(end.x, lead + 24), r.left + 40, r.right - 40);
+  // At least a corner's radius past the underline, so the pen turns down in a curve.
+  const x = clamp(Math.max(end.x + ROUTE_RADIUS, lead + 24), r.left + 40, r.right - 40);
   const before = partIn(section, 'above');
   const top = before ? (rect(before).bottom + Math.min(l.top, r.top)) / 2 : r.top - 12;
   const gap = (l.right + r.left) / 2;
