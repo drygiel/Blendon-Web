@@ -177,7 +177,7 @@ const STEP = 4;
 const UP_COST = 0.3;
 const UNDERLINE_GAP = 6;
 /** Corner radius of a route. */
-const ROUTE_RADIUS = 26;
+export const ROUTE_RADIUS = 26;
 
 function sampler() {
   const xs: number[] = [];
@@ -220,12 +220,15 @@ function sampler() {
         );
       }
     },
-    /** Straight legs through `pts`, each corner rounded; returns the index where each leg's straight part ends. */
-    polyline(pts: RoutePoint[], radius: number, k: SegmentKind): number[] {
+    /**
+     * Straight legs through `pts`, each corner rounded; returns the index where each leg's straight part ends.
+     * With `then`, the last point is a corner too, rounded towards where the route runs on.
+     */
+    polyline(pts: RoutePoint[], radius: number, k: SegmentKind, then?: RoutePoint): number[] {
       const ends: number[] = [];
       for (let j = 0; j < pts.length; j++) {
         const c = pts[j];
-        const n = pts[j + 1];
+        const n = pts[j + 1] ?? then;
         const ax = c.x - lx;
         const ay = c.y - ly;
         const la = Math.hypot(ax, ay);
@@ -238,7 +241,8 @@ function sampler() {
         const bx = n.x - c.x;
         const by = n.y - c.y;
         const lb = Math.hypot(bx, by);
-        const r = Math.min(c.r ?? radius, la / 2, lb / 2);
+        // The first leg has no corner behind it to share its length with.
+        const r = Math.min(c.r ?? radius, j ? la / 2 : la, lb / 2);
         this.line(c.x - (ax / (la || 1)) * r, c.y - (ay / (la || 1)) * r, kc);
         ends.push(xs.length - 1);
         if (r > 0.5) {
@@ -335,7 +339,9 @@ export function buildPath({ titles, railX: rx, origin, cta, detours = [], routes
         pts.push(p);
         prev = p;
       }
-      const ends = pb.polyline(pts, ROUTE_RADIUS, RAIL);
+      // A route running on turns into the next one's first leg, so the corner where they meet is rounded too.
+      const then = route.continues ? routes.find((x) => x.title === i + 1)?.pts[0] : undefined;
+      const ends = pb.polyline(pts, ROUTE_RADIUS, RAIL, then);
       pts.forEach((p, k) => p.mark && named.set(p.mark, ends[k]));
       // The last leg only turns down onto the rail; the rail's own keyframes take it from there.
       legs.set(

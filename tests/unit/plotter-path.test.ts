@@ -288,6 +288,45 @@ describe('plotter routes through several sections', () => {
     expect(out?.sc).toBe((titles[4]?.bottom ?? 0) - H * 0.3);
     for (let j = 1; j < keys.length; j++) expect(keys[j]?.sc).toBeGreaterThan(keys[j - 1]?.sc ?? Infinity);
   });
+
+  it('rounds the corner where a route turns into the next one', () => {
+    const turn = buildPath({
+      titles: titles.map((t, i) => (i === 4 ? { ...t, along: ['in', 'out'] as [string, string] } : t)),
+      railX: 94,
+      origin: { x: 720, y: 700 },
+      cta: null,
+      routes: [
+        {
+          title: 3,
+          continues: true,
+          pts: [
+            { x: 1300, y: titles[3].bottom + 6 },
+            { x: 1300, y: 3500 },
+            { x: 900, y: 3500 },
+          ],
+        },
+        {
+          title: 4,
+          pts: [
+            { x: 900, y: titles[4].top, r: 0, key: null, mark: 'in' },
+            { x: 900, y: titles[4].bottom, key: 0.3, mark: 'out' },
+            { x: 900, y: 4300 },
+          ],
+        },
+      ],
+    });
+    let sharpest = 0;
+    for (let i = 2; i < turn.n; i++) {
+      if (turn.kind[i] !== RAIL || turn.kind[i - 1] !== RAIL) continue;
+      const ax = turn.x[i - 1] - turn.x[i - 2];
+      const ay = turn.y[i - 1] - turn.y[i - 2];
+      const bx = turn.x[i] - turn.x[i - 1];
+      const by = turn.y[i] - turn.y[i - 1];
+      const cos = (ax * bx + ay * by) / (Math.hypot(ax, ay) * Math.hypot(bx, by) || 1);
+      sharpest = Math.max(sharpest, Math.acos(Math.min(1, cos)));
+    }
+    expect(sharpest).toBeLessThan(Math.PI / 6);
+  });
 });
 
 describe('plotter routes', () => {
