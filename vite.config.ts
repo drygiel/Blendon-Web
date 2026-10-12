@@ -48,6 +48,8 @@ export default defineConfig(({ isSsrBuild }) => ({
     preloadFonts(),
     { name: 'site-url', transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl) },
   ],
+  // The watcher's atomic mode skips paths ending in "~" as editor backups, which is the whole Web~ root.
+  server: { watch: { atomic: false } },
   css: {
     preprocessorOptions: {
       // Lets any module `@use 'tokens'` / `@use 'mixins'` without relative paths.
