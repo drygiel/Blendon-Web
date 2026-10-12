@@ -9,7 +9,20 @@
   border-radius: 16px;
   overflow: hidden;
   background: #2a2d33;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 0 1px transparent,
+    0 30px 80px rgba(0, 0, 0, 0.45);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: $border-strong;
+
+    .poster {
+      transform: scale(1.02);
+    }
+  }
 }
 
 .frame,
@@ -30,7 +43,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, rgba(12, 14, 18, 0.1), rgba(12, 14, 18, 0.45));
+    background: radial-gradient(ellipse at center, rgba(12, 14, 18, 0.4), rgba(12, 14, 18, 0.6));
     transition: opacity 0.2s ease;
   }
 
@@ -44,8 +57,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  // A very slow push in, so the cover is never quite still before it plays.
-  animation: push-in 26s ease-in-out infinite alternate;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .play {
@@ -116,12 +128,6 @@
   text-transform: uppercase;
 }
 
-@keyframes push-in {
-  to {
-    transform: scale(1.1);
-  }
-}
-
 @keyframes breathe {
   50% {
     transform: scale(1.045);
@@ -150,6 +156,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .player,
   .cover::after,
   .play {
     transition: none;
