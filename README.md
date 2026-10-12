@@ -297,4 +297,3 @@ for f in public/plugin/video/*.mp4; do ffmpeg -v error -y -i "$f" -vf "fps=25,sc
 
 Animations stop under `prefers-reduced-motion`: the hero holds still, clips don't autoplay and the gizmo preview
 stops turning.
-
