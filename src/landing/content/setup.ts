@@ -50,7 +50,7 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
   {
     title: 'Numpad Views',
     sub: "Blender's numpad: axis views, stepped orbit, projection toggle",
-    desc: 'Each keypad key sends the view to a fixed angle around the pivot, and the same key always lands on the same view. With Orbit Selected on, the steps turn around the selection. Animate flies to each view instead of cutting.',
+    desc: 'The axis keys send the view to a fixed angle around the pivot, and the same key always lands on the same view. The orbit keys turn it one step at a time, around the selection with Orbit Selected on. Animate flies to each view instead of cutting.',
     chips: ['Animate', 'Axis views', 'Orbit steps', 'Toggle Projection'],
     image: slideViewportNav,
   },

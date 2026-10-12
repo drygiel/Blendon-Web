@@ -1673,7 +1673,7 @@
   },
   "ScaleGizmoSettings.Enabled": {
    "l": "Enable",
-   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool <b><color=#D98E38>R</color></b>.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
+   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool, on <b><color=#D98E38>Shift + R</color></b> with the Blendon keys.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
    "i": "Tips/Scale/ScaleTool.png",
    "d": true,
    "k": "Boolean"
@@ -2046,7 +2046,7 @@
   },
   "TransformScaleSettings.Enabled": {
    "l": "Enable",
-   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool <b><color=#D98E38>R</color></b>.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
+   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool, on <b><color=#D98E38>Shift + R</color></b> with the Blendon keys.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
    "i": "Tips/Scale/ScaleTool.png",
    "d": true,
    "k": "Boolean"
@@ -2811,7 +2811,7 @@
   },
   "SharedGizmoSettings.AllToolsEnabled": {
    "l": "Enable All Tools",
-   "t": "<size=14><b>All Tools</b></size>\nTurns Blendon's four transform gizmos on or off in one click.\n\n<size=9><b><color=#92929A>TOOLS</color></b></size>\n<color=#92929A>•</color> <b><color=#4FA8E8>Move</color></b>  <b><color=#D98E38>W</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Rotate</color></b>  <b><color=#D98E38>E</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Scale</color></b>  <b><color=#D98E38>R</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Transform</color></b>  <b><color=#D98E38>Y</color></b>\n\n<size=9><color=#92929A>On only while all four are on. A tool switched off falls back to Unity's own gizmo</color></size>",
+   "t": "<size=14><b>All Tools</b></size>\nTurns Blendon's four transform gizmos on or off in one click.\n\n<size=9><b><color=#92929A>TOOLS</color></b></size>\n<color=#92929A>•</color> <b><color=#4FA8E8>Move</color></b>  <b><color=#D98E38>W</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Rotate</color></b>  <b><color=#D98E38>E</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Scale</color></b>  <b><color=#D98E38>Shift + R</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Transform</color></b>  <b><color=#D98E38>Y</color></b>\n\n<size=9><color=#92929A>On only while all four are on. A tool switched off falls back to Unity's own gizmo</color></size>",
    "i": "Tips/AllTools/AllTools.png",
    "d": true,
    "k": "Boolean"
@@ -8148,7 +8148,7 @@
    "i": "Tips/NumpadViews/NumpadViews.png"
   },
   "SharedGizmoSettings": {
-   "t": "<size=14><b>All Tools</b></size>\nTurns Blendon's four transform gizmos on or off in one click.\n\n<size=9><b><color=#92929A>TOOLS</color></b></size>\n<color=#92929A>•</color> <b><color=#4FA8E8>Move</color></b>  <b><color=#D98E38>W</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Rotate</color></b>  <b><color=#D98E38>E</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Scale</color></b>  <b><color=#D98E38>R</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Transform</color></b>  <b><color=#D98E38>Y</color></b>\n\n<size=9><color=#92929A>On only while all four are on. A tool switched off falls back to Unity's own gizmo</color></size>",
+   "t": "<size=14><b>All Tools</b></size>\nTurns Blendon's four transform gizmos on or off in one click.\n\n<size=9><b><color=#92929A>TOOLS</color></b></size>\n<color=#92929A>•</color> <b><color=#4FA8E8>Move</color></b>  <b><color=#D98E38>W</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Rotate</color></b>  <b><color=#D98E38>E</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Scale</color></b>  <b><color=#D98E38>Shift + R</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Transform</color></b>  <b><color=#D98E38>Y</color></b>\n\n<size=9><color=#92929A>On only while all four are on. A tool switched off falls back to Unity's own gizmo</color></size>",
    "i": "Tips/AllTools/AllTools.png"
   },
   "MoveGizmoSettings": {
@@ -8160,7 +8160,7 @@
    "i": "Tips/Rotate/RotateTool.png"
   },
   "ScaleGizmoSettings": {
-   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool <b><color=#D98E38>R</color></b>.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
+   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool, on <b><color=#D98E38>Shift + R</color></b> with the Blendon keys.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
    "i": "Tips/Scale/ScaleTool.png"
   },
   "TransformGizmoSettings": {
@@ -8176,7 +8176,7 @@
    "i": "Tips/Rotate/RotateTool.png"
   },
   "TransformScaleSettings": {
-   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool <b><color=#D98E38>R</color></b>.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
+   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool, on <b><color=#D98E38>Shift + R</color></b> with the Blendon keys.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>",
    "i": "Tips/Scale/ScaleTool.png"
   },
   "SnapToFloorSettings": {
@@ -8670,7 +8670,7 @@
    "i": "Tips/OrientationGizmo/OrientationGizmo.png"
   },
   "All Tools": {
-   "t": "<size=14><b>All Tools</b></size>\nTurns Blendon's four transform gizmos on or off in one click.\n\n<size=9><b><color=#92929A>TOOLS</color></b></size>\n<color=#92929A>•</color> <b><color=#4FA8E8>Move</color></b>  <b><color=#D98E38>W</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Rotate</color></b>  <b><color=#D98E38>E</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Scale</color></b>  <b><color=#D98E38>R</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Transform</color></b>  <b><color=#D98E38>Y</color></b>\n\n<size=9><color=#92929A>On only while all four are on. A tool switched off falls back to Unity's own gizmo</color></size>\n\n<size=9><color=#92929A>Click to open the All Tools page</color></size>",
+   "t": "<size=14><b>All Tools</b></size>\nTurns Blendon's four transform gizmos on or off in one click.\n\n<size=9><b><color=#92929A>TOOLS</color></b></size>\n<color=#92929A>•</color> <b><color=#4FA8E8>Move</color></b>  <b><color=#D98E38>W</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Rotate</color></b>  <b><color=#D98E38>E</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Scale</color></b>  <b><color=#D98E38>Shift + R</color></b>\n<color=#92929A>•</color> <b><color=#4FA8E8>Transform</color></b>  <b><color=#D98E38>Y</color></b>\n\n<size=9><color=#92929A>On only while all four are on. A tool switched off falls back to Unity's own gizmo</color></size>\n\n<size=9><color=#92929A>Click to open the All Tools page</color></size>",
    "i": "Tips/AllTools/AllTools.png"
   },
   "Move": {
@@ -8682,7 +8682,7 @@
    "i": "Tips/Rotate/RotateTool.png"
   },
   "Scale": {
-   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool <b><color=#D98E38>R</color></b>.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>\n\n<size=9><color=#92929A>Click to open the Scale page</color></size>",
+   "t": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool, on <b><color=#D98E38>Shift + R</color></b> with the Blendon keys.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>\n\n<size=9><color=#92929A>Click to open the Scale page</color></size>",
    "i": "Tips/Scale/ScaleTool.png"
   },
   "Transform": {

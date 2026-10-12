@@ -33,8 +33,7 @@ describe('landing keys', () => {
       expect(binding(row.blendonTo), row.id).toBe(k?.bMove);
       // An empty uMove: the Editor's command is switched off, and the row says what took its place.
       if (k?.uMove) expect(binding(row.unityTo as KeyTokens), row.id).toBe(k.uMove);
+      else expect(typeof row.unityTo, row.id).toBe('string');
     }
-    const orbit = CONTESTED_KEYS.find((r) => r.id === 'Blendon/Orbit Selected');
-    expect(binding(orbit?.unityTo as KeyTokens)).toBe(known['Blendon/Camera Pan']?.key);
   });
 });

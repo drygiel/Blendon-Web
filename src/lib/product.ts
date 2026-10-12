@@ -4,7 +4,7 @@
 export const STORE_URL = 'https://assetstore.unity.com/packages/slug/415610';
 
 export const VERSION = '1.0.0';
-export const RELEASED = '2026-09-04';
+export const RELEASED = '2026-10-16';
 
 /** The purchase terms, under each buy button. */
 export const TERMS = 'One-time purchase · Per-seat license · Refunds available';
