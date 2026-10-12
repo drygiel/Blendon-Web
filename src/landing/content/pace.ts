@@ -19,7 +19,7 @@ export const CONTESTED_KEYS: ContestedKey[] = [
     keys: ['MMB', '~drag'],
     blendon: 'Orbit Selected',
     unity: 'Pan',
-    unityTo: ['Shift', '~+', 'MMB'],
+    unityTo: "Switched off: Blendon's pan does the same on Shift + MMB",
     blendonTo: ['Ctrl', '~+', 'MMB'],
   },
   {
