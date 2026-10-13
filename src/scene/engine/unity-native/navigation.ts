@@ -38,7 +38,10 @@ const FlyFastFactor = 4;
 const FlyMaxBoost = 4;
 
 // The icons are @2x art, so image-set draws them at Unity's 16 px cursor size.
-const imageSet = typeof CSS === 'undefined' || CSS.supports('cursor', 'image-set(url(x.png) 2x) 8 8, default') ? 'image-set' : '-webkit-image-set';
+const imageSet =
+  typeof CSS === 'undefined' || CSS.supports('cursor', 'image-set(url(x.png) 2x) 8 8, default')
+    ? 'image-set'
+    : '-webkit-image-set';
 const cursor = (icon: string) => `${imageSet}(url(${iconUrl(icon)}) 2x) 8 8, default`;
 const Cursors: Record<Mode, string> = {
   orbit: cursor('d_ViewToolOrbit'),
