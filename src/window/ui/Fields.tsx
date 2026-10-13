@@ -284,7 +284,7 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
       'Click, then press the key combination (or a non-left mouse button) to bind. Esc cancels.',
     native: true,
   });
-  const restoreTip = useTip({ t: "Restore this shortcut's default key combination", native: true });
+  const restoreTip = useTip({ t: D.consts.restoreTip ?? '', native: true });
   const clearTip = useTip({ t: 'Clear this shortcut', native: true });
   const press = (e: MouseEvent<HTMLButtonElement>) => {
     if (!live) return;

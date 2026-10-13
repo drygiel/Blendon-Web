@@ -34,7 +34,7 @@ export function Pace() {
             Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
           </>
         }
-        lead="On first load Blendon asks one question: which keys it may take. Nothing is written until you answer, and the answer can be changed any time on the Overview page of Tools → Blendon."
+        lead="On first load Blendon asks one question: which keys it may take. Nothing is written until you answer, and Not now leaves Blendon's shortcuts without keys, so nothing clashes. Pick a preset any time on the Overview page of Tools → Blendon."
       />
 
       <div className={table.panel} {...plotPart('above')}>
@@ -64,8 +64,9 @@ export function Pace() {
           </tbody>
         </table>
         <p className={table.note}>
-          Both presets are real Unity shortcut profiles. The command that loses a key moves one modifier aside, and the
-          settings window lists every pair.
+          Both presets are real Unity shortcut profiles, written the first time you pick one, so keys you tune on either
+          side stay put. The command that loses a key moves one modifier aside, and the settings window lists every
+          pair.
         </p>
       </div>
 
@@ -76,8 +77,8 @@ export function Pace() {
           </InfoCard>
         ))}
         <InfoCard label="The way back" title="One switch" accent>
-          The master switch parks every Blendon key and hands each Unity command back, your settings kept. Default in
-          Edit → Shortcuts undoes every key change at once.
+          The master switch parks every Blendon key and hands each Unity command back, your settings and keys kept for
+          when it comes back on. Default in Edit → Shortcuts holds no Blendon key at all.
         </InfoCard>
       </CardGrid>
     </Section>

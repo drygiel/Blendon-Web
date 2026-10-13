@@ -34,6 +34,7 @@ export type ItemData =
   | { k: 'space'; h: number }
   | { k: 'prev'; owner: string }
   | { k: 'action'; label: string; btn: string; act: 'restart' | 'tips'; tip: TipSource }
+  | { k: 'progress'; label: string; tip: TipSource; done: number; total: number }
   | { k: 'actions2'; a: { text: string; tip: TipSource }; b: { text: string; tip: TipSource } }
   | {
       k: 'master';
@@ -714,12 +715,22 @@ export class Builder {
     }
     this.extraAfter(10);
     this.sub('Keyboard Presets', 'd_Keyboard', 15, D.contestedMinWidth);
+    // Keys still landing lock the presets, so a half-written profile is never left behind.
+    const writing = app.st.writing;
+    if (writing) this.dis++;
     if (this.matches('Keyboard Presets', C.layoutTooltip)) {
       this.count();
       this.flush();
       this.add({ k: 'kbPreset' });
     }
+    if (writing && !this.searching) {
+      this.dis--;
+      this.flush();
+      this.add({ k: 'progress', label: C.handoverLabel ?? '', tip: tipOf(C.handoverTip ?? '', ''), ...writing });
+      this.dis++;
+    }
     this.contested();
+    if (writing) this.dis--;
     const off = !app.val('GeneralSettings.Enabled');
     if (off) this.dis++;
     this.features();

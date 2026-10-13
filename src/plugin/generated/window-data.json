@@ -2257,7 +2257,7 @@
    "l": "Enable",
    "t": "<size=14><b>Box Select</b></size>\nDrag a box in the <b><color=#3DB892>Scene View</color></b> to select everything it touches, the way Blender does.\n\n<size=9><b><color=#92929A>WHILE DRAGGING</color></b></size>\n<b><color=#D98E38>Shift</color></b> - add to the selection\n<b><color=#D98E38>Ctrl</color></b> - remove from it\n<b><color=#D98E38>Shift</color></b> + <b><color=#D98E38>Ctrl</color></b> - see <b><color=#4FA8E8>Shift + Ctrl</color></b>\n\n<size=9><color=#92929A>Clicking still selects the Editor's way. Off hands the box back to the Editor</color></size>",
    "i": "Tips/BoxSelect/BoxSelect.png",
-   "d": false,
+   "d": true,
    "k": "Boolean"
   },
   "BoxSelectSettings.SelectPrefabRoots": {
@@ -3256,7 +3256,7 @@
    "ul": "Scene View Menu",
    "key": "Mouse 1",
    "uMove": "",
-   "bMove": ""
+   "bMove": "Alt+Mouse 1"
   },
   "Blendon/Orbit Selected": {
    "ul": "Scene View Pan",
@@ -7871,7 +7871,7 @@
   "BoxSelectSettings": {
    "image": "Tips/BoxSelect/Header.png",
    "video": "Tips/BoxSelect/Header.webm",
-   "footer": "Ships switched off. Off hands the box back to the Editor.",
+   "footer": "Off hands the box back to the Editor.",
    "sections": [
     [
      "HOW IT WORKS",
@@ -7935,7 +7935,7 @@
      ]
     }
    ],
-   "search": "HOW IT WORKS Drag a box over the <b><color=#3DB892>Scene View</color></b>. Every object it touches is selected, even one that only pokes into it. The box is tested against real shapes, so a long diagonal object counts only where the box actually crosses it. GOOD TO KNOW <b><color=#4FA8E8>Visible Only</color></b> skips what is hidden behind other objects. <b><color=#4FA8E8>Click Selects Parent</color></b> climbs the hierarchy one click at a time. drag to box select add to the selection remove from it switch Visible Only, even mid-drag hold mid-drag to move the box cancel the box up to the parent, down to the children Ships switched off. Off hands the box back to the Editor."
+   "search": "HOW IT WORKS Drag a box over the <b><color=#3DB892>Scene View</color></b>. Every object it touches is selected, even one that only pokes into it. The box is tested against real shapes, so a long diagonal object counts only where the box actually crosses it. GOOD TO KNOW <b><color=#4FA8E8>Visible Only</color></b> skips what is hidden behind other objects. <b><color=#4FA8E8>Click Selects Parent</color></b> climbs the hierarchy one click at a time. drag to box select add to the selection remove from it switch Visible Only, even mid-drag hold mid-drag to move the box cancel the box up to the parent, down to the children Off hands the box back to the Editor."
   },
   "HistorySettings": {
    "image": "Tips/NavigationHistory/SelectionHeader.png",
@@ -8231,7 +8231,12 @@
   "appearanceTip": "Sizes, colors and thicknesses. Nothing in here changes what the feature does.",
   "contestedLinkHint": "\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
   "customPresetTip": "Doesn't match Blender or Unity+ - at least one value below has been tuned by hand.",
-  "gizmoPresetsNote": "Sets every transform tool's appearance - shapes, colors and the shared axis palette. Custom means at least one has been tuned by hand."
+  "gizmoPresetsNote": "Sets every transform tool's appearance - shapes, colors and the shared axis palette. Custom means at least one has been tuned by hand.",
+  "presetsOn": "Sets which features are on. Your tuning, your keys and your shortcut profile are left alone.",
+  "presetsOff": "Applying any of these switches Blendon back on.",
+  "handoverLabel": "Writing Keys",
+  "handoverTip": "<b>Writing Keys</b>\nUnity rebuilds its whole shortcut directory for every binding that moves, so Blendon spreads them over the next few frames rather than stopping the Editor while they land.\n\n<size=9><color=#92929A>The keyboard presets are locked until the last key has landed, so a half-written profile is never left behind</color></size>",
+  "restoreTip": "Restore the key the keyboard preset gives this shortcut"
  },
  "contested": [
   {
@@ -8340,7 +8345,7 @@
    "key": "Mouse 1",
    "tip": "Context Menu and the Editor's \"Scene View/Menu\" both want <b><color=#D98E38>Mouse 1</color></b>.\n\n<size=9><color=#92929A>The <b><color=#4FA8E8>Keyboard Presets</color></b> picker above decides which of the two answers it. Blendon's is the Editor's own feature done better, so on the Blender keys the Editor's command is left unset rather than moved</color></size>",
    "uMove": "",
-   "bMove": ""
+   "bMove": "Alt+Mouse 1"
   },
   {
    "bid": "Blendon/Orbit Selected",
@@ -9483,24 +9488,21 @@
  },
  "logo": "plugin/icons/Blendon.png",
  "initial": {
-  "BoxSelectSettings.Enabled": true,
   "SharedGizmoSettings.PerObjectLocalAxes": true,
   "SceneMenuSettings.Grouping": true
  },
  "presets": [
   {
    "name": "Full",
-   "restores": true,
-   "on": [],
-   "confirm": "Everything switched on, every value back to what the plugin ships with. Custom pie menus are kept.",
+   "on": null,
+   "confirm": "Every feature switched on. Your tuning, your keys and your shortcut profile are kept.",
    "tip": {
-    "t": "<size=14><b>Full</b></size>\nEvery feature on, every value back to what Blendon ships with.\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nYour own pie menus.\n\n<size=9><color=#92929A>Asks before applying. Switches Blendon on if it is off</color></size>",
+    "t": "<size=14><b>Full</b></size>\nEvery feature on.\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nYour tuning, your keys and your shortcut profile.\n\n<size=9><color=#92929A>Asks before applying. Switches Blendon on if it is off</color></size>",
     "i": "Tips/Overview/PresetFull.png"
    }
   },
   {
    "name": "Essentials",
-   "restores": false,
    "on": [
     "OrbitSelected",
     "Pan",
@@ -9520,7 +9522,6 @@
   },
   {
    "name": "Tools Only",
-   "restores": false,
    "on": [
     "SharedGizmos",
     "MoveGizmo",

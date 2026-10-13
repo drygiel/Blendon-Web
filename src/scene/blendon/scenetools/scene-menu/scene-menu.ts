@@ -1,7 +1,15 @@
 // SceneMenu: Blendon's right-click menu for the Scene view - the Editor's own entries regrouped, an
 // icon row for the edit commands, a search box, and Blendon's extras. SceneMenuTrigger opens it on a
 // right click that didn't drag; Shift+right-click opens the Editor's own menu instead.
-import { EditorApplication, Selection, ShortcutManager, Undo } from '../../../unity/editor.ts';
+import {
+  EditorApplication,
+  eventShortcutModifiers,
+  Selection,
+  ShortcutManager,
+  ShortcutModifiers,
+  Undo,
+  type KeyCombination,
+} from '../../../unity/editor.ts';
 import { EditorGUIUtility, HandleUtility, MouseCursor } from '../../../unity/handles.ts';
 import { Event, EventType, GUIUtility, KeyCode } from '../../../unity/imgui.ts';
 import { Rect, Vector2, Vector3, type Quaternion } from '../../../unity/math.ts';
@@ -719,6 +727,18 @@ let heldButtons = 0;
 
 const gestureRunning = () => heldButtons !== 0 || ViewportGesture.busy;
 
+/** The menu's binding when it is a right-click one; null when it has no key or sits on another button. */
+function rightClickBinding(): KeyCombination | null {
+  const b = ShortcutManager.getShortcutBinding(ShortcutId);
+  return b && b.keyCode === KeyCode.Mouse1 ? b : null;
+}
+
+// Ctrl, Alt and Cmd only arm a right press when the binding itself asks for them.
+function modifiersFit(e: Event, binding: KeyCombination) {
+  const ignored = ~ShortcutModifiers.Shift;
+  return (eventShortcutModifiers(e) & ignored) === (binding.modifiers & ignored);
+}
+
 function onBeforeSceneGui(view: SceneView) {
   const e = Event.current;
   const s = session;
@@ -755,9 +775,12 @@ function onBeforeSceneGui(view: SceneView) {
     case EventType.MouseDown:
       if (e.button === 1) {
         pressedAt = e.mousePosition;
-        // Shift+right-click is the classic menu, and so is every right-click with Blendon's menu off.
-        classic = e.shift || !SceneMenuSettings.Enabled;
-        armed = !gestureRunning() && !e.control && !e.alt && !e.command;
+        // Blendon's menu answers the press its binding asks for (Alt+RMB on the Unity preset); any other
+        // plain right-click is the Editor's own. Shift+right-click is the classic menu unless the binding takes Shift.
+        const binding = rightClickBinding();
+        const ours = SceneMenuSettings.Enabled && binding !== null && modifiersFit(e, binding);
+        classic = ours ? e.shift && !(binding.modifiers & ShortcutModifiers.Shift) : true;
+        armed = !gestureRunning() && (ours || (!e.control && !e.alt && !e.command));
       } else heldButtons |= 1 << e.button;
       break;
     case EventType.MouseMove:

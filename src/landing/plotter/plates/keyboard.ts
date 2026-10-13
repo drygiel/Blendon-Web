@@ -130,7 +130,7 @@ export const keyboard: Plate = {
         ctx.strokeRect(x + d + 0.5, y + d + 0.5, w - 2 * d - 1, h - 2 * d - 1);
       }
     });
-    ink.label('fig. 10 — every default, lit', x0 + width, y0 + 5 * u + 22, 0.7, 0.9, {
+    ink.label('fig. 10 — every key, lit', x0 + width, y0 + 5 * u + 22, 0.7, 0.9, {
       font: SERIF_S,
       align: 'right',
       a: 0.5,

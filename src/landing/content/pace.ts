@@ -55,6 +55,22 @@ export const CONTESTED_KEYS: ContestedKey[] = [
     blendonTo: ['Alt', '~+', 'Z'],
   },
   {
+    id: 'Blendon/Pie Menus/Unity Tools',
+    keys: ['Q'],
+    blendon: 'Tools pie',
+    unity: 'View tool',
+    unityTo: ['Alt', '~+', 'Q'],
+    blendonTo: ['Alt', '~+', 'Q'],
+  },
+  {
+    id: 'Blendon/Pie Menus/View',
+    keys: ['`'],
+    blendon: 'View pie',
+    unity: 'Overlay menu',
+    unityTo: ['Ctrl', '~+', '`'],
+    blendonTo: ['Ctrl', '~+', '`'],
+  },
+  {
     id: 'Blendon/Vertex Snap',
     keys: ['V'],
     blendon: "Blendon's vertex snap",
@@ -62,10 +78,18 @@ export const CONTESTED_KEYS: ContestedKey[] = [
     unityTo: "Switched off: Blendon's is the same mode, without its limits",
     blendonTo: ['Alt', '~+', 'V'],
   },
+  {
+    id: 'Blendon/Context Menu',
+    keys: ['RMB'],
+    blendon: 'Context menu',
+    unity: "Unity's Scene view menu",
+    unityTo: "Still there on Shift + RMB, and as the menu's Classic row",
+    blendonTo: ['Alt', '~+', 'RMB'],
+  },
 ];
 
 export const FEATURE_PRESETS: [string, string][] = [
-  ['Full', 'Everything on, every value back to the shipped defaults. Your own pie menus are kept.'],
+  ['Full', 'Every feature on. Your tuning, your keys and your shortcut profile are kept.'],
   [
     'Essentials',
     'Navigation and the transform gizmos, with their grab and vertex-snap keys. Pies, numpad views, the context menu and scene tools stay off, and Unity keeps their keys.',

@@ -31,9 +31,17 @@
   .mk[hidden] {
     display: none;
   }
+  // The mark holds for 2 s, then fades out over 0.6 s.
   .it.hl {
     background: rgba(255, 235, 59, 0.14);
     box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.75);
+    animation: hl-fade 0.6s ease-out 2s forwards;
+  }
+  @keyframes hl-fade {
+    to {
+      background: rgba(255, 235, 59, 0);
+      box-shadow: 0 0 0 1px rgba(255, 235, 59, 0);
+    }
   }
   .lbl {
     flex: none;

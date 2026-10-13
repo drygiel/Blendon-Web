@@ -75,10 +75,13 @@ export default function PlaygroundWindow() {
 
   // A shortcut tip's "Open in Blendon": the Keyboard page with that shortcut's row lit.
   useEffect(() => PlaygroundEvents.on('openKeyboard', ({ id }) => app.goTo('Keyboard', id)), [app]);
+  useEffect(() => PlaygroundEvents.on('openSettings', ({ page, hl }) => app.goTo(page, hl)), [app]);
 
   // The dock's reset button: every value, override and binding back to its default; the layout stays.
   useEffect(() => {
-    const reset = () =>
+    const reset = () => {
+      window.clearInterval(inst.writeTimer);
+      inst.writeTimer = 0;
       update((s) => ({
         ...initialState(D.initial),
         docked: s.docked,
@@ -90,8 +93,9 @@ export default function PlaygroundWindow() {
         li: s.li,
         page: s.page,
       }));
+    };
     return PlaygroundEvents.on('reset', reset);
-  }, []);
+  }, [inst]);
 
   const latest = useRef({ app, reduced });
   useLayoutEffect(() => {

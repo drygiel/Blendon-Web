@@ -186,6 +186,28 @@ function ActionRow({ it }: { it: ItemOf<'action'> }) {
   );
 }
 
+/** ProgressRow: a sunken bar filling green as the keys land, with the count beside it. */
+function ProgressRow({ it }: { it: ItemOf<'progress'> }) {
+  const app = useApp();
+  const tip = useTip(it.tip);
+  const fraction = it.total > 0 ? Math.min(1, it.done / it.total) : 0;
+  return (
+    <div className={itemBase(app, it).cls}>
+      <div className="lbl" {...tip}>
+        {indent(it.label)}
+      </div>
+      <div className="fld" {...tip}>
+        <div className="pgb">
+          <div className="pgf" style={{ width: fraction * 100 + '%' }} />
+        </div>
+        <span className="pgc">
+          {it.done} / {it.total}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const ioDemo = (t: string) =>
   /import/i.test(t)
     ? 'In Unity this loads Blendon settings from a file you pick.'
@@ -244,6 +266,8 @@ export function ItemView({ it }: { it: Item }) {
       return <GizmoPreview it={it} />;
     case 'action':
       return <ActionRow it={it} />;
+    case 'progress':
+      return <ProgressRow it={it} />;
     case 'actions2':
       return <ActionPair it={it} />;
     case 'master':

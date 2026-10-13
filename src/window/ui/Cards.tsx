@@ -192,12 +192,19 @@ export function OverviewMaster({ it }: { it: ItemOf<'ovMaster'> }) {
   const app = useApp();
   const on = !!app.val('GeneralSettings.Enabled');
   const switchTip = useTip(it.tip);
-  const sel = app.st.preset ?? -1;
+  const sel = app.currentPreset();
   const segs: Seg[] = D.presets.map((p, i) => ({
     label: p.name,
     sel: i === sel,
+    // The lit preset is already in force, so there is nothing to ask about.
     pick: () =>
-      app.confirm({ title: `Apply "${p.name}"`, body: p.confirm, ok: 'Apply', run: () => app.applyPreset(i) }),
+      i !== sel &&
+      app.confirm({
+        title: `Apply "${p.name}"`,
+        body: p.confirm + '\n\nApply it now?',
+        ok: 'Apply',
+        run: () => app.applyPreset(i),
+      }),
     tip: p.tip,
   }));
   return (
@@ -207,7 +214,7 @@ export function OverviewMaster({ it }: { it: ItemOf<'ovMaster'> }) {
           <img src={D.logo} alt="Blendon" />
           <div className="ovsub">Blender-Style Scene View, Gizmos &amp; Pie Menus for Unity</div>
         </div>
-        <Switch on={on} toggle={() => app.set('GeneralSettings.Enabled', !on)} label="Blendon" />
+        <Switch on={on} toggle={() => app.setMaster(!on)} label="Blendon" />
       </div>
       <div className="ovdiv" />
       <div className="ovr2">
@@ -216,11 +223,7 @@ export function OverviewMaster({ it }: { it: ItemOf<'ovMaster'> }) {
           <span>Presets</span>
         </div>
         <Segs segs={segs} />
-        <div className="prn">
-          {on
-            ? 'Sets which features are on. Your tuning is left alone, except where a preset changes something.'
-            : 'Applying any of these switches Blendon back on.'}
-        </div>
+        <div className="prn">{on ? D.consts.presetsOn : D.consts.presetsOff}</div>
       </div>
     </div>
   );
@@ -236,7 +239,7 @@ export function KeyboardPresets({ it }: { it: ItemOf<'kbPreset'> }) {
   const segs: Seg[] = (['Blendon', 'Unity'] as const).map((l, i) => ({
     label: l,
     sel: l === app.st.kbSide,
-    pick: () => app.update({ kbSide: l }),
+    pick: () => app.pickKeyboard(l),
     tip: D.kbTips[i] ?? { t: '' },
   }));
   return (

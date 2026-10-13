@@ -16,8 +16,40 @@
   max-width: 700px;
 }
 
+.presets {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid $border-2;
+  border-radius: 10px;
+  background: $surface-3;
+}
+
 .preset {
   @include caption(12px, 0.08em, $text-4);
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
+
+  &:hover {
+    color: $text-2;
+  }
+}
+
+.presetOn,
+.presetOn:hover {
+  background: $accent;
+  color: #141414;
+}
+
+// A row whose key moved on the Unity preset.
+.moved .action {
+  color: $accent-light;
 }
 
 .sheet {

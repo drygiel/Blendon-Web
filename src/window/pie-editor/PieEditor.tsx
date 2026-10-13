@@ -378,7 +378,7 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
                 <button
                   className={'gb rs' + (canRestore ? '' : ' off')}
                   onClick={() => canRestore && setBinding(defaultBinding)}
-                  title="Restore this shortcut's default key combination"
+                  title={D.consts.restoreTip}
                   aria-label="Restore default"
                 >
                   ↺
