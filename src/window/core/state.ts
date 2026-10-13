@@ -67,8 +67,11 @@ export interface WindowState {
   pies: Record<string, boolean>;
   frameSeq: FrameStep[] | null;
   extras: string[] | null;
-  preset: number | null;
   kbSide: KeyboardSide;
+  /** The keyboard presets whose shortcut profile exists; the first pick of the other one writes it. */
+  kbMade: KeyboardSide[];
+  /** Keys still landing after a profile write or a master-switch handover, shown as the Writing Keys bar. */
+  writing: { done: number; total: number } | null;
   // navigation
   page: string;
   search: string;
@@ -104,8 +107,9 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
     pies: {},
     frameSeq: null,
     extras: null,
-    preset: 0,
     kbSide: 'Blendon',
+    kbMade: ['Blendon'],
+    writing: null,
     page: 'Overview',
     search: '',
     searchFocus: false,

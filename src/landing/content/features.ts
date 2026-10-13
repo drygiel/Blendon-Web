@@ -125,7 +125,7 @@ export const FEATURES: Feature[] = [
     group: 'tools',
     title: 'Box Select',
     keys: ['LMB', '~drag'],
-    desc: 'Selects everything the box touches, tested against real triangles. C includes hidden objects, Space moves the box. Off until you switch it on.',
+    desc: 'Selects everything the box touches, tested against real triangles. C includes hidden objects, Space moves the box.',
     clip: 'BoxSelect',
   },
   {
@@ -165,7 +165,7 @@ export const FEATURES: Feature[] = [
     group: 'menus',
     title: 'Context Menu',
     keys: ['RMB'],
-    desc: "Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. Shift + RMB opens Unity's own.",
+    desc: "Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. Shift + RMB opens Unity's own. On the Unity keyboard preset it moves to Alt + RMB.",
     clip: 'ContextMenu',
   },
 ];

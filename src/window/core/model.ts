@@ -3,7 +3,7 @@
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import type { PropValue } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
-import type { DialogState, FrameStep, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
+import type { DialogState, FrameStep, KeyboardSide, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
 import { rich } from './text.ts';
 import { clamp, M } from './util.ts';
 
@@ -33,6 +33,14 @@ const PAGE_SWITCHES: Record<string, string[]> = {
   PieMenus: ['PieMenuSettings', 'WireframeToggleSettings'],
 };
 
+// What a profile write or a handover moves: every Blendon key plus each contested Editor command.
+const keysWritten = () =>
+  Object.keys(D.shortcuts).filter((id) => id.startsWith('Blendon/') && !/\/Custom \d+$/.test(id)).length +
+  D.contested.length;
+
+// How long the Writing Keys bar takes to fill.
+const WRITE_MS = 1400;
+
 export const pageInfo = (id: string) => D.catalog.find((p) => p.id === id) ?? D.catalog[0];
 
 /** DOM handles and timers that outlive a render. */
@@ -60,6 +68,8 @@ export interface Instance {
   gizmoLast: number;
   /** Fixed gizmo yaw for side-by-side checks against Unity captures (?yaw=). */
   gizmoYaw: number | null;
+  /** The Writing Keys bar's interval, 0 when idle. */
+  writeTimer: number;
 }
 
 type DomKey = 'host' | 'win' | 'scroll' | 'thumb' | 'track' | 'hthumb' | 'htrack' | 'sscroll' | 'sthumb' | 'strack';
@@ -86,6 +96,7 @@ export function newInstance(): Instance {
     gizmoAngle: 0,
     gizmoLast: 0,
     gizmoYaw: null,
+    writeTimer: 0,
   };
 }
 
@@ -329,30 +340,65 @@ export class WindowModel {
     });
   }
 
+  /** The feature preset the switches are in right now, or -1: read off them, so one flipped switch lights none. */
+  currentPreset(): number {
+    if (!this.val('GeneralSettings.Enabled')) return -1;
+    return D.presets.findIndex((p) =>
+      D.catalog.every((page) => {
+        if (!page.feature) return true;
+        const on = p.on === null || p.on.includes(page.id);
+        return on ? this.pageFull(page.id) : !this.pageEnabled(page.id);
+      }),
+    );
+  }
+
+  /** A preset only flips feature switches: tuning, keys and the keyboard preset stay as they are. */
   applyPreset(i: number) {
     const p = D.presets[i];
-    if (p.restores) {
-      this.update({
-        preset: i,
-        vals: { 'GeneralSettings.Enabled': true },
-        sc: {},
-        ovr: {},
-        frameSeq: null,
-        extras: null,
-        pies: {},
-      });
-      return;
-    }
+    if (!this.val('GeneralSettings.Enabled')) this.writeKeys();
     this.update((s) => {
       const vals: Record<string, PropValue> = { ...s.vals, 'GeneralSettings.Enabled': true };
       for (const page of D.catalog) {
         if (!page.feature) continue;
-        const on = p.on.includes(page.id);
+        const on = p.on === null || p.on.includes(page.id);
         const owners = page.id === 'SharedGizmos' ? [] : (PAGE_SWITCHES[page.id] ?? [D.pageOwner[page.id]]);
         for (const t of owners) if (t) vals[t + '.Enabled'] = on;
       }
-      return { preset: i, vals };
+      return { vals };
     });
+  }
+
+  setMaster(on: boolean) {
+    if (on === !!this.val('GeneralSettings.Enabled')) return;
+    this.writeKeys();
+    this.set('GeneralSettings.Enabled', on);
+  }
+
+  // ---- keyboard presets -------------------------------------------------------------------------
+  /** Picks a keyboard preset: its profile is written the first time, and only switched to after that. */
+  pickKeyboard(side: KeyboardSide) {
+    if (side === this.st.kbSide || this.st.writing) return;
+    if (!this.st.kbMade.includes(side)) this.writeKeys();
+    this.update((s) => ({ kbSide: side, kbMade: s.kbMade.includes(side) ? s.kbMade : [...s.kbMade, side] }));
+  }
+
+  /** Plays the Writing Keys bar: Unity rebuilds its shortcut directory per binding, so keys land over frames. */
+  writeKeys() {
+    if (this.inst.writeTimer) return;
+    const total = keysWritten();
+    const start = performance.now();
+    this.update({ writing: { done: 0, total } });
+    this.inst.writeTimer = window.setInterval(() => {
+      // Paced by the clock, so a slow window layout stretches the steps rather than the whole write.
+      const done = Math.min(total, Math.floor(((performance.now() - start) / WRITE_MS) * total));
+      if (done < total) {
+        this.update({ writing: { done, total } });
+        return;
+      }
+      window.clearInterval(this.inst.writeTimer);
+      this.inst.writeTimer = 0;
+      this.update({ writing: null });
+    }, 33);
   }
 
   resetPage(page: string) {
@@ -381,8 +427,6 @@ export class WindowModel {
       frameSeq: null,
       extras: null,
       pies: {},
-      preset: null,
-      kbSide: 'Blendon',
     });
   }
 
@@ -390,16 +434,20 @@ export class WindowModel {
   goTo(page: string, hl?: string) {
     this.dismissTip();
     this.update({ page, search: '', hl: hl ?? null, menu: null });
-    requestAnimationFrame(() => {
-      const scroll = this.inst.scroll;
-      if (!scroll) return;
-      scroll.scrollTop = 0;
-      if (hl) {
-        const el = scroll.querySelector<HTMLElement>('[data-hl="true"]');
-        if (el) scroll.scrollTop = Math.max(0, el.offsetTop - 60);
-      }
-      this.syncScrollbars();
-    });
+    // A request from another part of the page may render a few frames later, so the marked row is waited for.
+    const scrollTo = (tries: number) =>
+      requestAnimationFrame(() => {
+        const scroll = this.inst.scroll;
+        if (!scroll) return;
+        const el = hl ? scroll.querySelector<HTMLElement>('[data-hl="true"]') : null;
+        if (hl && !el && tries > 0) return scrollTo(tries - 1);
+        // The marked row lands in the middle of the view, the way OpenAt scrolls to it. Rows sit in cells, so the
+        // offset is measured against the scroller rather than read from offsetTop.
+        const top = el ? scroll.scrollTop + el.getBoundingClientRect().top - scroll.getBoundingClientRect().top : 0;
+        scroll.scrollTop = el ? Math.max(0, top - (scroll.clientHeight - el.offsetHeight) / 2) : 0;
+        this.syncScrollbars();
+      });
+    scrollTo(10);
   }
 
   /** Anything that would leave the window (Editor windows, files, the screen) answers with this. */

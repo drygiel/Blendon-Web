@@ -8,6 +8,8 @@ interface EventMap {
   settingsOpened: void;
   /** A shortcut tip's "Open in Blendon": the Keyboard page, with that shortcut's row lit. */
   openKeyboard: { id?: string };
+  /** The tutorial card's settings button: a page of the window, with one setting's row lit. */
+  openSettings: { page: string; hl?: string };
   /** The window's "bring back dismissed tips". */
   tipsReset: void;
   /** The window's Start Over for the tutorial. */

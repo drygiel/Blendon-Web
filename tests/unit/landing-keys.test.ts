@@ -23,6 +23,26 @@ describe('landing keys', () => {
     expect(moved).toBeTruthy();
     expect(binding(FEATURES.find((f) => f.id === 'scale')?.keys ?? [])).toBe(moved);
     expect(binding(SHORTCUTS.find(([action]) => action === 'Scale tool')?.[1] ?? [])).toBe(moved);
+    // On the Unity preset the Scale tool keeps the key Grab Rotate wants.
+    expect(binding(SHORTCUTS.find(([action]) => action === 'Scale tool')?.[2] ?? [])).toBe(
+      known['Blendon/Grab Rotate']?.key,
+    );
+  });
+
+  it('shows where the Unity preset moves each single-key gesture', () => {
+    const rows: [string, string][] = [
+      ['Orbit', 'Blendon/Orbit Selected'],
+      ['Quick Roll', 'Blendon/Quick Roll'],
+      ['Pan', 'Blendon/Camera Pan'],
+      ['Vertex snap', 'Blendon/Vertex Snap'],
+      ['Virtual pivot', 'Blendon/Pick Virtual Pivot'],
+      ['Context menu', 'Blendon/Context Menu'],
+    ];
+    for (const [action, id] of rows) {
+      const row = SHORTCUTS.find(([a]) => a === action);
+      expect(binding(row?.[1] ?? []), action).toBe(known[id]?.key);
+      expect(binding(row?.[2] ?? []), action).toBe(known[id]?.bMove);
+    }
   });
 
   it('lists contested keys as the plugin settles them', () => {

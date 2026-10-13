@@ -822,20 +822,18 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
   const presets = [
     {
       name: 'Full',
-      restores: true,
-      on: [],
-      confirm: 'Everything switched on, every value back to what the plugin ships with. Custom pie menus are kept.',
+      on: null,
+      confirm: 'Every feature switched on. Your tuning, your keys and your shortcut profile are kept.',
       tip: {
         t:
-          TIP_TITLE('Full', 'Every feature on, every value back to what Blendon ships with.') +
-          '\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nYour own pie menus.' +
+          TIP_TITLE('Full', 'Every feature on.') +
+          '\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nYour tuning, your keys and your shortcut profile.' +
           PRESET_NOTE,
         i: 'Tips/Overview/PresetFull.png',
       },
     },
     {
       name: 'Essentials',
-      restores: false,
       on: [
         'OrbitSelected',
         'Pan',
@@ -860,7 +858,6 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     },
     {
       name: 'Tools Only',
-      restores: false,
       on: ['SharedGizmos', 'MoveGizmo', 'RotateGizmo', 'ScaleGizmo', 'TransformGizmo'],
       confirm:
         'Just the transform gizmos, with their grab and vertex-snap keys. Navigation, the numpad, the pie menus, the context menu and the scene tools all stay off, and the Editor keeps every key they would have taken.',
@@ -895,6 +892,11 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     contestedLinkHint: C['OverviewContestedTable.LinkHint'] ?? '',
     customPresetTip: C['GizmoAppearancePresets.CustomDescription'] ?? '',
     gizmoPresetsNote: C['GizmoAppearancePresets.PresetsNote'] ?? '',
+    presetsOn: C['OverviewMasterPanel.PresetsOn'] ?? '',
+    presetsOff: C['OverviewMasterPanel.PresetsOff'] ?? '',
+    handoverLabel: C['OverviewPage.HandoverLabel'] ?? '',
+    handoverTip: C['OverviewPage.HandoverTooltip'] ?? '',
+    restoreTip: C['SettingsControls.RestoreTooltip'] ?? '',
   };
   const kbTips: Tip[] = [
     { t: C['OverviewPage.ApplyBlenderTooltip'] ?? '', i: 'Tips/Overview/KeyboardBlendon.png' },
@@ -949,7 +951,6 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     logo,
     // The captured editor's values that are off their defaults.
     initial: {
-      'BoxSelectSettings.Enabled': true,
       'SharedGizmoSettings.PerObjectLocalAxes': true,
       'SceneMenuSettings.Grouping': true,
     },

@@ -22,15 +22,15 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
   {
     title: 'Blendon',
     sub: 'What Blendon does, what is switched on, and the keys it answers to',
-    desc: "The start page. A master switch, three feature presets and the keyboard preset that decides who keeps a contested key. Clashes are listed side by side: Blendon keeps Grab on G, and Unity's Cycle Tool Modes moves to Shift + G.",
+    desc: "The start page. A master switch, three feature presets that only switch features, and the keyboard preset that decides who keeps a contested key. Clashes are listed side by side: Blendon keeps Grab on G, and Unity's Cycle Tool Modes moves to Shift + G.",
     chips: ['Master switch', 'Full · Essentials · Tools Only', 'Blendon / Unity keys'],
     image: slideOverview,
   },
   {
     title: 'Keyboard',
     sub: 'Every key Blendon answers to, in one table',
-    desc: "Every shortcut Blendon declares, grouped by feature. Change one here and the feature's own page changes with it, because one binding sits behind both rows. Selecting Default in Edit → Shortcuts undoes every key change at once.",
-    chips: ['Rebind', 'Reset one key', 'Clear', 'Open feature page'],
+    desc: "Every shortcut Blendon declares, grouped by feature. Change one here and the feature's own page changes with it, because one binding sits behind both rows. A row's restore button puts back the keyboard preset's key, and selecting Default in Edit → Shortcuts undoes every key change at once.",
+    chips: ['Rebind', 'Restore preset key', 'Clear', 'Open feature page'],
     image: slideKeyboard,
   },
   {
@@ -64,7 +64,7 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
   {
     title: 'Box Select',
     sub: 'Drag a box that selects everything it touches, not just what fits inside it',
-    desc: 'The box is tested against real shapes, so a long diagonal object counts only where the box actually crosses it. Visible Only skips what is hidden behind other objects. The feature ships switched off until you turn it on.',
+    desc: "The box is tested against real shapes, so a long diagonal object counts only where the box actually crosses it. Visible Only skips what is hidden behind other objects. Switch it off to hand the drag back to the Editor's own box.",
     chips: ['Select Prefab Roots', 'Visible Only', 'Click Selects Parent', 'Hierarchy keys'],
     image: slideBoxSelect,
   },

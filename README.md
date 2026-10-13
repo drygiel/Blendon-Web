@@ -189,12 +189,12 @@ Hold, flick, let go, or tap to keep it open. Eight built-in pies, plus a visual 
 <td width="50%" valign="top">
 <img src=".github/readme/ContextMenu.webp" alt="Context Menu" width="100%">
 <br><b>Context Menu</b> &nbsp; <kbd>RMB</kbd><br>
-Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform.
+Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. On the Unity keyboard preset it moves to <kbd>Alt</kbd> + <kbd>RMB</kbd>.
 </td>
 <td width="50%" valign="top">
 <img src="public/plugin/tips/Overview_KeyboardBlendon.webp" alt="Keyboard presets" width="100%">
 <br><b>Keyboard presets</b><br>
-<b>Blendon</b> keeps the Blender keys and moves Unity's commands one modifier along. <b>Unity</b> leaves the Editor's keys alone.
+<b>Blendon</b> keeps the Blender keys and moves Unity's commands one modifier along. <b>Unity</b> leaves the Editor's keys alone. Pick neither and Blendon's keys stay unassigned, so nothing clashes.
 </td>
 </tr>
 </table>
@@ -262,7 +262,9 @@ the settings classes, the shortcut tables, the pie menus, and the built-in icons
 2. Run **Tools > Blendon > Export Web Data**. It rewrites `Metadata~/PlaygroundRef` (`model*.json`, `ui/`).
 3. Delete the copied script, then run `pnpm sync` and commit.
 
-The exporter reads Blendon only through reflection, so it compiles in any assembly and changes no settings.
+The exporter reads Blendon only through reflection, so it compiles in any assembly and changes no settings. It reads
+the shortcut keys from the active profile, so export on the **Blendon** keyboard preset with no key retuned: Blendon's
+shortcuts declare no key of their own, and on any other profile the site would get empty or moved keys.
 
 ### README clips
 

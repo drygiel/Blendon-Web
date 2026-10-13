@@ -15,7 +15,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Will it break my Unity muscle memory?',
-    a: "Only if you let it. On the Unity keyboard preset the Editor keeps every key and Blendon's gestures move aside: orbit to Ctrl + middle mouse, pan to Alt + middle mouse. Or start with the Tools Only preset and switch features on as you go.",
+    a: "Only if you let it. On the Unity keyboard preset the Editor keeps every key and Blendon's gestures move aside: orbit to Ctrl + middle mouse, pan to Alt + middle mouse. Answer Not now and Blendon's shortcuts get no keys at all until you pick a preset. Or start with the Tools Only preset and switch features on as you go.",
     link: ['#pace', 'Compare the two presets.'],
   },
   {
@@ -32,7 +32,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Does it touch my project, my builds or version control?',
-    a: 'Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs, keys to its own Shortcut Manager profile and pie menus to a file in your user settings folder.',
+    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs, keys to its own Shortcut Manager profile and pie menus to a file in your user settings folder. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
   },
   {
     q: 'Can I undo what it does?',
@@ -60,6 +60,6 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'How do I remove it completely?',
-    a: 'Select Default in Edit → Shortcuts, click Reset All Pages on the Overview page of Tools → Blendon, then delete the Blendon folder. Your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that file too.',
+    a: 'If you used Apply here on a shortcut profile of your own, press Revert All on the Overview page while on it. Then select Default in Edit → Shortcuts, click Reset All Pages on the Overview page of Tools → Blendon, then delete the Blendon folder. Your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that file too.',
   },
 ];

@@ -156,8 +156,8 @@ export interface SceneMenuExtra {
 
 export interface FeaturePreset {
   name: string;
-  restores: boolean;
-  on: string[];
+  /** The feature pages it switches on, the rest off; null for every page. */
+  on: string[] | null;
   confirm: string;
   tip: Tip;
 }

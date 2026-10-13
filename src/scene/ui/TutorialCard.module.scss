@@ -29,7 +29,7 @@ $font: Inter, system-ui, sans-serif;
   align-items: center;
   gap: 9px;
   box-sizing: border-box;
-  padding: 0 60px 0 12px;
+  padding: 0 82px 0 12px;
   cursor: move;
 }
 
@@ -124,6 +124,21 @@ $font: Inter, system-ui, sans-serif;
 
 .close:hover {
   background: #7a4d4a;
+}
+
+// The settings button: the Editor's gear icon, tinted like the glyphs beside it.
+.gear i {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 3px;
+  background: #808080;
+  mask: var(--icon) center / contain no-repeat;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+}
+
+.gear:hover i {
+  background: #fff;
 }
 
 .segments {

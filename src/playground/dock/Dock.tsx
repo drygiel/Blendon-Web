@@ -95,6 +95,15 @@ export function Dock({ page = false, className, ...rest }: DockProps) {
 
   // A shortcut tip's "Open in Blendon" opens the Blendon tab.
   useEffect(() => PlaygroundEvents.on('openKeyboard', () => setActive('blendon')), []);
+  // The tutorial card's settings button does the same, and counts as opening Blendon's settings.
+  useEffect(
+    () =>
+      PlaygroundEvents.on('openSettings', () => {
+        setActive('blendon');
+        settingsOpened();
+      }),
+    [],
+  );
 
   const pick = (pane: Pane) => {
     setActive(pane);

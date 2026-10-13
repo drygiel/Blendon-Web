@@ -1,6 +1,7 @@
 // Blendon's Scene View tutorial card: one chapter at a time, three task rows, the current task's hint,
 // and the way on once the chapter is done. Docked bottom right, draggable by its header, foldable.
-import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from 'react';
+import { PlaygroundEvents } from '../../bridge/events.ts';
 import { publicUrl } from '../../lib/links.ts';
 import { tutorialTip } from '../../plugin/tutorial.ts';
 import { D } from '../../plugin/window-data.ts';
@@ -22,7 +23,8 @@ const SegmentsBand = 3 + 9;
 const RowHeight = 27;
 const VisibleRows = 3;
 const FooterHeight = 32;
-const PillWidth = 258;
+// Wide enough for the longest chapter name beside the count, plus the settings button.
+const PillWidth = 258 + 20 + 2;
 const PillHeight = 38;
 const HintWidth = Width - 12 * 2 - 14 - 9;
 
@@ -184,6 +186,14 @@ export function TutorialCard({ host }: { host: SceneHost }) {
 
   const buttons = (
     <div className={styles.buttons}>
+      <button
+        type="button"
+        className={styles.glyph + ' ' + styles.gear}
+        title="Open the tutorial's settings"
+        onClick={() => PlaygroundEvents.emit('openSettings', { page: 'Overview', hl: 'GeneralSettings.ShowTutorial' })}
+      >
+        <i style={{ '--icon': `url(${iconUrl('d_SettingsIcon')})` } as CSSProperties} />
+      </button>
       <button
         type="button"
         className={styles.glyph}
