@@ -7,6 +7,7 @@ import { primitiveMesh, type PrimitiveType } from '../../unity/primitives.ts';
 import { GameObject, Scene, type Transform } from '../../unity/scene.ts';
 import type { SceneView } from '../../unity/sceneview.ts';
 import { EditorRaycastUtility, SelectionCache } from '../foundation.ts';
+import { GizmoVisibility } from '../gizmos/core/visibility.ts';
 import { PivotModes, SharedGizmoSettings, type PivotMode } from '../gizmos/shared-settings.ts';
 import { ViewportNavActions } from '../navigation/viewport-nav.ts';
 import { ViewAlignment } from '../navigation/view-snap.ts';
@@ -295,6 +296,13 @@ export const UnityToolActions = [
   new PieAction('Tools', 'Create Spline', '', () => {}, unavailable),
 ];
 
+// The Hide Gizmo toggle, filed with Unity's tools whose handles it hides.
+export const GizmoActions = [
+  new PieAction('Tools', 'Hide Gizmo', 'd_scenevis_hidden', () => GizmoVisibility.toggle(), {
+    isCurrent: () => GizmoVisibility.hidden,
+  }),
+];
+
 export const ActionCatalog = {
   all: (): PieAction[] => [
     ...SnappingActions,
@@ -305,6 +313,7 @@ export const ActionCatalog = {
     ...ResetActions.all,
     ...AddObjectActions,
     ...UnityToolActions,
+    ...GizmoActions,
   ],
 
   find(id: string | null | undefined) {

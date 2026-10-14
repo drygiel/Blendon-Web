@@ -17,6 +17,7 @@ import { GeneralSettings } from '../../settings.ts';
 import { GizmoAxis } from '../axis.ts';
 import { DragKind, GizmoDragCoordinator } from '../core/drag.ts';
 import { ModalNumericParser, ModalNumericState, TransformSpace } from '../core/numeric.ts';
+import { GizmoVisibility } from '../core/visibility.ts';
 import { CenterDotHandle } from '../handles/free-ring-handle.ts';
 import {
   VertexEdgeHighlight,
@@ -192,6 +193,8 @@ export abstract class GizmoController {
     // A pie menu consumes every event these handles would read.
     if (ModalViewportGate.isBlocked) return;
     if (modalOwner && modalOwner !== this) return;
+    // Hide Gizmo is on: nothing of the tool gizmo draws, but a keyboard grab still shows its lines.
+    if (GizmoVisibility.hidden && modalOwner !== this) return;
     const isOwner = this.coordinator.isOwner(sceneView);
     if (!isOwner && GeneralSettings.RestrictDragToActiveView) return;
     if (isOwner) this.coordinator.trackOwnerDrag(ev, sceneView.cameraViewport.size);

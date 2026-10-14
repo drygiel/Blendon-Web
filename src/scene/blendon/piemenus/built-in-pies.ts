@@ -117,7 +117,7 @@ export const BuiltInPies: PieDef[] = [
       ['Blendon/Tools/Rotate', 'd_RotateTool'],
       ['Blendon/Tools/Transform', 'd_TransformTool'],
       ['Blendon/Tools/Rect', 'd_RectTool'],
-      ['', ''],
+      ['Blendon/Tools/Hide Gizmo', 'd_scenevis_hidden'],
       ['Blendon/Tools/Create Spline', ''],
       ['Blendon/Tools/View', 'd_ViewToolMove'],
     ],
