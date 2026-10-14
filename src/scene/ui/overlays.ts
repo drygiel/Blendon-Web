@@ -4,7 +4,8 @@ import { useSyncExternalStore } from 'react';
 /** The top toolbar strip's height in points (44 px of the 175 % reference capture). */
 export const TopStripHeight = 44 / 1.75;
 
-export type OverlayId = 'tools' | 'toolSettings' | 'gridAndSnap' | 'drawModes' | 'viewOptions' | 'orientation';
+export type OverlayId =
+  'tools' | 'toolSettings' | 'gridAndSnap' | 'drawModes' | 'viewOptions' | 'orientation' | 'nativeOrientation';
 
 const Defaults: Record<OverlayId, boolean> = {
   tools: true,
@@ -13,6 +14,7 @@ const Defaults: Record<OverlayId, boolean> = {
   drawModes: true,
   viewOptions: true,
   orientation: true,
+  nativeOrientation: true,
 };
 
 let shown = { ...Defaults };

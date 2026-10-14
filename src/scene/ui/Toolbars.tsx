@@ -2,6 +2,7 @@
 // bottom, as Unity 6 lays them out. What the demo can do works; the rest shows a forbidden cursor.
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { ShadingMode, ShadingModes } from '../blendon/piemenus/shading-modes.ts';
+import { OrientationGizmoSettings } from '../blendon/navigation/orientation/gizmo.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { EditorSnapSettings } from '../unity/editor.ts';
 import { Vector3 } from '../unity/math.ts';
@@ -300,6 +301,8 @@ interface MenuEntry {
   title: string;
   img: string;
   overlay?: OverlayId;
+  /** Off while the overlay is off its canvas, which takes it out of the menu as well. */
+  listed?: () => boolean;
 }
 
 const MENU: MenuEntry[] = [
@@ -311,7 +314,19 @@ const MENU: MenuEntry[] = [
   { title: 'Draw Modes', img: 'd_Shaded', overlay: 'drawModes' },
   { title: 'View Options', img: 'd_ViewOptions', overlay: 'viewOptions' },
   { title: 'Search', img: 'd_SearchOverlay' },
-  { title: 'Orientation', img: 'OrientationGizmo', overlay: 'orientation' },
+  // Both are called Orientation at priority 12: Unity's own, then Blendon's.
+  {
+    title: 'Orientation',
+    img: 'd_OrientationGizmo',
+    overlay: 'nativeOrientation',
+    listed: () => OrientationGizmoSettings.NativeGizmoShown,
+  },
+  {
+    title: 'Orientation',
+    img: 'OrientationGizmo',
+    overlay: 'orientation',
+    listed: () => OrientationGizmoSettings.Enabled,
+  },
   { title: 'Cameras', img: 'd_CameraPreview' },
 ];
 
@@ -323,9 +338,9 @@ export function OverlayMenu({ host }: { host: SceneHost }) {
     <div className={styles.menu} style={style} onPointerDown={(e) => e.stopPropagation()}>
       <Grip />
       <span className={styles.strip}>
-        {MENU.map((m) => (
+        {MENU.filter((m) => m.listed?.() ?? true).map((m) => (
           <Button
-            key={m.title}
+            key={m.img}
             img={icon(m.img)}
             title={m.title}
             on={m.overlay ? overlays.isShown(m.overlay) : false}

@@ -15,6 +15,10 @@ export const OrientationGizmoSettings = {
   get HideNativeGizmo() {
     return sBool(K + 'HideNativeGizmo', true);
   },
+  /** Unity's gizmo, and its Overlay Menu toggle, are there unless Blendon's takes their place. */
+  get NativeGizmoShown() {
+    return !(this.Enabled && this.HideNativeGizmo);
+  },
   get Radius() {
     return sNum(K + 'Radius', 45);
   },

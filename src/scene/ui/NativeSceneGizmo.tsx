@@ -122,8 +122,10 @@ export function NativeSceneGizmo({ host, besideBlendon }: { host: SceneHost; bes
   const [hover, setHover] = useState(-1);
   const [, setTick] = useState(0);
   const overlays = useOverlays();
+  const shown = overlays.isShown('nativeOrientation');
   const view = host.view;
 
+  // Re-runs when shown again: the canvas comes back blank while the pose it last drew is unchanged.
   useEffect(() => {
     let last = '';
     let lastUi = '';
@@ -174,9 +176,9 @@ export function NativeSceneGizmo({ host, besideBlendon }: { host: SceneHost; bes
     host.frameListeners.add(onFrame);
     onFrame();
     return () => void host.frameListeners.delete(onFrame);
-  }, [host, view, hover]);
+  }, [host, view, hover, shown]);
 
-  if (!overlays.isShown('orientation')) return null;
+  if (!shown) return null;
 
   const local = (e: ReactPointerEvent): [number, number] => {
     const b = canvasRef.current!.getBoundingClientRect();
