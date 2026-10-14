@@ -61,6 +61,10 @@ function Switch({ on, toggle, label }: { on: boolean; toggle: () => void; label:
 /** KeyRunWidth: the caps column is sized from KeyCap.Measure (joined), not from the browser's font. */
 const runWidth = (b: string) => (b ? capsWidth(b, 14) : 32);
 
+/** HeaderSectionsMinText and HeaderActionMinText: narrowest column and action before they stack. */
+const SECTIONS_MIN = 260;
+const ACTION_MIN = 200;
+
 export function MasterCard({ it }: { it: ItemOf<'master'> }) {
   const app = useApp();
   const reduced = useReducedMotion();
@@ -95,8 +99,6 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
   const body = app.pageW - 28;
   const beside = body >= 320 + 20 + 300;
   const textW = beside ? body - 340 : body;
-  const hcls =
-    'hc' + (beside ? ' beside' : ' stacked') + (textW >= 460 && h.sections.length && h.keys.length ? ' hsplit' : '');
   const img = D.headerImages[h.image] ?? '';
   const video = on && !reduced ? (D.headerVideos[h.video] ?? '') : '';
   const imgStyle: CSSProperties | undefined = on ? undefined : { opacity: 0.35 };
@@ -108,6 +110,16 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
       ),
     0,
   );
+  // HeaderBody: halves when both fit, else the keys take what their actions need and the sections the rest.
+  const half = (textW - 22) / 2;
+  const keysW = Math.max(half, capsW + 10 + ACTION_MIN);
+  const split = h.sections.length > 0 && h.keys.length > 0 && textW - 22 - keysW >= SECTIONS_MIN;
+  const keysColW = split ? keysW : textW;
+  // Too narrow for a readable action beside the caps, so every action goes under its own.
+  const under = keysColW - capsW - 10 < ACTION_MIN;
+  const hcls = 'hc' + (beside ? ' beside' : ' stacked') + (split ? ' hsplit' : '');
+  const bodyStyle: CSSProperties | undefined =
+    split && keysW > half ? { gridTemplateColumns: `minmax(0,1fr) ${keysW.toFixed(1)}px` } : undefined;
   let segs: Seg[] | null = null;
   let note = '';
   if (it.gizmoPresets) {
@@ -141,7 +153,7 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
           <div className="msw">{sw}</div>
           <div className="hrule" />
           <div className="himg stack-img">{media(!beside)}</div>
-          <div className="hbody" data-off={!on}>
+          <div className="hbody" data-off={!on} style={bodyStyle}>
             <div className="hsecs">
               {h.sections.map((s, i) => (
                 <div key={i} className="hsec">
@@ -155,7 +167,10 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
             {h.keys.length > 0 && (
               <div className="hkeys">
                 <div className="hcap">KEYS</div>
-                <div className="hkg" style={{ gridTemplateColumns: `${capsW.toFixed(1)}px minmax(0,1fr)` }}>
+                <div
+                  className={'hkg' + (under ? ' under' : '')}
+                  style={under ? undefined : { gridTemplateColumns: `${capsW.toFixed(1)}px minmax(0,1fr)` }}
+                >
                   {h.keys.map((kk, i) => (
                     <div key={i} className={'uhk' + (kk.active === false ? ' dis' : '')}>
                       <span className="krun">
