@@ -12,6 +12,12 @@ async function openScene(page: Page, still = true) {
   await expect(view.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
   // The host is attached once the scene is built.
   await expect.poll(() => view.evaluate((el: unknown) => !!(el as Partial<HostElement>).sceneHost)).toBe(true);
+  // The dock starts centred, as the first touch would leave it, so no scroll moves it under a test's clicks.
+  await view.evaluate((el: unknown) =>
+    (el as { closest(s: string): { scrollIntoView(o: object): void } })
+      .closest('[data-playground]')
+      .scrollIntoView({ behavior: 'instant', block: 'center' }),
+  );
   // Focusing the view ends the idle orbit, so every test starts from a camera that holds still.
   if (still) await view.evaluate((el: unknown) => (el as { focus(o: object): void }).focus({ preventScroll: true }));
   return view;
