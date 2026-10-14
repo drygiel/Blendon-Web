@@ -217,6 +217,15 @@
     padding-top: 2.725px;
     padding-right: calc(5.58px - 1.42%);
   }
+  .hkg.under {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hkg.under .uhk + .uhk .krun {
+    margin-top: 6px;
+  }
+  .hkg.under .kact {
+    padding-top: 0;
+  }
   .uhk.dis .krun,
   .uhk.dis .kact {
     opacity: 0.5;
