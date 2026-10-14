@@ -54,6 +54,10 @@ export class AxisConstraintMask {
   }
 }
 
+// Digits allowed on each side of the point, which keeps a typed value well inside a float.
+const MaxIntegerDigits = 8;
+const MaxFractionDigits = 8;
+
 class AxisBuffer {
   text = '';
   isNegative = false;
@@ -67,6 +71,27 @@ class AxisBuffer {
     this.text = '';
     this.isNegative = false;
     this.isReciprocal = false;
+  }
+
+  /** Rejects a second point, a second leading zero and digits past either side's limit; a digit replaces a lone zero. */
+  tryAppend(c: string) {
+    const text = this.text;
+    const point = text.indexOf('.');
+    if (c === '.') {
+      if (point >= 0) return false;
+      this.text = text ? text + '.' : '0.';
+      return true;
+    }
+    if (point < 0) {
+      if (text === '0') {
+        if (c === '0') return false;
+        this.text = c;
+        return true;
+      }
+      if (text.length >= MaxIntegerDigits) return false;
+    } else if (text.length - point - 1 >= MaxFractionDigits) return false;
+    this.text = text + c;
+    return true;
   }
 
   resolve() {
@@ -288,10 +313,11 @@ export class ModalNumericParser {
     this.onConstraintChanged?.();
   }
 
+  // A rejected key is still consumed, so it never reaches the editor's shortcuts.
   private appendChar(c: string) {
+    if (!this.buffer.tryAppend(c)) return;
     if (this.state === ModalNumericState.MouseTransforming) this.state = ModalNumericState.NumericInput;
     this.backspaceArmed = false;
-    this.buffer.text += c;
     SceneTutorial.report('NumericTyped');
   }
 
