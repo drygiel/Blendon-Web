@@ -113,7 +113,7 @@ export default function ScenePlayground() {
       </div>
       {host && <Chrome host={host} pivot={pivotPoint} />}
       {host && <OrientationOverlay host={host} />}
-      {host && !(OrientationGizmoSettings.Enabled && OrientationGizmoSettings.HideNativeGizmo) && (
+      {host && OrientationGizmoSettings.NativeGizmoShown && (
         <NativeSceneGizmo host={host} besideBlendon={OrientationGizmoSettings.Enabled} />
       )}
     </div>
