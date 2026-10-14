@@ -1,10 +1,12 @@
 // GizmoHud: Blender's Δ readout at the top centre during a drag, and the red error notice.
+// Both are drawn by GizmoHudLayer, above the Scene view's overlays.
 import { EditorApplication } from '../../unity/editor.ts';
 import { GUI, Handles, type RichStyle } from '../../unity/handles.ts';
 import { Event, EventType } from '../../unity/imgui.ts';
 import { Color, Mathf, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import type { SceneView } from '../../unity/sceneview.ts';
 import { GizmoAxis } from './axis.ts';
+import { GizmoHudLayer } from './hud-layer.ts';
 
 const Pre = 'Δ';
 const Gray = '#B0B0B0';
@@ -85,8 +87,7 @@ function renderLabel(view: SceneView, text: string, topOffset: number, snapToCur
     y = Math.round(Mathf.Clamp01(topOffset) * Math.max(0, vp.y - size.y - bottomOffset));
   }
   const rect = new Rect(x, y, size.x, size.y);
-  GUI.drawRoundedRect(rect, CornerRadius, HudBackground);
-  GUI.richLabel(rect, text, HudStyle);
+  GizmoHudLayer.queue(view, rect, text, HudStyle, HudBackground, CornerRadius);
   Handles.endGUI();
 }
 
@@ -223,8 +224,7 @@ export const GizmoHud = {
     const x = Mathf.Clamp(e.at.x + 16, 0, Math.max(0, vp.x - size.x));
     const y = Mathf.Clamp(e.at.y + 16, 0, Math.max(0, vp.y - size.y));
     const rect = new Rect(x, y, size.x, size.y);
-    GUI.drawRoundedRect(rect, CornerRadius, ErrorBackground);
-    GUI.richLabel(rect, e.message, ErrorStyle);
+    GizmoHudLayer.queue(view, rect, e.message, ErrorStyle, ErrorBackground, CornerRadius);
     Handles.endGUI();
     view.repaint();
   },

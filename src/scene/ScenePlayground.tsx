@@ -12,6 +12,7 @@ import { buildDemoScene, resetDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
 import { Prefs, ShortcutManager } from './unity/editor.ts';
 import { Chrome } from './ui/Chrome.tsx';
+import { GizmoHudView } from './ui/GizmoHudView.tsx';
 import { NativeSceneGizmo } from './ui/NativeSceneGizmo.tsx';
 import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
 import { SceneOverlays, TopStripHeight, useOverlays } from './ui/overlays.ts';
@@ -107,6 +108,7 @@ export default function ScenePlayground() {
       {/* Unity's camera viewport starts under the docked top toolbar. */}
       <div className={styles.viewport} style={{ top: overlays.topStrip ? TopStripHeight : 0 }}>
         <div ref={canvasRef} className={styles.canvas} />
+        {host && <GizmoHudView host={host} />}
         {host && <TutorialCard host={host} />}
         {host && <ShortcutTipCard host={host} />}
         {host && <SceneMenuView host={host} />}

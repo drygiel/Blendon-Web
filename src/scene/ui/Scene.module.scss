@@ -273,3 +273,13 @@
   position: absolute;
   inset: 0;
 }
+
+// Over the toolbars and overlays, under the tutorial tip and the scene menu.
+.hud {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+}
