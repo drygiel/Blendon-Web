@@ -75,7 +75,8 @@ export function PieMenus() {
   const pie = PIES.find((p) => p.id === pieId) ?? PIES[0];
   if (!pie) return null;
 
-  const disabled = new Set(pie.disabled);
+  // An empty slot holds its place on the ring but can never be picked.
+  const disabled = new Set([...(pie.disabled ?? []), ...pie.items.flatMap((label, i) => (label ? [] : [i]))]);
   const count = pie.items.length;
   const hot = angle === null ? -1 : select(count, disabled, -angle);
   const on = current[pie.id] ?? [];
@@ -173,6 +174,7 @@ export function PieMenus() {
               </svg>
               <div className={styles.title}>{pie.title}</div>
               {pie.items.map((label, i) => {
+                if (!label) return null;
                 const a = dirOf(i);
                 const vx = Math.cos(a);
                 const vy = Math.sin(a);

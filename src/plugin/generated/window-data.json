@@ -3085,7 +3085,7 @@
   "Blendon/Pie Menus/Unity Tools": {
    "d": "Q",
    "n": "Unity Tools",
-   "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Edit Box Collider</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
+   "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
    "i": "Tips/PieMenus/Tools.png"
   },
   "Blendon/Pie Menus/Custom 1": {
@@ -8532,14 +8532,14 @@
    "icon": "d_MoveTool",
    "sid": "Blendon/Pie Menus/Unity Tools",
    "enabled": true,
-   "filled": 8,
-   "desc": "Unity's own View, Move, Rotate, Scale, Rect, Transform, Edit Collider and Create Spline tools, without leaving the viewport",
+   "filled": 7,
+   "desc": "Unity's own View, Move, Rotate, Scale, Rect, Transform and Create Spline tools, without leaving the viewport",
    "tipRow": {
-    "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Edit Box Collider</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
+    "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click the name to change its items and key</color></size>",
     "i": "Tips/PieMenus/Tools.png"
    },
    "tipOverview": {
-    "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Edit Box Collider</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
+    "t": "<size=14><b>Tools</b></size>\nUnity's own tools, without a trip to the toolbar.\n\n<size=9><b><color=#92929A>ITEMS</color></b></size>\n<b>Move</b>, <b>Rotate</b>, <b>Scale</b>, <b>Transform</b>, <b>Rect</b>, <b>View</b>, <b>Create Spline</b>\n\n<size=9><b><color=#92929A>DEFAULT KEY</color></b></size>\nHold <b><color=#D98E38>Q</color></b>.\n\n<size=9><color=#92929A>Click to edit this menu</color></size>",
     "i": "Tips/PieMenus/Tools.png"
    }
   }

@@ -5,7 +5,7 @@ export interface PieDemo {
   id: string;
   title: string;
   keys: KeyTokens;
-  /** In Blender's pie order: left, up, right, down, then upper-right, lower-right, lower-left, upper-left. */
+  /** In Blender's pie order: left, up, right, down, then upper-right, lower-right, lower-left, upper-left. '' leaves a slot empty. */
   items: string[];
   /** Unity editor icon per item, as in the plugin's built-in pies; '' for none. */
   icons: string[];
@@ -104,19 +104,9 @@ export const PIES: PieDemo[] = [
     id: 'tools',
     title: 'Tools',
     keys: ['Q'],
-    items: ['Move', 'Scale', 'Rotate', 'Transform', 'Rect', 'Edit Box Collider', 'Create Spline', 'View'],
-    icons: [
-      'd_MoveTool',
-      'd_ScaleTool',
-      'd_RotateTool',
-      'd_TransformTool',
-      'd_RectTool',
-      'd_BoxCollider_Icon',
-      '',
-      'd_ViewToolMove',
-    ],
+    items: ['Move', 'Scale', 'Rotate', 'Transform', 'Rect', '', 'Create Spline', 'View'],
+    icons: ['d_MoveTool', 'd_ScaleTool', 'd_RotateTool', 'd_TransformTool', 'd_RectTool', '', '', 'd_ViewToolMove'],
     active: 0,
-    disabled: [5],
-    note: "Edit Box Collider stays greyed: Unity's tool has no public entry point",
+    note: 'The lower-right slot is free for an item of your own',
   },
 ];
