@@ -2,6 +2,7 @@
 // subscribe (which is the order they see each event).
 import { ShortcutManager, Undo } from '../unity/editor.ts';
 import { TransformGizmo } from './gizmos/composite/transform-gizmo.ts';
+import { GizmoVisibility } from './gizmos/core/visibility.ts';
 import { GizmoHudLayer } from './gizmos/hud-layer.ts';
 import { MoveGizmo } from './gizmos/move/move-gizmo.ts';
 import { MoveGrab } from './gizmos/move/move-grab.ts';
@@ -56,6 +57,7 @@ export function installBlendon() {
   ViewportNav.install();
   VertexSnappingUtility.install();
   GizmoHudLayer.install();
+  GizmoVisibility.install();
   // Each tool gizmo and grab subscribes to the Scene view as it is first built.
   void MoveGizmo.instance;
   void RotateGizmo.instance;
