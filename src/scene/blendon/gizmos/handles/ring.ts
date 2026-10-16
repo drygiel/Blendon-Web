@@ -4,7 +4,7 @@ import { HandleUtility, Handles } from '../../../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility, MouseButton } from '../../../unity/imgui.ts';
 import { Color, Mathf, Plane, Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import { withAlpha, withOpacity } from '../../color.ts';
-import { SceneTutorial, SnapCompat } from '../../foundation.ts';
+import { SnapCompat } from '../../foundation.ts';
 import type { GizmoAxis } from '../axis.ts';
 import { GizmoColors } from '../colors.ts';
 import { Signal } from '../common/signal.ts';
@@ -392,7 +392,6 @@ export class RotationRingHandle {
     const c = this.coordinator;
     c.snapshot.setActiveDragId(id);
     c.begin(DragKind.Ring, position, this.axisId);
-    SceneTutorial.report('HandleRingDrag');
     this.dragAxis = axis;
     this.dragRadius = radius;
     this.dragAxisColor = this.axisId.constrain;

@@ -45,6 +45,10 @@ const grabTook = (id: string) => ViewportGesture.claimed(id);
 const pieTook = (digit: number) => PieRegistry.tryAccelerator(digit);
 const pieTookAny = () => PieRegistry.isOpen() && PieRegistry.tryAccelerator(0);
 const target = () => SceneView.lastActiveSceneView;
+// Ran: the tutorial hears the key that ran it.
+const ticked = (id: string, run: () => unknown) => {
+  if (run() !== false) SceneTutorial.reportShortcut(id);
+};
 const canMove = (v: SceneView | null): v is SceneView => !!v && !v.isRotationLocked;
 
 let prior: { pivot: Vector3; rotation: Quaternion; size: number } | null = null;
@@ -102,11 +106,13 @@ export const ViewportNavActions = {
     );
   },
 
+  /** False when there was no camera to look through. */
   alignToCamera() {
     const v = target();
-    if (!canMove(v)) return;
+    if (!canMove(v)) return false;
     // The demo scene has no Camera component to land on.
     v.showNotification('No camera to align to');
+    return false;
   },
 };
 
@@ -140,13 +146,37 @@ export const ViewportNav = {
       ],
       [I.Top, 'Num 7', () => grabTook(I.Top) || pieTook(7) || (ready() && A.snapToView(1, true))],
       [I.Bottom, 'Ctrl+Num 7', () => grabTook(I.Bottom) || pieTookAny() || (ready() && A.snapToView(1, false))],
-      [I.Projection, 'Num 5', () => grabTook(I.Projection) || pieTook(5) || (ready() && A.toggleProjection())],
-      [I.OrbitUp, 'Num 8', () => grabTook(I.OrbitUp) || pieTook(8) || (ready() && A.orbitStep(0, 1))],
-      [I.OrbitDown, 'Num 2', () => grabTook(I.OrbitDown) || pieTook(2) || (ready() && A.orbitStep(0, -1))],
-      [I.OrbitLeft, 'Num 4', () => grabTook(I.OrbitLeft) || pieTook(4) || (ready() && A.orbitStep(1, 0))],
-      [I.OrbitRight, 'Num 6', () => grabTook(I.OrbitRight) || pieTook(6) || (ready() && A.orbitStep(-1, 0))],
+      [
+        I.Projection,
+        'Num 5',
+        () => grabTook(I.Projection) || pieTook(5) || (ready() && ticked(I.Projection, () => A.toggleProjection())),
+      ],
+      [
+        I.OrbitUp,
+        'Num 8',
+        () => grabTook(I.OrbitUp) || pieTook(8) || (ready() && ticked(I.OrbitUp, () => A.orbitStep(0, 1))),
+      ],
+      [
+        I.OrbitDown,
+        'Num 2',
+        () => grabTook(I.OrbitDown) || pieTook(2) || (ready() && ticked(I.OrbitDown, () => A.orbitStep(0, -1))),
+      ],
+      [
+        I.OrbitLeft,
+        'Num 4',
+        () => grabTook(I.OrbitLeft) || pieTook(4) || (ready() && ticked(I.OrbitLeft, () => A.orbitStep(1, 0))),
+      ],
+      [
+        I.OrbitRight,
+        'Num 6',
+        () => grabTook(I.OrbitRight) || pieTook(6) || (ready() && ticked(I.OrbitRight, () => A.orbitStep(-1, 0))),
+      ],
       [I.Reverse, 'Num 9', () => grabTook(I.Reverse) || pieTook(9) || (ready() && A.reverseView())],
-      [I.Camera, 'Num 0', () => grabTook(I.Camera) || pieTookAny() || (ready() && A.alignToCamera())],
+      [
+        I.Camera,
+        'Num 0',
+        () => grabTook(I.Camera) || pieTookAny() || (ready() && ticked(I.Camera, () => A.alignToCamera())),
+      ],
     ];
     for (const [id, fallback, run] of bindings) ShortcutManager.register(id, () => void run(), false, fallback);
   },

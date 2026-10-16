@@ -4,7 +4,7 @@ import { EditorGUI, HandleUtility, Handles } from '../../../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility } from '../../../unity/imgui.ts';
 import { Mathf, Quaternion, Vector3 } from '../../../unity/math.ts';
 import { withAlpha, withFade } from '../../color.ts';
-import { SceneTutorial, SelectionCache } from '../../foundation.ts';
+import { SelectionCache, TutorialTransform } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { InactiveAxisFade, MinVisibleFade } from '../colors.ts';
 import type { GizmoSettings } from '../common/gizmo-settings.ts';
@@ -183,10 +183,9 @@ export class AxisHandle {
       SharedGizmoSettings.PrecisionHeld && !moveSnap.pickDriven && (moveSnap.valid || !snapping)
         ? SharedGizmoSettings.EffectivePrecisionFactor
         : 1;
-    if (moved && GUIUtility.hotControl === id) {
-      SceneTutorial.report('HandleAxisDrag');
-      SceneTutorial.noteDragModifiers(snapping, SharedGizmoSettings.PrecisionHeld);
-    }
+    // Only a frame that moved proves the modifier was used.
+    if (moved && GUIUtility.hotControl === id)
+      TutorialTransform.noteDragFrame(snapping, SharedGizmoSettings.PrecisionHeld);
     // A move drag owns its position: rebuilt from the virtual cursor, quantised as an absolute distance.
     let target = raw;
     if (moveSnap.valid && GUIUtility.hotControl === id) {

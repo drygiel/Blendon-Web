@@ -11,7 +11,7 @@ import { GizmoRegistry } from './gizmos/viewport-gesture.ts';
 import { ViewNavigationState } from './navigation/state.ts';
 import { PieMenu } from './piemenus/pie-menu.ts';
 import { GeneralSettings } from './settings.ts';
-import { SceneTutorialCard } from './tutorial/scene-tutorial.ts';
+import { SceneTutorial } from './tutorial/scene-tutorial.ts';
 
 export interface TipSide {
   id: string;
@@ -87,7 +87,7 @@ function resolve(id: string): TipCard | null {
 function note(id: string) {
   if (waiting || card) return;
   // The tutorial owns the corner and is itself teaching this key.
-  if (SceneTutorialCard.active) return;
+  if (SceneTutorial.isShowing) return;
   if (!GeneralSettings.ShowShortcutTips || seen.has(seenKey(id))) return;
   if (!resolve(id)) return;
   waiting = id;
@@ -114,7 +114,7 @@ function tick(): boolean {
     if (ViewNavigationState.inProgress || held()) return true;
     const id = waiting;
     waiting = null;
-    const c = SceneTutorialCard.active ? null : resolve(id);
+    const c = SceneTutorial.isShowing ? null : resolve(id);
     if (!c) return false;
     // Spent when shown: a card never drawn has taught nobody anything.
     seen.add(seenKey(id));

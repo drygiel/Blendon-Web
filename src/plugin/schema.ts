@@ -49,7 +49,8 @@ export type Op =
   | ['frameSeq']
   | ['extras']
   | ['pieList']
-  | ['keyboard'];
+  | ['keyboard']
+  | ['tutorial'];
 
 /** A tooltip: Unity rich text plus an optional image (key into WindowData.tips). */
 export interface Tip {

@@ -3,6 +3,7 @@
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import type { PropValue } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
+import { SceneTutorial } from '../../scene/blendon/foundation.ts';
 import type { DialogState, FrameStep, KeyboardSide, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
 import { rich } from './text.ts';
 import { clamp, M } from './util.ts';
@@ -245,6 +246,7 @@ export class WindowModel {
 
   setShortcut(id: string, binding: string) {
     this.update((s) => ({ sc: { ...s.sc, [id]: binding }, capturing: null }));
+    SceneTutorial.report('ShortcutRebound');
   }
 
   clearShortcutOverride(id: string) {
@@ -253,6 +255,7 @@ export class WindowModel {
       delete sc[id];
       return { sc, capturing: null };
     });
+    SceneTutorial.report('ShortcutRebound');
   }
 
   unityMoved(row: { uMove: string; key: string }): string {
@@ -501,8 +504,8 @@ export class WindowModel {
     const w = win.getBoundingClientRect();
     const a = el.getBoundingClientRect();
     const anchor = { x: a.left - w.left, y: a.top - w.top, w: a.width, h: a.height, mx: mx - w.left };
-    const isRich = (!tip.native && tip.t.includes('<size=14>')) || !!tip.i;
-    const img = tip.i ? (D.tips[tip.i] ?? '') : '';
+    const isRich = (!tip.native && tip.t.includes('<size=14>')) || !!tip.i || !!tip.url;
+    const img = tip.url ?? (tip.i ? (D.tips[tip.i] ?? '') : '');
     const maxW = Math.max(0, w.width - 12 - 16);
     const width = img ? clamp(640 / 1.75, Math.min(320, maxW), maxW) : Math.min(320, maxW);
     this.update({
@@ -511,7 +514,7 @@ export class WindowModel {
         rich: isRich,
         runs: rich(tip.t),
         img,
-        aspect: img && tip.i ? (D.tipAR[tip.i] ?? '') : '',
+        aspect: tip.ar ?? (img && tip.i ? (D.tipAR[tip.i] ?? '') : ''),
         w: width,
         anchor,
         winW: w.width,

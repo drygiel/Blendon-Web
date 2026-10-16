@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type PointerEvent } from 'react';
-import tutorialCard from '../../../assets/landing/tutorial-card.png';
+import pageWidths from '../../../assets/landing/tutorial-page.png?w=560;840;1120&format=webp&as=meta:src;width';
 import { cx } from '../../../lib/cx.ts';
+import { responsive } from '../../../lib/images.ts';
 import { plotAnchor } from '../../plotter/contract.ts';
 import { Scramble } from '../../plotter/Scramble.tsx';
 import { Eyebrow, Lead, Section, SectionTitle } from '../../ui/Section.tsx';
@@ -8,6 +9,7 @@ import { TaskTip } from './TaskTip.tsx';
 import { TUTORIAL, type TutorialTask } from '../../../plugin/tutorial.ts';
 import styles from './Tutorial.module.scss';
 
+const PAGE_SHOT = responsive(pageWidths);
 const CHAPTERS = TUTORIAL.chapters;
 const TASK_COUNT = CHAPTERS.reduce((n, c) => n + c.tasks.length, 0);
 
@@ -63,8 +65,10 @@ export function Tutorial() {
             Never touched Blender? <em>The Scene view teaches you.</em>
           </SectionTitle>
           <Lead>
-            A checklist card walks through the gestures right in the Scene view. A task ticks off only when you actually
-            perform it, not when you read about it. Progress follows you across projects.
+            You build a small scene while you learn: a floor, a cube, then a second one to snap against the first. A
+            badge in the corner of the Scene view names the next task, and the whole checklist waits on its own page in
+            Blendon&apos;s settings. A task ticks off only when you actually perform it, in any order. Progress follows
+            you across projects.
           </Lead>
           <div className={styles.stats} data-reveal="rise">
             <span className={styles.stat}>
@@ -84,10 +88,12 @@ export function Tutorial() {
         <div className={styles.media}>
           <div className={styles.card} data-reveal="print">
             <img
-              src={tutorialCard}
-              width={619}
-              height={433}
-              alt="Tutorial card in the Scene view, chapter one with two of seven tasks done"
+              src={PAGE_SHOT.src}
+              srcSet={PAGE_SHOT.srcSet}
+              sizes="(min-width: 600px) 560px, 100vw"
+              width={678}
+              height={461}
+              alt="The Tutorial page in Blendon's settings: the First Scene chapter with two of seven tasks done and the next one open"
               loading="lazy"
             />
           </div>

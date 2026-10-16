@@ -31,10 +31,25 @@ test.afterEach(() => {
   expect(errors).toEqual([]);
 });
 
-test('loads the settings window near its section', async ({ page }) => {
+test('loads the settings window near its section, on the Tutorial page', async ({ page }) => {
   await expect(page.locator('.uw')).toHaveCount(0);
   const win = await openWindow(page);
-  await expect(win.locator('.htitle')).toHaveText('Blendon');
+  await expect(win.locator('.htitle')).toHaveText('Tutorial');
+  await expect(win.locator('.si.sel')).toHaveAttribute('aria-label', 'Tutorial');
+  await expect(win.getByText('FIRST SCENE')).toBeVisible();
+  await expect(win.locator('.tutstat')).toContainText(/0 of \d+ tasks done\./);
+});
+
+test('picks a tutorial task by clicking it', async ({ page }) => {
+  const win = await openWindow(page);
+  const zoom = win.locator('.tutr', { hasText: 'Zoom toward a corner of the floor' });
+  await expect(zoom.locator('.tuthint')).toHaveCount(0);
+  await zoom.locator('.tutt').click();
+  await expect(zoom.locator('.tuthint')).toBeVisible();
+  // A task's gear opens the page that owns its keys, with that row lit.
+  await win.locator('.tutr', { hasText: 'Slide the camera sideways' }).locator('.tutgear').click();
+  await expect(win.locator('.htitle')).toHaveText('Pan');
+  await expect(win.locator('[data-hl="true"]')).toBeVisible();
 });
 
 test('navigates pages and searches every page', async ({ page }) => {
@@ -98,6 +113,7 @@ test('opens a new, empty pie menu from Add', async ({ page }) => {
 
 test('opens the manual from the Overview', async ({ page }) => {
   const win = await openWindow(page);
+  await win.locator('.si[aria-label="Blendon"]').click();
   const popup = page.waitForEvent('popup');
   // The popup's URL is still blank when it opens, and a PDF may become a download that never commits it.
   const request = page.context().waitForEvent('request', (r) => /Blendon_Manual\.pdf$/.test(r.url()));

@@ -4,16 +4,14 @@
 interface EventMap {
   /** The dock's reset button: the scene, every setting and the tutorial back to the start. */
   reset: void;
-  /** The Blendon tab was shown or used, which counts as opening Blendon's settings. */
-  settingsOpened: void;
   /** A shortcut tip's "Open in Blendon": the Keyboard page, with that shortcut's row lit. */
   openKeyboard: { id?: string };
-  /** The tutorial card's settings button: a page of the window, with one setting's row lit. */
+  /** The tutorial badge's link: a page of the window, with one row lit. */
   openSettings: { page: string; hl?: string };
+  /** A setting the Scene view changes itself (the badge's close button), written by the window. */
+  setSetting: { key: string; value: string | number | boolean };
   /** The window's "bring back dismissed tips". */
   tipsReset: void;
-  /** The window's Start Over for the tutorial. */
-  tutorialRestart: void;
 }
 
 type EventName = keyof EventMap;

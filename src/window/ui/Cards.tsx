@@ -50,7 +50,7 @@ function Presets({ segs, note, className }: { segs: Seg[]; note: string; classNa
   );
 }
 
-function Switch({ on, toggle, label }: { on: boolean; toggle: () => void; label: string }) {
+export function Switch({ on, toggle, label }: { on: boolean; toggle: () => void; label: string }) {
   return (
     <button className={'sw' + (on ? ' on' : '')} onClick={toggle} aria-label={'Enable ' + label} aria-pressed={on}>
       <i />

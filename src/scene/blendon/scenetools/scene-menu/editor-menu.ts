@@ -11,6 +11,7 @@ import {
   type Transform,
 } from '../../../unity/scene.ts';
 import { SceneView } from '../../../unity/sceneview.ts';
+import { SceneTutorial } from '../../foundation.ts';
 import { ViewportGesture } from '../../gizmos/viewport-gesture.ts';
 
 export interface SceneMenuItem {
@@ -137,7 +138,15 @@ export const EditorEdit = {
       ['Edit/Cut', 'Ctrl+X', EditorEdit.cut],
       ['Edit/Copy', 'Ctrl+C', EditorEdit.copy],
       ['Edit/Paste', 'Ctrl+V', EditorEdit.paste],
-      ['Edit/Duplicate', 'Ctrl+D', EditorEdit.duplicate],
+      // Reaches the view as the "Duplicate" command, the name the tutorial knows it by.
+      [
+        'Edit/Duplicate',
+        'Ctrl+D',
+        () => {
+          EditorEdit.duplicate();
+          SceneTutorial.reportCommand('Duplicate');
+        },
+      ],
       ['Edit/Delete', 'Delete', EditorEdit.delete],
     ];
     for (const [id, key, run] of keys) ShortcutManager.register(id, () => !ViewportGesture.busy && run(), false, key);

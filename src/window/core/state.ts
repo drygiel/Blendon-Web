@@ -5,6 +5,9 @@ export interface TipSource extends Partial<Tip> {
   t: string;
   /** A one-line native tooltip rather than the rich card. */
   native?: boolean;
+  /** A picture by its URL rather than by a key into the window data (the tutorial's), with its "w / h". */
+  url?: string;
+  ar?: string;
 }
 
 export interface TipState {
@@ -110,7 +113,8 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
     kbSide: 'Blendon',
     kbMade: ['Blendon'],
     writing: null,
-    page: 'Overview',
+    // The site opens on the checklist, where a first visit starts.
+    page: 'Tutorial',
     search: '',
     searchFocus: false,
     hl: null,

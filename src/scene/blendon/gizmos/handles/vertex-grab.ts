@@ -1,7 +1,6 @@
 // VertexGrab: the offset from the pivot to the point a vertex-snapping drag picked up.
 import { Vector2, Vector3 } from '../../../unity/math.ts';
 import type { Transform } from '../../../unity/scene.ts';
-import { SceneTutorial } from '../../foundation.ts';
 import type { GizmoAxis } from '../axis.ts';
 import { VertexSnappingUtility } from '../vertex-snapping.ts';
 
@@ -43,7 +42,6 @@ export class VertexGrab {
     if (!grabbed) return Vector3.zero;
     this.offset = grabbed.sub(pivot);
     this.held = true;
-    SceneTutorial.report('VertexSnap');
     return this.offset;
   }
 

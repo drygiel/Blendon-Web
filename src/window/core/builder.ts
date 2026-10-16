@@ -2,6 +2,7 @@
 // with the two-column grid, cards and folds of SettingsEditorWindow.
 import type { Cond, Op, PageHeader, Tip } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
+import { TutorialCurriculum } from '../../scene/blendon/tutorial/curriculum.ts';
 import { type WindowModel, pageInfo } from './model.ts';
 import type { TipSource } from './state.ts';
 import { type Run, rich } from './text.ts';
@@ -33,7 +34,7 @@ export type ItemData =
   | { k: 'link'; lead: string; text: string; tip: TipSource }
   | { k: 'space'; h: number }
   | { k: 'prev'; owner: string }
-  | { k: 'action'; label: string; btn: string; act: 'restart' | 'tips'; tip: TipSource }
+  | { k: 'action'; label: string; btn: string; tip: TipSource }
   | { k: 'progress'; label: string; tip: TipSource; done: number; total: number }
   | { k: 'actions2'; a: { text: string; tip: TipSource }; b: { text: string; tip: TipSource } }
   | {
@@ -57,7 +58,9 @@ export type ItemData =
   | { k: 'extras' }
   | { k: 'pieTable'; pies: string[]; header: boolean }
   | { k: 'pieEmpty' }
-  | { k: 'pieFooter' };
+  | { k: 'pieFooter' }
+  | { k: 'tutHeader'; tip: TipSource }
+  | { k: 'tutChapter'; index: number };
 
 export interface BannerLink {
   page: string;
@@ -489,6 +492,8 @@ export class Builder {
         return this.pieList();
       case 'keyboard':
         return this.keyboard();
+      case 'tutorial':
+        return this.tutorial();
     }
   }
 
@@ -734,26 +739,12 @@ export class Builder {
     const off = !app.val('GeneralSettings.Enabled');
     if (off) this.dis++;
     this.features();
-    this.sub('Tutorial', '_Help', 15, 0);
-    this.propItem('GeneralSettings.ShowTutorial', { k: 'tog' });
-    if (!this.searching) {
-      const d = !app.val('GeneralSettings.ShowTutorial');
-      if (d) this.dis++;
-      this.note(C.tutorialStatus ?? '', C.tutorialStatusTip ?? '', 'Tips/Overview/TutorialProgress.png');
-      this.action(
-        'Progress',
-        C.tutorialProgressTip ?? '',
-        '↺  Start Over',
-        'Tips/Overview/TutorialProgress.png',
-        'restart',
-      );
-      if (d) this.dis--;
-    }
+    // Under the picker: the picker decides who gives way, this decides if you're told when you hit it.
     this.propItem('GeneralSettings.ShowShortcutTips', { k: 'tog' });
     if (!this.searching) {
       const d = !app.val('GeneralSettings.ShowShortcutTips');
       if (d) this.dis++;
-      this.action('Tips Shown', C.tipsShownTip ?? '', '↺  Show Again', 'Tips/Overview/TipsShown.png', 'tips');
+      this.action('Tips Shown', C.tipsShownTip ?? '', '↺  Show Again', 'Tips/Overview/TipsShown.png');
       if (d) this.dis--;
       this.flush();
       this.add({
@@ -780,11 +771,11 @@ export class Builder {
     if (off) this.dis--;
   }
 
-  action(label: string, tip: string, btn: string, img: string, act: 'restart' | 'tips') {
+  action(label: string, tip: string, btn: string, img: string) {
     if (!this.matches(label, tip)) return;
     this.count();
     this.flush();
-    this.add({ k: 'action', label, btn, act, tip: tipOf(tip, img) });
+    this.add({ k: 'action', label, btn, tip: tipOf(tip, img) });
   }
 
   contested() {
@@ -876,6 +867,31 @@ export class Builder {
       this.add({ k: 'pieFooter' });
     }
     if (dis) this.dis--;
+  }
+
+  /** TutorialPage: a header card with the badge switch and the progress, then one card per chapter. */
+  tutorial() {
+    const key = 'GeneralSettings.ShowTutorial';
+    // One result of many, the switch is all there is to find.
+    if (this.searching) {
+      this.sub(D.consts.tutorialSearchCaption || 'Badge', '_Help', 15, 0);
+      this.propItem(key, { k: 'tog' });
+      return;
+    }
+    const p = D.props[key];
+    this.endRow();
+    this.newRow(15, { band: true, master: true });
+    const c = this.newCell(this.row!, 2, M.labelW);
+    c.master = true;
+    this.add({ k: 'tutHeader', tip: propTip(key, p.t, p.i) });
+    for (let index = 0; index < TutorialCurriculum.length; index++) {
+      this.endRow();
+      const row = this.newRow(12, { band: true });
+      const cell = this.newCell(row, 2, M.labelW);
+      cell.bare = true;
+      this.add({ k: 'tutChapter', index });
+    }
+    this.endRow();
   }
 
   keyboard() {

@@ -1,0 +1,228 @@
+// The tutorial badge and its hover card in Blendon's notice palette (Palette.Notice*, Tutorial*), sizes in
+// Unity points.
+$fill: rgba(33, 33, 36, 0.97);
+$border: rgba(255, 255, 255, 0.13);
+$subtitle: rgba(255, 255, 255, 0.52);
+$done: #52d973;
+$done-text: #9bddab;
+$font: Inter, system-ui, sans-serif;
+
+.badge {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  background: $fill;
+  border: 1px solid $border;
+  border-radius: 6px;
+  color: #fff;
+  font-family: $font;
+  user-select: none;
+  pointer-events: auto;
+}
+
+// The logo tile is the drag handle, its rim says so under the cursor.
+.tile {
+  position: absolute;
+  left: 7px;
+  top: 5px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  cursor: move;
+  touch-action: none;
+
+  img {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  &:hover,
+  &.held {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+.text {
+  position: absolute;
+  left: 37px;
+  right: 35px;
+  top: 0;
+  bottom: 0;
+}
+
+.line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// The line is a link to the checklist page, underlined under the cursor.
+.link {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  color: #fff;
+  font: 700 12px $font;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.done {
+  color: $done-text;
+}
+
+.keys {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  margin-left: auto;
+  overflow: hidden;
+}
+
+.caps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-right: -4px;
+  border-radius: 4px;
+  background: $done;
+  color: #0f2417;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.close {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #808080;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+  }
+
+  &:hover {
+    background: #7a4d4a;
+
+    svg {
+      stroke: #fff;
+    }
+  }
+}
+
+// Widths of the lines the badge can show, read before it is laid out.
+.measure {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+
+  > span {
+    position: absolute;
+    display: flex;
+  }
+}
+
+.label {
+  font: 700 12px $font;
+}
+
+// The hover card: Notice palette, inert to the pointer, hidden until placed.
+.tip {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  padding: 10px;
+  background: rgb(33, 33, 36);
+  border: 1px solid $border;
+  border-radius: 6px;
+  color: #fff;
+  font-family: $font;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.tipHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 18px;
+}
+
+.tipTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.tipKeys {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 50%;
+  overflow: hidden;
+}
+
+.tipHint {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 14px;
+  color: $subtitle;
+}
+
+.tipMedia {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 8px;
+  border-radius: 3px;
+  background: #1c1d21;
+}

@@ -10,6 +10,7 @@
 @use 'cards';
 @use 'tables';
 @use 'overlays';
+@use 'tutorial';
 
 .uw {
   position: relative;
@@ -44,6 +45,7 @@
   @include cards.rules;
   @include tables.rules;
   @include overlays.rules;
+  @include tutorial.rules;
 }
 
 // Plain element rules lose to every class rule in the window.

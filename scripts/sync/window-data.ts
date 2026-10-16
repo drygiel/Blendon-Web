@@ -80,7 +80,6 @@ interface Model3 {
     InlineTip: DumpTip;
   }[];
   frameSteps: [string, boolean][];
-  tutorialStatus: string;
   modifierLabels: string[];
   modifierOptions: string[];
   enums: Record<string, [string, string][]>;
@@ -154,8 +153,9 @@ export function readDrawBodies(editorDir: string): Map<string, Stmt[]> {
 
 // ---- page metadata ------------------------------------------------------------------------------
 
-const ACCENTS: Record<string, string> = {
+export const ACCENTS: Record<string, string> = {
   Overview: '#F29E2E',
+  Tutorial: '#F29E2E',
   OrbitSelected: '#40B8EB',
   Pan: '#F29E2E',
   Zoom: '#8C66F2',
@@ -185,6 +185,16 @@ const CATALOG: [string, string, string, string, string, string | null, boolean, 
     'What Blendon does, what is switched on, and the keys it answers to',
     '',
     'B',
+    false,
+    false,
+  ],
+  [
+    'Tutorial',
+    'Tutorial',
+    'GET STARTED',
+    'Learn the gestures by doing them - each task ticks itself off, in any order',
+    '_Help',
+    null,
     false,
     false,
   ],
@@ -451,7 +461,8 @@ export interface WindowDataResult {
   assets: AssetPlan[];
 }
 
-export function buildWindowData(paths: PluginPaths): WindowDataResult {
+/** `extraIcons`: editor icons drawn by pages the ops don't describe (the tutorial's chapters). */
+export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): WindowDataResult {
   const M1 = readJson<Model1>(join(paths.ref, 'model.json'));
   const M2 = readJson<Model2>(join(paths.ref, 'model2.json'));
   const M3 = readJson<Model3>(join(paths.ref, 'model3.json'));
@@ -537,6 +548,7 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     ],
     SceneMenu: run('SceneMenuSettings', 'DrawSettings'),
     Keyboard: [['keyboard']],
+    Tutorial: [['tutorial']],
   };
 
   // The General (Defaults) card is drawn by hand in GeneralSettings.Defaults.cs.
@@ -640,7 +652,7 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
   };
 
   // ---- icons ----
-  const used = new Set<string>(CHROME_ICONS);
+  const used = new Set<string>([...CHROME_ICONS, ...extraIcons]);
   const collectIcons = (o: unknown): void => {
     if (!Array.isArray(o)) return;
     if (o[0] === 'sub' && typeof o[2] === 'string' && o[2]) used.add(o[2]);
@@ -880,9 +892,14 @@ export function buildWindowData(paths: PluginPaths): WindowDataResult {
     masterOffWarning: C['SettingsEditorWindow.MasterOffWarning'] ?? '',
     masterOffNote: C['OverviewPage.MasterOffNote'] ?? '',
     layoutTooltip: C['OverviewPage.LayoutTooltip'] ?? '',
-    tutorialStatus: M3.tutorialStatus,
-    tutorialStatusTip: C['OverviewPage.TutorialStatusTooltip'] ?? '',
-    tutorialProgressTip: C['OverviewPage.TutorialProgressTooltip'] ?? '',
+    tutorialStartOverTip: C['TutorialPage.StartOverTooltip'] ?? '',
+    tutorialStartOverImage: C['TutorialPage.StartOverImage'] ?? '',
+    tutorialRestartTitle: C['TutorialPage.RestartTitle'] ?? '',
+    tutorialRestartBody: C['TutorialPage.RestartBody'] ?? '',
+    tutorialSearchCaption: C['TutorialPage.SearchCaption'] ?? '',
+    tutorialChooseNote: C['TutorialTaskRow.ChooseNote'] ?? '',
+    tutorialBadgeLabel: C['TutorialBadge.LabelText'] ?? '',
+    tutorialBadgeCloseTip: C['TutorialBadge.CloseTooltip'] ?? '',
     tipsShownTip: C['OverviewPage.TipsShownTooltip'] ?? '',
     ioTooltip: C['OverviewPage.SettingsIoTooltip'] ?? '',
     exportTip: C['OverviewPage.ExportSettingsTooltip'] ?? '',

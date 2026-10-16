@@ -1,0 +1,268 @@
+// The Tutorial page: header card footer, chapter section cards and task rows (TutorialPage, TutorialTaskRow).
+@mixin rules {
+  // header card: the switch line, a rule, then the progress and Start Over
+  .tuth {
+    display: block;
+    padding: 12px 13px;
+    background: #3f3f3f;
+    border: 1px solid #212121;
+    border-radius: 6px;
+  }
+  .tutrule {
+    height: 1px;
+    margin: 6px 0 7px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .tutbar {
+    display: flex;
+    gap: 3px;
+    height: 6px;
+
+    i {
+      position: relative;
+      flex-basis: 0;
+      min-width: 0;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    b {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: 3px;
+      background: #ed8c26;
+    }
+
+    b.full {
+      background: #52d973;
+    }
+  }
+  .tutstat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 22px;
+    margin-top: 10px;
+
+    span {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 10.286px;
+      color: #a6a6a6;
+    }
+
+    .nb {
+      flex: none;
+      width: 118px;
+    }
+  }
+
+  // chapter card (SectionCard)
+  .tutc {
+    position: relative;
+    padding: 12px 14px 10px;
+    background: #2b2b2b;
+    border: 1px solid #212121;
+    border-radius: 6px;
+  }
+  .tutc::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--acc);
+  }
+  .tutch {
+    display: flex;
+    align-items: center;
+    height: 18px;
+    margin-bottom: 8px;
+
+    .chl {
+      flex: none;
+    }
+  }
+  .tutsub {
+    flex: 1;
+    min-width: 0;
+    margin-left: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 10.286px;
+    color: #808080;
+  }
+  .tutcount {
+    flex: none;
+    margin-left: 6px;
+    font-size: 10.286px;
+    color: #a6a6a6;
+  }
+  .tutrows {
+    margin: 0 -6px;
+  }
+
+  // task row
+  .tutr {
+    position: relative;
+  }
+  // Washes stop a point short of the next row, so a run of done tasks doesn't read as one green wall.
+  .tutg {
+    position: absolute;
+    inset: 0 0 1px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .tutr.pick:has(.tutt:hover) .tutg {
+    background: rgba(255, 255, 255, 0.045);
+  }
+  .tutrail {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 5px;
+    width: 2px;
+    background: #ed8c26;
+    pointer-events: none;
+  }
+  .tutl {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 8px;
+  }
+  .tutt {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-right: 6px;
+  }
+  .tutr.pick .tutt {
+    cursor: pointer;
+  }
+  .tutbox {
+    flex: none;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 10.286px;
+    font-weight: 700;
+    line-height: 1;
+    color: #0f2417;
+  }
+  .tutbox.done {
+    border: 0;
+    background: #52d973;
+  }
+  .tutch .tutbox {
+    margin-left: 6px;
+  }
+  .tutname {
+    flex: 1;
+    min-width: 0;
+    margin-left: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  // Bold from halfway, so the weight swaps once mid-fold instead of flickering.
+  .tutr.cur .tutname {
+    font-weight: 700;
+  }
+  .tutkeys {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    max-width: 42%;
+    margin-left: 14px;
+    overflow: hidden;
+  }
+  .kthen {
+    width: 12px;
+    text-align: center;
+    font-family: Consolas, Menlo, monospace;
+    font-size: 10.286px;
+    color: #5f5f5f;
+  }
+  .tuttag {
+    flex: none;
+    margin-left: 14px;
+    height: 14px;
+    padding: 0 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 9.143px;
+    font-weight: 700;
+    line-height: 12px;
+    color: #808080;
+  }
+  .tutgear {
+    --gc: #808080;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+  }
+  button.tutgear:hover:not(:disabled) {
+    --gc: #d9d9d9;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  // the open task's picture and hint, beside each other when both fit
+  .tutd {
+    position: relative;
+    overflow: hidden;
+  }
+  .tutdi {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 7px 14px;
+    padding: 0 8px 12px 32px;
+  }
+  // The hint moves under the picture once both can't fit beside each other.
+  .tutpic {
+    position: relative;
+    flex: none;
+    width: min(320px, 100%);
+    border-radius: 3px;
+    overflow: hidden;
+    background: #1c1d21;
+
+    img,
+    video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+  .tuthint {
+    flex: 1 1 180px;
+    min-width: 180px;
+    font-size: 10.857px;
+    line-height: 1.3;
+    color: #a6a6a6;
+    white-space: normal;
+  }
+  .tutc.dis {
+    opacity: 0.6;
+  }
+}

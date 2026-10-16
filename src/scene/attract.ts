@@ -2,7 +2,6 @@
 // (the demo scene opens centred on it), so the view reads as something live to play with rather than a
 // still. The first click, key or wheel in the dock, or opening the Blendon tab, ends it for good and
 // brings the whole dock into view.
-import { PlaygroundEvents } from '../bridge/events.ts';
 import { reducedMotion } from './blendon/navigation/camera.ts';
 import type { SceneHost } from './engine/host.ts';
 import { EditorApplication } from './unity/editor.ts';
@@ -31,7 +30,6 @@ export function startAttractOrbit(host: SceneHost): () => void {
     EditorApplication.update.remove(tick);
     for (const type of ['pointerdown', 'wheel', 'keydown', 'focusin'] as const)
       dock.removeEventListener(type, engage, true);
-    offSettings();
   };
   const engage = () => {
     stop();
@@ -39,7 +37,6 @@ export function startAttractOrbit(host: SceneHost): () => void {
   };
   for (const type of ['pointerdown', 'wheel', 'keydown', 'focusin'] as const)
     dock.addEventListener(type, engage, { capture: true, passive: true });
-  const offSettings = PlaygroundEvents.on('settingsOpened', engage);
   if (orbit) EditorApplication.update.add(tick);
   return stop;
 }

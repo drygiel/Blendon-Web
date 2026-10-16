@@ -4,7 +4,7 @@ import { HandleUtility, MouseCursor } from '../../../unity/handles.ts';
 import { Event, EventType } from '../../../unity/imgui.ts';
 import { Plane, Vector3 } from '../../../unity/math.ts';
 import type { SceneCamera, SceneView } from '../../../unity/sceneview.ts';
-import { SelectionCache, ShortcutTips } from '../../foundation.ts';
+import { SelectionCache, ShortcutTips, TutorialTransform } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { GrabSession, IndividualOrigins } from '../common/controller.ts';
 import { AxisBasis } from '../common/layout.ts';
@@ -134,6 +134,7 @@ export class MoveGrab extends GrabSession {
       return;
     }
     this.manual.snap = this.currentSnap();
+    TutorialTransform.noteDragFrame(this.manual.snap.active, SharedGizmoSettings.PrecisionHeld);
     if (this.manual.active) this.manual.applyManualDrag();
     else this.applyFree();
   }

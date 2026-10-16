@@ -8,7 +8,7 @@ import type { SceneHost } from '../engine/host.ts';
 import { iconUrl } from '../unity/icons.ts';
 import { useViewSize } from './view-size.ts';
 import styles from './ShortcutTipCard.module.scss';
-import { KeyCaps } from './TutorialCard.tsx';
+import { KeyCaps } from './KeyCaps.tsx';
 
 const Width = 400;
 const Height = 44 + 72 * 2 + 24;

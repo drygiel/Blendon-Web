@@ -1,392 +1,415 @@
-// TutorialCurriculum: the six chapters of the Scene View tutorial card, as Blendon ships them.
-import { ShortcutManager } from '../../unity/editor.ts';
-import { Color } from '../../unity/math.ts';
-import { ModifierKeys } from '../foundation.ts';
-import { MoveGizmo } from '../gizmos/move/move-gizmo.ts';
-import { RotateGizmo } from '../gizmos/rotate/rotate-gizmo.ts';
-import { SharedGizmoSettings } from '../gizmos/shared-settings.ts';
-import { OrbitSelectedSettings } from '../navigation/orbit-selected.ts';
-import { OrientationGizmoSettings } from '../navigation/orientation/gizmo.ts';
-import { PanSettings } from '../navigation/pan.ts';
-import { ViewportNavSettings } from '../navigation/viewport-nav.ts';
-import { ZoomSettings } from '../navigation/zoom.ts';
-import { PieMenuSettings } from '../piemenus/settings.ts';
-import {
-  FrameSelectedSettings,
-  IsolateViewSettings,
-  SelectionHistorySettings,
-  SnapToFloorSettings,
-  ViewHistorySettings,
-} from '../scenetools/settings.ts';
-import { GeneralSettings } from '../settings.ts';
+// TutorialCurriculum: one journey through a small scene the user builds, as Blendon ships it. The text, pictures
+// and chapters come from the plugin (src/plugin/generated/tutorial.json); how each task is ticked is ported here.
+import { SharedSettings } from '../../../bridge/settings.ts';
+import { TUTORIAL, type TutorialTask as TaskText } from '../../../plugin/tutorial.ts';
+import { Prefs, Selection, ShortcutManager, type PrefValue } from '../../unity/editor.ts';
+import { IS_MAC } from '../../unity/imgui.ts';
+import { ModifierKeys, TransformTraits as T } from '../foundation.ts';
 
-export interface TutorialTask {
-  id: string;
-  title: string;
-  hint: string;
-  /** A gesture's signal; empty for a task a shortcut answers. */
-  signal: string;
-  shortcutIds: string[];
-  /** Whether the feature it teaches is switched on. */
-  pageEnabled: () => boolean;
-  /** Overrides the first shortcut's binding as the keys shown. */
+/** Joins the steps of a key sequence ("G > X > Enter"). */
+export const Then = ' > ';
+
+type Kind = 'shortcut' | 'gesture' | 'command' | 'transform';
+
+interface Rule {
+  kind: Kind;
+  /** Feature switched off -> keys parked -> task skipped. */
+  page: string;
+  signal?: string;
+  /** First one names the keys on the row. */
+  ids?: string[];
+  /** Pie item action ids and context menu keys. A trailing "/" takes any entry under it. */
+  commands?: string[];
+  traits?: number;
+  /** Read live, a modifier can be changed between two renders. */
   keys?: () => string;
+  /** Shortcut whose binding the keys start with: its row, for the gear. */
+  keysIn?: string;
+  /** Keys that are a setting (a modifier): that setting's row, for the gear. */
+  keysSetting?: string;
+  /** Keys set somewhere no row can be marked: the page that leads there. */
+  keysPage?: string;
+  /** Holds the tick back too, so an earlier step can't tick a later task early. */
+  needs?: () => boolean;
+  /** A switch below the page's own, e.g. one context menu entry. */
+  available?: () => boolean;
+  /** Why the browser's Scene view can't do this one. */
+  notInDemo?: string;
+}
+
+// ---- settings and keys, read the way the Scene view reads them ----
+
+const PageOwner: Record<string, string> = {
+  OrbitSelected: 'OrbitSelectedSettings',
+  Pan: 'PanSettings',
+  Zoom: 'ZoomSettings',
+  ViewportNav: 'ViewportNavSettings',
+  OrientationGizmo: 'OrientationGizmoSettings',
+  MoveGizmo: 'MoveGizmoSettings',
+  RotateGizmo: 'RotateGizmoSettings',
+  ScaleGizmo: 'ScaleGizmoSettings',
+  TransformGizmo: 'TransformGizmoSettings',
+  FrameSelected: 'FrameSelectedSettings',
+  IsolateView: 'IsolateViewSettings',
+  SnapToFloor: 'SnapToFloorSettings',
+  BoxSelect: 'BoxSelectSettings',
+  SceneMenu: 'SceneMenuSettings',
+};
+
+// The Scene view's settings once it has loaded, else the window's own values.
+function setting<V extends PrefValue>(key: string, fallback: V): V {
+  if (Prefs.source) return Prefs.get(key, fallback);
+  return (SharedSettings.reader?.val(key) as V | undefined) ?? fallback;
+}
+
+const on = (key: string, fallback = true) => !!setting(key, fallback);
+
+/** SettingsPages.IsEnabled: tuning and chrome pages always read as on. */
+export function pageEnabled(page: string): boolean {
+  switch (page) {
+    // "Any" not "all four", so a vertex-snap key still live for the running tools isn't grayed.
+    case 'SharedGizmos':
+      return ['Move', 'Rotate', 'Scale', 'Transform'].some((t) => on(t + 'GizmoSettings.Enabled'));
+    case 'History':
+      return on('HistorySettings.Enabled') || on('ViewHistorySettings.Enabled');
+    case 'PieMenus':
+      return on('PieMenuSettings.Enabled') || on('WireframeToggleSettings.Enabled');
+  }
+  const owner = PageOwner[page];
+  return owner ? on(owner + '.Enabled') : true;
+}
+
+/** A shortcut's live binding text, empty when unbound or parked. */
+export function binding(id: string): string {
+  if (ShortcutManager.isRegistered(id)) return ShortcutManager.bindingText(id);
+  return Prefs.source?.shortcut(id) ?? SharedSettings.reader?.shortcut(id) ?? '';
+}
+
+const modifier = (key: string, fallback: string) =>
+  ModifierKeys.displayName(ModifierKeys.parse(setting(key, fallback)));
+const keys = (...steps: string[]) => steps.join(Then);
+// Unity's own snap and subtract key, not rebindable here.
+const actionKey = () => (IS_MAC ? 'Cmd' : 'Ctrl');
+
+const Id = {
+  Orbit: 'Blendon/Orbit Selected',
+  Roll: 'Blendon/Quick Roll',
+  Pan: 'Blendon/Camera Pan',
+  Frame: 'Blendon/Frame Selected',
+  Grab: 'Blendon/Grab',
+  Rotate: 'Blendon/Grab Rotate',
+  Scale: 'Blendon/Grab Scale',
+  SnapToFloor: 'Blendon/Snap To Floor',
+  VertexSnap: 'Blendon/Vertex Snap',
+  PickPivot: 'Blendon/Pick Virtual Pivot',
+  ContextMenu: 'Blendon/Context Menu',
+  Parent: 'Blendon/Select Parent',
+  Children: 'Blendon/Select Children',
+  SelectionBack: 'Blendon/History/Undo Selection',
+  SelectionForward: 'Blendon/History/Redo Selection',
+  ViewBack: 'Blendon/History/Undo View',
+  ViewForward: 'Blendon/History/Redo View',
+  Isolate: 'Blendon/Isolate View',
+  Wireframe: 'Blendon/Toggle Wireframe',
+  Front: 'Blendon/Viewport Nav/View Front',
+  Projection: 'Blendon/Viewport Nav/Toggle Projection',
+  OrbitLeft: 'Blendon/Viewport Nav/Orbit Left',
+  OrbitRight: 'Blendon/Viewport Nav/Orbit Right',
+  OrbitUp: 'Blendon/Viewport Nav/Orbit Up',
+  OrbitDown: 'Blendon/Viewport Nav/Orbit Down',
+  Camera: 'Blendon/Viewport Nav/Align To Camera',
+  AddObjectPie: 'Blendon/Pie Menus/Add Object',
+  ResetPie: 'Blendon/Pie Menus/Reset',
+  ToolsPie: 'Blendon/Pie Menus/Unity Tools',
+  OrientationPie: 'Blendon/Pie Menus/Tools Handle',
+  PivotPie: 'Blendon/Pie Menus/Pivot Point',
+  ViewPie: 'Blendon/Pie Menus/View',
+  ShadingPie: 'Blendon/Pie Menus/Shading',
+  SnappingPie: 'Blendon/Pie Menus/Snapping',
+};
+
+const contextMenuKey = () => binding(Id.ContextMenu);
+const grab = () => binding(Id.Grab);
+
+const hasSelection = () => Selection.activeTransform != null;
+const twoSelected = () => Selection.count >= 2;
+// One cube, so a click on it walks up instead of reselecting.
+const inGroup = () => Selection.count === 1 && !!Selection.activeTransform?.parent;
+const hasChildren = () => (Selection.activeTransform?.children.length ?? 0) > 0;
+
+const shortcut = (page: string, ...ids: string[]): Rule => ({ kind: 'shortcut', page, ids });
+const gesture = (page: string, signal: string, extra: Partial<Rule> = {}): Rule => ({
+  kind: 'gesture',
+  page,
+  signal,
+  ...extra,
+});
+const command = (page: string, ...commands: string[]): Rule => ({ kind: 'command', page, commands });
+const transform = (page: string, traits: number): Rule => ({ kind: 'transform', page, traits });
+
+const Rules: Record<string, Rule> = {
+  // First Scene
+  'nav.orbit': shortcut('OrbitSelected', Id.Orbit),
+  'nav.pan': shortcut('Pan', Id.Pan),
+  'scene.add-plane': {
+    ...command('SceneMenu', 'Blendon/Add/Plane'),
+    keys: contextMenuKey,
+    keysPage: 'SceneMenu',
+    available: () => on('SceneMenuSettings.AddObject'),
+  },
+  'nav.zoom': gesture('Zoom', 'ZoomWheel', { keys: () => 'Wheel' }),
+  'scene.add-cube': { ...command('PieMenus', 'Blendon/Add Object/Cube'), keysIn: Id.AddObjectPie },
+  'nav.frame': { ...shortcut('FrameSelected', Id.Frame), needs: hasSelection },
+  'nav.orbit-selection': { ...shortcut('OrbitSelected', Id.Orbit), needs: hasSelection },
+
+  // Grab and Move
+  'grab.move': { ...transform('MoveGizmo', T.Move | T.Grab), keysIn: Id.Grab, needs: hasSelection },
+  'grab.cancel': gesture('MoveGizmo', 'TransformCancelled', {
+    keys: () => keys(grab(), 'Mouse 1'),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  }),
+  'grab.axis': {
+    ...transform('MoveGizmo', T.Move | T.Grab | T.Axis),
+    keys: () => keys(grab(), 'X'),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  },
+  'grab.exact': {
+    ...transform('MoveGizmo', T.Move | T.Grab | T.Axis | T.Numeric),
+    keys: () => keys(grab(), 'Y', '2', 'Enter'),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  },
+  'snap.floor': { ...shortcut('SnapToFloor', Id.SnapToFloor), needs: hasSelection },
+  'grab.floor-plane': {
+    ...transform('MoveGizmo', T.Move | T.Grab | T.Plane),
+    keys: () => keys(grab(), modifier('SharedGizmoSettings.AxisExcludeModifier', 'Shift') + '+Y'),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  },
+  'grab.grid': {
+    ...transform('MoveGizmo', T.Move | T.Grab | T.Snapped),
+    keys: () => keys(grab(), actionKey()),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  },
+  'grab.slow': {
+    ...transform('MoveGizmo', T.Move | T.Grab | T.Precision),
+    keys: () => keys(grab(), modifier('SharedGizmoSettings.PrecisionModifier', 'Shift')),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  },
+
+  // Rotate and Scale
+  'grab.rotate': { ...transform('RotateGizmo', T.Rotate | T.Grab), keysIn: Id.Rotate, needs: hasSelection },
+  'grab.rotate-exact': {
+    ...transform('RotateGizmo', T.Rotate | T.Grab | T.Axis | T.Numeric),
+    keys: () => keys(binding(Id.Rotate), 'Y', '45', 'Enter'),
+    keysIn: Id.Rotate,
+    needs: hasSelection,
+  },
+  'grab.local-axis': {
+    ...transform('MoveGizmo', T.Move | T.Grab | T.LocalAxis),
+    keys: () => keys(grab(), 'X', 'X'),
+    keysIn: Id.Grab,
+    needs: hasSelection,
+  },
+  'grab.scale': { ...transform('ScaleGizmo', T.Scale | T.Grab), keysIn: Id.Scale, needs: hasSelection },
+  'grab.reset-scale': { ...command('PieMenus', 'Blendon/Reset/Scale'), keysIn: Id.ResetPie, needs: hasSelection },
+
+  // A Second Cube
+  'pair.add-cube': {
+    ...command('PieMenus', 'Blendon/Add Object/Cube', 'Blendon/Add/Cube', 'Duplicate'),
+    keysIn: Id.AddObjectPie,
+  },
+  'snap.vertex': {
+    ...transform('SharedGizmos', T.Move | T.OnVertex),
+    keys: () => keys(grab(), binding(Id.VertexSnap)),
+    keysIn: Id.VertexSnap,
+    needs: hasSelection,
+  },
+  'snap.surface': {
+    ...transform('MoveGizmo', T.Move | T.Surface),
+    keys: () => keys(grab(), modifier('MoveGizmoSettings.SurfaceSnapModifier', 'Alt')),
+    keysSetting: 'MoveGizmoSettings.SurfaceSnapModifier',
+    needs: hasSelection,
+  },
+
+  // Tools and Handles
+  'handles.move-tool': { ...command('PieMenus', 'Blendon/Tools/Move'), keysIn: Id.ToolsPie },
+  'handles.axis': { ...transform('MoveGizmo', T.Move | T.Arrow), needs: hasSelection },
+  'handles.plane': { ...transform('MoveGizmo', T.Move | T.Square), needs: hasSelection },
+  'handles.local': { ...command('PieMenus', 'Blendon/Tools Handle/Local'), keysIn: Id.OrientationPie },
+  'handles.rotate-tool': { ...command('PieMenus', 'Blendon/Tools/Rotate'), keysIn: Id.ToolsPie },
+  'handles.ring': { ...transform('RotateGizmo', T.Rotate | T.Ring), needs: hasSelection },
+  'snap.lookat': {
+    ...transform('RotateGizmo', T.Rotate | T.LookAt),
+    keys: () => modifier('RotateGizmoSettings.LookAtModifier', 'Alt'),
+    keysSetting: 'RotateGizmoSettings.LookAtModifier',
+    needs: hasSelection,
+  },
+  'snap.virtual-pivot': {
+    ...transform('SharedGizmos', T.Rotate | T.VirtualPivot),
+    keysIn: Id.PickPivot,
+    needs: hasSelection,
+  },
+  'snap.keep-pivot': gesture('SharedGizmos', 'VirtualPivotKept', { keys: () => 'Enter' }),
+
+  // Selecting
+  'select.box': gesture('BoxSelect', 'BoxSelected'),
+  'select.box-modes': gesture('BoxSelect', 'BoxSelectModified', { keys: () => 'Shift' }),
+  'select.group': {
+    ...command('SceneMenu', 'Blendon/Group'),
+    keys: contextMenuKey,
+    keysPage: 'SceneMenu',
+    available: () => on('SceneMenuSettings.Grouping', false),
+    needs: twoSelected,
+  },
+  'select.parent': { ...shortcut('BoxSelect', Id.Parent), needs: inGroup },
+  'select.children': { ...shortcut('BoxSelect', Id.Children), needs: hasChildren },
+  'select.click-parent': gesture('BoxSelect', 'ClickSelectedParent', { needs: inGroup }),
+  'tools.selection-history': shortcut('History', Id.SelectionBack, Id.SelectionForward),
+  'select.pivot-point': { ...command('PieMenus', 'Blendon/Pivot Point/'), keysIn: Id.PivotPie, needs: twoSelected },
+  'select.align': {
+    ...command('SceneMenu', 'Blendon/Align/'),
+    keys: contextMenuKey,
+    keysPage: 'SceneMenu',
+    available: () => on('SceneMenuSettings.AlignToActive'),
+    needs: twoSelected,
+  },
+
+  // Views
+  'nav.axis-view': gesture('ViewportNav', 'AxisView', { keysIn: Id.Front }),
+  'nav.projection': shortcut('ViewportNav', Id.Projection),
+  'nav.orbit-step': shortcut('ViewportNav', Id.OrbitLeft, Id.OrbitRight, Id.OrbitUp, Id.OrbitDown),
+  'nav.axis-snap': gesture('OrbitSelected', 'OrbitAxisSnap', {
+    keys: () => keys(binding(Id.Orbit), modifier('OrbitSelectedSettings.SnapModifier', 'Alt')),
+    keysSetting: 'OrbitSelectedSettings.SnapModifier',
+  }),
+  'nav.quick-roll': shortcut('OrbitSelected', Id.Roll),
+  'tools.orientation': gesture('OrientationGizmo', 'OrientationGizmoClick'),
+  'nav.view-pie': { ...command('PieMenus', 'Blendon/View/'), keysIn: Id.ViewPie },
+  'nav.camera': { ...shortcut('ViewportNav', Id.Camera), notInDemo: 'the demo scene has no camera to look through' },
+  'tools.view-history': shortcut('History', Id.ViewBack, Id.ViewForward),
+  'tools.isolate': { ...shortcut('IsolateView', Id.Isolate), needs: hasSelection },
+
+  // Pie Menus and You
+  'pie.draw-mode': { ...command('PieMenus', 'Blendon/Shading/'), keysIn: Id.ShadingPie },
+  'pie.tap': gesture('PieMenus', 'PieTap', { keysIn: Id.ShadingPie }),
+  'pie.wireframe': shortcut('PieMenus', Id.Wireframe),
+  'pie.number': gesture('PieMenus', 'PieNumber', { keys: () => keys(binding(Id.ToolsPie), '1'), keysIn: Id.ToolsPie }),
+  'pie.snapping': { ...command('PieMenus', 'Blendon/Snapping/'), keysIn: Id.SnappingPie },
+  'pie.rebind': gesture('Keyboard', 'ShortcutRebound', { keysPage: 'Keyboard' }),
+};
+
+/**
+ * Ticked by one of: a shortcut pressed, a signal (a gesture), a pie item or menu entry run (a command), or a
+ * kept drag with the right traits (a transform).
+ */
+export class TutorialTask {
+  readonly id: string;
+  readonly title: string;
+  readonly hint: string;
+  readonly picture: string;
+  readonly clip: string;
+  readonly aspect: string;
+  /** The badge's line while needsMet() is false, e.g. "Select the cube first". */
+  readonly needsText: string;
+  readonly kind: Kind;
+  readonly page: string;
+  readonly signal: string;
+  readonly shortcutIds: string[];
+  readonly commands: string[];
+  readonly traits: number;
+  readonly keysShortcutId: string;
+  readonly keysSetting: string;
+  readonly keysPage: string;
+  readonly notInDemo: string;
+  private readonly rule: Rule;
+
+  constructor(text: TaskText, rule: Rule) {
+    this.id = text.id;
+    this.title = text.title;
+    this.hint = text.hint;
+    this.picture = text.picture;
+    this.clip = text.clip;
+    this.aspect = text.aspect;
+    this.needsText = text.needs;
+    this.rule = rule;
+    this.kind = rule.kind;
+    this.page = rule.page;
+    this.signal = rule.signal ?? '';
+    this.shortcutIds = rule.ids ?? [];
+    this.commands = rule.commands ?? [];
+    this.traits = rule.traits ?? T.None;
+    this.keysShortcutId = rule.keysIn ?? '';
+    this.keysSetting = rule.keysSetting ?? '';
+    this.keysPage = rule.keysPage ?? '';
+    this.notInDemo = rule.notInDemo ?? '';
+  }
+
+  private get keyId() {
+    return this.shortcutIds[0] ?? this.keysShortcutId;
+  }
+
+  /** Empty for gestures without keys. */
+  keys(): string {
+    if (this.rule.keys) return this.rule.keys();
+    const id = this.keyId;
+    return id ? binding(id) : '';
+  }
+
+  /** Feature off, key unbound or not in the demo. Still listed, dimmed, but never the task asked for next. */
+  isSkipped(): boolean {
+    if (this.notInDemo) return true;
+    if (!pageEnabled(this.page)) return true;
+    if (this.rule.available && !this.rule.available()) return true;
+    const id = this.keyId;
+    return !!id && !binding(id);
+  }
+
+  needsMet(): boolean {
+    return !this.rule.needs || this.rule.needs();
+  }
+
+  answers(shortcutId: string) {
+    return this.shortcutIds.includes(shortcutId);
+  }
+
+  answersCommand(key: string) {
+    return this.commands.some((c) => (c.endsWith('/') ? key.startsWith(c) : key === c));
+  }
+
+  answersTransform(traits: number) {
+    return this.traits !== T.None && (traits & this.traits) === this.traits;
+  }
 }
 
 export interface TutorialChapter {
   title: string;
   subtitle: string;
   iconName: string;
-  accent: Color;
+  accent: string;
   tasks: TutorialTask[];
 }
 
-const binding = (id: string) => ShortcutManager.bindingText(id);
-const modifier = (m: number) => ModifierKeys.displayName(m);
+const missing = TUTORIAL.chapters.flatMap((c) => c.tasks).filter((t) => !Rules[t.id]);
+if (missing.length) throw new Error('No tutorial rule for: ' + missing.map((t) => t.id).join(', '));
 
-const shortcut = (id: string, title: string, hint: string, page: () => boolean, ...ids: string[]): TutorialTask => ({
-  id,
-  title,
-  hint,
-  signal: '',
-  shortcutIds: ids,
-  pageEnabled: page,
-});
+export const TutorialCurriculum: TutorialChapter[] = TUTORIAL.chapters.map((c) => ({
+  title: c.title,
+  subtitle: c.subtitle,
+  iconName: c.icon,
+  accent: c.accent,
+  tasks: c.tasks.map((t) => new TutorialTask(t, Rules[t.id])),
+}));
 
-const gesture = (
-  id: string,
-  title: string,
-  hint: string,
-  signal: string,
-  page: () => boolean,
-  keys?: () => string,
-): TutorialTask => ({ id, title, hint, signal, shortcutIds: [], pageEnabled: page, keys });
+export const TutorialTasks: TutorialTask[] = TutorialCurriculum.flatMap((c) => c.tasks);
 
-export const TutorialTasks = {
-  keys(task: TutorialTask) {
-    if (task.keys) return task.keys();
-    return task.shortcutIds.length ? binding(task.shortcutIds[0]) : '';
-  },
+const byId = new Map(TutorialTasks.map((t) => [t.id, t]));
 
-  isSkipped(task: TutorialTask) {
-    if (!task.pageEnabled()) return true;
-    return task.shortcutIds.length > 0 && !TutorialTasks.keys(task);
-  },
-};
+export const findTask = (id: string) => byId.get(id) ?? null;
 
-const Pages = {
-  OrbitSelected: () => OrbitSelectedSettings.Enabled,
-  Pan: () => PanSettings.Enabled,
-  Zoom: () => ZoomSettings.Enabled,
-  FrameSelected: () => FrameSelectedSettings.Enabled,
-  ViewportNav: () => ViewportNavSettings.Enabled,
-  MoveGizmo: () => MoveGizmo.instance.settings.Enabled,
-  RotateGizmo: () => RotateGizmo.instance.settings.Enabled,
-  ScaleGizmo: () => GeneralSettings.Enabled,
-  SharedGizmos: () => GeneralSettings.Enabled,
-  SnapToFloor: () => SnapToFloorSettings.Enabled,
-  IsolateView: () => IsolateViewSettings.Enabled,
-  History: () => SelectionHistorySettings.Enabled || ViewHistorySettings.Enabled,
-  OrientationGizmo: () => OrientationGizmoSettings.Enabled,
-  PieMenus: () => PieMenuSettings.Enabled,
-  Overview: () => GeneralSettings.Enabled,
-};
-
-export const TutorialCurriculum: TutorialChapter[] = [
-  {
-    title: 'Navigating the View',
-    subtitle: "The camera, Blender's way",
-    iconName: 'd_SceneViewCamera',
-    accent: Color.hex('#40B8EB'),
-    tasks: [
-      shortcut(
-        'nav.orbit',
-        'Orbit around your selection',
-        "Select something, then hold the orbit button and drag - the camera turns around the selection, not around the view's own pivot.",
-        Pages.OrbitSelected,
-        'Blendon/Orbit Selected',
-      ),
-      gesture(
-        'nav.axis-snap',
-        'Snap the view to a world axis',
-        'Start the orbit drag first, then hold this key: as the view comes near a world axis it locks onto it and drops into orthographic. Let go for a free perspective orbit again.',
-        'OrbitAxisSnap',
-        Pages.OrbitSelected,
-        () => modifier(OrbitSelectedSettings.SnapModifier),
-      ),
-      shortcut(
-        'nav.quick-roll',
-        'Roll the view 90°',
-        'Hold Alt and flick MMB in any direction - the view rolls 90° that way and lands squarely on the nearest axis view.',
-        Pages.OrbitSelected,
-        'Blendon/Quick Roll',
-      ),
-      shortcut(
-        'nav.pan',
-        'Slide the camera sideways',
-        'Pan keeps the point under the cursor anchored, so the scene tracks your hand instead of drifting.',
-        Pages.Pan,
-        'Blendon/Camera Pan',
-      ),
-      gesture(
-        'nav.zoom',
-        'Zoom toward the cursor',
-        'Point at something across the scene and scroll - you close in on that, not on the middle of the view.',
-        'ZoomWheel',
-        Pages.Zoom,
-        () => 'Wheel',
-      ),
-      shortcut(
-        'nav.frame',
-        'Frame the selection',
-        'Press it again without changing the selection to step through the cycle: bounds, pivot, close, then back where you started.',
-        Pages.FrameSelected,
-        'Blendon/Frame Selected',
-      ),
-      gesture(
-        'nav.axis-view',
-        'Jump to an axis view',
-        'The numpad views: front, right and top, with the action modifier for the opposite side of each. NumLock has to be on.',
-        'AxisView',
-        Pages.ViewportNav,
-        () => binding('Blendon/Viewport Nav/View Front'),
-      ),
-    ],
-  },
-  {
-    title: 'Grab, Rotate, Scale',
-    subtitle: 'Transform with no handle',
-    iconName: 'd_MoveTool',
-    accent: Color.hex('#E6574F'),
-    tasks: [
-      shortcut(
-        'grab.move',
-        'Grab the selection and move it',
-        'The selection follows the cursor across the screen - no handle to hit first.',
-        Pages.MoveGizmo,
-        'Blendon/Grab',
-      ),
-      gesture(
-        'grab.confirm',
-        'Confirm a transform',
-        'A left click or Enter drops the selection where it is and ends the grab.',
-        'TransformConfirmed',
-        Pages.MoveGizmo,
-        () => 'Return',
-      ),
-      gesture(
-        'grab.cancel',
-        'Cancel a transform',
-        'Right-click or Escape mid-grab and everything goes back exactly where it started - one undo step, never a half-applied move.',
-        'TransformCancelled',
-        Pages.MoveGizmo,
-        () => 'Mouse 1',
-      ),
-      shortcut(
-        'grab.rotate',
-        'Grab-rotate the selection',
-        'The same gesture for rotation: the angle follows the cursor around the pivot.',
-        Pages.RotateGizmo,
-        'Blendon/Grab Rotate',
-      ),
-      shortcut(
-        'grab.scale',
-        'Grab-scale the selection',
-        'And for scale: move away from the pivot to grow, toward it to shrink.',
-        Pages.ScaleGizmo,
-        'Blendon/Grab Scale',
-      ),
-    ],
-  },
-  {
-    title: 'Handles & Snapping',
-    subtitle: 'What the handles land on',
-    iconName: 'd_Transform Icon',
-    accent: Color.hex('#B861EB'),
-    tasks: [
-      gesture(
-        'handles.axis',
-        'Drag an axis handle',
-        "The arrows and boxes work as they always did - they just draw Blender's way, and honour everything this tutorial has taught so far.",
-        'HandleAxisDrag',
-        Pages.MoveGizmo,
-      ),
-      gesture(
-        'handles.plane',
-        'Drag a plane handle',
-        'The small square between two arrows moves along both of those axes at once.',
-        'HandlePlaneDrag',
-        Pages.MoveGizmo,
-      ),
-      gesture(
-        'handles.ring',
-        'Turn a rotation ring',
-        'Switch to the rotate tool and drag one of the coloured rings; the angle follows the cursor around the pivot.',
-        'HandleRingDrag',
-        Pages.RotateGizmo,
-      ),
-      gesture(
-        'snap.surface',
-        'Drop an object onto a surface',
-        'Hold this key while moving: the selection follows the surface under the cursor, for placing things on a floor or a wall.',
-        'SurfaceSnap',
-        Pages.MoveGizmo,
-        () => modifier(MoveGizmo.instance.settings.SurfaceSnapModifier),
-      ),
-      gesture(
-        'snap.lookat',
-        'Aim an object at something',
-        'The same key while rotating aims the selection at whatever is under the cursor.',
-        'LookAt',
-        Pages.RotateGizmo,
-        () => modifier(RotateGizmo.instance.settings.LookAtModifier),
-      ),
-      gesture(
-        'snap.vertex',
-        'Snap to a vertex',
-        "Unity's own vertex snapping: hold the key, pick up the selection by one of its vertices and drop it onto another object's.",
-        'VertexSnap',
-        Pages.SharedGizmos,
-        () => binding('Blendon/Vertex Snap'),
-      ),
-      shortcut(
-        'snap.virtual-pivot',
-        'Pin a virtual pivot',
-        'Toggle it, then click a vertex to settle on it - drags snap from that point instead of a default origin, until you toggle the mode off again.',
-        Pages.SharedGizmos,
-        'Blendon/Pick Virtual Pivot',
-      ),
-      shortcut(
-        'snap.floor',
-        'Drop the selection to the floor',
-        "Rests each object's bounds on whatever is below it, ignoring its own colliders.",
-        Pages.SnapToFloor,
-        'Blendon/Snap To Floor',
-      ),
-    ],
-  },
-  {
-    title: 'Precision',
-    subtitle: 'Exact values, mid-drag',
-    iconName: 'd_Grid.PickingTool',
-    accent: Color.hex('#BF59E6'),
-    tasks: [
-      gesture(
-        'precision.axis',
-        'Constrain a drag to one axis',
-        'During any drag press X, Y or Z. Press the same key again to switch between global and local; a third press on a G/R/S grab frees the axis.',
-        'AxisConstraint',
-        Pages.SharedGizmos,
-        () => 'X',
-      ),
-      gesture(
-        'precision.numeric',
-        'Type an exact value',
-        'Mid-drag, type a number and press Enter. The mouse stops driving the moment the first digit lands.',
-        'NumericTyped',
-        Pages.SharedGizmos,
-        () => '0-9',
-      ),
-      gesture(
-        'precision.plane',
-        'Lock a plane instead of an axis',
-        'Hold this modifier with an axis key to exclude that axis rather than isolate it - the drag then runs across the other two.',
-        'PlaneLock',
-        Pages.SharedGizmos,
-        () => modifier(SharedGizmoSettings.AxisExcludeModifier) + '+X',
-      ),
-      gesture(
-        'precision.snap',
-        'Snap to the increment lattice',
-        "Hold the action key while dragging to land on Unity's own snap increments; ticks are drawn along the handle as you go.",
-        'IncrementalSnap',
-        Pages.SharedGizmos,
-        () => 'Ctrl',
-      ),
-      gesture(
-        'precision.slow',
-        'Slow a drag down for fine work',
-        'Hold this key mid-drag: the selection moves a fraction of the distance the cursor does, and every snap step halves.',
-        'PrecisionDrag',
-        Pages.SharedGizmos,
-        () => modifier(SharedGizmoSettings.PrecisionModifier),
-      ),
-    ],
-  },
-  {
-    title: 'Scene Tools',
-    subtitle: 'The rest of the Scene View',
-    iconName: 'd_UnityEditor.SceneHierarchyWindow',
-    accent: Color.hex('#D98C4C'),
-    tasks: [
-      shortcut(
-        'tools.isolate',
-        'Isolate the selection, then leave',
-        'Hides everything else while you work. The same key brings the scene back.',
-        Pages.IsolateView,
-        'Blendon/Isolate View',
-      ),
-      shortcut(
-        'tools.selection-history',
-        'Step back through selections',
-        "Browser-style back and forward for what you had selected - the mouse's own side buttons by default.",
-        Pages.History,
-        'Blendon/History/Undo Selection',
-        'Blendon/History/Redo Selection',
-      ),
-      shortcut(
-        'tools.view-history',
-        'Step back through camera positions',
-        'The same pair with the shift modifier undoes where you were looking from, not what was selected.',
-        Pages.History,
-        'Blendon/History/Undo View',
-        'Blendon/History/Redo View',
-      ),
-      gesture(
-        'tools.orientation',
-        'Click an axis on the orientation gizmo',
-        'The ball in the corner of the view: click a handle to swing round to that axis, drag inside it to orbit, middle-click to toggle projection.',
-        'OrientationGizmoClick',
-        Pages.OrientationGizmo,
-      ),
-    ],
-  },
-  {
-    title: 'Pie Menus & Setup',
-    subtitle: 'Menus on a key, and setup',
-    iconName: 'd_AvatarPivot',
-    accent: Color.hex('#598CF2'),
-    tasks: [
-      gesture(
-        'pie.flick',
-        'Run a pie item with a flick',
-        'Hold the key, flick the mouse toward an item and let go. Direction is all that counts - you never have to land on the button.',
-        'PieFlick',
-        Pages.PieMenus,
-        () => binding('Blendon/Pie Menus/Shading'),
-      ),
-      gesture(
-        'pie.tap',
-        'Latch a pie open and click',
-        'Tap the same key instead of holding it: the menu stays up, and a left click runs an item.',
-        'PieTap',
-        Pages.PieMenus,
-      ),
-      gesture(
-        'pie.number',
-        'Run a pie item by its number',
-        'Every item is numbered; its number key runs it directly while the menu is open.',
-        'PieNumber',
-        Pages.PieMenus,
-        () => '1-8',
-      ),
-      gesture(
-        'setup.settings',
-        "Open Blendon's settings",
-        'Tools → Blendon in Unity; on this page, the Blendon tab beside the Scene tab. Every feature here can be switched off on its own, and its keys go straight back to the Editor.',
-        'SettingsOpened',
-        Pages.Overview,
-      ),
-    ],
-  },
-];
+/** Rule ids the plugin no longer teaches, for the unit test that keeps both sides in step. */
+export const unusedRules = () => Object.keys(Rules).filter((id) => !byId.has(id));

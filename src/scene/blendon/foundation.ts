@@ -235,25 +235,114 @@ export const EditorRaycastUtility = {
 
 // ---- Tutorial / tips hooks -------------------------------------------------------------------------------
 
-type Report = { kind: 'shortcut'; id: string } | { kind: 'signal'; signal: string };
-const reportListeners = new Set<(r: Report) => void>();
+export type TutorialReport =
+  | { kind: 'shortcut'; id: string }
+  | { kind: 'signal'; signal: string }
+  | { kind: 'command'; key: string }
+  | { kind: 'transform'; traits: number };
+const reportListeners = new Set<(r: TutorialReport) => void>();
 
-/** SceneTutorial's two report calls, fanned out to the page's task list. */
+function fanOut(r: TutorialReport) {
+  for (const l of reportListeners) l(r);
+}
+
+/** SceneTutorial's report calls, fanned out to the tutorial (tutorial/scene-tutorial.ts). */
 export const SceneTutorial = {
-  reportShortcut(id: string) {
-    for (const l of reportListeners) l({ kind: 'shortcut', id });
+  /** Keyed by binding id, not key, so a rebind only changes what the rows show. */
+  reportShortcut: (id: string) => fanOut({ kind: 'shortcut', id }),
+  report: (signal: string) => fanOut({ kind: 'signal', signal }),
+  /** A pie item's action id or a context menu entry's key, once it ran. */
+  reportCommand(key: string) {
+    if (key) fanOut({ kind: 'command', key });
   },
-  report(signal: string) {
-    for (const l of reportListeners) l({ kind: 'signal', signal });
-  },
-  /** Reported from a live drag frame, the only place holding the key is the same as using it. */
-  noteDragModifiers(snapping: boolean, precision: boolean) {
-    if (snapping) SceneTutorial.report('IncrementalSnap');
-    if (precision) SceneTutorial.report('PrecisionDrag');
-  },
-  listen(l: (r: Report) => void) {
+  reportTransform: (traits: number) => fanOut({ kind: 'transform', traits }),
+  /** Set by the tutorial: an open task asks for a drag. */
+  wantsTransforms: () => false,
+  listen(l: (r: TutorialReport) => void) {
     reportListeners.add(l);
     return () => void reportListeners.delete(l);
+  },
+};
+
+/** What a kept drag or G/R/S grab had. A task asks for a set, any extra is fine. */
+export const TransformTraits = {
+  None: 0,
+  Move: 1 << 0,
+  Rotate: 1 << 1,
+  Scale: 1 << 2,
+  /** G/R/S, no handle under the cursor. */
+  Grab: 1 << 3,
+  Arrow: 1 << 4,
+  Square: 1 << 5,
+  Ring: 1 << 6,
+  Axis: 1 << 7,
+  LocalAxis: 1 << 8,
+  Plane: 1 << 9,
+  Numeric: 1 << 10,
+  Snapped: 1 << 11,
+  Precision: 1 << 12,
+  Surface: 1 << 13,
+  LookAt: 1 << 14,
+  /** Released while pulled onto another object's vertex. */
+  OnVertex: 1 << 15,
+  /** Started from a settled virtual pivot pick. */
+  VirtualPivot: 1 << 16,
+} as const;
+
+let tOpen = false;
+let tGrab = false;
+let tTraits = 0;
+let tFamily = 0;
+let tHandle = 0;
+
+/**
+ * Collects TransformTraits over one drag, from the drag coordinator's begin to its end. Closed unless an
+ * open task wants a drag, so the notes on drag frames cost one bool read.
+ */
+export const TutorialTransform = {
+  /** For notes that cost something to work out. */
+  get open() {
+    return tOpen;
+  },
+
+  /** `family` and `handle`: the drag kind's Move/Rotate/Scale and which handle, from the coordinator. */
+  begin(family: number, handle: number, virtualPivot: boolean) {
+    tOpen = SceneTutorial.wantsTransforms();
+    if (!tOpen) return;
+    tFamily = family;
+    tHandle = handle;
+    tGrab = false;
+    tTraits = virtualPivot ? TransformTraits.VirtualPivot : TransformTraits.None;
+  },
+
+  note(traits: number) {
+    if (tOpen) tTraits |= traits;
+  },
+
+  /** A grab rides the coordinator too, it says so right after begin. */
+  noteGrab() {
+    if (tOpen) tGrab = true;
+  },
+
+  /** Per drag frame. Holding a key only counts on a frame that moved something. */
+  noteDragFrame(snapping: boolean, precision: boolean) {
+    if (!tOpen) return;
+    if (snapping) tTraits |= TransformTraits.Snapped;
+    if (precision) tTraits |= TransformTraits.Precision;
+  },
+
+  /** `kept`: false for a click or a drag back home. `onVertex`: read before the coordinator clears the target. */
+  end(kept: boolean, onVertex: boolean) {
+    if (!tOpen) return;
+    tOpen = false;
+    if (!kept) return;
+    let traits = tTraits | tFamily | (tGrab ? TransformTraits.Grab : tHandle);
+    if (onVertex) traits |= TransformTraits.OnVertex;
+    SceneTutorial.reportTransform(traits);
+  },
+
+  cancel() {
+    tOpen = false;
   },
 };
 

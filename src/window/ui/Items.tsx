@@ -20,6 +20,7 @@ import {
   PieFooter,
   PieTable,
 } from './Tables.tsx';
+import { TutorialChapter, TutorialHeader } from './Tutorial.tsx';
 
 // Unity's preview rect against the row the layout reserves for it: a little taller (the layout
 // takes the difference back in the gap after the card) and starting a little higher.
@@ -162,15 +163,7 @@ function ActionRow({ it }: { it: ItemOf<'action'> }) {
   const app = useApp();
   const tip = useTip(it.tip);
   const click = () => {
-    if (it.dis) return;
-    if (it.act === 'restart')
-      app.confirm({
-        title: 'Start the tutorial over?',
-        body: 'Every task will be un-ticked and the card goes back to chapter one.',
-        ok: 'Start Over',
-        run: () => PlaygroundEvents.emit('tutorialRestart'),
-      });
-    else PlaygroundEvents.emit('tipsReset');
+    if (!it.dis) PlaygroundEvents.emit('tipsReset');
   };
   return (
     <div className={itemBase(app, it).cls}>
@@ -296,5 +289,9 @@ export function ItemView({ it }: { it: Item }) {
       return <PieEmpty it={it} />;
     case 'pieFooter':
       return <PieFooter it={it} />;
+    case 'tutHeader':
+      return <TutorialHeader it={it} />;
+    case 'tutChapter':
+      return <TutorialChapter it={it} />;
   }
 }

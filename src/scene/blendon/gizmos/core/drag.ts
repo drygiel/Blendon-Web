@@ -5,7 +5,7 @@ import { Event, EventType, GUIUtility } from '../../../unity/imgui.ts';
 import { Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import type { GameObject, Transform } from '../../../unity/scene.ts';
 import { SceneView, type SceneCamera } from '../../../unity/sceneview.ts';
-import { CursorWrapTracker } from '../../foundation.ts';
+import { CursorWrapTracker, TransformTraits, TutorialTransform } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { GizmoRenderer } from '../rendering.ts';
 import { SharedGizmoSettings } from '../shared-settings.ts';
@@ -23,6 +23,35 @@ export const DragKind = {
   ScaleRing: 8,
 } as const;
 export type DragKind = number;
+
+// Retargets stay in the family, so the kind the drag began with decides it.
+function familyOf(kind: DragKind) {
+  switch (kind) {
+    case DragKind.Axis:
+    case DragKind.Plane:
+    case DragKind.FreeRing:
+      return TransformTraits.Move;
+    case DragKind.Ring:
+    case DragKind.Trackball:
+      return TransformTraits.Rotate;
+    case DragKind.ScaleAxis:
+    case DragKind.ScalePlane:
+    case DragKind.ScaleRing:
+      return TransformTraits.Scale;
+  }
+  return TransformTraits.None;
+}
+
+/** Which handle, for handle drags only. */
+function handleOf(kind: DragKind) {
+  return kind === DragKind.Axis
+    ? TransformTraits.Arrow
+    : kind === DragKind.Plane
+      ? TransformTraits.Square
+      : kind === DragKind.Ring
+        ? TransformTraits.Ring
+        : TransformTraits.None;
+}
 
 /** Tells a click from a drag: a click on another object selects it instead of moving this one. */
 export class DragGate {
@@ -104,19 +133,21 @@ export class GizmoDragSnapshot {
     Undo.recordObjects(this.transforms, name);
   }
 
+  /** True when something really changed and was kept. */
   finish() {
     if (!this.recorded) {
       this.undoGroup = -1;
-      return;
+      return false;
     }
     // A real edit folds every group opened since the drag began into one undo step.
     if (this.hasRealChange()) {
       Undo.collapseUndoOperations(this.undoGroup);
-      return;
+      return true;
     }
     Undo.revertAllDownToGroup(this.undoGroup);
     this.undoGroup = -1;
     this.recorded = false;
+    return false;
   }
 
   cancel() {
@@ -186,6 +217,7 @@ export class GizmoDragCoordinator {
     this.viewDirAtDragStart = GizmoRenderer.computeViewDir(pivot, GizmoRenderer.currentCamera());
     this.clickGate.reset();
     this.snapshot.startCapture();
+    TutorialTransform.begin(familyOf(kind), handleOf(kind), VertexSnappingUtility.hasPick);
     this.wrap.begin();
     this.screenGrip = HandleUtility.worldToGUIPoint(pivot).sub(this.wrap.virtualMousePosition);
   }
@@ -207,7 +239,8 @@ export class GizmoDragCoordinator {
   }
 
   end() {
-    this.snapshot.finish();
+    // Target first, the clear below drops it.
+    TutorialTransform.end(this.snapshot.finish(), VertexSnappingUtility.hasTarget);
     this.activeKind = DragKind.None;
     this.activeSceneView = null;
     this.wrap.end();
@@ -228,6 +261,7 @@ export class GizmoDragCoordinator {
 
   cancel() {
     this.snapshot.cancel();
+    TutorialTransform.cancel();
     this.activeKind = DragKind.None;
     this.activeSceneView = null;
     this.wrap.end();

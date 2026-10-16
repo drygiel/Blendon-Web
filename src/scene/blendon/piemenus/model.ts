@@ -50,6 +50,8 @@ export class PieItem {
   readonly action: () => void;
   private readonly current: (() => boolean) | null;
   private readonly enabled: (() => boolean) | null;
+  /** Action id or menu path, what the tutorial is told ran. */
+  key = '';
 
   constructor(
     label: string,

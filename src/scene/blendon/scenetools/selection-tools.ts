@@ -6,7 +6,7 @@ import { Event, EventModifiers, EventType, GUIUtility } from '../../unity/imgui.
 import { Vector2 } from '../../unity/math.ts';
 import type { GameObject } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
-import { ShortcutTips } from '../foundation.ts';
+import { SceneTutorial, ShortcutTips } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { BoxSelectSettings } from './settings.ts';
 
@@ -44,6 +44,7 @@ export const HierarchyWalk = {
           if (ViewportGesture.claimed(id) || ViewportGesture.busy) return;
           H.apply(down, extend);
           ShortcutTips.note(id);
+          SceneTutorial.reportShortcut(id);
         },
         false,
         key,
@@ -134,6 +135,7 @@ export const ClickSelectParent = {
       // Past the top the walk wraps to the object under the cursor, so the parts below stay reachable.
       const next = previous.transform.parent?.gameObject ?? hit;
       Selection.activeGameObject = next;
+      if (previous.transform.parent) SceneTutorial.report('ClickSelectedParent');
       // The Editor's own pick may land after this event; only that pick is overridden.
       EditorApplication.delayCall(() => {
         const active = Selection.activeGameObject;
