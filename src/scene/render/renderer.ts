@@ -191,11 +191,15 @@ export class SceneRenderer {
     this.skyReady = applySkyEnvironment(this.three, this.renderer);
     this.three.environmentIntensity = ENV_INTENSITY;
 
+    // Pulled toward the camera like the selection masks, so it draws steadily over a floor laid on it.
     this.gridMat = new THREE.ShaderMaterial({
       vertexShader: GRID_VERT,
       fragmentShader: GRID_FRAG,
       transparent: true,
       depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -4,
       uniforms: {
         uCamPos: { value: new THREE.Vector3() },
         uSize: { value: 10 },
@@ -215,12 +219,16 @@ export class SceneRenderer {
     this.three.add(this.grid);
 
     // Unlit, drawn after the objects without writing depth: it still covers whatever sinks below it, but
-    // never competes with the grid's lines for depth, at any distance. Lands as #454545 after the post.
+    // never competes with the grid's lines for depth, at any distance. Pushed back in depth, so a plane laid
+    // on it wins at every zoom instead of flickering. Lands as #454545 after the post.
     this.ground = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({
         color: new THREE.Color().setRGB(GROUND_RGB, GROUND_RGB, GROUND_RGB, THREE.SRGBColorSpace),
         depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 4,
       }),
     );
     this.ground.renderOrder = 5;
@@ -436,14 +444,17 @@ export class SceneRenderer {
     // The grid plane follows the camera so it reaches the horizon at any zoom.
     const c = view.camera;
     const reach = Math.max(view.size * 600, 50);
+    // Quads that wide lose depth precision as the view grows, so the gap that keeps a plane laid on the ground
+    // between the ground and the grid, at every zoom, grows with it.
+    const gap = Math.max(1e-4, view.size * 1e-3);
     this.grid.visible = view.showGrid;
     this.grid.scale.set(reach * 2, 1, reach * 2);
-    this.grid.position.set(c.position.x, Ground.y, -c.position.z);
+    this.grid.position.set(c.position.x, Ground.y + gap, -c.position.z);
     this.grid.updateMatrixWorld();
     // Seen from below it would hide the scene, as no floor in Unity would.
     this.ground.visible = c.position.y > Ground.y;
     this.ground.scale.copy(this.grid.scale);
-    this.ground.position.set(c.position.x, Ground.y - 0.0001, -c.position.z);
+    this.ground.position.set(c.position.x, Ground.y - gap, -c.position.z);
     this.ground.updateMatrixWorld();
     const u = this.gridMat.uniforms;
     (u.uCamPos.value as THREE.Vector3).copy(toThreeV(c.position));
