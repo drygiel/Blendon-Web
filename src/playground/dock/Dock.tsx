@@ -43,9 +43,6 @@ const keyboard = () => (navigator as Navigator & { keyboard?: KeyboardLock }).ke
 // Full screen support never changes; the prerendered page goes without the button until hydrated.
 const noChange = () => () => {};
 
-// The Scene view tutorial's "Open Blendon's settings" task: showing or using the window is opening them.
-const settingsOpened = () => PlaygroundEvents.emit('settingsOpened');
-
 interface DockProps extends HTMLAttributes<HTMLDivElement> {
   /** The dock is the whole page (the stand-alone Playground), with no link out to itself. */
   page?: boolean;
@@ -93,23 +90,14 @@ export function Dock({ page = false, className, ...rest }: DockProps) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // A shortcut tip's "Open in Blendon" opens the Blendon tab.
+  // A shortcut tip's "Open in Blendon" and the tutorial badge's link open the Blendon tab.
   useEffect(() => PlaygroundEvents.on('openKeyboard', () => setActive('blendon')), []);
-  // The tutorial card's settings button does the same, and counts as opening Blendon's settings.
-  useEffect(
-    () =>
-      PlaygroundEvents.on('openSettings', () => {
-        setActive('blendon');
-        settingsOpened();
-      }),
-    [],
-  );
+  useEffect(() => PlaygroundEvents.on('openSettings', () => setActive('blendon')), []);
 
   const pick = (pane: Pane) => {
     setActive(pane);
-    if (pane === 'blendon') settingsOpened();
     // A picked Scene tab takes the keyboard, as clicking into the view would.
-    else
+    if (pane === 'scene')
       requestAnimationFrame(() =>
         ref.current?.querySelector<HTMLElement>('[role=application]')?.focus({ preventScroll: true }),
       );
@@ -236,10 +224,7 @@ export function Dock({ page = false, className, ...rest }: DockProps) {
         className={cx(styles.pane, hidden('blendon') && styles.hidden)}
         style={paneStyle('blendon')}
         inert={hidden('blendon')}
-        onPointerDownCapture={() => {
-          setActive('blendon');
-          settingsOpened();
-        }}
+        onPointerDownCapture={() => setActive('blendon')}
       >
         <WindowSlot />
       </div>

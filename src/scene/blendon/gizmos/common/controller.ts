@@ -12,7 +12,7 @@ import { Event, EventType, GUIUtility, KeyCode, MouseButton } from '../../../uni
 import { Quaternion, Rect, Vector3 } from '../../../unity/math.ts';
 import type { Transform } from '../../../unity/scene.ts';
 import { SceneView, type SceneCamera } from '../../../unity/sceneview.ts';
-import { ModalViewportGate, SceneTutorial, SelectionCache } from '../../foundation.ts';
+import { ModalViewportGate, SelectionCache, TutorialTransform } from '../../foundation.ts';
 import { GeneralSettings } from '../../settings.ts';
 import { GizmoAxis } from '../axis.ts';
 import { DragKind, GizmoDragCoordinator } from '../core/drag.ts';
@@ -406,7 +406,8 @@ export abstract class GrabSession extends GizmoController {
     GizmoController.setModalOwner(this);
     this.numeric.beginMouseTransform(this.numericSeedAxis);
     this.onSessionBegan(sceneView, camera, pivot);
-    SceneTutorial.reportShortcut(this.bindingId);
+    // Here, not in the shortcut, to also cover the mid-drag takeover route.
+    TutorialTransform.noteGrab();
     sceneView.repaint();
   }
 
@@ -450,7 +451,6 @@ export abstract class GrabSession extends GizmoController {
   protected confirm() {
     this.coordinator.forceRelease();
     this.endSession();
-    SceneTutorial.report('TransformConfirmed');
   }
 
   // Nothing would end a grab once it stops drawing; it would resume mid-air later.

@@ -65,7 +65,6 @@ namespace Blendon.WebTools
                 ["pies"]            = Pies(),
                 ["extras"]          = SceneMenuExtras(),
                 ["frameSteps"]      = FrameSteps(pages),
-                ["tutorialStatus"]  = Call(Type("Blendon.Editor.SettingsWindow.OverviewPage"), "TutorialStatus"),
                 ["modifierLabels"]  = Get(Type("Blendon.Editor.Common.ModifierKeys"), "OptionLabels"),
                 ["modifierOptions"] = Names((IEnumerable)Get(Type("Blendon.Editor.Common.ModifierKeys"), "Options")!),
                 ["enums"]           = Enums(),

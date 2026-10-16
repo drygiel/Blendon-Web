@@ -12,6 +12,17 @@
    "feature": false
   },
   {
+   "id": "Tutorial",
+   "label": "Tutorial",
+   "group": "GET STARTED",
+   "summary": "Learn the gestures by doing them - each task ticks itself off, in any order",
+   "icon": "_Help",
+   "iconName": "_Help",
+   "accent": "#F29E2E",
+   "indent": false,
+   "feature": false
+  },
+  {
    "id": "OrbitSelected",
    "label": "Orbit Selected",
    "group": "NAVIGATING",
@@ -473,8 +484,8 @@
    "k": "Boolean"
   },
   "GeneralSettings.ShowTutorial": {
-   "l": "Show Tutorial",
-   "t": "<size=14><b>Scene View Tutorial</b></size>\nA card in the <b><color=#3DB892>Scene View</color></b> that teaches Blendon's gestures, one chapter at a time.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nEach task ticks itself off when you actually do the gesture. The next chapter opens once the one before it is done.\n\n<size=9><color=#92929A>Off hides the card and keeps your progress</color></size>",
+   "l": "Show in Scene View",
+   "t": "<size=14><b>Tutorial Badge</b></size>\nA small badge in the corner of the <b><color=#3DB892>Scene View</color></b> while the tutorial is under way. Click it to open this checklist.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nEach task ticks itself off when you actually do the gesture, in any order, and the badge flashes its name as it does.\n\n<size=9><color=#92929A>Off hides the badge and pauses the checklist. Your progress is kept</color></size>",
    "i": "Tips/Overview/ShowTutorial.png",
    "d": true,
    "k": "Boolean"
@@ -2126,7 +2137,7 @@
   },
   "SnapToFloorSettings.Enabled": {
    "l": "Enable",
-   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
+   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
    "i": "Tips/SnapToFloor/SnapToFloor.png",
    "d": true,
    "k": "Boolean"
@@ -2150,7 +2161,7 @@
   },
   "SnapToFloorSettings.SurfaceLayers": {
    "l": "Surface Layers",
-   "t": "<size=14><b>Surface Layers</b></size>\nWhich <b><color=#3DB892>Layers</color></b> count as something to land on.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nObjects pass through surfaces on unticked layers and land on the first ticked one.",
+   "t": "<size=14><b>Surface Layers</b></size>\nWhich <b><color=#3DB892>Layers</color></b> count as something to land on.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nObjects pass through surfaces on unticked layers and land on the first ticked one, or on the terrain or the ground plane at <b>Y = 0</b> when none is there.",
    "i": "Tips/SnapToFloor/SurfaceLayers.png",
    "d": -1,
    "k": "Int32"
@@ -6241,8 +6252,8 @@
       [
        [
         "note",
-        "No layer ticked, so there is no surface to find.",
-        "The cast only accepts a surface whose GameObject sits on one of these layers, and none are ticked - so the shortcut runs and moves nothing at all. Tick at least one."
+        "No layer ticked, so everything lands on the ground plane.",
+        "The cast only accepts a surface whose GameObject sits on one of these layers, and none are ticked - so every object passes through the scene and rests at Y = 0. Tick at least one."
        ]
       ],
       null
@@ -6953,6 +6964,11 @@
   "Keyboard": [
    [
     "keyboard"
+   ]
+  ],
+  "Tutorial": [
+   [
+    "tutorial"
    ]
   ],
   "Overview": [
@@ -8180,7 +8196,7 @@
    "i": "Tips/Scale/ScaleTool.png"
   },
   "SnapToFloorSettings": {
-   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
+   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
    "i": "Tips/SnapToFloor/SnapToFloor.png"
   },
   "FrameSelectedSettings": {
@@ -8220,9 +8236,14 @@
   "masterOffWarning": "<b>Blendon is switched off.</b>  Every feature is dormant and its shortcuts are parked, so nothing on this page has any effect until it is switched back on from the Overview page.",
   "masterOffNote": "<b>Blendon is off.</b>  Every feature below is dormant and its shortcuts are parked, so the Editor behaves as if the plugin were not installed. Nothing has been lost - switch it back on and every setting is where you left it.",
   "layoutTooltip": "<b>Keyboard Presets</b>\nWho keeps the keys Blendon and the Editor both want.\n\n<b><color=#4FA8E8>Blendon</color></b> - Blendon keeps <b><color=#D98E38>G</color></b>, <b><color=#D98E38>S</color></b>, <b><color=#D98E38>`</color></b>, the numpad views and the middle mouse button, and the Editor's commands that wanted them move.\n<b><color=#4FA8E8>Unity</color></b> - the reverse.\n\n<size=9><color=#92929A>Each is a shortcut profile of its own, so switching back and forth keeps whatever you tuned on either one</color></size>",
-  "tutorialStatus": "Finished - all 33 tasks done.",
-  "tutorialStatusTip": "<size=14><b>Tutorial Progress</b></size>\nHow far the card has got: the chapter it shows, and the tasks done across all six.\n\n<size=9><color=#92929A>A task for a feature you switched off counts as done, so it never blocks a chapter</color></size>",
-  "tutorialProgressTip": "<size=14><b>Start Over</b></size>\nUn-tick every task and put the tutorial card back on chapter one.\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nPer machine, not per project, so a gesture learned once stays learned. <b><color=#4FA8E8>Reset All Pages</color></b> leaves it alone.",
+  "tutorialStartOverTip": "<size=14><b>Start Over</b></size>\nUn-tick every task and start again from the first one.\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nPer machine, not per project, so a gesture learned once stays learned. <b><color=#4FA8E8>Reset All Pages</color></b> leaves it alone.",
+  "tutorialStartOverImage": "Tips/Overview/TutorialProgress.png",
+  "tutorialRestartTitle": "Start the tutorial over?",
+  "tutorialRestartBody": "Every task will be un-ticked and the checklist starts again from the first one.",
+  "tutorialSearchCaption": "Badge",
+  "tutorialChooseNote": "Click to do this one next. Once it is done, the tutorial picks up where it was",
+  "tutorialBadgeLabel": "Blendon Tutorial",
+  "tutorialBadgeCloseTip": "Skip the tutorial - its checklist stays in Blendon's settings",
   "tipsShownTip": "<size=14><b>Show Tips Again</b></size>\nArm every <b><color=#4FA8E8>Shortcut Tip</color></b> again, so the next press of each key explains itself once more.\n\n<size=9><color=#92929A>Tips also re-arm when a binding changes, and when the Editor restarts</color></size>",
   "ioTooltip": "Back up or restore every Blendon setting, shortcut binding and pie menu in one file.",
   "exportTip": "<size=14><b>Export Settings</b></size>\nSave every Blendon setting, shortcut and pie menu to one JSON file.\n\n<size=9><b><color=#92929A>USE IT FOR</color></b></size>\n<color=#92929A>•</color> a backup of your setup\n<color=#92929A>•</color> carrying it to another machine, then <b><color=#4FA8E8>Import Settings</color></b> there",
@@ -8630,7 +8651,8 @@
    "Blendon/Select Children",
    "Blendon/Add Parent To Selection",
    "Blendon/Add Children To Selection"
-  ]
+  ],
+  "Tutorial": []
  },
  "primaryShortcut": {
   "Overview": null,
@@ -8651,7 +8673,8 @@
   "Keyboard": null,
   "PieMenus": null,
   "SceneMenu": null,
-  "BoxSelect": "Blendon/Box Select Visible Only"
+  "BoxSelect": "Blendon/Box Select Visible Only",
+  "Tutorial": null
  },
  "featureTips": {
   "Orbit Selected": {
@@ -8703,7 +8726,7 @@
    "i": "Tips/IsolateView/IsolateView.png"
   },
   "Snap to Floor": {
-   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>\n\n<size=9><color=#92929A>Click to open the Snap to Floor page</color></size>",
+   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>\n\n<size=9><color=#92929A>Click to open the Snap to Floor page</color></size>",
    "i": "Tips/SnapToFloor/SnapToFloor.png"
   },
   "Navigation History": {

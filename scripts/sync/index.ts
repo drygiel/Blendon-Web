@@ -18,8 +18,11 @@ const paths = {
 };
 
 console.log('Reading Blendon from', plugin);
-const { data, assets } = buildWindowData(paths);
 const tutorial = buildTutorialData(paths);
+const { data, assets } = buildWindowData(
+  paths,
+  tutorial.data.chapters.map((c) => c.icon),
+);
 assets.push(...tutorial.assets);
 assets.push({ kind: 'copy', src: join(plugin, 'Documentation', 'Blendon_Manual.pdf'), out: MANUAL_FILE });
 const count = await writeAssets(assets, join(root, 'public'), ['plugin', 'docs']);

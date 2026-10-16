@@ -53,13 +53,15 @@ export class PieAction {
   createItem(view: SceneView | null, iconOverride = '', labelOverride = '') {
     const o = this.options;
     const label = labelOverride || (o.label ? o.label(view) : this.name);
-    return new PieItem(
+    const item = new PieItem(
       label,
       iconOverride || this.iconName,
       () => this.run(view),
       o.isCurrent ? () => o.isCurrent!(view) : null,
       o.isEnabled ? () => o.isEnabled!(view) : null,
     );
+    item.key = this.id;
+    return item;
   }
 }
 

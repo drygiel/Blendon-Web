@@ -8,7 +8,7 @@ import { raycastObject } from '../../../unity/raycast.ts';
 import { GameObject, Scene, type Mesh, type Transform } from '../../../unity/scene.ts';
 import { Camera, SceneView, type SceneCamera } from '../../../unity/sceneview.ts';
 import { withAlpha, withFade } from '../../color.ts';
-import { SelectionCache } from '../../foundation.ts';
+import { SceneTutorial, SelectionCache } from '../../foundation.ts';
 import { GeneralSettings } from '../../settings.ts';
 import { GizmoColors } from '../colors.ts';
 import { DragKind, type GizmoDragCoordinator } from '../core/drag.ts';
@@ -430,6 +430,7 @@ export const VertexPivotGroup = {
     Undo.setCurrentGroupName(UndoName);
     Selection.activeTransform = pivot.transform;
     VertexSnappingUtility.exitPickMode();
+    SceneTutorial.report('VirtualPivotKept');
     SceneView.repaintAll();
   },
 };

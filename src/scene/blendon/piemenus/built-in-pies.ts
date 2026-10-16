@@ -3,7 +3,7 @@
 import { ShortcutManager, ShortcutStage, type ShortcutArguments } from '../../unity/editor.ts';
 import { editorIcon } from '../../unity/icons.ts';
 import { SceneView } from '../../unity/sceneview.ts';
-import { ShortcutTips } from '../foundation.ts';
+import { SceneTutorial, ShortcutTips } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { ActionCatalog, SpawnPlacement } from './actions.ts';
 import { PieMenuData } from './model.ts';
@@ -165,6 +165,7 @@ function toggleWireframe(args: ShortcutArguments) {
     ShadingModes.apply(view, ShadingMode.Wireframe);
   }
   ShortcutTips.note(WireframeShortcutId);
+  SceneTutorial.reportShortcut(WireframeShortcutId);
 }
 
 export const PieMenus = {

@@ -16,7 +16,7 @@ import { Rect, Vector2, Vector3, type Quaternion } from '../../../unity/math.ts'
 import type { PrimitiveType } from '../../../unity/primitives.ts';
 import { GameObject, SceneVisibilityManager } from '../../../unity/scene.ts';
 import { SceneView } from '../../../unity/sceneview.ts';
-import { ModalViewportGate } from '../../foundation.ts';
+import { ModalViewportGate, SceneTutorial } from '../../foundation.ts';
 import { ViewportGesture } from '../../gizmos/viewport-gesture.ts';
 import { ResetActions, SpawnPlacement } from '../../piemenus/actions.ts';
 import { FrameSelected, unityFrameSelected } from '../frame-selected.ts';
@@ -446,6 +446,8 @@ function beginRename() {
 
 function run(node: MenuNode) {
   if (!node.enabled || node.demoOnly) return;
+  // Before it runs, a task's needs read the selection it ran on.
+  SceneTutorial.reportCommand(node.command ? node.key : (node.item?.path ?? ''));
   if (node.command) {
     if (node.staysOpen) {
       node.command();

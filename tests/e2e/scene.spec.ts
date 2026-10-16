@@ -95,20 +95,37 @@ test.afterEach(() => {
   expect(errors).toEqual([]);
 });
 
-test('loads the Scene view with the tutorial card', async ({ page }) => {
+test('loads the Scene view with the tutorial badge', async ({ page }) => {
   const view = await openScene(page);
-  await expect(view.getByText('Navigating the View')).toBeVisible();
+  await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toBeVisible();
   await expect(view.getByLabel('Orientation gizmo')).toBeVisible();
 });
 
-test("a tutorial row's hover card shows the feature's clip", async ({ page }) => {
+test("the badge opens the checklist, then names the next task with the feature's clip", async ({ page }) => {
   const view = await openScene(page);
-  await view.getByText('Orbit around your selection').hover();
+  await view.getByRole('button', { name: 'Blendon Tutorial' }).click();
+  const win = page.locator('#try .uw');
+  await expect(win.locator('.htitle')).toHaveText('Tutorial');
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  const line = view.getByRole('button', { name: 'Orbit the view' });
+  await line.hover();
   const tip = view.getByRole('tooltip');
   await expect(tip).toBeVisible();
   await expect(tip.locator('video')).toHaveAttribute('src', /OrbitSelected\.mp4$/);
   await page.mouse.move(0, 0);
   await expect(tip).toHaveCount(0);
+});
+
+test('a gesture ticks its task, the badge flashes it and the checklist shows it done', async ({ page }) => {
+  const view = await openScene(page);
+  await view.focus();
+  // The demo opens with the cube selected; End rests it on the floor.
+  await page.keyboard.press('End');
+  await expect(view.getByRole('button', { name: 'Drop it back onto the floor' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const row = page.locator('#try .uw .tutr', { hasText: 'Drop it back onto the floor' });
+  await expect(row.locator('.tutbox.done')).toBeVisible();
+  await expect(page.locator('#try .uw .tutstat')).toContainText(/1 of \d+ tasks done/);
 });
 
 test('grabs the selection by a typed distance and undoes it', async ({ page }) => {
@@ -298,10 +315,9 @@ test('a key pressed mid-drag goes to the drag, not to a shortcut', async ({ page
 test('the reset button starts the tutorial over', async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
-  await view.getByRole('button', { name: 'Skip Tutorial' }).click();
-  await expect(view.getByText('Navigating the View')).toHaveCount(0);
+  await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Reset the scene and every setting' }).click();
-  await expect(view.getByText('Navigating the View')).toBeVisible();
+  await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toBeVisible();
 });
 
 test('renames the selection from the context menu', async ({ page }) => {
@@ -336,19 +352,19 @@ test('the menu search box follows its setting', async ({ page }) => {
 test("the window's Start Over brings the tutorial back", async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
-  await view.getByRole('button', { name: 'Skip Tutorial' }).click();
   await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
   const win = page.locator('#try .uw');
+  // Skipping switches the badge off, and the page says the checklist waits for it.
+  await expect(win.locator('.tutstat')).toContainText('paused while the badge is off');
   await win.getByRole('button', { name: /Start Over/ }).click();
   await win.getByRole('dialog').getByRole('button', { name: 'Start Over', exact: true }).click();
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
-  await expect(view.getByText('Navigating the View')).toBeVisible();
+  await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toBeVisible();
 });
 
 test('the first press of a key the Editor gave up explains it once', async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
-  await view.getByRole('button', { name: 'Skip Tutorial' }).click();
   await view.focus();
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   const card = view.getByText('Blendon owns this shortcut now');
@@ -373,6 +389,8 @@ test("with Blendon off, the Editor's own navigation, keys, menu and gizmo come b
   const view = await openScene(page);
   await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
   const win = page.locator('#try .uw');
+  // The window opens on the Tutorial page; the master switch is on the Overview.
+  await win.locator('.si[aria-label="Blendon"]').click();
   await win.getByRole('button', { name: 'Enable Blendon', exact: true }).click();
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
   await expect(view.getByLabel('Scene gizmo')).toBeVisible();

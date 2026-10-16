@@ -18,7 +18,7 @@ import { OrientationOverlay } from './ui/OrientationOverlay.tsx';
 import { SceneOverlays, TopStripHeight, useOverlays } from './ui/overlays.ts';
 import { SceneMenuView } from './ui/SceneMenuView.tsx';
 import { ShortcutTipCard } from './ui/ShortcutTipCard.tsx';
-import { TutorialCard } from './ui/TutorialCard.tsx';
+import { TutorialBadge } from './ui/TutorialBadge.tsx';
 import type { PivotPointApi } from './ui/pivot.ts';
 import styles from './ui/Scene.module.scss';
 
@@ -109,7 +109,7 @@ export default function ScenePlayground() {
       <div className={styles.viewport} style={{ top: overlays.topStrip ? TopStripHeight : 0 }}>
         <div ref={canvasRef} className={styles.canvas} />
         {host && <GizmoHudView host={host} />}
-        {host && <TutorialCard host={host} />}
+        {host && <TutorialBadge host={host} />}
         {host && <ShortcutTipCard host={host} />}
         {host && <SceneMenuView host={host} />}
       </div>

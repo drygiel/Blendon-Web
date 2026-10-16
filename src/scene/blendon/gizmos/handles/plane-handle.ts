@@ -3,7 +3,7 @@ import { EditorSnapSettings } from '../../../unity/editor.ts';
 import { EditorGUI, HandleUtility, Handles } from '../../../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility } from '../../../unity/imgui.ts';
 import { Mathf, Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
-import { SceneTutorial, SelectionCache } from '../../foundation.ts';
+import { SelectionCache, TutorialTransform } from '../../foundation.ts';
 import type { GizmoAxis } from '../axis.ts';
 import { MinVisibleFade } from '../colors.ts';
 import type { GizmoSettings } from '../common/gizmo-settings.ts';
@@ -116,10 +116,8 @@ export class PlaneHandle {
       SharedGizmoSettings.PrecisionHeld && !moveSnap.pickDriven && (moveSnap.valid || !snapping)
         ? SharedGizmoSettings.EffectivePrecisionFactor
         : 1;
-    if (moved && GUIUtility.hotControl === id) {
-      SceneTutorial.report('HandlePlaneDrag');
-      SceneTutorial.noteDragModifiers(snapping, SharedGizmoSettings.PrecisionHeld);
-    }
+    if (moved && GUIUtility.hotControl === id)
+      TutorialTransform.noteDragFrame(snapping, SharedGizmoSettings.PrecisionHeld);
     let target = raw;
     if (moveSnap.valid && GUIUtility.hotControl === id) {
       if (!wasActive) this.target = position;

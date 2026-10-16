@@ -4,7 +4,7 @@ import { HandleUtility, Handles } from '../../../unity/handles.ts';
 import { Event } from '../../../unity/imgui.ts';
 import { Plane, Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import type { SceneView } from '../../../unity/sceneview.ts';
-import { SceneTutorial, type ModifierKey } from '../../foundation.ts';
+import { TransformTraits, TutorialTransform, type ModifierKey } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { GizmoColors } from '../colors.ts';
 import { AimMode, SurfaceProbe } from '../common/aim-mode.ts';
@@ -262,7 +262,7 @@ export class RotateLookAt {
   ) {
     this.aim.update(sceneView, ev, enabled, modifier, canDrive, apply, this.onRelease, () => {
       this.coordinator.wrap.suspend();
-      SceneTutorial.report('LookAt');
+      TutorialTransform.note(TransformTraits.LookAt);
     });
   }
 

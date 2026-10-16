@@ -155,7 +155,8 @@ export function layoutWindow(app: WindowModel): WindowLayout {
   }
 
   const isOverview = page === 'Overview';
-  const showReset = isOverview ? !searching : page !== 'Keyboard';
+  // Tutorial's Start Over sits in its header, a footer reset would read as resetting a setting.
+  const showReset = isOverview ? !searching : page !== 'Keyboard' && page !== 'Tutorial';
   return {
     winW,
     winH,

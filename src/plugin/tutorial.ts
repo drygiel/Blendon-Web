@@ -9,11 +9,19 @@ export interface TutorialTask {
   picture: string;
   /** Public path of the looping clip played over the picture; empty for a still. */
   clip: string;
+  /** The picture's "w / h", so a card is sized before it loads. */
+  aspect: string;
+  /** What the badge asks for while the task can't be ticked yet ("Select the cube first"); empty for none. */
+  needs: string;
 }
 
 export interface TutorialChapter {
   title: string;
   subtitle: string;
+  /** Editor icon name. */
+  icon: string;
+  /** The chapter's page colour. */
+  accent: string;
   tasks: TutorialTask[];
 }
 
@@ -23,7 +31,5 @@ export interface TutorialData {
 
 export const TUTORIAL: TutorialData = tutorial;
 
-const byId = new Map(TUTORIAL.chapters.flatMap((c) => c.tasks.map((t) => [t.id, t] as const)));
-
-/** A task's hover picture and clip, by the id the playground's curriculum shares. */
-export const tutorialTip = (id: string): TutorialTask | undefined => byId.get(id);
+/** Every task in curriculum order. */
+export const TUTORIAL_TASKS: TutorialTask[] = TUTORIAL.chapters.flatMap((c) => c.tasks);

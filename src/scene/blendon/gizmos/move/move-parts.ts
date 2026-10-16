@@ -5,7 +5,7 @@ import { Event, EventType } from '../../../unity/imgui.ts';
 import { Mathf, Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import type { SceneView } from '../../../unity/sceneview.ts';
 import { withFade } from '../../color.ts';
-import { SceneTutorial, SelectionCache, type ModifierKey } from '../../foundation.ts';
+import { SelectionCache, TransformTraits, TutorialTransform, type ModifierKey } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { GizmoColors } from '../colors.ts';
 import { AimMode, SurfaceSnapping } from '../common/aim-mode.ts';
@@ -93,7 +93,7 @@ export class MoveSurfaceSnap {
   private apply() {
     this.aim.probe(Event.current.mousePosition, this.coordinator.snapshot.transforms);
     if (!this.aim.hasTarget) return;
-    SceneTutorial.report('SurfaceSnap');
+    TutorialTransform.note(TransformTraits.Surface);
     const { transforms, snapshots } = this.coordinator.snapshot;
     if (!transforms.length) return;
     let delta = SurfaceSnapping.delta(this.coordinator.pivotAtDragStart, this.aim.target);

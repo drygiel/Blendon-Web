@@ -2,7 +2,7 @@
 import { PivotRotation, Tools } from '../../../unity/editor.ts';
 import { Event, EventType, KeyCode, MouseButton } from '../../../unity/imgui.ts';
 import { Mathf, Vector3 } from '../../../unity/math.ts';
-import { ModifierKeys, SceneTutorial } from '../../foundation.ts';
+import { ModifierKeys, SceneTutorial, TransformTraits, TutorialTransform } from '../../foundation.ts';
 import { GeneralSettings } from '../../settings.ts';
 import { GizmoAxis } from '../axis.ts';
 import { TransformSpace } from '../hud.ts';
@@ -287,7 +287,6 @@ export class ModalNumericParser {
   /** Repeated presses of one axis key step scene orientation -> alternate -> (releasable) none. */
   private handleAxisKey(axis: GizmoAxis, shift: boolean) {
     this.backspaceArmed = false;
-    SceneTutorial.report(shift ? 'PlaneLock' : 'AxisConstraint');
     const repeat = this.step !== SpaceStep.Unconstrained && axis.index === this.lastAxisKeyIndex;
     if (repeat)
       this.step =
@@ -310,7 +309,18 @@ export class ModalNumericParser {
     const sceneIsWorld = !this.resolveDeferredIsLocal() && !this.resolveDeferredIsGrid();
     this.currentActiveSpace = alternate && sceneIsWorld ? TransformSpace.Local : TransformSpace.Global;
     this.isSpaceExplicit = alternate;
+    if (TutorialTransform.open && this.step !== SpaceStep.Unconstrained) this.noteConstraint(shift);
     this.onConstraintChanged?.();
+  }
+
+  // Unset space follows the toolbar, so Local there counts as a local axis too.
+  private noteConstraint(plane: boolean) {
+    const local = this.isSpaceExplicit
+      ? this.currentActiveSpace === TransformSpace.Local
+      : this.resolveDeferredIsLocal();
+    TutorialTransform.note(
+      (plane ? TransformTraits.Plane : TransformTraits.Axis) | (local ? TransformTraits.LocalAxis : 0),
+    );
   }
 
   // A rejected key is still consumed, so it never reaches the editor's shortcuts.
@@ -318,7 +328,7 @@ export class ModalNumericParser {
     if (!this.buffer.tryAppend(c)) return;
     if (this.state === ModalNumericState.MouseTransforming) this.state = ModalNumericState.NumericInput;
     this.backspaceArmed = false;
-    SceneTutorial.report('NumericTyped');
+    TutorialTransform.note(TransformTraits.Numeric);
   }
 
   private handleBackspace() {
@@ -350,7 +360,6 @@ export class ModalNumericParser {
   private confirm() {
     this.onConfirm?.();
     this.reset();
-    SceneTutorial.report('TransformConfirmed');
   }
 
   private cancel() {

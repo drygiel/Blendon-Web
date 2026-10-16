@@ -11,6 +11,7 @@ import { iconVars } from './core/icons.ts';
 import { layoutWindow } from './core/layout.ts';
 import { newInstance, WindowModel } from './core/model.ts';
 import { initialState, reduce } from './core/state.ts';
+import { TutorialPageAnimation } from './core/tutorial-anim.ts';
 import { D, loadWindowData } from '../plugin/window-data.ts';
 import { draw, settings, SPEED } from './gizmo/gizmo.ts';
 import styles from './PlaygroundWindow.module.scss';
@@ -75,7 +76,16 @@ export default function PlaygroundWindow() {
 
   // A shortcut tip's "Open in Blendon": the Keyboard page with that shortcut's row lit.
   useEffect(() => PlaygroundEvents.on('openKeyboard', ({ id }) => app.goTo('Keyboard', id)), [app]);
-  useEffect(() => PlaygroundEvents.on('openSettings', ({ page, hl }) => app.goTo(page, hl)), [app]);
+  useEffect(
+    () =>
+      PlaygroundEvents.on('openSettings', ({ page, hl }) => {
+        // Again when already there: the badge was clicked to find the current task.
+        if (page === 'Tutorial') TutorialPageAnimation.requestReveal();
+        app.goTo(page, hl);
+      }),
+    [app],
+  );
+  useEffect(() => PlaygroundEvents.on('setSetting', ({ key, value }) => app.set(key, value)), [app]);
 
   // The dock's reset button: every value, override and binding back to its default; the layout stays.
   useEffect(() => {

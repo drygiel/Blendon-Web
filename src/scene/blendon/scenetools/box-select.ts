@@ -19,6 +19,7 @@ import { Color, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import { RectPicker } from '../../unity/raycast.ts';
 import { Scene, type GameObject } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
+import { SceneTutorial } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { GeneralSettings } from '../settings.ts';
 import {
@@ -376,6 +377,7 @@ function commit(d: Drag) {
   // Live pushes one undo step per move; folded into the one the user asks to undo.
   Undo.collapseUndoOperations(d.undoGroup + 1);
   repaint(d.view);
+  SceneTutorial.report(d.mode === BoxSelectMode.Replace ? 'BoxSelected' : 'BoxSelectModified');
 }
 
 const rectKey = (r: Rect) => `${r.x.toFixed(1)},${r.y.toFixed(1)},${r.width.toFixed(1)},${r.height.toFixed(1)}`;

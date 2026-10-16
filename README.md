@@ -244,6 +244,8 @@ The site shows Blendon's settings window, rebuilt from the plugin itself. `pnpm 
 is mounted in (`../`, or `BLENDON_DIR`):
 
 - `Editor/**/*Settings.cs` - each page's `DrawSettings` code, turned into the window's layout
+- `Editor/Tutorial/TutorialCurriculum.cs` - the tutorial's chapters, task text and pictures. How each task is ticked
+  is ported by hand in `src/scene/blendon/tutorial/curriculum.ts`, and a unit test fails when the two lists drift
 - `Editor/Icons` - tooltip images, page header images and Blendon's own icons
 - `Metadata~/PlaygroundRef` - labels, tooltips, defaults and constants plus the Editor's built-in icons, dumped from
   the Unity Editor (`model*.json`, `ui/`)

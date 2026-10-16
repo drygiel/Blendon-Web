@@ -26,7 +26,7 @@ import { ClickSelectParent, HierarchyWalk } from './scenetools/selection-tools.t
 import { SnapToFloor } from './scenetools/snap-to-floor.ts';
 import { ShortcutParking } from './shortcut-parking.ts';
 import { ShortcutTipCard } from './shortcut-tips.ts';
-import { SceneTutorialCard } from './tutorial/scene-tutorial.ts';
+import { SceneTutorial } from './tutorial/scene-tutorial.ts';
 import { EditorEdit } from './scenetools/scene-menu/editor-menu.ts';
 import { SceneMenu } from './scenetools/scene-menu/scene-menu.ts';
 
@@ -73,7 +73,7 @@ export function installBlendon() {
   BoxSelect.install();
   EditorEdit.install();
   SceneMenu.install();
-  SceneTutorialCard.install();
+  SceneTutorial.install();
   ShortcutTipCard.install();
   // Last, so an open menu draws over every gizmo.
   PieMenus.install();

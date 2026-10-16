@@ -99,7 +99,7 @@ export class PieMenuController {
     this.gestureLastPosition = this.cursor;
     this.gestureCheckedAt = t;
     if (moved >= 1) return PieOutcome.Open;
-    return report(this.execute(), 'PieFlick');
+    return this.report(this.execute(), '');
   }
 
   /** A quick, still release latches the menu open; anything else commits, the deadzone cancels. */
@@ -109,11 +109,11 @@ export class PieMenuController {
       this.clickStyle = true;
       return PieOutcome.Open;
     }
-    return report(this.execute(), 'PieFlick');
+    return this.report(this.execute(), '');
   }
 
   onConfirmClick(): PieOutcome {
-    return report(this.execute(), 'PieTap');
+    return this.report(this.execute(), 'PieTap');
   }
 
   /** 1-based; null when no enabled item answers (or the numbers are hidden). */
@@ -122,7 +122,15 @@ export class PieMenuController {
     const index = n - 1;
     if (index < 0 || index >= this.data.count || !this.data.items[index]?.isEnabled) return null;
     this.highlighted = index;
-    return report(this.execute(), 'PieNumber');
+    return this.report(this.execute(), 'PieNumber');
+  }
+
+  // Only known here, at the call that ran the item. The way it ran and what it ran are two reports.
+  private report(outcome: PieOutcome, signal: string) {
+    if (outcome !== PieOutcome.Executed) return outcome;
+    if (signal) SceneTutorial.report(signal);
+    SceneTutorial.reportCommand(this.data.items[this.highlighted]?.key ?? '');
+    return outcome;
   }
 
   private execute(): PieOutcome {
@@ -141,11 +149,6 @@ export class PieMenuController {
     this.invalidDirection = !this.aimed || this.distance < PieMenuSettings.Threshold;
     this.highlighted = PieLayout.select(this.data, this.pieDirection, this.invalidDirection);
   }
-}
-
-function report(outcome: PieOutcome, signal: string) {
-  if (outcome === PieOutcome.Executed) SceneTutorial.report(signal);
-  return outcome;
 }
 
 // Skipped when the view can't hold the pie: clamping would only drag it away from the cursor. Unity

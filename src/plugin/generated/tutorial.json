@@ -1,269 +1,579 @@
 {
  "chapters": [
   {
-   "title": "Navigating the View",
-   "subtitle": "The camera, Blender's way",
+   "title": "First Scene",
+   "subtitle": "Look around, then build",
+   "icon": "d_SceneViewCamera",
+   "accent": "#40B8EB",
    "tasks": [
     {
      "id": "nav.orbit",
-     "title": "Orbit around your selection",
-     "hint": "Select something, then hold the orbit button and drag - the camera turns around the selection, not around the view's own pivot.",
+     "title": "Orbit the view",
+     "hint": "Hold the orbit button and drag. With nothing selected the camera turns around the middle of the view.",
      "picture": "plugin/headers/OrbitSelected_Header.webp",
-     "clip": "plugin/video/OrbitSelected.mp4"
-    },
-    {
-     "id": "nav.axis-snap",
-     "title": "Snap the view to a world axis",
-     "hint": "Start the orbit drag first, then hold this key: as the view comes near a world axis it locks onto it and drops into orthographic. Let go for a free perspective orbit again.",
-     "picture": "plugin/tips/OrbitSelected_SnapToAxis.webp",
-     "clip": ""
-    },
-    {
-     "id": "nav.quick-roll",
-     "title": "Roll the view 90°",
-     "hint": "Hold Alt and flick MMB in any direction - the view rolls 90° that way and lands squarely on the nearest axis view.",
-     "picture": "plugin/tips/OrbitSelected_QuickRoll.webp",
-     "clip": ""
+     "clip": "plugin/video/OrbitSelected.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "nav.pan",
      "title": "Slide the camera sideways",
      "hint": "Pan keeps the point under the cursor anchored, so the scene tracks your hand instead of drifting.",
      "picture": "plugin/headers/Pan_Header.webp",
-     "clip": "plugin/video/Pan.mp4"
+     "clip": "plugin/video/Pan.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "scene.add-plane",
+     "title": "Add a floor from the context menu",
+     "hint": "Right-click an empty spot and open Add, then pick Plane. It lands where you clicked, and everything after this stands on it.",
+     "picture": "plugin/tips/ContextMenu_AddObject.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "nav.zoom",
-     "title": "Zoom toward the cursor",
-     "hint": "Point at something across the scene and scroll - you close in on that, not on the middle of the view.",
+     "title": "Zoom toward a corner of the floor",
+     "hint": "Point at a corner of the plane and scroll - you close in on that corner, not on the middle of the view.",
      "picture": "plugin/headers/Zoom_Header.webp",
-     "clip": "plugin/video/Zoom.mp4"
+     "clip": "plugin/video/Zoom.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "scene.add-cube",
+     "title": "Drop a cube onto the floor",
+     "hint": "Point at the floor, hold the key, flick toward Cube and let go. Direction is all that counts, and the cube lands on the floor under the cursor.",
+     "picture": "plugin/tips/PieMenus_AddObject.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "nav.frame",
-     "title": "Frame the selection",
-     "hint": "Press it again without changing the selection to step through the cycle: bounds, pivot, close, then back where you started.",
+     "title": "Frame the cube",
+     "hint": "The new cube is selected, so this fills the view with it. Press again to step through bounds, pivot and close.",
      "picture": "plugin/headers/FrameSelected_Header.webp",
-     "clip": "plugin/video/FrameSelected.mp4"
+     "clip": "plugin/video/FrameSelected.mp4",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
-     "id": "nav.axis-view",
-     "title": "Jump to an axis view",
-     "hint": "The numpad views: front, right and top, with the action modifier for the opposite side of each. NumLock has to be on.",
-     "picture": "plugin/headers/NumpadViews_Header.webp",
-     "clip": "plugin/video/NumpadViews.mp4"
+     "id": "nav.orbit-selection",
+     "title": "Orbit around the cube",
+     "hint": "The same orbit, now with the cube selected: the camera turns around the cube instead of the view's own pivot.",
+     "picture": "plugin/tips/OrbitSelected_OrbitSelected.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     }
    ]
   },
   {
-   "title": "Grab, Rotate, Scale",
-   "subtitle": "Transform with no handle",
+   "title": "Grab and Move",
+   "subtitle": "One key, no handle to hit",
+   "icon": "d_MoveTool",
+   "accent": "#E6574F",
    "tasks": [
     {
      "id": "grab.move",
-     "title": "Grab the selection and move it",
-     "hint": "The selection follows the cursor across the screen - no handle to hit first.",
+     "title": "Grab the cube and drop it",
+     "hint": "Press the key and the cube follows the cursor across the screen. A left click or Enter drops it there.",
      "picture": "plugin/tips/Move_Grab.webp",
-     "clip": ""
-    },
-    {
-     "id": "grab.confirm",
-     "title": "Confirm a transform",
-     "hint": "A left click or Enter drops the selection where it is and ends the grab.",
-     "picture": "plugin/tips/Move_Grab.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
      "id": "grab.cancel",
-     "title": "Cancel a transform",
-     "hint": "Right-click or Escape mid-grab and everything goes back exactly where it started - one undo step, never a half-applied move.",
+     "title": "Change your mind",
+     "hint": "Grab again, then right-click or press Esc: the cube jumps back exactly where it was, with nothing left in the undo history.",
      "picture": "plugin/tips/Overview_RmbCancel.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
-     "id": "grab.rotate",
-     "title": "Grab-rotate the selection",
-     "hint": "The same gesture for rotation: the angle follows the cursor around the pivot.",
-     "picture": "plugin/tips/Rotate_Grab.webp",
-     "clip": ""
+     "id": "grab.axis",
+     "title": "Slide along one axis",
+     "hint": "Grab, then press X: the cube can only travel along X now. Y or Z switch the axis, and a click drops it.",
+     "picture": "plugin/tips/AllTools_ConstraintLine.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
-     "id": "grab.scale",
-     "title": "Grab-scale the selection",
-     "hint": "And for scale: move away from the pivot to grow, toward it to shrink.",
-     "picture": "plugin/tips/Scale_Grab.webp",
-     "clip": ""
+     "id": "grab.exact",
+     "title": "Lift it exactly two metres",
+     "hint": "Grab, press Y for up, type 2 and press Enter. The mouse stops driving the moment the first digit lands.",
+     "picture": "plugin/tips/AllTools_LiveReadout.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "snap.floor",
+     "title": "Drop it back onto the floor",
+     "hint": "The cube is floating now. This rests its bounds on whatever is below it, here the floor.",
+     "picture": "plugin/headers/SnapToFloor_Header.webp",
+     "clip": "plugin/video/SnapToFloor.mp4",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.floor-plane",
+     "title": "Slide it across the floor",
+     "hint": "Grab, then hold the plane lock key and press Y: the cube moves along X and Z but never leaves the floor.",
+     "picture": "plugin/tips/AllTools_PlaneLock.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.grid",
+     "title": "Move it in grid steps",
+     "hint": "Grab and hold the snap key while you move: the cube lands on Unity's snap increments, ticks show the steps.",
+     "picture": "plugin/tips/AllTools_SnapTicks.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.slow",
+     "title": "Fine-tune its position",
+     "hint": "Grab and hold the precision key: the cube moves a fraction of the distance the cursor does.",
+     "picture": "plugin/tips/AllTools_PrecisionMode.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     }
    ]
   },
   {
-   "title": "Handles & Snapping",
-   "subtitle": "What the handles land on",
+   "title": "Rotate and Scale",
+   "subtitle": "The same gesture, two more ways",
+   "icon": "d_RotateTool",
+   "accent": "#52D973",
    "tasks": [
     {
+     "id": "grab.rotate",
+     "title": "Turn the cube",
+     "hint": "The rotate key works like the grab: the angle follows the cursor around the pivot, a click keeps it.",
+     "picture": "plugin/tips/Rotate_Grab.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.rotate-exact",
+     "title": "Turn it exactly 45 degrees",
+     "hint": "Rotate, press Y to turn around the up axis, type 45 and press Enter.",
+     "picture": "plugin/tips/Rotate_AngleArc.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.local-axis",
+     "title": "Slide along the cube's own axis",
+     "hint": "Grab and press X twice: the second press switches to the cube's own X, which now runs at 45 degrees.",
+     "picture": "plugin/tips/AllTools_PerObjectLocalAxes.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.scale",
+     "title": "Scale it up",
+     "hint": "Move away from the pivot to grow, toward it to shrink, and click to keep the size.",
+     "picture": "plugin/tips/Scale_Grab.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "grab.reset-scale",
+     "title": "Put the size back",
+     "hint": "Hold the Reset menu's key and flick to Scale. Only the size goes back, the turn and the position stay.",
+     "picture": "plugin/tips/PieMenus_Reset.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    }
+   ]
+  },
+  {
+   "title": "A Second Cube",
+   "subtitle": "One object placed against another",
+   "icon": "d_SnapIncrement",
+   "accent": "#B861EB",
+   "tasks": [
+    {
+     "id": "pair.add-cube",
+     "title": "Add a second cube",
+     "hint": "Add another one the same way, from the context menu's Add, or duplicate the first with Ctrl+D. Leave a gap between the two.",
+     "picture": "plugin/tips/PieMenus_PlaceOnFloor.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "snap.vertex",
+     "title": "Snap a corner onto a corner",
+     "hint": "Grab the new cube, then hold the vertex key near one of its corners. Move it onto a corner of the first cube and click while still holding.",
+     "picture": "plugin/tips/AllTools_VertexSnapping.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "snap.surface",
+     "title": "Stand it on top of the other",
+     "hint": "Grab and hold the aim key over the first cube: the selection follows the surface under the cursor. Click on its top face.",
+     "picture": "plugin/tips/Move_SurfaceSnap.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    }
+   ]
+  },
+  {
+   "title": "Tools and Handles",
+   "subtitle": "When you want a handle after all",
+   "icon": "d_Transform Icon",
+   "accent": "#BF59E6",
+   "tasks": [
+    {
+     "id": "handles.move-tool",
+     "title": "Pick the Move tool from the Tools menu",
+     "hint": "Hold the key and flick to Move. Unity's own tool keys and toolbar work too, the menu just keeps them under one key.",
+     "picture": "plugin/tips/PieMenus_Tools.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
      "id": "handles.axis",
-     "title": "Drag an axis handle",
-     "hint": "The arrows and boxes work as they always did - they just draw Blender's way, and honour everything this tutorial has taught so far.",
+     "title": "Drag an arrow",
+     "hint": "The arrows work as they always did. They just draw Blender's way and take every key from the last chapters.",
      "picture": "plugin/headers/Move_Header.webp",
-     "clip": "plugin/video/Move.mp4"
+     "clip": "plugin/video/Move.mp4",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
      "id": "handles.plane",
-     "title": "Drag a plane handle",
+     "title": "Drag a plane square",
      "hint": "The small square between two arrows moves along both of those axes at once.",
      "picture": "plugin/tips/Move_PlaneHandles.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
+    },
+    {
+     "id": "handles.local",
+     "title": "Line the arrows up with the cube",
+     "hint": "Hold the Orientation menu's key and flick to Local: the arrows follow the cube's own 45 degree turn.",
+     "picture": "plugin/tips/PieMenus_Orientation.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "handles.rotate-tool",
+     "title": "Switch to the Rotate tool",
+     "hint": "Flick to Rotate in the Tools menu, or use Unity's own key. The next three tasks need its rings.",
+     "picture": "plugin/tips/Rotate_RotateTool.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "handles.ring",
      "title": "Turn a rotation ring",
-     "hint": "Switch to the rotate tool and drag one of the coloured rings; the angle follows the cursor around the pivot.",
+     "hint": "Drag one of the coloured rings, the angle follows the cursor around the pivot.",
      "picture": "plugin/headers/Rotate_Header.webp",
-     "clip": "plugin/video/Rotate.mp4"
-    },
-    {
-     "id": "snap.surface",
-     "title": "Drop an object onto a surface",
-     "hint": "Hold this key while moving: the selection follows the surface under the cursor, for placing things on a floor or a wall.",
-     "picture": "plugin/tips/Move_SurfaceSnap.webp",
-     "clip": ""
+     "clip": "plugin/video/Rotate.mp4",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
      "id": "snap.lookat",
-     "title": "Aim an object at something",
-     "hint": "The same key while rotating aims the selection at whatever is under the cursor.",
+     "title": "Aim the cube at the other one",
+     "hint": "Drag a ring and hold the aim key: the cube turns to face whatever is under the cursor. Point at the other cube and let go.",
      "picture": "plugin/tips/Rotate_LookAt.webp",
-     "clip": ""
-    },
-    {
-     "id": "snap.vertex",
-     "title": "Snap to a vertex",
-     "hint": "Unity's own vertex snapping: hold the key, pick up the selection by one of its vertices and drop it onto another object's.",
-     "picture": "plugin/tips/AllTools_VertexSnapping.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
      "id": "snap.virtual-pivot",
-     "title": "Pin a virtual pivot",
-     "hint": "Toggle it, then click a vertex to settle on it - drags snap from that point instead of a default origin, until you toggle the mode off again.",
+     "title": "Turn the cube around its corner",
+     "hint": "Press the key, click a corner to settle the gizmo on it, then drag a ring: the cube swings around that corner.",
      "picture": "plugin/tips/AllTools_PickVirtualPivot.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     },
     {
-     "id": "snap.floor",
-     "title": "Drop the selection to the floor",
-     "hint": "Rests each object's bounds on whatever is below it, ignoring its own colliders.",
-     "picture": "plugin/headers/SnapToFloor_Header.webp",
-     "clip": "plugin/video/SnapToFloor.mp4"
+     "id": "snap.keep-pivot",
+     "title": "Keep that corner as a pivot",
+     "hint": "Still on the corner, press Enter: an empty takes its place with the cube under it, so the cube now turns around it for good.",
+     "picture": "plugin/tips/AllTools_PickVirtualPivot.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     }
    ]
   },
   {
-   "title": "Precision",
-   "subtitle": "Exact values, mid-drag",
+   "title": "Selecting",
+   "subtitle": "Boxes, groups and the hierarchy",
+   "icon": "d_RectTool",
+   "accent": "#4CD9A6",
    "tasks": [
     {
-     "id": "precision.axis",
-     "title": "Constrain a drag to one axis",
-     "hint": "During any drag press X, Y or Z. Press the same key again to switch between global and local; a third press on a G/R/S grab frees the axis.",
-     "picture": "plugin/tips/AllTools_PlaneLock.webp",
-     "clip": ""
+     "id": "select.box",
+     "title": "Box-select both cubes",
+     "hint": "Drag from an empty spot across both cubes. Everything the box touches is picked, it doesn't have to fit inside.",
+     "picture": "plugin/headers/BoxSelect_Header.webp",
+     "clip": "plugin/video/BoxSelect.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
-     "id": "precision.numeric",
-     "title": "Type an exact value",
-     "hint": "Mid-drag, type a number and press Enter. The mouse stops driving the moment the first digit lands.",
-     "picture": "plugin/tips/Move_Grab.webp",
-     "clip": ""
+     "id": "select.box-modes",
+     "title": "Add to the box, or take away",
+     "hint": "Hold Shift while dragging to add what the box touches, or the action key to take it away.",
+     "picture": "plugin/tips/BoxSelect_BoxSelect.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
-     "id": "precision.plane",
-     "title": "Lock a plane instead of an axis",
-     "hint": "Hold this modifier with an axis key to exclude that axis rather than isolate it - the drag then runs across the other two.",
-     "picture": "plugin/tips/AllTools_PlaneLock.webp",
-     "clip": ""
+     "id": "select.group",
+     "title": "Group the two cubes",
+     "hint": "With both selected, right-click and pick Group: an empty is made with both cubes under it.",
+     "picture": "plugin/tips/ContextMenu_Grouping.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select both cubes first"
     },
     {
-     "id": "precision.snap",
-     "title": "Snap to the increment lattice",
-     "hint": "Hold the action key while dragging to land on Unity's own snap increments; ticks are drawn along the handle as you go.",
-     "picture": "plugin/tips/AllTools_SnapTicks.webp",
-     "clip": ""
+     "id": "select.parent",
+     "title": "Step up to the parent",
+     "hint": "Select one of the cubes, then step up: the group that holds it is selected instead.",
+     "picture": "plugin/tips/BoxSelect_SelectParent.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select one cube in the group first"
     },
     {
-     "id": "precision.slow",
-     "title": "Slow a drag down for fine work",
-     "hint": "Hold this key mid-drag: the selection moves a fraction of the distance the cursor does, and every snap step halves.",
-     "picture": "plugin/tips/AllTools_PrecisionMode.webp",
-     "clip": ""
-    }
-   ]
-  },
-  {
-   "title": "Scene Tools",
-   "subtitle": "The rest of the Scene View",
-   "tasks": [
+     "id": "select.children",
+     "title": "Step down to the children",
+     "hint": "From the group, step down: both cubes under it are selected.",
+     "picture": "plugin/tips/BoxSelect_SelectChildren.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select the group first"
+    },
     {
-     "id": "tools.isolate",
-     "title": "Isolate the selection, then leave",
-     "hint": "Hides everything else while you work. The same key brings the scene back.",
-     "picture": "plugin/headers/IsolateView_Header.webp",
-     "clip": "plugin/video/IsolateView.mp4"
+     "id": "select.click-parent",
+     "title": "Click a selected cube again",
+     "hint": "Select one cube, then click it once more: the selection moves up to its group, like stepping up.",
+     "picture": "plugin/tips/BoxSelect_ClickSelectsParent.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select one cube in the group first"
     },
     {
      "id": "tools.selection-history",
      "title": "Step back through selections",
      "hint": "Browser-style back and forward for what you had selected - the mouse's own side buttons by default.",
      "picture": "plugin/headers/NavigationHistory_SelectionHeader.webp",
-     "clip": "plugin/video/SelectionHistory.mp4"
+     "clip": "plugin/video/SelectionHistory.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
-     "id": "tools.view-history",
-     "title": "Step back through camera positions",
-     "hint": "The same pair with the shift modifier undoes where you were looking from, not what was selected.",
-     "picture": "plugin/headers/NavigationHistory_ViewHeader.webp",
-     "clip": "plugin/video/ViewHistory.mp4"
+     "id": "select.pivot-point",
+     "title": "Turn both cubes in place",
+     "hint": "With both selected, flick to Individual Origins in the Pivot Point menu, then rotate: each cube spins around its own centre.",
+     "picture": "plugin/tips/PieMenus_PivotPoint.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select both cubes first"
+    },
+    {
+     "id": "select.align",
+     "title": "Match one cube's turn to the other",
+     "hint": "Select both, the last one clicked is the active one. Right-click, Align to Active, Rotation: the other takes its turn.",
+     "picture": "plugin/tips/ContextMenu_AlignToActive.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": "Select both cubes first"
+    }
+   ]
+  },
+  {
+   "title": "Views",
+   "subtitle": "Every angle, one key each",
+   "icon": "d_NetworkStartPosition Icon",
+   "accent": "#9ED940",
+   "tasks": [
+    {
+     "id": "nav.axis-view",
+     "title": "Look from the front, the side and the top",
+     "hint": "The numpad views: front, right and top, with the action key for the opposite side of each. NumLock has to be on.",
+     "picture": "plugin/headers/NumpadViews_Header.webp",
+     "clip": "plugin/video/NumpadViews.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "nav.projection",
+     "title": "Switch between perspective and flat",
+     "hint": "Toggles the view between perspective and orthographic, handy right after an axis view.",
+     "picture": "plugin/tips/NumpadViews_Projection.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "nav.orbit-step",
+     "title": "Orbit in steps",
+     "hint": "The numpad arrows turn the view by a fixed step around the pivot, left, right, up or down.",
+     "picture": "plugin/tips/NumpadViews_OrbitSteps.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "nav.axis-snap",
+     "title": "Lock onto an axis while orbiting",
+     "hint": "Start the orbit drag first, then hold this key: near a world axis the view locks onto it and goes flat. Let go for a free orbit again.",
+     "picture": "plugin/tips/OrbitSelected_SnapToAxis.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "nav.quick-roll",
+     "title": "Roll the view 90°",
+     "hint": "Hold the key and flick the mouse in any direction - the view rolls 90° that way and lands squarely on the nearest axis view.",
+     "picture": "plugin/tips/OrbitSelected_QuickRoll.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "tools.orientation",
      "title": "Click an axis on the orientation gizmo",
      "hint": "The ball in the corner of the view: click a handle to swing round to that axis, drag inside it to orbit, middle-click to toggle projection.",
      "picture": "plugin/headers/OrientationGizmo_Header.webp",
-     "clip": "plugin/video/OrientationGizmo.mp4"
+     "clip": "plugin/video/OrientationGizmo.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "nav.view-pie",
+     "title": "Change the view without a numpad",
+     "hint": "Hold the View menu's key and flick to Top. The same views and the projection toggle, under one key.",
+     "picture": "plugin/tips/PieMenus_View.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "nav.camera",
+     "title": "Look through the camera",
+     "hint": "Lines the view up with the scene's camera, so you see what the game will see. No camera yet? Add one from the Add menu.",
+     "picture": "plugin/tips/NumpadViews_AlignToCamera.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "tools.view-history",
+     "title": "Go back to where you were looking",
+     "hint": "Back and forward through camera positions, like selection history but for the view.",
+     "picture": "plugin/headers/NavigationHistory_ViewHeader.webp",
+     "clip": "plugin/video/ViewHistory.mp4",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "tools.isolate",
+     "title": "Isolate one cube, then leave",
+     "hint": "Hides everything else while you work. The same key brings the scene back.",
+     "picture": "plugin/headers/IsolateView_Header.webp",
+     "clip": "plugin/video/IsolateView.mp4",
+     "aspect": "640 / 360",
+     "needs": "Select the cube first"
     }
    ]
   },
   {
-   "title": "Pie Menus & Setup",
-   "subtitle": "Menus on a key, and setup",
+   "title": "Pie Menus and You",
+   "subtitle": "Menus on a key, keys of your own",
+   "icon": "d_AvatarPivot",
+   "accent": "#598CF2",
    "tasks": [
     {
-     "id": "pie.flick",
-     "title": "Run a pie item with a flick",
-     "hint": "Hold the key, flick the mouse toward an item and let go. Direction is all that counts - you never have to land on the button.",
-     "picture": "plugin/headers/PieMenus_Header.webp",
-     "clip": "plugin/video/PieMenus.mp4"
+     "id": "pie.draw-mode",
+     "title": "See the scene as wireframe",
+     "hint": "Hold the Draw Mode menu's key and flick to Wireframe.",
+     "picture": "plugin/tips/PieMenus_DrawMode.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "pie.tap",
      "title": "Latch a pie open and click",
-     "hint": "Tap the same key instead of holding it: the menu stays up, and a left click runs an item.",
+     "hint": "Tap the same key instead of holding it: the menu stays up, and a left click on Shaded brings the scene back.",
      "picture": "plugin/tips/PieMenus_TapTimeout.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "pie.wireframe",
+     "title": "Flip wireframe on and off",
+     "hint": "One key between the current look and wireframe, without opening the menu.",
+     "picture": "plugin/tips/PieMenus_ToggleWireframe.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
      "id": "pie.number",
      "title": "Run a pie item by its number",
-     "hint": "Every item is numbered; its number key runs it directly while the menu is open.",
+     "hint": "Every item is numbered. Hold the Tools menu's key and press 1 to run its first item without aiming.",
      "picture": "plugin/tips/PieMenus_ShowNumbers.webp",
-     "clip": ""
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     },
     {
-     "id": "setup.settings",
-     "title": "Open Blendon's settings",
-     "hint": "Tools → Blendon. Every feature here can be switched off on its own, and its keys go straight back to the Editor.",
-     "picture": "plugin/tips/Overview_MasterSwitch.webp",
-     "clip": ""
+     "id": "pie.snapping",
+     "title": "Keep snapping on for every move",
+     "hint": "Flick to Grid in the Snapping menu, then grab the cube: it steps along the grid without holding a key. Flick again to turn it off.",
+     "picture": "plugin/tips/PieMenus_Snapping.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
+    },
+    {
+     "id": "pie.rebind",
+     "title": "Change a key to one you like",
+     "hint": "Every key in this tutorial can be changed. Pick any shortcut on a feature page or the Keyboard page and give it a new key.",
+     "picture": "plugin/tips/Overview_KeyboardCustom.webp",
+     "clip": "",
+     "aspect": "640 / 360",
+     "needs": ""
     }
    ]
   }

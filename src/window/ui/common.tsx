@@ -16,15 +16,23 @@ export function Runs({ runs }: { runs: Run[] }) {
   ));
 }
 
-/** Unity key caps for a binding (KeyCap.Draw). */
-export function Caps({ binding, plus = false }: { binding: string; plus?: boolean }) {
-  return capTokens(binding).map((t, i) => (
-    <Fragment key={i}>
-      {plus && i > 0 && <span className="kplus">+</span>}
-      <span className={'ukc' + (t.mouse ? ' ms' : '')}>
-        {t.t}
-        {t.mouse && <span className="msi" style={mouseStyle(t.icon)} />}
-      </span>
+/** Between the steps of a key sequence ("G > X > Enter"), drawn as a dim arrow. */
+const Then = ' > ';
+
+/** Unity key caps for a binding (KeyCap.Draw), or for a sequence of them. */
+export function Caps({ binding, plus = false, tint }: { binding: string; plus?: boolean; tint?: string }) {
+  return binding.split(Then).map((combo, s) => (
+    <Fragment key={s}>
+      {s > 0 && <span className="kthen">›</span>}
+      {capTokens(combo).map((t, i) => (
+        <Fragment key={i}>
+          {plus && i > 0 && <span className="kplus">+</span>}
+          <span className={'ukc' + (t.mouse ? ' ms' : '')} style={tint ? { color: tint } : undefined}>
+            {t.t}
+            {t.mouse && <span className="msi" style={mouseStyle(t.icon, tint)} />}
+          </span>
+        </Fragment>
+      ))}
     </Fragment>
   ));
 }
