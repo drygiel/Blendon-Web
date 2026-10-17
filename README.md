@@ -50,19 +50,19 @@ project.
 <tr>
 <td width="50%" valign="top">
 <img src=".github/readme/OrbitSelected.webp" alt="Orbit Selected" width="100%">
-<br><b>Orbit Selected</b> &nbsp; <kbd>MMB</kbd> drag<br>
-Orbit around the selection. Hold <kbd>Alt</kbd> to snap to a world axis, flick <kbd>Alt</kbd> + <kbd>MMB</kbd> to roll 90°.
+<br><b>Orbit Selected</b> &nbsp; <kbd>Mouse 2</kbd> drag<br>
+Orbit around the selection. Hold <kbd>Alt</kbd> to snap to a world axis, flick <kbd>Alt</kbd>+<kbd>Mouse 2</kbd> to roll 90°.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/Pan.webp" alt="Camera Pan" width="100%">
-<br><b>Camera Pan</b> &nbsp; <kbd>Shift</kbd> + <kbd>MMB</kbd><br>
+<br><b>Camera Pan</b> &nbsp; <kbd>Shift</kbd>+<kbd>Mouse 2</kbd><br>
 The point under the cursor stays under the cursor, and the drag wraps past the view edge.
 </td>
 </tr>
 <tr>
 <td width="50%" valign="top">
 <img src=".github/readme/Zoom.webp" alt="Zoom" width="100%">
-<br><b>Zoom</b> &nbsp; <kbd>Scroll</kbd> &nbsp; <kbd>Numpad +</kbd> <kbd>Numpad -</kbd><br>
+<br><b>Zoom</b> &nbsp; <kbd>Scroll</kbd> &nbsp; <kbd>Num +</kbd> <kbd>Num -</kbd><br>
 Blender's Scale, Dolly and Continue methods, toward the cursor.
 </td>
 <td width="50%" valign="top">
@@ -79,7 +79,7 @@ Blender's axis ball in the corner. Click an axis to look down it, drag to orbit,
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/ViewHistory.webp" alt="View History" width="100%">
-<br><b>View History</b> &nbsp; <kbd>Shift</kbd> + <kbd>Mouse 3</kbd> / <kbd>Mouse 4</kbd><br>
+<br><b>View History</b> &nbsp; <kbd>Shift</kbd>+<kbd>Mouse 3</kbd> / <kbd>Mouse 4</kbd><br>
 Back and forward through camera positions, like a browser.
 </td>
 </tr>
@@ -91,7 +91,7 @@ The same for selections: step back to what you had selected a moment ago.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/FrameSelected.webp" alt="Frame Selected" width="100%">
-<br><b>Frame Selected</b> &nbsp; <kbd>Numpad .</kbd><br>
+<br><b>Frame Selected</b> &nbsp; <kbd>Num .</kbd><br>
 Each press steps on: the selection, its pivot, a close-up, then back to where you started.
 </td>
 </tr>
@@ -102,8 +102,8 @@ Each press steps on: the selection, its pivot, a close-up, then back to where yo
 ## Transform Gizmos
 
 Blender-style **Move**, **Rotate**, **Scale** and **Transform** gizmos. Each one can be switched off on its own and
-falls back to Unity's gizmo. All of them honor Pivot/Center and Local/Global, work with multi-selection and Unity's grid
-snapping, and cancel on right-click.
+falls back to Unity's gizmo. All of them honor Local/Global and Blendon's pivot modes, work with multi-selection and
+Unity's grid snapping, and cancel on right-click.
 
 <table>
 <tr>
@@ -122,7 +122,7 @@ Rings that follow the cursor, a trackball and an angle arc. Hold <kbd>Alt</kbd> 
 <td width="50%" valign="top">
 <img src=".github/readme/Scale.webp" alt="Scale" width="100%">
 <br><b>Scale</b> &nbsp; <kbd>R</kbd><br>
-Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior.
+Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In the Scene view <kbd>R</kbd> alone starts a grab rotate; elsewhere, and on the Unity keyboard preset, <kbd>R</kbd> is the Scale tool.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/Transform.webp" alt="Transform" width="100%">
@@ -145,13 +145,13 @@ Live readout, drag ghost, constraint line and snap ticks. Hold <kbd>Shift</kbd> 
 <tr>
 <td width="50%" valign="top">
 <img src="public/plugin/tips/AllTools_VertexSnapping.webp" alt="Vertex snapping" width="100%">
-<br><b>Vertex snapping</b> &nbsp; hold <kbd>V</kbd> &nbsp; <kbd>Shift</kbd> + <kbd>V</kbd><br>
+<br><b>Vertex snapping</b> &nbsp; hold <kbd>V</kbd> &nbsp; <kbd>Shift</kbd>+<kbd>V</kbd><br>
 Snap a vertex onto another object's vertex, or pick any vertex as a virtual pivot. Skinned meshes included.
 </td>
 <td width="50%" valign="top">
 <img src="public/plugin/tips/AllTools_PivotPointMenu.webp" alt="Pivot Point" width="100%">
 <br><b>Pivot Point</b><br>
-Unity's Pivot/Center dropdown gains Blender's four pivot modes, for both rotating and scaling.
+Blendon's tools put a Pivot Point dropdown in Tool Settings, with Blender's four pivot modes for both rotating and scaling.
 </td>
 </tr>
 </table>
@@ -164,12 +164,12 @@ Unity's Pivot/Center dropdown gains Blender's four pivot modes, for both rotatin
 <tr>
 <td width="50%" valign="top">
 <img src=".github/readme/BoxSelect.webp" alt="Box Select" width="100%">
-<br><b>Box Select</b> &nbsp; <kbd>LMB</kbd> drag<br>
+<br><b>Box Select</b> &nbsp; <kbd>Mouse 0</kbd> drag<br>
 Selects everything the box touches, tested against real triangles. <kbd>C</kbd> includes hidden objects, <kbd>Space</kbd> moves the box.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/IsolateView.webp" alt="Isolate View" width="100%">
-<br><b>Isolate View</b> &nbsp; <kbd>Numpad /</kbd><br>
+<br><b>Isolate View</b> &nbsp; <kbd>Num /</kbd><br>
 Hides everything but the selection. Press again to bring the scene back.
 </td>
 </tr>
@@ -181,20 +181,20 @@ Drops the selection onto whatever is below it, optionally aligned to the slope.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/PieMenus.webp" alt="Pie Menus" width="100%">
-<br><b>Pie Menus</b> &nbsp; <kbd>Z</kbd> <kbd>Q</kbd> <kbd>Shift</kbd> + <kbd>A</kbd> ...<br>
+<br><b>Pie Menus</b> &nbsp; <kbd>Z</kbd> <kbd>Q</kbd> <kbd>Shift</kbd>+<kbd>A</kbd> ...<br>
 Hold, flick, let go, or tap to keep it open. Eight built-in pies, plus a visual editor for your own.
 </td>
 </tr>
 <tr>
 <td width="50%" valign="top">
 <img src=".github/readme/ContextMenu.webp" alt="Context Menu" width="100%">
-<br><b>Context Menu</b> &nbsp; <kbd>RMB</kbd><br>
-Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. On the Unity keyboard preset it moves to <kbd>Alt</kbd> + <kbd>RMB</kbd>.
+<br><b>Context Menu</b> &nbsp; <kbd>Mouse 1</kbd><br>
+Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. On the Unity keyboard preset it moves to <kbd>Alt</kbd>+<kbd>Mouse 1</kbd>.
 </td>
 <td width="50%" valign="top">
 <img src="public/plugin/tips/Overview_KeyboardBlendon.webp" alt="Keyboard presets" width="100%">
 <br><b>Keyboard presets</b><br>
-<b>Blendon</b> keeps the Blender keys and moves Unity's commands one modifier along. <b>Unity</b> leaves the Editor's keys alone. Pick neither and Blendon's keys stay unassigned, so nothing clashes.
+<b>Blendon</b> answers the Blender keys in the Scene view and writes nothing; Unity's commands on them keep working everywhere else, and one click moves any of them aside. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead.
 </td>
 </tr>
 </table>

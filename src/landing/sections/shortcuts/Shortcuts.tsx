@@ -8,8 +8,8 @@ import styles from './Shortcuts.module.scss';
 const WHILE_DRAGGING = [
   [['X', 'Y', 'Z'], 'constrain'],
   [['0–9'], 'type a value'],
-  [['Enter', 'LMB'], 'confirm'],
-  [['Esc', 'RMB'], 'cancel'],
+  [['Enter', 'Mouse 0'], 'confirm'],
+  [['Esc', 'Mouse 1'], 'cancel'],
 ] as const;
 
 type Preset = 'blendon' | 'unity';

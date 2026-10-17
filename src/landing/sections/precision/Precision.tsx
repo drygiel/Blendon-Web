@@ -17,8 +17,8 @@ const WHILE_DRAGGING: [KeyTokens, string][] = [
   [['0–9', '.'], 'Type the value. The mouse stops driving the transform.'],
   [['−'], 'Toggle the sign.'],
   [['Backspace'], 'Delete a digit. On an empty field, hand control back to the mouse.'],
-  [['Enter', 'LMB'], 'Confirm.'],
-  [['Esc', 'RMB'], 'Cancel and restore the pre-drag transform.'],
+  [['Enter', 'Mouse 0'], 'Confirm.'],
+  [['Esc', 'Mouse 1'], 'Cancel and restore the pre-drag transform.'],
 ];
 
 const MODIFIERS: [KeyTokens, string, string][] = [
