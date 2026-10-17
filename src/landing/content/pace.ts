@@ -7,7 +7,7 @@ export interface ContestedKey {
   keys: KeyTokens;
   blendon: string;
   unity: string;
-  /** Where Unity's command goes on the Blendon preset, or a note when Blendon's own takes over. */
+  /** Where one click moves Unity's command on the Blendon preset, or a note when Blendon's own takes over. */
   unityTo: KeyTokens | string;
   /** Where Blendon's command goes on the Unity preset. */
   blendonTo: KeyTokens;
@@ -16,11 +16,11 @@ export interface ContestedKey {
 export const CONTESTED_KEYS: ContestedKey[] = [
   {
     id: 'Blendon/Orbit Selected',
-    keys: ['MMB', '~drag'],
+    keys: ['Mouse 2', '~drag'],
     blendon: 'Orbit Selected',
     unity: 'Pan',
-    unityTo: "Switched off: Blendon's pan does the same on Shift + MMB",
-    blendonTo: ['Ctrl', '~+', 'MMB'],
+    unityTo: "Replaced: Blendon's pan does the same on Shift+Mouse 2",
+    blendonTo: ['Ctrl', '~+', 'Mouse 2'],
   },
   {
     id: 'Blendon/Grab',
@@ -75,16 +75,16 @@ export const CONTESTED_KEYS: ContestedKey[] = [
     keys: ['V'],
     blendon: "Blendon's vertex snap",
     unity: "Unity's vertex snap",
-    unityTo: "Switched off: Blendon's is the same mode, without its limits",
+    unityTo: "Replaced: Blendon's is the same mode, without its limits",
     blendonTo: ['Alt', '~+', 'V'],
   },
   {
     id: 'Blendon/Context Menu',
-    keys: ['RMB'],
+    keys: ['Mouse 1'],
     blendon: 'Context menu',
     unity: "Unity's Scene view menu",
-    unityTo: "Still there on Shift + RMB, and as the menu's Classic row",
-    blendonTo: ['Alt', '~+', 'RMB'],
+    unityTo: "Still there on Shift+Mouse 1, and as the menu's Classic row",
+    blendonTo: ['Alt', '~+', 'Mouse 1'],
   },
 ];
 

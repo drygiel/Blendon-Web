@@ -25,7 +25,7 @@ export const PIES: PieDemo[] = [
     items: ['Wireframe', 'Unlit', 'Shaded', 'Wireframe Shaded'],
     icons: ['d_wireframe', 'd_UnlitMode', 'd_Shaded', 'd_ShadedWireframe'],
     active: 2,
-    note: 'Shift + Z toggles wireframe without the menu',
+    note: 'Shift+Z toggles wireframe without the menu',
   },
   {
     id: 'add',
@@ -116,6 +116,6 @@ export const PIES: PieDemo[] = [
       'd_ViewToolMove',
     ],
     active: 0,
-    note: 'Hide Gizmo clears every gizmo and handle off the view, then brings them back',
+    note: "Hide Gizmo clears Blendon's gizmos and Rect off the view, then brings them back",
   },
 ];

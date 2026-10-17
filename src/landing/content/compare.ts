@@ -13,7 +13,7 @@ export const COMPARISON: Comparison[] = [
     task: 'Look around an object',
     unity: "Orbit turns around the Scene view's pivot, so you frame the object first",
     blendon: 'Orbit turns around the selection, or the point under the cursor',
-    keys: ['MMB', '~drag'],
+    keys: ['Mouse 2', '~drag'],
   },
   {
     task: 'Zoom in on a detail',
@@ -31,12 +31,12 @@ export const COMPARISON: Comparison[] = [
     task: 'Box-select a few objects',
     unity: 'Only objects that fit wholly inside the box are picked',
     blendon: 'Everything the box touches, tested against real triangles',
-    keys: ['LMB', '~drag'],
+    keys: ['Mouse 0', '~drag'],
   },
   {
     task: 'Look straight down an axis',
     unity: 'Click a cone of the scene gizmo',
-    blendon: 'One numpad key, the View pie or an Alt + middle-mouse flick',
+    blendon: 'One numpad key, the View pie or an Alt+Mouse 2 flick',
     keys: ['Num 7'],
   },
   {
@@ -49,6 +49,6 @@ export const COMPARISON: Comparison[] = [
     task: 'Find a menu command',
     unity: "Right-click and scan the Scene view's menu",
     blendon: 'Right-click and type: the same entries, grouped and searchable',
-    keys: ['RMB'],
+    keys: ['Mouse 1'],
   },
 ];

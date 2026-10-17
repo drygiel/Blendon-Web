@@ -6,8 +6,18 @@ import { Section, SectionIntro } from '../../ui/Section.tsx';
 import table from '../../ui/Table.module.scss';
 import styles from './Pace.module.scss';
 
-/** One preset's column: what the key does there, and where the other command went. */
-function Owner({ does, other, to }: { does: string; other: string; to: ContestedKey['unityTo'] }) {
+/** One preset's column: what the key does there, and where the other command goes. */
+function Owner({
+  does,
+  other,
+  to,
+  after,
+}: {
+  does: string;
+  other: string;
+  to: ContestedKey['unityTo'];
+  after?: string;
+}) {
   return (
     <>
       <span className={styles.does}>{does}</span>
@@ -17,6 +27,7 @@ function Owner({ does, other, to }: { does: string; other: string; to: Contested
         ) : (
           <>
             {other} → <Keys tokens={to} size="sm" />
+            {after}
           </>
         )}
       </span>
@@ -34,7 +45,7 @@ export function Pace() {
             Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
           </>
         }
-        lead="On first load Blendon asks one question: which keys it may take. Nothing is written until you answer, and Not now leaves Blendon's shortcuts without keys, so nothing clashes. Pick a preset any time on the Overview page of Tools → Blendon."
+        lead="On first load Blendon asks one question: which keys it may take. Use Blender keys, or just Esc, writes nothing, and Keep Editor keys moves Blendon's contested keys one modifier aside. Pick a preset any time on the Overview page of Tools → Blendon."
       />
 
       <div className={table.panel} {...plotPart('above')}>
@@ -54,7 +65,7 @@ export function Pace() {
                   <Keys tokens={row.keys} />
                 </th>
                 <td data-label="Blendon preset">
-                  <Owner does={row.blendon} other={row.unity} to={row.unityTo} />
+                  <Owner does={row.blendon} other={row.unity} to={row.unityTo} after="in one click" />
                 </td>
                 <td data-label="Unity preset">
                   <Owner does={row.unity} other={row.blendon} to={row.blendonTo} />
@@ -64,9 +75,9 @@ export function Pace() {
           </tbody>
         </table>
         <p className={table.note}>
-          Both presets are real Unity shortcut profiles, written the first time you pick one, so keys you tune on either
-          side stay put. The command that loses a key moves one modifier aside, and the settings window lists every
-          pair.
+          Neither preset is a profile of its own: both work on whatever profile you are on, and keys you tune stay put.
+          In the Scene view a covered Editor command waits, one click moves it one modifier aside, and the settings
+          window lists every pair.
         </p>
       </div>
 
@@ -77,8 +88,8 @@ export function Pace() {
           </InfoCard>
         ))}
         <InfoCard label="The way back" title="One switch" accent>
-          The master switch parks every Blendon key and hands each Unity command back, your settings and keys kept for
-          when it comes back on. Default in Edit → Shortcuts holds no Blendon key at all.
+          The master switch turns every Blendon key off and hands each Unity command back, your settings and keys kept
+          for when it comes back on. The Editor then behaves as if Blendon were not installed.
         </InfoCard>
       </CardGrid>
     </Section>
