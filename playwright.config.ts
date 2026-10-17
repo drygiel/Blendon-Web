@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const port = 4173;
+// Each worktree picks its own port, or reuseExistingServer would test another checkout's server.
+const port = Number(process.env.PW_PORT ?? 4173);
 const base = process.env.BASE_PATH ?? '/';
 // Optional: run against an already installed Chromium instead of Playwright's own download.
 const chromiumPath = process.env.PW_CHROMIUM_PATH;
