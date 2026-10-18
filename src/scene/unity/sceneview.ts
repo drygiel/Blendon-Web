@@ -211,6 +211,10 @@ export class Hook<T> {
   }
 }
 
+// Normalizing a quaternion that is already unit can still move its last bits, and a rotation put back after
+// a cancel or a history step must come back exactly.
+const unit = (q: Quaternion) => (Math.abs(Quaternion.dot(q, q) - 1) < 1e-12 ? q : q.normalized);
+
 /** One Scene view: what Unity's SceneView exposes to editor code. */
 export class SceneView {
   static readonly beforeSceneGui = new Hook<SceneView>();
@@ -272,7 +276,7 @@ export class SceneView {
   set rotation(q: Quaternion) {
     if (this.isRotationLocked) return;
     this.flight = null;
-    this._rotation = q.normalized;
+    this._rotation = unit(q);
     this.updateCamera();
   }
 
@@ -340,7 +344,7 @@ export class SceneView {
     if (instant) {
       this.flight = null;
       this._pivot = point;
-      if (!this.isRotationLocked) this._rotation = rotation.normalized;
+      if (!this.isRotationLocked) this._rotation = unit(rotation);
       this._size = Math.abs(size);
       this.ortho.set(orthographic ? 1 : 0, true);
     } else {
@@ -348,7 +352,7 @@ export class SceneView {
         from: this.state(),
         to: {
           pivot: point,
-          rotation: this.isRotationLocked ? this._rotation : rotation.normalized,
+          rotation: this.isRotationLocked ? this._rotation : unit(rotation),
           size: Math.abs(size),
           orthographic,
         },
@@ -394,7 +398,7 @@ export class SceneView {
   lookAtDirect(point: Vector3, rotation: Quaternion, size?: number) {
     this.flight = null;
     this._pivot = point;
-    if (!this.isRotationLocked) this._rotation = rotation.normalized;
+    if (!this.isRotationLocked) this._rotation = unit(rotation);
     if (size !== undefined) this._size = size;
     this.updateCamera();
     this.repaint();
