@@ -78,6 +78,31 @@ function pagePointOf(page: Page, name: string) {
   }, name);
 }
 
+/**
+ * A point on the X arrow of the named object's handle, `out` pixels from its pivot. Unity's Move handle has nothing
+ * in its middle, so at the pivot itself its arrows tie and float noise picks the one a drag takes.
+ */
+function xArrowPointOf(page: Page, name: string, out = 35) {
+  return page.locator('#try [role=application]').evaluate(
+    (el: unknown, [n, out]) => {
+      const h = (el as HostElement).sceneHost;
+      const v = h.view;
+      const go = [...h.scene.allObjects()].find((o) => o.name === n)!;
+      const p = go.transform.position as Vec3 & { withX(x: number): Vec3 };
+      const r = h.root.getBoundingClientRect();
+      const onPage = (w: Vec3) => {
+        const s = v.camera.worldToScreenPoint(w);
+        return { x: r.left + s.x / v.pixelsPerPoint, y: r.top + (v.camera.pixelHeight - s.y) / v.pixelsPerPoint };
+      };
+      const a = onPage(p);
+      const b = onPage(p.withX(p.x + 1));
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      return { x: a.x + ((b.x - a.x) / len) * out, y: a.y + ((b.y - a.y) / len) * out };
+    },
+    [name, out] as const,
+  );
+}
+
 /** What Box Select's highlight marks right now: [to select, to deselect]. */
 function highlighted(page: Page) {
   return page.locator('#try [role=application]').evaluate((el: unknown) => {
@@ -776,18 +801,20 @@ test.describe("Blendon's tool context", () => {
   test("Hide Gizmo hides Blendon's gizmos in its context and nothing in Game Object", async ({ page }) => {
     const view = await openScene(page);
     await view.focus();
-    // The Tools pie on Q, Hide Gizmo its sixth item.
-    await page.keyboard.press('q');
+    // The Tools pie on Q, Hide Gizmo its sixth item, picked while Q is held. A tap latches the menu only when its
+    // first frame comes within the tap timeout, which a software-rendered view can miss.
+    await page.keyboard.down('q');
+    await page.waitForTimeout(200);
     await page.keyboard.press('6');
+    await page.keyboard.up('q');
     const before = (await positionOf(page, 'Cube'))!;
-    const dragFromPivot = async () => {
-      const at = await pagePointOf(page, 'Cube');
+    const dragFrom = async (at: { x: number; y: number }) => {
       await page.mouse.move(at.x, at.y);
       await page.mouse.down();
       for (let i = 1; i <= 8; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
       await page.mouse.up();
     };
-    await dragFromPivot();
+    await dragFrom(await pagePointOf(page, 'Cube'));
     await page.waitForTimeout(300);
     expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x, 4);
 
@@ -795,7 +822,7 @@ test.describe("Blendon's tool context", () => {
     await page.keyboard.press('b');
     await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
-    await dragFromPivot();
+    await dragFrom(await xArrowPointOf(page, 'Cube'));
     await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
   });
 
@@ -922,7 +949,7 @@ test.describe('Undo and Redo', () => {
     await page.keyboard.press('b');
     await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
     const before = (await positionOf(page, 'Cube'))!;
-    const at = await pagePointOf(page, 'Cube');
+    const at = await xArrowPointOf(page, 'Cube');
     await page.mouse.move(at.x, at.y);
     await page.mouse.down();
     for (let i = 1; i <= 6; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
