@@ -1,16 +1,17 @@
-// ShortcutTips: the first press of a Blendon key the Editor's own command stepped aside from raises a card
-// naming both. Once per key per visit, armed again when the binding changes. Only the curated pairs
-// (D.known) are told here: the browser has no Editor shortcut registry to scan for clashes.
+// ShortcutTips: the first press of a Blendon key that covers an Editor command in the Scene view, or whose
+// command the user moved, raises a card naming both. Once per key per visit, armed again when either key changes.
+// Only the curated pairs (D.known) are told here: the browser has no Editor shortcut registry to scan for clashes.
 import { PlaygroundEvents } from '../../bridge/events.ts';
-import { SharedSettings } from '../../bridge/settings.ts';
+import { Keymap } from '../../bridge/keymap.ts';
 import { D } from '../../plugin/window-data.ts';
-import { Prefs, ShortcutManager } from '../unity/editor.ts';
+import { ShortcutManager } from '../unity/editor.ts';
 import { GUIUtility } from '../unity/imgui.ts';
 import { ShortcutTips as Hook } from './foundation.ts';
 import { GizmoRegistry } from './gizmos/viewport-gesture.ts';
 import { ViewNavigationState } from './navigation/state.ts';
 import { PieMenu } from './piemenus/pie-menu.ts';
 import { GeneralSettings } from './settings.ts';
+import { ShortcutGates } from './shortcut-gates.ts';
 import { SceneTutorial } from './tutorial/scene-tutorial.ts';
 
 export interface TipSide {
@@ -23,6 +24,10 @@ export interface TipSide {
 }
 
 export interface TipCard {
+  /** Covered: Blendon answers the Editor's key here. Moved: the user gave the Editor's command another key. */
+  story: 'Covered' | 'Moved';
+  /** A covering key that answers only in Blendon's tool context. */
+  contextual: boolean;
   ours: TipSide;
   theirs: TipSide;
 }
@@ -52,10 +57,9 @@ let version = 0;
 let pumping = false;
 
 const now = () => performance.now() / 1000;
-const kbSide = () => SharedSettings.reader?.kbSide() ?? 'Blendon';
-const bindingOf = (id: string) => Prefs.source?.shortcut(id) ?? D.shortcuts[id]?.d ?? '';
-// The binding and the side are part of the key, so a rebind arms the card again.
-const seenKey = (id: string) => `${id}|${bindingOf(id)}|${kbSide()}`;
+const bindingOf = (id: string) => Keymap.binding(id, ShortcutGates.reader) ?? '';
+// Both bindings are part of the key, so a rebind, a Move or a Reset arms the card again.
+const seenKey = (id: string) => `${id}|${bindingOf(id)}|${bindingOf(D.known[id]?.uid ?? '')}`;
 
 /** A drag or an open pie owns the viewport: a card neither appears nor retires under it. */
 const held = () =>
@@ -66,18 +70,21 @@ function changed() {
   for (const l of listeners) l();
 }
 
-/** The Editor's command really moved: Blendon holds the contested key and the Editor's is elsewhere. */
+/** From the live keys: the Editor's command still on Blendon's key (covered) or moved by the user. */
 function resolve(id: string): TipCard | null {
   const row = D.known[id];
-  if (!row || !row.editorAlt || kbSide() !== 'Blendon') return null;
-  const binding = bindingOf(id);
-  if (binding !== row.key) return null;
+  if (!row) return null;
+  const story = Keymap.tipStory(row, ShortcutGates.reader);
+  // Unset: the command has no key at all (the menu Blendon's took over), nothing to teach.
+  if (story !== 'Covered' && story !== 'Moved') return null;
   return {
-    ours: { id, label: D.shortcuts[id]?.n ?? id, binding, blendon: true, context: 'Scene View' },
+    story,
+    contextual: story === 'Covered' && ShortcutGates.needsContext(id),
+    ours: { id, label: row.bl, binding: bindingOf(id), blendon: true, context: 'Scene View' },
     theirs: {
-      id: row.ul,
+      id: row.uid,
       label: row.ul,
-      binding: row.editorAlt,
+      binding: bindingOf(row.uid),
       blendon: false,
       context: UnityContexts[row.ul] ?? 'Global',
     },

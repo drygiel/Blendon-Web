@@ -1,5 +1,5 @@
-// Blendon's shortcut tip card: the key just pressed, whose it is now and where the Editor's command went.
-// Slides in at the Scene view's bottom right corner, the spot the tutorial card leaves free once done.
+// Blendon's shortcut tip card: the key just pressed and the Editor command it covers here, or where the user
+// moved that command. Slides in at the Scene view's bottom right corner, the spot the tutorial card leaves free.
 import { useSyncExternalStore } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
 import { publicUrl } from '../../lib/links.ts';
@@ -19,6 +19,13 @@ const BlendonLogo = publicUrl('plugin/icons/B@2x.png');
 const BulbIcon = publicUrl('plugin/icons/Notice_TipBulb@2x.png');
 
 const openKeyboard = (id?: string) => PlaygroundEvents.emit('openKeyboard', { id });
+
+// One headline per situation (ShortcutTips' titles).
+const Titles = {
+  Covered: ['Blendon answers this key here', "In the Scene View the Editor's command waits while Blendon's is on."],
+  Moved: ['Blendon owns this shortcut now', "The Editor's own command moved to another key."],
+};
+const ContextSubtitle = "Outside Blendon's tool context the Editor's command answers again.";
 
 function Side({ side }: { side: TipSide }) {
   const open = () => {
@@ -67,6 +74,7 @@ export function ShortcutTipCard({ host }: { host: SceneHost }) {
 
   const card = Tips.card;
   if (!card || view.w < Width + RightMargin * 2 || view.h < Height + BottomMargin + 8) return null;
+  const [title, subtitle] = Titles[card.story];
   const docked = view.w - Width - RightMargin;
   const x = view.w + (docked - view.w) * Tips.progress;
 
@@ -84,8 +92,8 @@ export function ShortcutTipCard({ host }: { host: SceneHost }) {
       <div className={styles.header}>
         <span className={styles.badge}>i</span>
         <div className={styles.headText}>
-          <div className={styles.title}>Blendon owns this shortcut now</div>
-          <div className={styles.subtitle}>The Editor&apos;s own command stepped aside for Blendon&apos;s.</div>
+          <div className={styles.title}>{title}</div>
+          <div className={styles.subtitle}>{card.contextual ? ContextSubtitle : subtitle}</div>
         </div>
         <button type="button" className={styles.close} title="Dismiss" onClick={() => Tips.dismiss()}>
           <svg viewBox="0 0 20 20" aria-hidden="true">

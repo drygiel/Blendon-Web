@@ -1,10 +1,12 @@
 // The window's settings model and its interaction plumbing: a port of the C# SettingsEditorWindow
 // state handling. A model wraps one rendered state; changes go through `update`.
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
-import type { PropValue } from '../../plugin/schema.ts';
+import { type GateReader, Keymap, type LiveSettings, switchedOn } from '../../bridge/keymap.ts';
+import { TipResolver } from '../../plugin/keys.ts';
+import type { ContestedRow, KeyboardPreset, PropValue } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
 import { SceneTutorial } from '../../scene/blendon/foundation.ts';
-import type { DialogState, FrameStep, KeyboardSide, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
+import type { DialogState, FrameStep, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
 import { rich } from './text.ts';
 import { clamp, M } from './util.ts';
 
@@ -34,14 +36,6 @@ const PAGE_SWITCHES: Record<string, string[]> = {
   PieMenus: ['PieMenuSettings', 'WireframeToggleSettings'],
 };
 
-// What a profile write or a handover moves: every Blendon key plus each contested Editor command.
-const keysWritten = () =>
-  Object.keys(D.shortcuts).filter((id) => id.startsWith('Blendon/') && !/\/Custom \d+$/.test(id)).length +
-  D.contested.length;
-
-// How long the Writing Keys bar takes to fill.
-const WRITE_MS = 1400;
-
 export const pageInfo = (id: string) => D.catalog.find((p) => p.id === id) ?? D.catalog[0];
 
 /** DOM handles and timers that outlive a render. */
@@ -69,8 +63,14 @@ export interface Instance {
   gizmoLast: number;
   /** Fixed gizmo yaw for side-by-side checks against Unity captures (?yaw=). */
   gizmoYaw: number | null;
-  /** The Writing Keys bar's interval, 0 when idle. */
-  writeTimer: number;
+  /** The model of the latest render, which the window's live cards read. */
+  model: WindowModel | null;
+  /** Cards filled from the live keys and this window's values, cached across renders. */
+  tips: TipResolver | null;
+  /** Bumped when the values a card can name change: settings, overrides, pie switches. */
+  settingsVersion: number;
+  /** The values, overrides and pie switches the version was last bumped for. */
+  seen: [unknown, unknown, unknown];
 }
 
 type DomKey = 'host' | 'win' | 'scroll' | 'thumb' | 'track' | 'hthumb' | 'htrack' | 'sscroll' | 'sthumb' | 'strack';
@@ -97,7 +97,21 @@ export function newInstance(): Instance {
     gizmoAngle: 0,
     gizmoLast: 0,
     gizmoYaw: null,
-    writeTimer: 0,
+    model: null,
+    tips: null,
+    settingsVersion: 0,
+    seen: [null, null, null],
+  };
+}
+
+// The window's values as the cards read them, from whichever model rendered last.
+function liveSettings(inst: Instance): LiveSettings {
+  return {
+    val: (key) => inst.model?.val(key),
+    pieOn: (pie) => !!inst.model?.pieOn(pie),
+    get version() {
+      return inst.settingsVersion;
+    },
   };
 }
 
@@ -109,10 +123,28 @@ export class WindowModel {
   searching = false;
   pageW = 900;
 
+  /** The gates read this render's values: the shared copy is only published after it. */
+  readonly gates: GateReader = { val: (key) => this.val(key), pieOn: (pie) => this.pieOn(pie) };
+
   constructor(st: WindowState, inst: Instance, update: (patch: StatePatch) => void) {
     this.st = st;
     this.inst = inst;
     this.update = update;
+    inst.model = this;
+    const [vals, ovr, pies] = inst.seen;
+    if (vals !== st.vals || ovr !== st.ovr || pies !== st.pies) {
+      inst.seen = [st.vals, st.ovr, st.pies];
+      inst.settingsVersion++;
+    }
+    if (!inst.tips) {
+      const live = liveSettings(inst);
+      inst.tips = new TipResolver(Keymap.tokens(() => live));
+    }
+  }
+
+  /** A card's text as it reads now: its keys from the live bindings, its settings from this window. */
+  resolve(text: string): string {
+    return this.inst.tips!.resolve(text);
   }
 
   /** A ref callback that keeps an element's handle. */
@@ -145,10 +177,15 @@ export class WindowModel {
     return Number(this.val(key));
   }
 
+  /** By the stored value, so a row that follows the Defaults card, or reads off with Blendon off, is no change. */
   isDefault(key: string): boolean {
-    const v = this.val(key);
-    const d = D.props[key] ? D.props[key].d : v;
-    return typeof v === 'number' ? Math.abs(v - Number(d)) < 1e-6 : v === d;
+    key = DELEGATED[key] ?? key;
+    if (!(key in this.st.vals)) return true;
+    const v = this.st.vals[key];
+    const p = D.props[key];
+    // Nothing declared: the stored value is the only evidence left.
+    if (!p) return false;
+    return typeof v === 'number' ? Math.abs(v - Number(p.d)) < 1e-6 : v === p.d;
   }
 
   overriding(key: string): boolean {
@@ -228,38 +265,66 @@ export class WindowModel {
   }
 
   // ---- shortcuts --------------------------------------------------------------------------------
-  shortcutDefault(id: string): string {
-    const row = D.known[id];
-    if (row && this.st.kbSide === 'Unity') return row.blendonAlt;
-    return D.shortcuts[id]?.d ?? '';
+  shortcut(id: string): string {
+    return Keymap.binding(id, this.gates) ?? '';
   }
 
-  shortcut(id: string): string {
-    const sc = this.st.sc;
-    return id in sc ? (sc[id] ?? '') : this.shortcutDefault(id);
+  /** The key the active keyboard preset gives a shortcut, which restore goes back to. */
+  shortcutReference(id: string): string {
+    return Keymap.reference(id) ?? '';
   }
 
   shortcutChanged(id: string): boolean {
-    const sc = this.st.sc;
-    return id in sc && sc[id] !== this.shortcutDefault(id);
+    return Keymap.isModified(id, this.gates);
   }
 
   setShortcut(id: string, binding: string) {
-    this.update((s) => ({ sc: { ...s.sc, [id]: binding }, capturing: null }));
+    Keymap.rebind(id, binding);
+    this.update({ capturing: null });
     SceneTutorial.report('ShortcutRebound');
   }
 
-  clearShortcutOverride(id: string) {
-    this.update((s) => {
-      const sc = { ...s.sc };
-      delete sc[id];
-      return { sc, capturing: null };
-    });
+  restoreShortcut(id: string) {
+    Keymap.restore(id);
+    this.update({ capturing: null });
     SceneTutorial.report('ShortcutRebound');
   }
 
-  unityMoved(row: { editorAlt: string; key: string }): string {
-    return this.st.kbSide === 'Blendon' ? row.editorAlt : row.key;
+  /** Whether a shortcut's feature is switched on, whatever the tool context. */
+  shortcutSwitchedOn(id: string): boolean {
+    return switchedOn(id, this.gates);
+  }
+
+  contestState(row: ContestedRow) {
+    return Keymap.contestState(row, this.gates);
+  }
+
+  /**
+   * NativeCollisionNote: while Blendon holds the key, the Editor command it covers or replaces, and where.
+   * `binding` is the key on show, a draft in the pie menu editor.
+   */
+  nativeNote(id: string, binding = this.shortcut(id)): { lead: string; hint: string; ul: string } | null {
+    const row = D.known[id];
+    if (!row || binding !== row.key) return null;
+    const theirs = this.shortcut(row.uid);
+    const hint = theirs
+      ? `"${row.ul}" is on ${theirs}. Open it in Unity's Shortcuts window`
+      : `"${row.ul}" has no key. Open it in Unity's Shortcuts window`;
+    // Outside Blendon's context the Editor's command has the key back.
+    const where = Keymap.needsContext(id, this.gates) ? "in Blendon's context" : 'in the Scene View';
+    const lead = `${row.replaces ? 'Replaces' : 'Covers'} the Editor's "${row.ul}" ${where}. Open in`;
+    return { lead, hint, ul: row.ul };
+  }
+
+  // ---- keyboard presets -------------------------------------------------------------------------
+  /** Read off the keys, nothing stored. */
+  keyboardPreset(): KeyboardPreset {
+    return Keymap.preset();
+  }
+
+  /** One batch of writes; the same preset again is a no-op. */
+  applyKeyboardPreset(preset: KeyboardPreset) {
+    if (preset !== this.keyboardPreset()) Keymap.applyPreset(preset);
   }
 
   // ---- folds ------------------------------------------------------------------------------------
@@ -358,7 +423,6 @@ export class WindowModel {
   /** A preset only flips feature switches: tuning, keys and the keyboard preset stay as they are. */
   applyPreset(i: number) {
     const p = D.presets[i];
-    if (!this.val('GeneralSettings.Enabled')) this.writeKeys();
     this.update((s) => {
       const vals: Record<string, PropValue> = { ...s.vals, 'GeneralSettings.Enabled': true };
       for (const page of D.catalog) {
@@ -373,48 +437,23 @@ export class WindowModel {
 
   setMaster(on: boolean) {
     if (on === !!this.val('GeneralSettings.Enabled')) return;
-    this.writeKeys();
     this.set('GeneralSettings.Enabled', on);
-  }
-
-  // ---- keyboard presets -------------------------------------------------------------------------
-  /** Picks a keyboard preset: its profile is written the first time, and only switched to after that. */
-  pickKeyboard(side: KeyboardSide) {
-    if (side === this.st.kbSide || this.st.writing) return;
-    if (!this.st.kbMade.includes(side)) this.writeKeys();
-    this.update((s) => ({ kbSide: side, kbMade: s.kbMade.includes(side) ? s.kbMade : [...s.kbMade, side] }));
-  }
-
-  /** Plays the Writing Keys bar: Unity rebuilds its shortcut directory per binding, so keys land over frames. */
-  writeKeys() {
-    if (this.inst.writeTimer) return;
-    const total = keysWritten();
-    const start = performance.now();
-    this.update({ writing: { done: 0, total } });
-    this.inst.writeTimer = window.setInterval(() => {
-      // Paced by the clock, so a slow window layout stretches the steps rather than the whole write.
-      const done = Math.min(total, Math.floor(((performance.now() - start) / WRITE_MS) * total));
-      if (done < total) {
-        this.update({ writing: { done, total } });
-        return;
-      }
-      window.clearInterval(this.inst.writeTimer);
-      this.inst.writeTimer = 0;
-      this.update({ writing: null });
-    }, 33);
   }
 
   resetPage(page: string) {
     const owners = D.resetOwners[page] ?? [];
     const owned = (k: string) => owners.includes(k.split('.')[0] ?? '');
+    // Shortcuts go back to the key the active preset gives each one.
+    const preset = Keymap.preset();
+    Keymap.batch(() => {
+      for (const id of D.pageShortcuts[page] ?? []) Keymap.restore(id, preset);
+    });
     this.update((s) => {
       const vals = { ...s.vals };
       const ovr = { ...s.ovr };
-      const sc = { ...s.sc };
       for (const k of Object.keys(vals)) if (owned(k)) delete vals[k];
       for (const k of Object.keys(ovr)) if (owned(k)) delete ovr[k];
-      for (const id of D.pageShortcuts[page] ?? []) delete sc[id];
-      const patch: Partial<WindowState> = { vals, ovr, sc };
+      const patch: Partial<WindowState> = { vals, ovr };
       if (page === 'FrameSelected') patch.frameSeq = null;
       if (page === 'SceneMenu') patch.extras = null;
       if (page === 'PieMenus') patch.pies = {};
@@ -422,10 +461,14 @@ export class WindowModel {
     });
   }
 
+  /** Every page's reset: Blendon's keys back to the active preset, the Editor's commands as the user left them. */
   resetAll() {
+    const preset = Keymap.preset();
+    Keymap.batch(() => {
+      for (const ids of Object.values(D.pageShortcuts)) for (const id of ids) Keymap.restore(id, preset);
+    });
     this.update({
       vals: {},
-      sc: {},
       ovr: {},
       frameSeq: null,
       extras: null,
@@ -504,7 +547,8 @@ export class WindowModel {
     const w = win.getBoundingClientRect();
     const a = el.getBoundingClientRect();
     const anchor = { x: a.left - w.left, y: a.top - w.top, w: a.width, h: a.height, mx: mx - w.left };
-    const isRich = (!tip.native && tip.t.includes('<size=14>')) || !!tip.i || !!tip.url;
+    const text = tip.src ? this.resolve(tip.src) : tip.t;
+    const isRich = (!tip.native && text.includes('<size=14>')) || !!tip.i || !!tip.url;
     const img = tip.url ?? (tip.i ? (D.tips[tip.i] ?? '') : '');
     const maxW = Math.max(0, w.width - 12 - 16);
     const width = img ? clamp(640 / 1.75, Math.min(320, maxW), maxW) : Math.min(320, maxW);
@@ -512,7 +556,7 @@ export class WindowModel {
       tip: {
         src: tip.t,
         rich: isRich,
-        runs: rich(tip.t),
+        runs: rich(text),
         img,
         aspect: tip.ar ?? (img && tip.i ? (D.tipAR[tip.i] ?? '') : ''),
         w: width,

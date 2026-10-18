@@ -133,35 +133,6 @@
     min-height: 22px;
     margin-bottom: 4px;
   }
-  .it-progress {
-    min-height: 22px;
-    margin-bottom: 4px;
-  }
-  .it-progress .fld {
-    height: 22px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .pgb {
-    flex: 1;
-    height: 10px;
-    padding: 1px;
-    box-sizing: border-box;
-    border-radius: 4px;
-    background: #2b2b2b;
-    border: 1px solid #212121;
-  }
-  .pgf {
-    height: 100%;
-    border-radius: 3px;
-    background: #52d973;
-  }
-  .pgc {
-    font-size: 9.5px;
-    color: #a6a6a6;
-    font-variant-numeric: tabular-nums;
-  }
   .it-kbPreset.dis .segs,
   .it-kbPreset.dis .prn,
   .it-kbPreset.dis .kbl,

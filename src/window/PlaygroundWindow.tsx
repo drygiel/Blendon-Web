@@ -3,8 +3,9 @@
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/700.css';
 import './styles/window.scss';
-import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import { PlaygroundEvents } from '../bridge/events.ts';
+import { Keymap } from '../bridge/keymap.ts';
 import { SharedSettings } from '../bridge/settings.ts';
 import { useReducedMotion } from '../lib/hooks.ts';
 import { iconVars } from './core/icons.ts';
@@ -58,6 +59,8 @@ export default function PlaygroundWindow() {
   const [state, update] = useReducer(reduce, D.initial, (i) => ({ ...initialState(i), docked: !DEV_SIZE }));
   const [inst] = useState(newInstance);
   const app = useMemo(() => new WindowModel(state, inst, update), [state, inst]);
+  // The keys live in the bridge, shared with the Scene view; the model reads them as it lays out.
+  useSyncExternalStore(Keymap.subscribe, () => Keymap.version);
   const L = layoutWindow(app);
   const vars = useMemo(() => iconVars(), []);
   const reduced = useReducedMotion();
@@ -68,7 +71,6 @@ export default function PlaygroundWindow() {
       SharedSettings.publish({
         val: (k) => app.val(k),
         shortcut: (id) => app.shortcut(id),
-        kbSide: () => app.st.kbSide,
         pieOn: (id) => app.pieOn(id),
       }),
     [app],
@@ -87,11 +89,10 @@ export default function PlaygroundWindow() {
   );
   useEffect(() => PlaygroundEvents.on('setSetting', ({ key, value }) => app.set(key, value)), [app]);
 
-  // The dock's reset button: every value, override and binding back to its default; the layout stays.
+  // The dock's reset button: every value and override back to its default (the Keymap resets its own keys);
+  // the layout stays.
   useEffect(() => {
     const reset = () => {
-      window.clearInterval(inst.writeTimer);
-      inst.writeTimer = 0;
       update((s) => ({
         ...initialState(D.initial),
         docked: s.docked,

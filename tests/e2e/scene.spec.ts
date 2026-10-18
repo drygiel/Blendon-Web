@@ -362,13 +362,31 @@ test("the window's Start Over brings the tutorial back", async ({ page }) => {
   await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toBeVisible();
 });
 
-test('the first press of a key the Editor gave up explains it once', async ({ page }) => {
+/** The settings window on its Overview page, where the keyboard presets and the covered commands are. */
+async function openOverview(page: Page) {
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.locator('.si[aria-label="Blendon"]').click();
+  return win;
+}
+
+/** One row of the Overview's covered-commands table, found by Blendon's side. */
+const contestedRow = (page: Page, name: string) =>
+  page.locator('#try .uw .ct').filter({ has: page.locator('.ctn', { hasText: new RegExp(`^${name}$`) }) });
+
+async function toScene(page: Page) {
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await expect(page.locator('#try [role=application]')).toBeFocused();
+}
+
+test('the first press of a key that covers an Editor command explains it once', async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   await view.focus();
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
-  const card = view.getByText('Blendon owns this shortcut now');
+  const card = view.getByText('Blendon answers this key here');
   await expect(card).toBeVisible();
+  await expect(view.getByText("Outside Blendon's tool context the Editor's command answers again.")).toBeVisible();
   await expect(view.getByText('Cycle Tool Modes')).toBeVisible();
   await view.getByRole('button', { name: 'Open in Blendon' }).click();
   await expect(page.locator('#try .uw [data-hl="true"]')).toBeVisible();
@@ -377,6 +395,103 @@ test('the first press of a key the Editor gave up explains it once', async ({ pa
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(800);
   await expect(card).toHaveCount(0);
+});
+
+test("with Move switched off, G is the Editor's Cycle Tool Modes again", async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Skip the tutorial' }).click();
+  const win = await openOverview(page);
+  const grab = contestedRow(page, 'Grab');
+  await expect(grab.getByRole('button', { name: 'Move', exact: true })).toBeVisible();
+  await win.locator('.si[aria-label="Move"]').click();
+  await win.getByRole('button', { name: 'Enable Move' }).click();
+  await win.locator('.si[aria-label="Blendon"]').click();
+  // Free: nothing is covered, so there is nothing to move.
+  await expect(grab.getByRole('button')).toHaveCount(0);
+  await grab.hover();
+  await expect(win.locator('.rtip')).toContainText('or switched off, so the Editor keeps G');
+
+  const before = (await positionOf(page, 'Cube'))!.x;
+  await toScene(page);
+  for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+  await page.waitForTimeout(800);
+  expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
+  await expect(view.getByText('Blendon answers this key here')).toHaveCount(0);
+});
+
+test('Move puts Cycle Tool Modes on Shift+G, and Reset gives it G back', async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Skip the tutorial' }).click();
+  await openOverview(page);
+  const grab = contestedRow(page, 'Grab');
+  const editorKey = grab.locator('.ctk').nth(1);
+  await expect(editorKey).toHaveText('G');
+  await grab.getByRole('button', { name: 'Move', exact: true }).click();
+  await expect(editorKey).toHaveText('ShiftG');
+  await expect(grab.getByRole('button', { name: 'Reset', exact: true })).toBeVisible();
+
+  // Shift+G is the Editor's command now, G still Blendon's grab, and the tip says where the command went.
+  const before = (await positionOf(page, 'Cube'))!.x;
+  await toScene(page);
+  for (const key of ['Shift+g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+  await page.waitForTimeout(500);
+  expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
+  for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before + 1, 4);
+  await expect(view.getByText('Blendon owns this shortcut now')).toBeVisible();
+  await expect(view.getByText("The Editor's own command moved to another key.")).toBeVisible();
+
+  await openOverview(page);
+  await grab.getByRole('button', { name: 'Reset', exact: true }).click();
+  await expect(editorKey).toHaveText('G');
+  await expect(grab.getByRole('button', { name: 'Move', exact: true })).toBeVisible();
+});
+
+test('the Unity preset puts Grab on Shift+G and the menu on Alt+right-click', async ({ page }) => {
+  const view = await openScene(page);
+  await view.getByRole('button', { name: 'Skip the tutorial' }).click();
+  const win = await openOverview(page);
+  await win.locator('.it-kbPreset').getByRole('button', { name: 'Unity', exact: true }).click();
+  await expect(win.locator('.it-kbPreset .seg.sel')).toHaveText('Unity');
+  const grab = contestedRow(page, 'Grab');
+  await expect(grab.locator('.ctk').first()).toHaveText('ShiftG');
+  await expect(grab.locator('.ctk').nth(1)).toHaveText('G');
+  await expect(grab.getByRole('button')).toHaveCount(0);
+
+  const before = (await positionOf(page, 'Cube'))!.x;
+  await toScene(page);
+  for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+  await page.waitForTimeout(500);
+  expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
+  for (const key of ['Shift+g', 'x', '1', 'Enter']) await page.keyboard.press(key);
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before + 1, 4);
+
+  const box = (await view.boundingBox())!;
+  const [x, y] = [box.x + box.width * 0.3, box.y + box.height * 0.3];
+  await page.mouse.click(x, y, { button: 'right' });
+  await expect(view.getByText('Grid', { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(view.getByText('Grid', { exact: true })).toHaveCount(0);
+  await page.keyboard.down('Alt');
+  await page.mouse.click(x, y, { button: 'right' });
+  await page.keyboard.up('Alt');
+  await expect(view.getByLabel('Search the menu')).toBeVisible();
+});
+
+test("Vertex Snap's tooltip spells the key the keyboard preset gives it", async ({ page }) => {
+  await openScene(page);
+  const win = await openOverview(page);
+  const hold = async () => {
+    await win.locator('.si[aria-label="All Tools"]').click();
+    const row = win.locator('.it-sc', { has: page.getByRole('button', { name: 'Shortcut for Hold' }) });
+    await page.mouse.move(0, 0);
+    await row.locator('.lbl').hover();
+    return win.locator('.rtip');
+  };
+  await expect(await hold()).toContainText('Hold V - the gizmo');
+  await win.locator('.si[aria-label="Blendon"]').click();
+  await win.locator('.it-kbPreset').getByRole('button', { name: 'Unity', exact: true }).click();
+  await expect(await hold()).toContainText('Hold Alt+V - the gizmo');
 });
 
 test('says the Playground is a demo', async ({ page }) => {
