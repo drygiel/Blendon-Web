@@ -69,7 +69,7 @@ function changed() {
 /** The Editor's command really moved: Blendon holds the contested key and the Editor's is elsewhere. */
 function resolve(id: string): TipCard | null {
   const row = D.known[id];
-  if (!row || !row.uMove || kbSide() !== 'Blendon') return null;
+  if (!row || !row.editorAlt || kbSide() !== 'Blendon') return null;
   const binding = bindingOf(id);
   if (binding !== row.key) return null;
   return {
@@ -77,7 +77,7 @@ function resolve(id: string): TipCard | null {
     theirs: {
       id: row.ul,
       label: row.ul,
-      binding: row.uMove,
+      binding: row.editorAlt,
       blendon: false,
       context: UnityContexts[row.ul] ?? 'Global',
     },

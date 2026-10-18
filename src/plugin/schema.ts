@@ -52,20 +52,36 @@ export type Op =
   | ['keyboard']
   | ['tutorial'];
 
-/** A tooltip: Unity rich text plus an optional image (key into WindowData.tips). */
+/**
+ * A tooltip: Unity rich text plus an optional image (key into WindowData.tips). `t` reads as on the Blendon
+ * preset with default settings; `src` is the card as written, with {key:id} and {setting:Class.Prop} tokens
+ * that src/plugin/keys.ts fills from the live keys. No `src` = the card has no tokens.
+ */
 export interface Tip {
   t: string;
   i: string;
+  src?: string;
 }
+
+/** A binding per keyboard preset, spelled the way Unity does ("Shift+G", "Num 1", "Mouse 2"); "" = no key. */
+export interface Keys {
+  /** Blendon preset: the keys Blendon's shortcuts declare. */
+  b: string;
+  /** Unity preset: contested Blendon keys moved one modifier aside, the Editor's commands on their own keys. */
+  u: string;
+}
+
+export type KeyboardPreset = 'Blendon' | 'Unity';
 
 export type PropValue = boolean | number | string;
 
 export interface PropInfo {
   /** Label. */
   l: string;
-  /** Tooltip text and image. */
+  /** Tooltip text, image and source (see Tip). */
   t: string;
   i: string;
+  src?: string;
   /** Default value. */
   d: PropValue;
   /** C# type name (Boolean, Single, Color, an enum...). */
@@ -77,12 +93,13 @@ export interface PropInfo {
 }
 
 export interface ShortcutInfo {
-  /** Default binding text. */
+  /** Blendon preset binding, the same as keymap[id].b. */
   d: string;
   /** Display name. */
   n: string;
   t: string;
   i: string;
+  src?: string;
 }
 
 export interface CatalogPage {
@@ -109,26 +126,33 @@ export interface PageHeader {
   video: string;
   footer: string;
   sections: [string, string][];
-  keys: { action: string; active: boolean; bindings: string[] }[];
+  /** A row's bindings are alternatives, each per preset. */
+  keys: { action: string; active: boolean; bindings: Keys[] }[];
   /** Plain text for search matching. */
   search: string;
 }
 
-export interface KnownShortcut {
-  ul: string;
-  key: string;
-  uMove: string;
-  bMove: string;
-}
+/** What a contested row says now, from the live keys (OverviewContestedTable.State). */
+export type ContestState = 'Covered' | 'Replaced' | 'Moved' | 'Free';
 
+/** One key Blendon and an Editor command both want (ShortcutPresets.Known), with where either side goes. */
 export interface ContestedRow {
+  /** The Editor command's id and label. */
+  uid: string;
+  ul: string;
+  /** Blendon's shortcut id and label. */
   bid: string;
   bl: string;
-  ul: string;
+  /** The key both want, as Blendon's shortcut declares it. */
   key: string;
-  tip: string;
-  uMove: string;
-  bMove: string;
+  /** Blendon's shortcut does the command's job, so there is nowhere to move the command. */
+  replaces: boolean;
+  /** Where Blendon's side goes on the Unity preset. */
+  blendonAlt: string;
+  /** Where Move puts the Editor's command on the Blendon preset; "" when it replaces. */
+  editorAlt: string;
+  /** The row's card in each state. */
+  cards: Record<ContestState, Tip>;
 }
 
 export interface PieInfo {
@@ -169,16 +193,19 @@ export interface GizmoPreset {
   values: Record<string, PropValue>;
 }
 
-export interface WindowData {
+/** The file `pnpm sync` writes. */
+export interface WindowDataFile {
   catalog: CatalogPage[];
   icons: Record<string, IconInfo>;
   props: Record<string, PropInfo>;
   shortcuts: Record<string, ShortcutInfo>;
-  known: Record<string, KnownShortcut>;
+  /** Default bindings per preset: every Blendon id, the contested Editor commands, every id a card names. */
+  keymap: Record<string, Keys>;
   pages: Record<string, Op[]>;
   headers: Record<string, PageHeader>;
   switchTips: Record<string, Tip>;
   consts: Record<string, string>;
+  /** In the Overview table's order. */
   contested: ContestedRow[];
   contestedMinWidth: number;
   featureGroups: { caption: string; pages: string[] }[];
@@ -202,8 +229,15 @@ export interface WindowData {
   initial: Record<string, PropValue>;
   presets: FeaturePreset[];
   gizmoPresets: GizmoPreset[];
+  /** The Keyboard Presets cards' pictures, Blendon then Unity. Their text is built from live keys. */
   kbTips: Tip[];
   followers: Record<string, string>;
   pageOwner: Record<string, string>;
   resetOwners: Record<string, string[]>;
+}
+
+/** The loaded data: the file plus indexes built from it. */
+export interface WindowData extends WindowDataFile {
+  /** Contested rows by Blendon id. */
+  known: Record<string, ContestedRow>;
 }

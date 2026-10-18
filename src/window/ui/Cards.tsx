@@ -5,6 +5,8 @@ import type { ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { capsWidth, rich } from '../core/text.ts';
 import { clamp, M, PAL } from '../core/util.ts';
+import { presetKey } from '../../plugin/keys.ts';
+import type { Keys } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
 import { Caps, Runs } from './common.tsx';
 import { useApp, useTip } from './context.ts';
@@ -87,6 +89,7 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
     </>
   );
   const h = it.header;
+  const bindingsOf = (kk: { bindings: Keys[] }) => kk.bindings.map((b) => presetKey(b, app.st.kbSide) ?? '');
   if (!h)
     return (
       <div className={base.cls}>
@@ -106,7 +109,7 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
     (m, kk) =>
       Math.max(
         m,
-        kk.bindings.reduce((w, b, j) => w + runWidth(b) + (j ? 12 : 0), 0),
+        bindingsOf(kk).reduce((w, b, j) => w + runWidth(b) + (j ? 12 : 0), 0),
       ),
     0,
   );
@@ -174,7 +177,7 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
                   {h.keys.map((kk, i) => (
                     <div key={i} className={'uhk' + (kk.active === false ? ' dis' : '')}>
                       <span className="krun">
-                        {kk.bindings.map((b, j) => (
+                        {bindingsOf(kk).map((b, j) => (
                           <Fragment key={j}>
                             {j > 0 && <span className="kslash">/</span>}
                             {!b && <span className="kun">not set</span>}
@@ -285,11 +288,8 @@ export function KeyboardPresets({ it }: { it: ItemOf<'kbPreset'> }) {
 function ContestedRow({ r, i, grid }: { r: (typeof D.contested)[number]; i: number; grid: CSSProperties }) {
   const app = useApp();
   const bk = app.shortcut(r.bid);
-  const uk = app.st.kbSide === 'Blendon' ? r.uMove : r.key;
-  const tip = useTip({
-    t: `<size=14><b>${r.bl} vs ${r.ul}</b></size>\n${r.tip}${D.consts.contestedLinkHint ?? ''}`,
-    i: 'Tips/Overview/ContestedKey.png',
-  });
+  const uk = app.st.kbSide === 'Blendon' ? r.editorAlt : r.key;
+  const tip = useTip(r.cards[app.st.kbSide === 'Blendon' ? (r.replaces ? 'Replaced' : 'Covered') : 'Free']);
   return (
     <div className={'ct' + (i % 2 ? ' odd' : '')} style={grid} {...tip}>
       <span className="ctn lk" onClick={() => app.goTo('Keyboard')}>
@@ -324,7 +324,7 @@ export function ContestedTable({ it }: { it: ItemOf<'contested'> }) {
   const blendon = app.st.kbSide === 'Blendon';
   let widest = 0;
   for (const r of it.rows)
-    widest = Math.max(widest, capsWidth(app.shortcut(r.bid), 4), capsWidth(blendon ? r.uMove : r.key, 4));
+    widest = Math.max(widest, capsWidth(app.shortcut(r.bid), 4), capsWidth(blendon ? r.editorAlt : r.key, 4));
   // The table always spans the card (band cell): its width minus the cell padding and LabelIndent.
   const tableW = app.pageW - M.cellPadX - (app.st.li ?? 24.3);
   let keyW = Math.min(148, widest);

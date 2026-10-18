@@ -60,6 +60,11 @@ describe('window model', () => {
     expect(h.state().vals['MoveGizmoSettings.AxisHeadFlat']).toBe(true);
   });
 
+  it('finds each contested row by its Blendon shortcut', () => {
+    expect(D.contested.length).toBeGreaterThan(0);
+    for (const row of D.contested) expect(D.known[row.bid]).toBe(row);
+  });
+
   it('switches every tool from All Tools', () => {
     const h = harness();
     h.model().set('SharedGizmoSettings.AllToolsEnabled', false);

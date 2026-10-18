@@ -1,5 +1,5 @@
 // Turns parsed DrawSettings bodies into the settings window's op lists (see src/plugin/schema.ts).
-import type { Cond, Op } from '../../src/plugin/schema.ts';
+import type { Cond, Op, Tip } from '../../src/plugin/schema.ts';
 import { splitArgs, stringConcat, type Stmt } from './csharp.ts';
 
 // Static owners referenced from other settings classes.
@@ -35,10 +35,19 @@ export class Ctx {
   readonly alias: Record<string, string | null> = {};
   readonly owner: string;
   readonly consts: Record<string, string>;
+  /** Each shortcut's own card, as written (tokens in), for rows that take the label from the call. */
+  readonly shortcutTips: Record<string, Tip>;
 
-  constructor(owner: string, consts: Record<string, string>) {
+  constructor(owner: string, consts: Record<string, string>, shortcutTips: Record<string, Tip> = {}) {
     this.owner = owner;
     this.consts = consts;
+    this.shortcutTips = shortcutTips;
+  }
+
+  shortcutTip(id: string): Tip {
+    const tip = this.shortcutTips[id];
+    if (!tip) throw new Error('No card for shortcut ' + id + ' in the dump');
+    return tip;
   }
 
   /** A constant by C# name, resolved against the owner's class like the compiler would. */
@@ -100,7 +109,9 @@ export function cond(ctx: Ctx, expr: string): Cond {
     if (/^(ModifierKey|BoxSelectUpdate|BoxSelectHighlightStyle|BoxSelectInfo|SnapDirection)\.\w+$/.test(t))
       return ['c', t.split('.')[1] ?? ''];
     if (t === 'NumLockState.IsOff') return ['c', false];
-    if (t === 'ColorsEditable' || t === 'SharedGizmoSettings.ColorsEditable') return ['v', 'GeneralSettings.Enabled'];
+    // GeneralSettings.ColorsEditable is Enabled under another name.
+    if (/^(?:(?:General|GeneralSettings|SharedGizmoSettings)\.)?ColorsEditable$/.test(t))
+      return ['v', 'GeneralSettings.Enabled'];
     if (t === 'AnyToolEnabled') return ['f', 'anyTool'];
     if (t.endsWith('.SupportsBounds()'))
       return ['f', 'supportsBounds', ['v', ctx.prop(t.slice(0, -'.SupportsBounds()'.length))]];
@@ -265,6 +276,12 @@ function callOps(ctx: Ctx, fn: string, args: string[], text: string, helpers: Re
       return [['imod', ctx.prop(a(0)), ctx.prop(a(2)), lastName(a(3))]];
     case 's.ShortcutField':
       if (a(0).startsWith('()')) return [['sc', ctx.constant(a(2)), ctx.prop(a(0))]];
+      if (args.length === 2) {
+        // ShortcutRows passes the shortcut's own card as written, so the site resolves its keys live.
+        const id = ctx.constant(a(1));
+        const tip = ctx.shortcutTip(id);
+        return [['sc', id, null, stringConcat(a(0)) ?? '', tip.src ?? tip.t, tip.i]];
+      }
       return [
         [
           'sc',
