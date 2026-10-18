@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, useS
 import { PlaygroundEvents } from '../bridge/events.ts';
 import { Keymap } from '../bridge/keymap.ts';
 import { SharedSettings } from '../bridge/settings.ts';
+import { TipsSeen } from '../bridge/tips.ts';
 import { useReducedMotion } from '../lib/hooks.ts';
 import { iconVars } from './core/icons.ts';
 import { layoutWindow } from './core/layout.ts';
@@ -61,6 +62,8 @@ export default function PlaygroundWindow() {
   const app = useMemo(() => new WindowModel(state, inst, update), [state, inst]);
   // The keys live in the bridge, shared with the Scene view; the model reads them as it lays out.
   useSyncExternalStore(Keymap.subscribe, () => Keymap.version);
+  // The Overview's Show Again row waits for a shortcut tip the Scene view has shown.
+  useSyncExternalStore(TipsSeen.subscribe, () => TipsSeen.version);
   const L = layoutWindow(app);
   const vars = useMemo(() => iconVars(), []);
   const reduced = useReducedMotion();

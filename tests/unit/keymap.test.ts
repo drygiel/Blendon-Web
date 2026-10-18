@@ -94,7 +94,7 @@ describe('contested rows', () => {
 
   it("hand the Editor's scene menu over while Blendon's answers the same button", () => {
     expect(Keymap.binding(MENU, settings())).toBe('');
-    expect(Keymap.contestState(row('Blendon/Context Menu'), settings())).toBe('Moved');
+    expect(Keymap.contestState(row('Blendon/Context Menu'), settings())).toBe('Replaced');
     expect(Keymap.binding(MENU, settings({ 'SceneMenuSettings.Enabled': false }))).toBe('Mouse 1');
     Keymap.applyPreset('Unity');
     expect(Keymap.binding(MENU, settings())).toBe('Mouse 1');

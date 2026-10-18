@@ -12,6 +12,7 @@ import { IndividualOrigins } from '../common/controller.ts';
 import { AxisBasis } from '../common/layout.ts';
 import { DragKind, type GizmoDragCoordinator } from '../core/drag.ts';
 import { ModalNumericState, type ModalNumericParser } from '../core/numeric.ts';
+import { RotateSnap } from '../core/rotate-snap.ts';
 import { ScreenDragSolver } from '../core/screen-drag-solver.ts';
 import { RingAngleTracker, RingOverlays, type RotationRingHandle } from '../handles/ring.ts';
 import { GizmoHud } from '../hud.ts';
@@ -104,7 +105,10 @@ export const LookAtRotation = {
   },
 };
 
-/** An X/Y/Z press re-pointed the drag: total travel since the true start is re-measured on the new axis. */
+/**
+ * An X/Y/Z press re-pointed the drag: total travel since the true start is re-measured on the new axis.
+ * Precision and rotate snap work as in a ring drag.
+ */
 export class RotateManualTracking {
   private readonly coordinator: GizmoDragCoordinator;
   private readonly ringForAxis: (a: GizmoAxis) => RotationRingHandle;
@@ -198,10 +202,13 @@ export class RotateManualTracking {
       this.tracker.anchor(pivot, axisDir, this.refDir, current);
     }
     const viewDir = GizmoRenderer.computeViewDir(pivot, GizmoRenderer.currentCamera());
-    this.totalAngle += this.tracker.frameDelta(pivot, axisDir, this.refDir, this.ringRadius(), viewDir, current);
-    GizmoHud.setAbsoluteDelta(this.totalAngle);
-    this.ringForAxis(c.activeAxis).seedManualOverlay(axisDir, this.refDir, this.totalAngle);
-    this.applyAngle(this.totalAngle);
+    this.totalAngle +=
+      this.tracker.frameDelta(pivot, axisDir, this.refDir, this.ringRadius(), viewDir, current) *
+      RotateSnap.precisionScale;
+    const angle = RotateSnap.snap(this.totalAngle);
+    GizmoHud.setAbsoluteDelta(angle);
+    this.ringForAxis(c.activeAxis).seedManualOverlay(axisDir, this.refDir, angle);
+    this.applyAngle(angle);
   }
 }
 
@@ -344,6 +351,8 @@ export const RotateDragOverlays = {
   ) {
     const radius = size * settings.AxisLength;
     RingOverlays.drawAngleArc(pivot, axisDir, refDir, angle, GizmoColors.ScreenRing, axis.constrain, radius, settings);
+    if (SharedGizmoSettings.SnapTicksEnabled && RotateSnap.active)
+      RingOverlays.drawSnapTicks(pivot, axisDir, refDir, radius);
     if (SharedGizmoSettings.AxisLabelsEnabled)
       AxisLabelDrawer.draw(
         RingOverlays.ringLabelPosition(pivot, axisDir, radius, viewDir, settings, size),

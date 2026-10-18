@@ -224,6 +224,8 @@ export const Keymap = {
   /** OverviewContestedTable.Read: from the switches and the live keys, not the tool context. */
   contestState(row: ContestedRow, r: GateReader = sharedSettings): ContestState {
     if (!switchedOn(row.bid, r) || Keymap.binding(row.bid, r) !== row.key) return 'Free';
+    // A replaced command with no key is the replacement itself, like the menu handover's own clear.
+    if (row.replaces && !Keymap.binding(row.uid, r)) return 'Replaced';
     if (Keymap.changedFromDefault(row.uid, r)) return 'Moved';
     return row.replaces ? 'Replaced' : 'Covered';
   },

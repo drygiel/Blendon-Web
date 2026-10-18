@@ -65,8 +65,6 @@ export interface WindowState {
   vals: Record<string, PropValue>;
   ovr: Record<string, boolean>;
   pies: Record<string, boolean>;
-  frameSeq: FrameStep[] | null;
-  extras: string[] | null;
   // navigation
   page: string;
   search: string;
@@ -99,8 +97,6 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
     vals: { ...initial },
     ovr: {},
     pies: {},
-    frameSeq: null,
-    extras: null,
     // The site opens on the checklist, where a first visit starts.
     page: 'Tutorial',
     search: '',

@@ -51,7 +51,7 @@ export const pages: Plate = {
       ink.label(label, cx - hw - 36, y - 3, 0.58, 0.7, { align: 'right', a: 0.5, font: MONO_S, c: AMBER });
       ink.label(slide.title, cx - hw - 36, y + 14, 0.62, 0.76, { align: 'right', font: SERIF_S, a: 0.55 });
     }
-    ink.label('fig. 7 — ten pages, one window', cx + hw, top + hh * 2 + n * gap + 30, 0.7, 0.9, {
+    ink.label('fig. 7 — twenty pages, one window', cx + hw, top + hh * 2 + n * gap + 30, 0.7, 0.9, {
       font: SERIF_S,
       align: 'right',
       a: 0.5,

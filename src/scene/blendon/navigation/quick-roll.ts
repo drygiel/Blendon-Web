@@ -51,7 +51,7 @@ function rollShortcut(args: ShortcutArguments) {
     ShortcutTips.note(OrbitSelected.RollShortcutId);
   } else {
     QuickRoll.shortcutHeld = true;
-    QuickRoll.armed = !OrbitSelected.isOrbiting;
+    QuickRoll.armed = !OrbitSelected.isOrbiting && OrbitSelected.Settings.RollEnabled;
   }
   OrbitSelected.repaintLastSceneView();
 }

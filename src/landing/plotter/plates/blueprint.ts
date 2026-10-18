@@ -57,7 +57,7 @@ export const blueprint: Plate = {
       const narrow = bw < 440;
       const cells: [string, string, number, number][] = [
         ['TITLE', 'blendon · editor extension', x0, 0],
-        ['SHEET', '11 of 12', split, 0],
+        ['SHEET', '11 of 13', split, 0],
         ['DRAWN', 'editor assemblies only', x0, 1],
         ['SCALE', '1:1', split, 1],
         ['BUILD', '+0 bytes in the player', x0, 2],
