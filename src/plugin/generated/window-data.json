@@ -224,235 +224,235 @@
  "icons": {
   "CollabOffline": {
    "u": "plugin/icons/icon_CollabOffline.png",
-   "v": "i1"
+   "v": "i2"
   },
   "DotFrame": {
    "u": "plugin/icons/icon_DotFrame.png",
-   "v": "i2"
+   "v": "i3"
   },
   "Motion Icon": {
    "u": "plugin/icons/icon_Motion_Icon.png",
-   "v": "i3"
+   "v": "i4"
   },
   "MouseLeft": {
    "u": "plugin/icons/icon_MouseLeft.png",
-   "v": "i6"
+   "v": "i7"
   },
   "MouseMiddle": {
    "u": "plugin/icons/icon_MouseMiddle.png",
-   "v": "i7"
+   "v": "i8"
   },
   "MouseRight": {
    "u": "plugin/icons/icon_MouseRight.png",
-   "v": "i8"
+   "v": "i9"
   },
   "P4_Local": {
    "u": "plugin/icons/icon_P4_Local.png",
-   "v": "i10"
+   "v": "i11"
   },
   "SceneLoadOut": {
    "u": "plugin/icons/icon_SceneLoadOut.png",
-   "v": "i11"
+   "v": "i12"
   },
   "Text Icon": {
    "u": "plugin/icons/icon_Text_Icon.png",
-   "v": "i12"
+   "v": "i13"
   },
   "UpArrow": {
    "u": "plugin/icons/icon_UpArrow.png",
-   "v": "i14"
+   "v": "i15"
   },
   "VerticalSplit": {
    "u": "plugin/icons/icon_VerticalSplit.png",
-   "v": "i15"
+   "v": "i16"
   },
   "_Help": {
    "u": "plugin/icons/icon__Help.png",
-   "v": "i16"
+   "v": "i17"
   },
   "animationvisibilitytoggleon": {
    "u": "plugin/icons/icon_animationvisibilitytoggleon.png",
-   "v": "i17"
+   "v": "i18"
   },
   "d_AvatarPivot": {
    "u": "plugin/icons/icon_d_AvatarPivot.png",
-   "v": "i18"
+   "v": "i19"
   },
   "d_Close": {
    "u": "plugin/icons/icon_d_Close.png",
-   "v": "i19"
+   "v": "i20"
   },
   "d_EventTrigger Icon": {
    "u": "plugin/icons/icon_d_EventTrigger_Icon.png",
-   "v": "i20"
+   "v": "i21"
   },
   "d_EyeDropper.Large": {
    "u": "plugin/icons/icon_d_EyeDropper.Large.png",
-   "v": "i21"
+   "v": "i22"
   },
   "d_Folder Icon": {
    "u": "plugin/icons/icon_d_Folder_Icon.png",
-   "v": "i22"
+   "v": "i23"
   },
   "d_GameObject Icon": {
    "u": "plugin/icons/icon_d_GameObject_Icon.png",
-   "v": "i23"
+   "v": "i24"
   },
   "d_Grid.BoxTool@2x": {
    "u": "plugin/icons/icon_d_Grid.BoxTool_at_2x.png",
-   "v": "i24"
+   "v": "i25"
   },
   "d_Grid.PaintTool": {
    "u": "plugin/icons/icon_d_Grid.PaintTool.png",
-   "v": "i25"
+   "v": "i26"
   },
   "d_Grid.PickingTool": {
    "u": "plugin/icons/icon_d_Grid.PickingTool.png",
-   "v": "i26"
+   "v": "i27"
   },
   "d_Keyboard": {
    "u": "plugin/icons/icon_d_Keyboard.png",
-   "v": "i27"
+   "v": "i28"
   },
   "d_MoveTool": {
    "u": "plugin/icons/icon_d_MoveTool.png",
-   "v": "i28"
+   "v": "i29"
   },
   "d_NetworkStartPosition Icon": {
    "u": "plugin/icons/icon_d_NetworkStartPosition_Icon.png",
-   "v": "i29"
+   "v": "i30"
   },
   "d_PreMatSphere": {
    "u": "plugin/icons/icon_d_PreMatSphere.png",
-   "v": "i30"
+   "v": "i31"
   },
   "d_Prefab On Icon": {
    "u": "plugin/icons/icon_d_Prefab_On_Icon.png",
-   "v": "i31"
+   "v": "i32"
   },
   "d_Preset.Context": {
    "u": "plugin/icons/icon_d_Preset.Context.png",
-   "v": "i32"
+   "v": "i33"
   },
   "d_Record Off@2x": {
    "u": "plugin/icons/icon_d_Record_Off_at_2x.png",
-   "v": "i33"
+   "v": "i34"
   },
   "d_RectTool": {
    "u": "plugin/icons/icon_d_RectTool.png",
-   "v": "i34"
+   "v": "i35"
   },
   "d_Refresh": {
    "u": "plugin/icons/icon_d_Refresh.png",
-   "v": "i35"
+   "v": "i36"
   },
   "d_RotateTool": {
    "u": "plugin/icons/icon_d_RotateTool.png",
-   "v": "i36"
+   "v": "i37"
   },
   "d_ScaleTool": {
    "u": "plugin/icons/icon_d_ScaleTool.png",
-   "v": "i37"
+   "v": "i38"
   },
   "d_SceneViewCamera": {
    "u": "plugin/icons/icon_d_SceneViewCamera.png",
-   "v": "i38"
+   "v": "i39"
   },
   "d_SceneViewLighting": {
    "u": "plugin/icons/icon_d_SceneViewLighting.png",
-   "v": "i39"
+   "v": "i40"
   },
   "d_SceneViewOrtho": {
    "u": "plugin/icons/icon_d_SceneViewOrtho.png",
-   "v": "i40"
+   "v": "i41"
   },
   "d_SceneViewVisibility": {
    "u": "plugin/icons/icon_d_SceneViewVisibility.png",
-   "v": "i41"
+   "v": "i42"
   },
   "d_Search Icon": {
    "u": "plugin/icons/icon_d_Search_Icon.png",
-   "v": "i42"
+   "v": "i43"
   },
   "d_Settings": {
    "u": "plugin/icons/icon_d_Settings.png",
-   "v": "i43"
+   "v": "i44"
   },
   "d_SnapIncrement": {
    "u": "plugin/icons/icon_d_SnapIncrement.png",
-   "v": "i44"
+   "v": "i45"
   },
   "d_SpriteMask Icon": {
    "u": "plugin/icons/icon_d_SpriteMask_Icon.png",
-   "v": "i45"
+   "v": "i46"
   },
   "d_ToolHandleGlobal": {
    "u": "plugin/icons/icon_d_ToolHandleGlobal.png",
-   "v": "i46"
+   "v": "i47"
   },
   "d_ToolHandlePivot": {
    "u": "plugin/icons/icon_d_ToolHandlePivot.png",
-   "v": "i47"
+   "v": "i48"
   },
   "d_Toolbar Plus": {
    "u": "plugin/icons/icon_d_Toolbar_Plus.png",
-   "v": "i48"
+   "v": "i49"
   },
   "d_ToolsToggle": {
    "u": "plugin/icons/icon_d_ToolsToggle.png",
-   "v": "i49"
+   "v": "i50"
   },
   "d_Transform Icon": {
    "u": "plugin/icons/icon_d_Transform_Icon.png",
-   "v": "i50"
+   "v": "i51"
   },
   "d_TransformTool": {
    "u": "plugin/icons/icon_d_TransformTool.png",
-   "v": "i51"
+   "v": "i52"
   },
   "d_UnityEditor.AnimationWindow": {
    "u": "plugin/icons/icon_d_UnityEditor.AnimationWindow.png",
-   "v": "i52"
+   "v": "i53"
   },
   "d_UnityEditor.ConsoleWindow": {
    "u": "plugin/icons/icon_d_UnityEditor.ConsoleWindow.png",
-   "v": "i53"
+   "v": "i54"
   },
   "d_UnityEditor.HistoryWindow": {
    "u": "plugin/icons/icon_d_UnityEditor.HistoryWindow.png",
-   "v": "i54"
+   "v": "i55"
   },
   "d_UnityEditor.SceneHierarchyWindow": {
    "u": "plugin/icons/icon_d_UnityEditor.SceneHierarchyWindow.png",
-   "v": "i55"
+   "v": "i56"
   },
   "d_UnityEditor.SceneView": {
    "u": "plugin/icons/icon_d_UnityEditor.SceneView.png",
-   "v": "i56"
+   "v": "i57"
   },
   "d_ViewToolMove": {
    "u": "plugin/icons/icon_d_ViewToolMove.png",
-   "v": "i57"
+   "v": "i58"
   },
   "d_ViewToolOrbit": {
    "u": "plugin/icons/icon_d_ViewToolOrbit.png",
-   "v": "i58"
+   "v": "i59"
   },
   "d_ViewToolZoom": {
    "u": "plugin/icons/icon_d_ViewToolZoom.png",
-   "v": "i59"
+   "v": "i60"
   },
   "d__Menu": {
    "u": "plugin/icons/icon_d__Menu.png",
-   "v": "i60"
+   "v": "i61"
   },
   "d_scenepicking_pickable": {
    "u": "plugin/icons/icon_d_scenepicking_pickable.png",
-   "v": "i61"
+   "v": "i62"
   },
   "d_wireframe": {
    "u": "plugin/icons/icon_d_wireframe.png",
-   "v": "i62"
+   "v": "i63"
   },
   "B": {
    "u": "plugin/icons/B@2x.png",
@@ -460,19 +460,23 @@
   },
   "OrientationGizmoOverlay": {
    "u": "plugin/icons/Overlays_OrientationGizmo@2x.png",
-   "v": "i9"
+   "v": "i10"
+  },
+  "BlendonContext": {
+   "u": "plugin/icons/Overlays_d_BlendonContext@2x.png",
+   "v": "i1"
   },
   "TipBulb": {
    "u": "plugin/icons/Notice_TipBulb@2x.png",
-   "v": "i13"
+   "v": "i14"
   },
   "MouseBack": {
    "u": "plugin/icons/Shortcuts_MouseBack@2x.png",
-   "v": "i4"
+   "v": "i5"
   },
   "MouseForward": {
    "u": "plugin/icons/Shortcuts_MouseForward@2x.png",
-   "v": "i5"
+   "v": "i6"
   }
  },
  "props": {

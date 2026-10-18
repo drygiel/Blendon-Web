@@ -706,6 +706,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   };
   pluginIcon('B', 'B@2x.png');
   pluginIcon('OrientationGizmoOverlay', 'Overlays/OrientationGizmo@2x.png');
+  // The Tool Contexts overlay's switch for Blendon's context, dark skin like the rest of the Scene view.
+  pluginIcon('BlendonContext', 'Overlays/d_BlendonContext@2x.png');
   pluginIcon('TipBulb', 'Notice/TipBulb@2x.png');
   pluginIcon('MouseBack', 'Shortcuts/MouseBack@2x.png');
   pluginIcon('MouseForward', 'Shortcuts/MouseForward@2x.png');
