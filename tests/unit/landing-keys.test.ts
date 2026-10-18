@@ -18,10 +18,10 @@ interface Known {
   replaces: boolean;
 }
 
-const rows = new Map(data.contested.map((r) => [r.bid, r] as const));
+const byBlendonId = new Map(data.contested.map((r) => [r.bid, r] as const));
 
 const known = (id: string): Known | undefined => {
-  const r = rows.get(id);
+  const r = byBlendonId.get(id);
   return r && { editorKey: r.key, blendonAlt: r.blendonAlt, editorAlt: r.editorAlt, replaces: r.replaces };
 };
 
@@ -37,6 +37,15 @@ describe('landing keys', () => {
     const row = SHORTCUTS.find(([action]) => action === 'Scale tool');
     expect(binding(row?.[1] ?? [])).toBe(k?.editorKey);
     expect(binding(row?.[2] ?? [])).toBe(k?.editorKey);
+  });
+
+  it('shows the Toggle Blendon key, the same on both presets', () => {
+    const keys = data.keymap['Blendon/Tool Context/Toggle Blendon'];
+    const row = SHORTCUTS.find(([action]) => action.startsWith('Toggle Blendon'));
+    expect(keys?.b).toBeTruthy();
+    expect(keys?.u).toBe(keys?.b);
+    expect(binding(row?.[1] ?? [])).toBe(keys?.b);
+    expect(row?.[2]).toBeUndefined();
   });
 
   it('shows where the Unity preset moves each single-key gesture', () => {

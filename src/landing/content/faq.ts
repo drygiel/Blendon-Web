@@ -40,7 +40,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Does it get in the way of Splines, Terrain or other tools?',
-    a: 'No. Tool contexts such as Splines or Terrain painting keep their own input, as they do without Blendon. With the Splines package installed, the Tools pie can even start Create Spline.',
+    a: 'No. Tool contexts such as Splines, and tools such as Terrain painting, keep their own input, as they do without Blendon. With the Splines package installed, the Tools pie can even start Create Spline.',
   },
   {
     q: 'How is it licensed?',
@@ -60,6 +60,6 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'How do I remove it completely?',
-    a: 'While Blendon is still installed, click Reset All Pages on the Overview page of Tools → Blendon, pick the Blendon keyboard preset if you are on the Unity one, then switch Blendon off with the master switch. Delete the Blendon folder after that. Your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that Blendon folder too.',
+    a: 'While Blendon is still installed, click Reset All Pages on the Overview page of Tools → Blendon, pick the Blendon keyboard preset if you are on the Unity one, and switch Blendon off with the master switch last. Then delete the Blendon folder; a later install starts switched off until you turn it back on. Your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that Blendon folder too.',
   },
 ];
