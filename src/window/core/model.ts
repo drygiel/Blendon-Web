@@ -230,7 +230,7 @@ export class WindowModel {
   // ---- shortcuts --------------------------------------------------------------------------------
   shortcutDefault(id: string): string {
     const row = D.known[id];
-    if (row && this.st.kbSide === 'Unity') return row.bMove;
+    if (row && this.st.kbSide === 'Unity') return row.blendonAlt;
     return D.shortcuts[id]?.d ?? '';
   }
 
@@ -258,8 +258,8 @@ export class WindowModel {
     SceneTutorial.report('ShortcutRebound');
   }
 
-  unityMoved(row: { uMove: string; key: string }): string {
-    return this.st.kbSide === 'Blendon' ? row.uMove : row.key;
+  unityMoved(row: { editorAlt: string; key: string }): string {
+    return this.st.kbSide === 'Blendon' ? row.editorAlt : row.key;
   }
 
   // ---- folds ------------------------------------------------------------------------------------

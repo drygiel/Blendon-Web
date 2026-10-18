@@ -1,5 +1,5 @@
 // Builds the settings window's data (src/plugin/schema.ts) from the Blendon sources and the
-// Unity model dumps in Metadata~/PlaygroundRef.
+// Unity model dump (scripts/sync/dump.ts).
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type {
@@ -7,84 +7,19 @@ import type {
   ContestedRow,
   Cond,
   IconInfo,
+  Keys,
   Op,
   PageHeader,
   PropInfo,
   PropValue,
   ShortcutInfo,
   Tip,
-  WindowData,
+  WindowDataFile,
 } from '../../src/plugin/schema.ts';
 import type { AssetPlan } from './assets.ts';
 import { drawMethods, parse, type Stmt } from './csharp.ts';
+import { type DumpCard, type DumpKeys, loadDump, type Problems, toTip } from './dump.ts';
 import { convert, Ctx, type Helper } from './ops.ts';
-
-// ---- Unity dump shapes (only the parts read here) ------------------------------------------------
-
-interface DumpTip {
-  text: string;
-  image: string;
-}
-interface DumpProp {
-  name: string;
-  ptype: string;
-  label: string;
-  icon?: string;
-  tip: DumpTip;
-  default: PropValue;
-  options?: string[];
-}
-interface DumpHeader {
-  image: string;
-  video: string;
-  footer?: string;
-  sections: [string, string][];
-  keys: { action: string; active: boolean; bindings: string[] }[];
-}
-interface Model1 {
-  pages: { type: string; switchTip: DumpTip; header?: DumpHeader; props: DumpProp[] }[];
-}
-interface Model2 {
-  consts: Record<string, string>;
-  pageShortcuts: Record<
-    string,
-    { primary: string | null; ids: { id: string; text: string; name: string; tip: DumpTip }[] }
-  >;
-  known: {
-    row: { BlendonId: string; BlendonLabel: string; UnityLabel: string; Key: string; Tooltip: string };
-    unityText: string;
-    /** Where each side's command moves when it gives the key up. */
-    unityMove: string;
-    blendonMove: string;
-  }[];
-  featureTips: Record<string, DumpTip | null>;
-}
-interface Model3 {
-  pies: {
-    id: string;
-    title: string;
-    icon: string;
-    shortcutId: string;
-    text: string;
-    enabled: boolean;
-    filled: number;
-    desc: string;
-    tipGet: DumpTip;
-    tipRow: DumpTip;
-  }[];
-  extras: {
-    Section: string;
-    Label: string;
-    InlineSetting_null: boolean;
-    Tip: DumpTip;
-    InlineTip: DumpTip;
-  }[];
-  frameSteps: [string, boolean][];
-  modifierLabels: string[];
-  modifierOptions: string[];
-  enums: Record<string, [string, string][]>;
-  layers: string[];
-}
 
 export interface PluginPaths {
   editor: string;
@@ -450,35 +385,23 @@ const FRAME_INFO: Record<string, [string, string]> = {
   BackToStart: ['Back to Start', 'Go back to the view you had before the first press'],
 };
 
-// BlendonMove per resolution (ShortcutProfileSetup.Resolutions), keyed by Blendon label.
 const TIP_TITLE = (title: string, body: string) => '<size=14><b>' + title + '</b></size>\n' + body;
 const PRESET_NOTE = '\n\n<size=9><color=#92929A>Asks before applying. Switches Blendon on if it is off</color></size>';
 const LEFT_OFF = '\n\n<size=9><b><color=#92929A>LEFT OFF</color></b></size>\n';
 
-/** Asset paths (relative to the site root) the data points at, and where each comes from. */
-export interface WindowDataResult {
-  data: WindowData;
-  assets: AssetPlan[];
-}
-
-/** `extraIcons`: editor icons drawn by pages the ops don't describe (the tutorial's chapters). */
-export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): WindowDataResult {
-  const M1 = readJson<Model1>(join(paths.ref, 'model.json'));
-  const M2 = readJson<Model2>(join(paths.ref, 'model2.json'));
-  const M3 = readJson<Model3>(join(paths.ref, 'model3.json'));
-  const C = M2.consts;
-  const bodies = readDrawBodies(paths.editor);
-  const assets: AssetPlan[] = [];
-  const asset = (plan: AssetPlan) => {
-    assets.push(plan);
-    return plan.out;
-  };
-
-  // ---- page ops ----
+/**
+ * Converts one Draw* method of a settings class to ops, following its calls into the other Draw* methods
+ * (`bodies` from readDrawBodies). `shortcutTips`: the card each two-argument ShortcutField row shows.
+ */
+export function pageConverter(
+  bodies: Map<string, Stmt[]>,
+  consts: Record<string, string>,
+  shortcutTips: Record<string, Tip>,
+): (owner: string, name: string) => Op[] {
   const run = (owner: string, name: string, ctx?: Ctx): Op[] => {
     const body = bodies.get(owner + '#' + name);
     if (!body) throw new Error('No ' + name + ' in ' + owner);
-    return convert(ctx ?? new Ctx(owner, C), body, HELPERS);
+    return convert(ctx ?? new Ctx(owner, consts, shortcutTips), body, HELPERS);
   };
   const axisColors: Helper = () => run('SharedGizmoSettings', 'DrawAxisColorsGroup');
   const part =
@@ -494,9 +417,14 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
     'Scale.DrawSettings': part('TransformScaleSettings'),
     'Zoom.Settings.DrawKeyboardSettings': () => run('ZoomSettings', 'DrawKeyboardSettings'),
     DrawKeyboardSettings: () => run('ZoomSettings', 'DrawKeyboardSettings'),
-    'FrameSelected.Settings.DrawShortcut': () => run('FrameSelectedSettings', 'DrawShortcut'),
-    'IsolateView.Settings.DrawShortcut': () => run('IsolateViewSettings', 'DrawShortcut'),
     DrawShortcut: (ctx) => run(ctx.owner, 'DrawShortcut'),
+    // Another page's key row (DrawMirroredShortcut draws the owner's DrawShortcut), grayed with that page.
+    's.MirroredShortcut': (_ctx, args) => {
+      const page = (args[0] ?? '').split('.').pop() ?? '';
+      const owner = PAGE_OWNER[page];
+      if (!owner) throw new Error('No settings class for mirrored page ' + page);
+      return [['dis', ['!', ['f', 'pageEnabled', page]], run(owner, 'DrawShortcut')]];
+    },
     // Drawn by a helper outside DrawSettings in C#, so its condition is spelled out here.
     TrackballRingNote: (ctx) => {
       const o = ctx.owner;
@@ -525,28 +453,74 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
     'SceneMenuExtrasTable.Draw': () => [['extras']],
   };
 
+  return (owner, name) => run(owner, name);
+}
+
+/** Asset paths (relative to the site root) the data points at, and where each comes from. */
+export interface WindowDataResult {
+  data: WindowDataFile;
+  assets: AssetPlan[];
+}
+
+const keysOf = (k: DumpKeys): Keys => ({ b: k.blendon, u: k.unity });
+
+/** A Tip holding only what is set, so a card without tokens stays one text in the JSON. */
+const tipOf = (t: string, i: string, src: string | undefined): Tip => (src === undefined ? { t, i } : { t, i, src });
+
+/**
+ * Files every problem in `out` and goes as far as it can: the C# pages and the constants are checked even when
+ * the dump breaks the contract, the data itself is only built (non-null) from a dump that keeps it.
+ * `extraIcons`: editor icons drawn by pages the ops don't describe (the tutorial's chapters).
+ */
+export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: string[] = []): WindowDataResult | null {
+  const { dump, consts: C, shortcutTips } = loadDump(paths.ref, out);
+  const bodies = readDrawBodies(paths.editor);
+  const assets: AssetPlan[] = [];
+  const asset = (plan: AssetPlan) => {
+    assets.push(plan);
+    return plan.out;
+  };
+  // A constant the site reads by name: gone from the plugin is an error, never an empty text.
+  const need = (name: string): string => {
+    const v = C[name];
+    if (v !== undefined) return v;
+    out.add('model2.json: no constant ' + name);
+    return '';
+  };
+
+  // ---- page ops ----
+  // A shortcut row shows the tooltip file's card. The dump's is the Overview's, with its click note added.
+  const keyNote = need('OverviewTips.KeyNote');
+  const cut = (s: string) => (keyNote && s.endsWith(keyNote) ? s.slice(0, -keyNote.length) : s);
+  const rowTips: Record<string, Tip> = {};
+  for (const [id, tip] of Object.entries(shortcutTips))
+    rowTips[id] = tipOf(cut(tip.t), tip.i, tip.src === undefined ? undefined : cut(tip.src));
+  const run = pageConverter(bodies, C, rowTips);
+
+  // One page that fails to convert is filed, the rest still convert.
+  const page = (id: string, ...parts: [string, string][]): Op[] =>
+    out.guard('C# page ' + id, () => parts.flatMap(([owner, name]) => run(owner, name))) ?? [];
   const pages: Record<string, Op[]> = {
-    OrbitSelected: run('OrbitSelectedSettings', 'DrawSettings'),
-    Pan: run('PanSettings', 'DrawSettings'),
-    Zoom: run('ZoomSettings', 'DrawSettings'),
-    ViewportNav: run('ViewportNavSettings', 'DrawSettings'),
-    OrientationGizmo: run('OrientationGizmoSettings', 'DrawSettings'),
-    SharedGizmos: run('SharedGizmoSettings', 'DrawSettings'),
-    MoveGizmo: run('MoveGizmoSettings', 'DrawSettings'),
-    RotateGizmo: run('RotateGizmoSettings', 'DrawSettings'),
-    ScaleGizmo: run('ScaleGizmoSettings', 'DrawSettings'),
-    TransformGizmo: run('TransformGizmoSettings', 'DrawSettings'),
-    FrameSelected: run('FrameSelectedSettings', 'DrawSettings'),
-    IsolateView: run('IsolateViewSettings', 'DrawSettings'),
-    SnapToFloor: run('SnapToFloorSettings', 'DrawSettings'),
-    History: [...run('HistorySettings', 'DrawSettings'), ...run('ViewHistorySettings', 'DrawSettings')],
-    BoxSelect: run('BoxSelectSettings', 'DrawSettings'),
+    OrbitSelected: page('OrbitSelected', ['OrbitSelectedSettings', 'DrawSettings']),
+    Pan: page('Pan', ['PanSettings', 'DrawSettings']),
+    Zoom: page('Zoom', ['ZoomSettings', 'DrawSettings']),
+    ViewportNav: page('ViewportNav', ['ViewportNavSettings', 'DrawSettings']),
+    OrientationGizmo: page('OrientationGizmo', ['OrientationGizmoSettings', 'DrawSettings']),
+    SharedGizmos: page('SharedGizmos', ['SharedGizmoSettings', 'DrawSettings']),
+    MoveGizmo: page('MoveGizmo', ['MoveGizmoSettings', 'DrawSettings']),
+    RotateGizmo: page('RotateGizmo', ['RotateGizmoSettings', 'DrawSettings']),
+    ScaleGizmo: page('ScaleGizmo', ['ScaleGizmoSettings', 'DrawSettings']),
+    TransformGizmo: page('TransformGizmo', ['TransformGizmoSettings', 'DrawSettings']),
+    FrameSelected: page('FrameSelected', ['FrameSelectedSettings', 'DrawSettings']),
+    IsolateView: page('IsolateView', ['IsolateViewSettings', 'DrawSettings']),
+    SnapToFloor: page('SnapToFloor', ['SnapToFloorSettings', 'DrawSettings']),
+    History: page('History', ['HistorySettings', 'DrawSettings'], ['ViewHistorySettings', 'DrawSettings']),
+    BoxSelect: page('BoxSelect', ['BoxSelectSettings', 'DrawSettings']),
     PieMenus: [
-      ...run('PieMenuSettings', 'DrawSettings'),
-      ...run('WireframeToggleSettings', 'DrawSettings'),
+      ...page('PieMenus', ['PieMenuSettings', 'DrawSettings'], ['WireframeToggleSettings', 'DrawSettings']),
       ['pieList'],
     ],
-    SceneMenu: run('SceneMenuSettings', 'DrawSettings'),
+    SceneMenu: page('SceneMenu', ['SceneMenuSettings', 'DrawSettings']),
     Keyboard: [['keyboard']],
     Tutorial: [['tutorial']],
   };
@@ -554,7 +528,7 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   // The General (Defaults) card is drawn by hand in GeneralSettings.Defaults.cs.
   const G = 'GeneralSettings.';
   const generalOps: Op[] = [
-    ['info', C['GeneralSettings.DefaultsIntro'] ?? ''],
+    ['info', need('GeneralSettings.DefaultsIntro')],
     ['sub', 'Animation', 'Motion Icon', 15, 0],
     ['tog', G + 'AnimationEnabled'],
     ['dis', ['!', ['v', G + 'AnimationEnabled']], [['sld', G + 'AnimationDuration', 0.0001, 2]]],
@@ -585,6 +559,49 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   ];
   pages.Overview = [['overview', generalOps]];
 
+  // ---- constants ----
+  const consts: Record<string, string> = {
+    masterOffWarning: need('SettingsEditorWindow.MasterOffWarning'),
+    masterOffNote: need('OverviewPage.MasterOffNote'),
+    layoutTooltip: need('OverviewPage.LayoutTooltip'),
+    tutorialStartOverTip: need('TutorialPage.StartOverTooltip'),
+    tutorialStartOverImage: need('TutorialPage.StartOverImage'),
+    tutorialRestartTitle: need('TutorialPage.RestartTitle'),
+    tutorialRestartBody: need('TutorialPage.RestartBody'),
+    tutorialSearchCaption: need('TutorialPage.SearchCaption'),
+    tutorialChooseNote: need('TutorialTaskRow.ChooseNote'),
+    tutorialBadgeLabel: need('TutorialBadge.LabelText'),
+    tutorialBadgeCloseTip: need('TutorialBadge.CloseTooltip'),
+    tipsShownTip: need('OverviewPage.TipsShownTooltip'),
+    ioTooltip: need('OverviewPage.SettingsIoTooltip'),
+    exportTip: need('OverviewPage.ExportSettingsTooltip'),
+    importTip: need('OverviewPage.ImportSettingsTooltip'),
+    keyboardIntro: need('KeyboardPage.Intro'),
+    appearanceTip: need('FoldBands.AppearanceTooltip'),
+    contestedLinkHint: need('OverviewContestedTable.LinkHint'),
+    customPresetTip: need('GizmoAppearancePresets.CustomDescription'),
+    gizmoPresetsNote: need('GizmoAppearancePresets.PresetsNote'),
+    presetsOn: need('OverviewMasterPanel.PresetsOn'),
+    presetsOff: need('OverviewMasterPanel.PresetsOff'),
+    restoreTip: need('ShortcutRows.RestoreTooltip'),
+  };
+  const kbImages = [need('OverviewPage.ApplyBlenderImage'), need('OverviewPage.ApplyUnityImage')];
+  const pieNote = need('OverviewTips.PieNote');
+  const rowImage = need('OverviewContestedTable.RowImage');
+
+  if (!dump) return null;
+  const { m1: M1, m2: M2, m3: M3 } = dump;
+
+  // ---- keys ----
+  const keymap: Record<string, Keys> = {};
+  for (const [id, k] of Object.entries(M2.keymap)) keymap[id] = keysOf(k);
+  const keyed = (id: string, where: string, keys?: DumpKeys) => {
+    const k = keymap[id];
+    if (!k) out.add(`model2.json keymap: no ${id}, which ${where} names`);
+    else if (keys && (keys.blendon !== k.b || keys.unity !== k.u))
+      out.add(`${where}: keys of ${id} differ from model2.json keymap`);
+  };
+
   // ---- props ----
   const enumLabels: Record<string, Record<string, string>> = {};
   for (const [k, v] of Object.entries(M3.enums)) enumLabels[k] = Object.fromEntries(v);
@@ -593,10 +610,20 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   const headers: Record<string, PageHeader> = {};
   const switchTips: Record<string, Tip> = {};
   for (const p of M1.pages) {
-    if (p.header) headers[p.type] = { ...p.header, footer: p.header.footer ?? '', search: '' };
-    switchTips[p.type] = { t: p.switchTip.text, i: p.switchTip.image };
+    if (p.header) {
+      const h = p.header;
+      headers[p.type] = {
+        image: h.image,
+        video: h.video,
+        footer: h.footer ?? '',
+        sections: h.sections,
+        keys: h.keys.map((k) => ({ action: k.action, active: k.active, bindings: k.bindings.map(keysOf) })),
+        search: '',
+      };
+    }
+    switchTips[p.type] = toTip(p.switchTip);
     for (const x of p.props) {
-      const e: PropInfo = { l: x.label, t: x.tip.text, i: x.tip.image, d: x.default, k: x.ptype };
+      const e: PropInfo = { l: x.label, ...toTip(x.tip), d: x.default, k: x.ptype };
       if (x.icon) e.ic = x.icon;
       if (x.options) {
         if (x.ptype === 'ModifierKey') e.o = M3.modifierOptions.map((o) => [o, modLabels[o] ?? o]);
@@ -608,20 +635,34 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
       props[p.type + '.' + x.name] = e;
     }
   }
+  const switchOf = (owner: string): Tip => {
+    const tip = switchTips[owner];
+    if (!tip) out.add('model.json: no page ' + owner);
+    return tip ?? { t: '', i: '' };
+  };
   // The All Tools page's master switch reads all four tools at once.
   props['SharedGizmoSettings.AllToolsEnabled'] = {
     l: 'Enable All Tools',
-    t: C['SharedGizmoSettings.SwitchTooltip'] ?? '',
-    i: C['SharedGizmoSettings.SwitchImage'] ?? '',
+    ...switchOf('SharedGizmoSettings'),
     d: true,
     k: 'Boolean',
   };
+  // The master switch's card is the Enabled row's.
+  const master = props['GeneralSettings.Enabled'];
+  if (!master) out.add('model.json: no GeneralSettings.Enabled');
+  switchTips.GeneralSettings = master ? tipOf(master.t, master.i, master.src) : switchOf('GeneralSettings');
 
   // ---- shortcuts ----
   const shortcuts: Record<string, ShortcutInfo> = {};
   for (const ps of Object.values(M2.pageShortcuts))
-    for (const s of ps.ids) shortcuts[s.id] = { d: s.text, n: s.name, t: s.tip.text, i: s.tip.image };
-  for (const p of M3.pies) shortcuts[p.shortcutId] ??= { d: p.text, n: p.title, t: '', i: '' };
+    for (const s of ps.ids) {
+      keyed(s.id, 'model2.json pageShortcuts', s.keys);
+      shortcuts[s.id] = { d: s.keys.blendon, n: s.name, ...toTip(s.tip) };
+    }
+  for (const p of M3.pies) {
+    keyed(p.shortcutId, 'model3.json pies', p.keys);
+    shortcuts[p.shortcutId] ??= { d: p.keys.blendon, n: p.title, t: '', i: '' };
+  }
 
   // The Transform parts' own props fall back to the standalone tools' where the dump has none.
   const PART_BASE: Record<string, string> = {
@@ -726,11 +767,10 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   const tips: Record<string, string> = {};
   const tipAR: Record<string, string> = {};
   for (const t of [...tipPaths].sort()) {
-    const out = 'plugin/tips/' + t.slice(5).replace(/\//g, '_').replace('.png', '.webp');
     tips[t] = asset({
       kind: 'webp',
       src: join(paths.icons, t),
-      out,
+      out: 'plugin/tips/' + t.slice(5).replace(/\//g, '_').replace('.png', '.webp'),
       quality: 88,
       onSize: (w, h) => (tipAR[t] = w + ' / ' + h),
     });
@@ -740,11 +780,14 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   const headerImages: Record<string, string> = {};
   const headerVideos: Record<string, string> = {};
   for (const h of Object.values(headers)) {
-    const out = 'plugin/headers/' + h.image.slice(5).replace(/\//g, '_').replace('.png', '.webp');
-    headerImages[h.image] = asset({ kind: 'webp', src: join(paths.icons, h.image), out, quality: 90 });
+    const image = 'plugin/headers/' + h.image.slice(5).replace(/\//g, '_').replace('.png', '.webp');
+    headerImages[h.image] = asset({ kind: 'webp', src: join(paths.icons, h.image), out: image, quality: 90 });
     const key = h.video.slice(5).replace('/Header.webm', '').replace('.webm', '');
     const clip = HEADER_CLIP[key];
-    if (!clip) throw new Error('No clip for header video ' + h.video);
+    if (!clip) {
+      out.add('No clip for header video ' + h.video);
+      continue;
+    }
     headerVideos[h.video] = asset({
       kind: 'copy',
       src: join(paths.video, clip + '.mp4'),
@@ -755,24 +798,34 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   const logo = asset({ kind: 'copy', src: join(paths.icons, 'Blendon.png'), out: 'plugin/icons/Blendon.png' });
 
   // ---- overview ----
-  const contested: ContestedRow[] = M2.known.map((k) => ({
-    bid: k.row.BlendonId,
-    bl: k.row.BlendonLabel,
-    ul: k.row.UnityLabel,
-    key: k.row.Key,
-    tip: k.row.Tooltip,
-    uMove: k.unityMove,
-    bMove: k.blendonMove,
-  }));
-  const known = Object.fromEntries(
-    contested.map((c) => [c.bid, { ul: c.ul, key: c.key, uMove: c.uMove, bMove: c.bMove }]),
-  );
+  // OverviewContestedTable draws every state's card with the same picture.
+  const rowCard = (c: DumpCard) => toTip({ ...c, image: c.image || rowImage });
+  const contested: ContestedRow[] = M2.known.map((k) => {
+    keyed(k.row.BlendonId, 'model2.json known');
+    keyed(k.row.UnityId, 'model2.json known');
+    return {
+      uid: k.row.UnityId,
+      ul: k.row.UnityLabel,
+      bid: k.row.BlendonId,
+      bl: k.row.BlendonLabel,
+      key: k.row.Key,
+      replaces: k.row.Replaces,
+      blendonAlt: k.blendonAlt,
+      editorAlt: k.editorAlt,
+      cards: {
+        Covered: rowCard(k.cards.Covered),
+        Replaced: rowCard(k.cards.Replaced),
+        Moved: rowCard(k.cards.Moved),
+        Free: rowCard(k.cards.Free),
+      },
+    };
+  });
   const pageShortcuts = Object.fromEntries(
     Object.entries(M2.pageShortcuts).map(([k, v]) => [k, v.ids.map((s) => s.id)]),
   );
   const primaryShortcut = Object.fromEntries(Object.entries(M2.pageShortcuts).map(([k, v]) => [k, v.primary]));
   for (const sid of Object.values(pageShortcuts).flat())
-    shortcuts[sid] ??= { d: '', n: sid.split('/').pop() ?? sid, t: '', i: '' };
+    shortcuts[sid] ??= { d: keymap[sid]?.b ?? '', n: sid.split('/').pop() ?? sid, t: '', i: '' };
   const featureGroups = (
     [
       ['TRANSFORM TOOLS', 'TRANSFORM TOOLS'],
@@ -789,14 +842,14 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
     enabled: p.enabled,
     filled: p.filled,
     desc: p.desc,
-    tipRow: { t: p.tipRow.text, i: p.tipRow.image },
+    tipRow: toTip(p.tipRow),
     // The Overview's card for the pie (OverviewTips.Pie): the pie's own card, noting where a click goes.
     tipOverview: p.tipGet.text
-      ? { t: p.tipGet.text + (C['OverviewTips.PieNote'] ?? ''), i: p.tipGet.image }
+      ? toTip({ text: p.tipGet.text + pieNote, image: p.tipGet.image, source: p.tipGet.source + pieNote })
       : { t: '', i: '' },
   }));
   const featureTips: Record<string, Tip> = {};
-  for (const [k, v] of Object.entries(M2.featureTips)) if (v) featureTips[k] = { t: v.text, i: v.image };
+  for (const [k, v] of Object.entries(M2.featureTips)) if (v) featureTips[k] = toTip(v);
 
   const labelToProp: Record<string, string> = {};
   for (const k of Object.keys(props)) if (k.startsWith('SceneMenuSettings.')) labelToProp[props[k]?.l ?? ''] = k;
@@ -808,8 +861,8 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
       label: e.Label,
       prop: pk,
       inline: e.InlineSetting_null ? null : (labelToProp[e.Label + ' Inline'] ?? null),
-      tip: { t: e.Tip.text, i: e.Tip.image },
-      inlineTip: { t: e.InlineTip.text, i: e.InlineTip.image },
+      tip: toTip(e.Tip),
+      inlineTip: toTip(e.InlineTip),
     };
   });
   const extraSections = (M3.enums.SceneMenuGroup ?? []).map((s): [string, string] => [
@@ -888,45 +941,8 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
     props,
   );
 
-  const consts: Record<string, string> = {
-    masterOffWarning: C['SettingsEditorWindow.MasterOffWarning'] ?? '',
-    masterOffNote: C['OverviewPage.MasterOffNote'] ?? '',
-    layoutTooltip: C['OverviewPage.LayoutTooltip'] ?? '',
-    tutorialStartOverTip: C['TutorialPage.StartOverTooltip'] ?? '',
-    tutorialStartOverImage: C['TutorialPage.StartOverImage'] ?? '',
-    tutorialRestartTitle: C['TutorialPage.RestartTitle'] ?? '',
-    tutorialRestartBody: C['TutorialPage.RestartBody'] ?? '',
-    tutorialSearchCaption: C['TutorialPage.SearchCaption'] ?? '',
-    tutorialChooseNote: C['TutorialTaskRow.ChooseNote'] ?? '',
-    tutorialBadgeLabel: C['TutorialBadge.LabelText'] ?? '',
-    tutorialBadgeCloseTip: C['TutorialBadge.CloseTooltip'] ?? '',
-    tipsShownTip: C['OverviewPage.TipsShownTooltip'] ?? '',
-    ioTooltip: C['OverviewPage.SettingsIoTooltip'] ?? '',
-    exportTip: C['OverviewPage.ExportSettingsTooltip'] ?? '',
-    importTip: C['OverviewPage.ImportSettingsTooltip'] ?? '',
-    keyboardIntro: C['KeyboardPage.Intro'] ?? '',
-    appearanceTip: C['SettingsControls.AppearanceTooltip'] ?? '',
-    contestedLinkHint: C['OverviewContestedTable.LinkHint'] ?? '',
-    customPresetTip: C['GizmoAppearancePresets.CustomDescription'] ?? '',
-    gizmoPresetsNote: C['GizmoAppearancePresets.PresetsNote'] ?? '',
-    presetsOn: C['OverviewMasterPanel.PresetsOn'] ?? '',
-    presetsOff: C['OverviewMasterPanel.PresetsOff'] ?? '',
-    handoverLabel: C['OverviewPage.HandoverLabel'] ?? '',
-    handoverTip: C['OverviewPage.HandoverTooltip'] ?? '',
-    restoreTip: C['SettingsControls.RestoreTooltip'] ?? '',
-  };
-  const kbTips: Tip[] = [
-    { t: C['OverviewPage.ApplyBlenderTooltip'] ?? '', i: 'Tips/Overview/KeyboardBlendon.png' },
-    { t: C['OverviewPage.ApplyUnityTooltip'] ?? '', i: 'Tips/Overview/KeyboardUnity.png' },
-  ];
-  switchTips.SharedGizmoSettings = {
-    t: C['SharedGizmoSettings.SwitchTooltip'] ?? '',
-    i: C['SharedGizmoSettings.SwitchImage'] ?? '',
-  };
-  switchTips.GeneralSettings = {
-    t: C['GeneralSettings.MasterSwitchTooltip'] ?? '',
-    i: C['GeneralSettings.MasterSwitchTipImage'] ?? '',
-  };
+  // The text is built from live keys in OverviewPage, only the pictures are data.
+  const kbTips: Tip[] = kbImages.map((i) => ({ t: '', i }));
 
   const resetOwners: Record<string, string[]> = {
     Overview: ['GeneralSettings'],
@@ -937,12 +953,12 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
   };
   for (const [k, v] of Object.entries(PAGE_OWNER)) resetOwners[k] ??= [v];
 
-  const data: WindowData = {
+  const data: WindowDataFile = {
     catalog,
     icons,
     props,
     shortcuts,
-    known,
+    keymap,
     pages,
     headers,
     switchTips,
@@ -978,7 +994,22 @@ export function buildWindowData(paths: PluginPaths, extraIcons: string[] = []): 
     pageOwner: PAGE_OWNER,
     resetOwners,
   };
+  checkTokens(data, out);
   return { data, assets };
+}
+
+/** Every {key:} and {setting:} a text names must resolve on the site, as TipText warns in the Editor. */
+export function checkTokens(data: Pick<WindowDataFile, 'keymap' | 'props'>, out: Problems): void {
+  const walk = (o: unknown): void => {
+    if (typeof o === 'string') {
+      for (const m of o.matchAll(/\{key:([^}]*)\}/g))
+        if (!data.keymap[m[1] ?? '']) out.add(`A card names {key:${m[1]}}, which model2.json keymap lacks`);
+      for (const m of o.matchAll(/\{setting:([^}]*)\}/g))
+        if (!data.props[m[1] ?? '']) out.add(`A card names {setting:${m[1]}}, which is no setting`);
+    } else if (Array.isArray(o)) o.forEach(walk);
+    else if (o && typeof o === 'object') Object.values(o).forEach(walk);
+  };
+  walk(data);
 }
 
 /** Icon name -> file in the UI dump. The dump writes numbers with the editor's locale decimal comma. */
