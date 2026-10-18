@@ -15,7 +15,7 @@ import {
   ToolManager,
   Tools,
 } from '../unity/editor.ts';
-import { Event, EventType, IS_MAC, KeyCode, keyCodeFromDom } from '../unity/imgui.ts';
+import { Event, EventType, GUIUtility, IS_MAC, KeyCode, keyCodeFromDom } from '../unity/imgui.ts';
 import { SceneView } from '../unity/sceneview.ts';
 import { GizmoTools } from './gizmos/shared-settings.ts';
 import { GeneralSettings, sBool } from './settings.ts';
@@ -86,26 +86,51 @@ function restart() {
 const isSlot = (tool: Tool) =>
   tool === Tool.Move || tool === Tool.Rotate || tool === Tool.Scale || tool === Tool.Rect || tool === Tool.Transform;
 
-/**
- * An Escape the Editor would answer by leaving the context. With Blendon or every gizmo off the context holds
- * Unity's tools only, so Escape works as without Blendon.
- */
-function escapeHeld(ev: Event) {
-  return (
-    ev.type === EventType.KeyDown &&
-    ev.keyCode === KeyCode.Escape &&
-    sBool('GeneralSettings.EscapeKeepsContext', true) &&
-    wantedNow() &&
-    !Tools.viewToolActive &&
-    isSlot(Tools.current)
-  );
+// hotControl as the press found it, before Unity's own tool (which runs ahead of these hooks) could release it.
+let hotBeforeTool = 0;
+
+export const EscapeGuard = {
+  /**
+   * An Escape the Editor would answer by leaving the context. A custom tool steps back instead and the view
+   * tool ignores it, so both pass. With Blendon or every gizmo off the context holds Unity's tools only.
+   */
+  holds(ev: Event) {
+    return (
+      ev.type === EventType.KeyDown &&
+      ev.keyCode === KeyCode.Escape &&
+      sBool('GeneralSettings.EscapeKeepsContext', true) &&
+      wantedNow() &&
+      !Tools.viewToolActive &&
+      isSlot(Tools.current)
+    );
+  },
+
+  /** After a Blendon tool's pass, so the gizmo's own Escape (a drag, a typed value, a vertex pick) comes first. */
+  afterTool(ev: Event) {
+    if (EscapeGuard.holds(ev)) ev.use();
+  },
+
+  /** Before Unity's own tool in a slot. A press with one of its handles held is that handle's to cancel. */
+  beforeUnityTool(ev: Event) {
+    if (EscapeGuard.holds(ev) && hotBeforeTool === 0 && GUIUtility.hotControl === 0) ev.use();
+  },
+};
+
+function onBeforeSceneGui() {
+  const ev = Event.current;
+  if (ev.type === EventType.KeyDown && ev.keyCode === KeyCode.Escape) hotBeforeTool = GUIUtility.hotControl;
 }
 
-// Last of the scene hooks, so a grab, a typed value, a vertex pick or a pie had the Escape first.
+// Last of the scene hooks, so a grab, a box, a pie and the tool's own pass had the Escape first.
 function onToolsPass() {
   const ev = Event.current;
-  if (active && escapeHeld(ev)) ev.use();
-  else ToolManager.escapeToGameObject(ev);
+  if (active) {
+    if (BlendonContext.ownsSlot(Tools.current)) EscapeGuard.afterTool(ev);
+    else EscapeGuard.beforeUnityTool(ev);
+  }
+  // TryPopToolState, on whatever the guard let through.
+  ToolManager.escapeToGameObject(ev);
+  hotBeforeTool = 0;
 }
 
 // A click on something that takes no focus leaves the keys with the page's body.
@@ -173,6 +198,7 @@ export const ContextSwitch = {
       ToolManager.setActiveContext(
         ToolManager.activeContext === ToolContext.Blendon ? ToolContext.GameObject : ToolContext.Blendon,
       );
+    SceneView.beforeSceneGui.add(onBeforeSceneGui);
     SceneView.duringSceneGui.add(onToolsPass);
     document.addEventListener('keydown', onPageKey);
     document.addEventListener('pointerdown', onPagePointer, true);

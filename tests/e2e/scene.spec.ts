@@ -961,3 +961,176 @@ test.describe('Undo and Redo', () => {
     await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
   });
 });
+
+test.describe('Escape and vertex snapping', () => {
+  const blendonContext = (page: Page) =>
+    page.locator('#try [role=application]').getByRole('button', { name: 'Game Object (Blendon)', exact: true });
+
+  interface Corner {
+    world: Vec3;
+    page: { x: number; y: number };
+  }
+
+  interface MeshObject {
+    name: string;
+    mesh: { vertices: Vec3[] } | null;
+    transform: { position: Vec3; localToWorldMatrix: { multiplyPoint3x4(p: Vec3): Vec3 } };
+  }
+
+  /** Where a world point is on the page. */
+  function pageOf(page: Page, world: Vec3) {
+    return page.locator('#try [role=application]').evaluate((el: unknown, w) => {
+      const h = (el as HostElement).sceneHost;
+      const v = h.view;
+      const make = [...h.scene.allObjects()][0].transform.position.constructor as new (
+        x: number,
+        y: number,
+        z: number,
+      ) => Vec3;
+      const s = v.camera.worldToScreenPoint(new make(w.x, w.y, w.z));
+      const r = h.root.getBoundingClientRect();
+      return { x: r.left + s.x / v.pixelsPerPoint, y: r.top + (v.camera.pixelHeight - s.y) / v.pixelsPerPoint };
+    }, world);
+  }
+
+  /** The named object's distinct mesh corners above its pivot, in world space and on the page. */
+  async function topCornersOf(page: Page, name: string): Promise<Corner[]> {
+    const worlds = await page.locator('#try [role=application]').evaluate((el: unknown, n) => {
+      const all = (el as HostElement).sceneHost.scene.allObjects() as unknown as Iterable<MeshObject>;
+      const go = [...all].find((o) => o.name === n)!;
+      const m = go.transform.localToWorldMatrix;
+      const seen = new Map<string, Vec3>();
+      for (const v of go.mesh!.vertices) {
+        const w = m.multiplyPoint3x4(v);
+        if (w.y > go.transform.position.y) seen.set([w.x, w.y, w.z].map((c) => c.toFixed(4)).join(), w);
+      }
+      return [...seen.values()].map((w) => ({ x: w.x, y: w.y, z: w.z }));
+    }, name);
+    return Promise.all(worlds.map(async (world) => ({ world, page: await pageOf(page, world) })));
+  }
+
+  const nearest = (corners: Corner[], to: { x: number; y: number }) =>
+    [...corners].sort(
+      (a, b) => Math.hypot(a.page.x - to.x, a.page.y - to.y) - Math.hypot(b.page.x - to.x, b.page.y - to.y),
+    )[0];
+
+  test('Esc cancels a Move arrow drag and keeps the context', async ({ page }) => {
+    await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const at = await pagePointOf(page, 'Cube');
+    const xEnd = await pageOf(page, { ...before, x: before.x + 1 });
+    const length = Math.hypot(xEnd.x - at.x, xEnd.y - at.y);
+    const dir = { x: (xEnd.x - at.x) / length, y: (xEnd.y - at.y) / length };
+    // Past the screen ring, short of the cone: the X arrow's shaft.
+    const from = { x: at.x + dir.x * 45, y: at.y + dir.y * 45 };
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(from.x + dir.x * i * 10, from.y + dir.y * i * 10);
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
+    const moving = (await positionOf(page, 'Cube'))!;
+    expect([moving.y, moving.z]).toEqual([before.y, before.z]);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+    // The rest of the gesture moves nothing.
+    await page.mouse.move(from.x + dir.x * 90, from.y + dir.y * 90);
+    await page.mouse.up();
+    expect(await positionOf(page, 'Cube')).toEqual(before);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('Esc cancels a grab', async ({ page }) => {
+    const view = await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const at = await pagePointOf(page, 'Cube');
+    await page.mouse.move(at.x + 40, at.y + 40);
+    await view.focus();
+    await page.keyboard.press('g');
+    for (let i = 1; i <= 6; i++) await page.mouse.move(at.x + 40 + i * 10, at.y + 40);
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+    await page.mouse.move(at.x + 160, at.y + 60);
+    await page.waitForTimeout(300);
+    expect(await positionOf(page, 'Cube')).toEqual(before);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('Esc cancels a box select and keeps the selection', async ({ page }) => {
+    await openScene(page);
+    const sphere = await pagePointOf(page, 'Sphere');
+    const cube1 = await pagePointOf(page, 'Cube (1)');
+    const from = { x: sphere.x - 60, y: sphere.y - 60 };
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(from.x + ((cube1.x - from.x) * i) / 6, from.y + 120 * (i / 6));
+    await expect.poll(async () => (await highlighted(page))[0]).toBeGreaterThan(0);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => highlighted(page)).toEqual([0, 0]);
+    await page.mouse.up();
+    await page.waitForTimeout(200);
+    expect(await selectionNames(page)).toEqual(['Cube']);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('Esc cancels an Orientation Gizmo drag', async ({ page }) => {
+    const view = await openScene(page);
+    const box = (await view.getByLabel('Orientation gizmo').boundingBox())!;
+    const at = { x: box.x + box.width / 2 + 5, y: box.y + box.height / 2 + 5 };
+    const before = await viewRotation(page);
+    await page.mouse.move(at.x, at.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) await page.mouse.move(at.x + i * 6, at.y + i * 2);
+    await expect.poll(() => viewRotation(page)).not.toEqual(before);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => viewRotation(page)).toEqual(before);
+    await page.mouse.up();
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test("V carries the Cube's vertex onto a vertex of another object", async ({ page }) => {
+    const view = await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const grab = nearest(await topCornersOf(page, 'Cube'), await pagePointOf(page, 'Cube (1)'));
+    const onto = nearest(await topCornersOf(page, 'Cube (1)'), await pagePointOf(page, 'Cube'));
+    await view.focus();
+    await page.mouse.move(grab.page.x + 4, grab.page.y + 4);
+    await page.keyboard.down('v');
+    // The gizmo's square stands on the vertex nearest the cursor; the press lands inside it.
+    await page.mouse.move(grab.page.x + 2, grab.page.y + 2);
+    await page.mouse.down();
+    for (let i = 1; i <= 12; i++)
+      await page.mouse.move(
+        grab.page.x + ((onto.page.x + 3 - grab.page.x) * i) / 12,
+        grab.page.y + ((onto.page.y + 3 - grab.page.y) * i) / 12,
+      );
+    await page.mouse.up();
+    await page.keyboard.up('v');
+    const after = (await positionOf(page, 'Cube'))!;
+    for (const k of ['x', 'y', 'z'] as const)
+      expect(grab.world[k] + after[k] - before[k]).toBeCloseTo(onto.world[k], 4);
+  });
+
+  test('Shift+V settles a virtual pivot that a scale turns about, and Esc leaves it', async ({ page }) => {
+    const view = await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const corner = nearest(await topCornersOf(page, 'Cube'), await pagePointOf(page, 'Cube (1)'));
+    await view.focus();
+    await page.keyboard.press('Shift+V');
+    await page.mouse.move(corner.page.x + 4, corner.page.y + 4);
+    await page.mouse.click(corner.page.x + 4, corner.page.y + 4);
+    for (const key of ['s', '2', 'Enter']) await page.keyboard.press(key);
+    // Scaled about the settled corner: the corner stays and the centre doubles its distance from it.
+    await expect
+      .poll(async () => (await positionOf(page, 'Cube'))!.x)
+      .toBeCloseTo(corner.world.x + 2 * (before.x - corner.world.x), 3);
+    const scaled = (await positionOf(page, 'Cube'))!;
+    expect(scaled.z).toBeCloseTo(corner.world.z + 2 * (before.z - corner.world.z), 3);
+
+    // Out of the mode the selection's own pivot is back: halving moves nothing.
+    await page.keyboard.press('Escape');
+    for (const key of ['s', '.', '5', 'Enter']) await page.keyboard.press(key);
+    await page.waitForTimeout(300);
+    expect(await positionOf(page, 'Cube')).toEqual(scaled);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+});
