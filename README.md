@@ -224,17 +224,20 @@ Playwright needs its browsers once: `pnpm exec playwright install`.
 
 ### Scripts
 
-| Command          | What it does                                                  |
-| ---------------- | ------------------------------------------------------------- |
-| `pnpm install`   | Install dependencies                                          |
-| `pnpm dev`       | Dev server with hot reload                                    |
-| `pnpm build`     | Type-check, build the static site into `dist/` and prerender  |
-| `pnpm prerender` | Render the landing and its JSON-LD into `dist/index.html`     |
-| `pnpm preview`   | Serve the production build locally                            |
-| `pnpm check`     | Type-check, lint, format check and unit tests (what CI runs)  |
-| `pnpm test`      | Unit tests (Vitest)                                           |
-| `pnpm test:e2e`  | End-to-end tests in Chromium, Firefox and WebKit (Playwright) |
-| `pnpm format`    | Format everything with Prettier                               |
+| Command            | What it does                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| `pnpm install`     | Install dependencies                                                                            |
+| `pnpm dev`         | Dev server with hot reload                                                                      |
+| `pnpm build`       | Type-check, build the static site into `dist/` and prerender                                    |
+| `pnpm prerender`   | Render the landing and its JSON-LD into `dist/index.html`                                       |
+| `pnpm preview`     | Serve the production build locally                                                              |
+| `pnpm check`       | Type-check, lint, format check and unit tests (what CI runs)                                    |
+| `pnpm test`        | Unit tests (Vitest)                                                                             |
+| `pnpm test:e2e`    | End-to-end tests in Chromium, Firefox and WebKit (Playwright)                                   |
+| `pnpm format`      | Format everything with Prettier                                                                 |
+| `pnpm sync`        | Rebuild the plugin's data and assets (see below); `--check` reads everything and writes nothing |
+| `pnpm perf:frames` | Long animation frames while the Try It dock mounts, on desktop and on a 4x slower touch device  |
+| `pnpm perf:reflow` | Forced reflows on a phone while the landing scrolls                                             |
 
 ## Stack
 
@@ -259,8 +262,14 @@ It writes `src/plugin/generated/` (`window-data.json`, `tutorial.json`), `public
 committed, so CI never needs the plugin. Run it after changing the plugin's settings pages, then commit the result.
 
 ```bash
-BLENDON_DIR=E:/Unity/_wt/integration BLENDON_REF=E:/Unity/_wt/web-trial-dump pnpm sync
+pnpm sync --check
+pnpm sync
+BLENDON_DIR=<plugin checkout> BLENDON_REF=<dump folder> pnpm sync
 ```
+
+The sync stages everything first and swaps `public/plugin`, `public/docs` and the JSON files in only at the end, so a
+failure leaves the committed data as it was. A dev server watching the folder can block that swap on Windows; stop
+it for the sync.
 
 Tooltips come in twice: `text` as shown on the Blender keys, and `source` with Blendon's live key tokens still in
 (`{key:<shortcut id>}`, `{setting:<Class>.<Property>}`). The site fills the tokens in itself from the dump's
@@ -287,7 +296,8 @@ the code it reads and never ships. When the dump has to change:
      -blendonWebOut <folder> -logFile <log>
    ```
 
-   Without `-blendonWebOut` it rewrites the plugin's own `Metadata~/PlaygroundRef`. It exits with 0, or with 1 and a
+   Without `-blendonWebOut` it rewrites the plugin's own `Metadata~/PlaygroundRef`; delete its `ui/` first, the export
+   only adds files. It exits with 0, or with 1 and a
    `[WebExport]` line in the log saying why. Inside an open editor the same export is **Blendon > Dev > Export Web
    Data**.
 
