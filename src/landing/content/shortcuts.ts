@@ -23,6 +23,7 @@ export const SHORTCUTS: ShortcutRow[] = [
   ['Virtual pivot', ['Shift', '~+', 'V'], ['Alt', '~+', 'Shift', '~+', 'V']],
   ['Move / Rotate / Transform tool', ['W', 'E', 'Y']],
   ['Scale tool', ['R', '~outside the Scene view'], ['R']],
+  ['Toggle Blendon (tool context)', ['B', '~in any window']],
   ['Frame Selected / Isolate View', ['Num .', '~/', 'Num /']],
   ['Snap to Floor', ['End']],
   ['Select parent / children', ['[', ']']],
