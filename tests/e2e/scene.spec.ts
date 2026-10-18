@@ -1251,6 +1251,23 @@ test.describe("Unity's own tools in Game Object", () => {
     await page.keyboard.press('Shift+V');
   });
 
+  test("Escape mid-box puts the selection from before Unity's box back", async ({ page }) => {
+    await inGameObject(page);
+    expect(await selectionNames(page)).toEqual(['Cube']);
+    const sphere = await pagePointOf(page, 'Sphere');
+    const from = { x: sphere.x - 60, y: sphere.y - 60 };
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(from.x + i * 20, from.y + i * 20);
+    await expect.poll(() => selectionNames(page)).toContain('Sphere');
+    await page.keyboard.press('Escape');
+    await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
+    await page.mouse.move(from.x + 160, from.y + 160);
+    await page.mouse.up();
+    expect(await selectionNames(page)).toEqual(['Cube']);
+    await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
   test('Escape mid-drag puts a move and a turn back and lets go of the handle', async ({ page }) => {
     const view = await inGameObject(page);
     const before = (await positionOf(page, 'Cube'))!;

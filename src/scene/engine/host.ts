@@ -265,8 +265,9 @@ export class SceneHost {
   private hooks(view: SceneView) {
     SceneView.beforeSceneGui.invoke(view);
     this.unitySelection.onGUI(view);
-    UnityToolHandles.onGUI(view);
     SceneView.duringSceneGui.invoke(view);
+    // SceneView.DefaultHandles: the tools after duringSceneGui, so scene GUI can take an event first.
+    UnityToolHandles.onGUI(view);
     // The view tool runs last, on whatever the plugin's hooks left unused.
     UnityNavigation.onGUI(view);
   }
