@@ -26,8 +26,8 @@
     },
     {
      "id": "scene.add-plane",
-     "title": "Add a floor from the context menu",
-     "hint": "Right-click an empty spot and open Add, then pick Plane. It lands where you clicked, and everything after this stands on it.",
+     "title": "Add a floor",
+     "hint": "Press {key:Blendon/Context Menu} on an empty spot, open Add, then pick Plane. It lands where you clicked, and everything after this stands on it.",
      "picture": "plugin/tips/ContextMenu_AddObject.webp",
      "clip": "",
      "aspect": "640 / 360",
@@ -213,7 +213,7 @@
     {
      "id": "pair.add-cube",
      "title": "Add a second cube",
-     "hint": "Add another one the same way, from the context menu's Add, or duplicate the first with Ctrl+D. Leave a gap between the two.",
+     "hint": "Add another one the same way, from the context menu's Add, or duplicate the first with {key:Main Menu/Edit/Duplicate}. Leave a gap between the two.",
      "picture": "plugin/tips/PieMenus_PlaceOnFloor.webp",
      "clip": "",
      "aspect": "640 / 360",
@@ -247,7 +247,7 @@
    "tasks": [
     {
      "id": "handles.move-tool",
-     "title": "Pick the Move tool from the Tools menu",
+     "title": "Pick the Move tool",
      "hint": "Hold the key and flick to Move. Unity's own tool keys and toolbar work too, the menu just keeps them under one key.",
      "picture": "plugin/tips/PieMenus_Tools.webp",
      "clip": "",
@@ -346,7 +346,7 @@
     {
      "id": "select.box-modes",
      "title": "Add to the box, or take away",
-     "hint": "Hold Shift while dragging to add what the box touches, or the action key to take it away.",
+     "hint": "Drag with {key:Scene View/Add Box Select} to add what the box touches, or with {key:Scene View/Invert Box Select} to take it away.",
      "picture": "plugin/tips/BoxSelect_BoxSelect.webp",
      "clip": "",
      "aspect": "640 / 360",
@@ -355,7 +355,7 @@
     {
      "id": "select.group",
      "title": "Group the two cubes",
-     "hint": "With both selected, right-click and pick Group: an empty is made with both cubes under it.",
+     "hint": "With both selected, press {key:Blendon/Context Menu} and pick Group: an empty is made with both cubes under it.",
      "picture": "plugin/tips/ContextMenu_Grouping.webp",
      "clip": "",
      "aspect": "640 / 360",
@@ -364,34 +364,34 @@
     {
      "id": "select.parent",
      "title": "Step up to the parent",
-     "hint": "Select one of the cubes, then step up: the group that holds it is selected instead.",
+     "hint": "Select a cube in the group, or the one under the pivot you kept, then step up: what holds it is selected instead.",
      "picture": "plugin/tips/BoxSelect_SelectParent.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select one cube in the group first"
+     "needs": "Select a cube under the group or the pivot first"
     },
     {
      "id": "select.children",
      "title": "Step down to the children",
-     "hint": "From the group, step down: both cubes under it are selected.",
+     "hint": "From that parent, step down: the cubes under it are selected again.",
      "picture": "plugin/tips/BoxSelect_SelectChildren.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the group first"
+     "needs": "Select the group or the pivot first"
     },
     {
      "id": "select.click-parent",
      "title": "Click a selected cube again",
-     "hint": "Select one cube, then click it once more: the selection moves up to its group, like stepping up.",
+     "hint": "Select a cube under the parent, then click it once more: the selection moves up to what holds it, like stepping up.",
      "picture": "plugin/tips/BoxSelect_ClickSelectsParent.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select one cube in the group first"
+     "needs": "Select a cube under the group or the pivot first"
     },
     {
      "id": "tools.selection-history",
      "title": "Step back through selections",
-     "hint": "Browser-style back and forward for what you had selected - the mouse's own side buttons by default.",
+     "hint": "Browser-style back and forward for what you had selected: {key:Blendon/History/Undo Selection} goes back, {key:Blendon/History/Redo Selection} goes forward.",
      "picture": "plugin/headers/NavigationHistory_SelectionHeader.webp",
      "clip": "plugin/video/SelectionHistory.mp4",
      "aspect": "640 / 360",
@@ -409,7 +409,7 @@
     {
      "id": "select.align",
      "title": "Match one cube's turn to the other",
-     "hint": "Select both, the last one clicked is the active one. Right-click, Align to Active, Rotation: the other takes its turn.",
+     "hint": "Select both, the last one clicked is the active one. Press {key:Blendon/Context Menu}, then Align to Active, Rotation: the other takes its turn.",
      "picture": "plugin/tips/ContextMenu_AlignToActive.webp",
      "clip": "",
      "aspect": "640 / 360",
@@ -426,7 +426,7 @@
     {
      "id": "nav.axis-view",
      "title": "Look from the front, the side and the top",
-     "hint": "The numpad views: front, right and top, with the action key for the opposite side of each. NumLock has to be on.",
+     "hint": "The axis views: front on {key:Blendon/Viewport Nav/View Front}, right on {key:Blendon/Viewport Nav/View Right} and top on {key:Blendon/Viewport Nav/View Top}. Back, left and bottom look from the opposite side, on {key:Blendon/Viewport Nav/View Back}, {key:Blendon/Viewport Nav/View Left} and {key:Blendon/Viewport Nav/View Bottom}. NumLock has to be on for the keypad.",
      "picture": "plugin/headers/NumpadViews_Header.webp",
      "clip": "plugin/video/NumpadViews.mp4",
      "aspect": "640 / 360",
@@ -444,7 +444,7 @@
     {
      "id": "nav.orbit-step",
      "title": "Orbit in steps",
-     "hint": "The numpad arrows turn the view by a fixed step around the pivot, left, right, up or down.",
+     "hint": "Each press turns the view by a fixed step around the pivot: {key:Blendon/Viewport Nav/Orbit Left} left, {key:Blendon/Viewport Nav/Orbit Right} right, {key:Blendon/Viewport Nav/Orbit Up} up, {key:Blendon/Viewport Nav/Orbit Down} down.",
      "picture": "plugin/tips/NumpadViews_OrbitSteps.webp",
      "clip": "",
      "aspect": "640 / 360",
