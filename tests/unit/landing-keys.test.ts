@@ -5,8 +5,11 @@ import { CONTESTED_KEYS } from '../../src/landing/content/pace.ts';
 import { SHORTCUTS } from '../../src/landing/content/shortcuts.ts';
 import type { KeyTokens } from '../../src/landing/ui/KeyCap.tsx';
 
-// Contested keys from the plugin: `uMove` is where the Editor's command goes on the Blendon preset.
-const known: Record<string, { key: string; uMove: string; bMove: string }> = data.known;
+// Contested keys from the plugin: `uMove` is where Move puts the Editor's command on the Blendon preset, `bMove`
+// where the Unity preset puts Blendon's shortcut.
+const known: Record<string, { key: string; uMove: string; bMove: string }> = Object.fromEntries(
+  data.contested.map((r) => [r.bid, { key: r.key, uMove: r.editorAlt, bMove: r.blendonAlt }]),
+);
 
 const MOUSE: Record<string, string> = { LMB: 'Mouse 0', RMB: 'Mouse 1', MMB: 'Mouse 2' };
 
