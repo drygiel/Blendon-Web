@@ -2,6 +2,7 @@
 // subscribe (which is the order they see each event).
 import { Keymap } from '../../bridge/keymap.ts';
 import { ShortcutManager, Undo } from '../unity/editor.ts';
+import { GUIUtility, IS_MAC } from '../unity/imgui.ts';
 import { SceneView } from '../unity/sceneview.ts';
 import { TransformGizmo } from './gizmos/composite/transform-gizmo.ts';
 import { GizmoVisibility } from './gizmos/core/visibility.ts';
@@ -35,10 +36,16 @@ import { SceneMenu } from './scenetools/scene-menu/scene-menu.ts';
 
 let installed = false;
 
-/** Unity's own Undo/Redo keys; a running grab or pie menu keeps the view to itself. */
+/** Unity's own Undo/Redo keys, which wait while a grab, a pie menu or a held handle owns the view. */
 function installEditorUndo() {
-  ShortcutManager.register('Edit/Undo', () => !ViewportGesture.busy && Undo.performUndo(), false, 'Ctrl+Z');
-  ShortcutManager.register('Edit/Redo', () => !ViewportGesture.busy && Undo.performRedo(), false, 'Ctrl+Y');
+  // Undone under a drag, the handle would keep writing over the restored state outside any undo step.
+  const idle = () => !ViewportGesture.busy && GUIUtility.hotControl === 0;
+  const undo = () => idle() && Undo.performUndo();
+  const redo = () => idle() && Undo.performRedo();
+  ShortcutManager.register('Edit/Undo', undo, false, 'Action+Z');
+  ShortcutManager.register('Edit/Redo', redo, false, IS_MAC ? 'Action+Shift+Z' : 'Action+Y');
+  // Ctrl+Shift+Z is the redo most other Windows apps know.
+  if (!IS_MAC) ShortcutManager.register('Edit/Redo (Shift)', redo, false, 'Action+Shift+Z');
 }
 
 export function installBlendon() {

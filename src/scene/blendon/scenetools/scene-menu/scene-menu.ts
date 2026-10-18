@@ -451,6 +451,14 @@ function beginRename() {
   changed();
 }
 
+// Running a menu item starts a new undo group in the Editor, so an entry never joins the step before it.
+function asMenuItem(execute: () => void) {
+  return () => {
+    Undo.incrementCurrentGroup();
+    execute();
+  };
+}
+
 function run(node: MenuNode) {
   if (!node.enabled || node.demoOnly) return;
   // Before it runs, a task's needs read the selection it ran on.
@@ -464,14 +472,14 @@ function run(node: MenuNode) {
     const c = node.command;
     SceneMenu.close();
     // After the menu has let go of the view, the way the Editor's own menu leaves it.
-    EditorApplication.delayCall(c);
+    EditorApplication.delayCall(asMenuItem(c));
     return;
   }
   const item = node.item;
   if (!item?.enabled) return;
   lastKey = item.path;
   SceneMenu.close();
-  EditorApplication.delayCall(item.execute);
+  EditorApplication.delayCall(asMenuItem(item.execute));
 }
 
 function activate(panelIndex: number, row: number, column: number) {

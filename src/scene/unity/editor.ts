@@ -238,10 +238,19 @@ export const Selection = {
 
 // ---- Undo ----------------------------------------------------------------------------------------------
 
+/** An object outside the scene graph that Undo can record, like Unity's SceneVisibilityState. */
+export interface UndoableState {
+  captureState(): unknown;
+  restoreState(state: unknown): void;
+}
+
 interface Snapshot {
   transforms: Map<Transform, { state: TransformState; parent: Transform | null; index: number }>;
-  objects: Map<GameObject, { hidden: boolean; active: boolean; name: string }>;
+  objects: Map<GameObject, { active: boolean; name: string }>;
+  states: Map<UndoableState, unknown>;
   created: GameObject[];
+  /** Where the created objects stood when undo took them out, so redo puts them back there. */
+  createdAt: { go: GameObject; parent: Transform | null; index: number }[];
   /** Objects destroyed in the group, with where they sat, so undo can put them back. */
   destroyed: { go: GameObject; parent: Transform | null; index: number }[];
   selection: { objects: GameObject[]; active: GameObject | null } | null;
@@ -257,7 +266,9 @@ interface UndoGroup {
 const emptySnapshot = (): Snapshot => ({
   transforms: new Map(),
   objects: new Map(),
+  states: new Map(),
   created: [],
+  createdAt: [],
   destroyed: [],
   selection: null,
 });
@@ -278,21 +289,21 @@ function applySnapshot(s: Snapshot, undoingCreation: boolean) {
     if (t.parent !== v.parent) t.setParent(v.parent, false);
     t.restore(v.state);
   }
+  // Lowest index first, so placing one sibling never shifts another already in its place.
+  for (const [t, v] of [...s.transforms].sort((a, b) => a[1].index - b[1].index)) t.setSiblingIndex(v.index);
   for (const [o, v] of s.objects) {
-    o.hidden = v.hidden;
     o.activeSelf = v.active;
     o.name = v.name;
   }
-  if (s.created.length && scene)
-    for (const go of s.created) {
-      if (undoingCreation) scene.destroy(go);
-      else scene.revive(go, go.transform.parent, Infinity);
-    }
-  if (s.destroyed.length && scene)
+  if (scene) {
+    if (undoingCreation) for (const go of s.created) scene.destroy(go);
+    else for (const c of [...s.createdAt].sort((a, b) => a.index - b.index)) scene.revive(c.go, c.parent, c.index);
     for (const d of undoingCreation ? [...s.destroyed].reverse() : s.destroyed) {
       if (undoingCreation) scene.revive(d.go, d.parent, d.index);
       else scene.destroy(d.go);
     }
+  }
+  for (const [target, state] of s.states) target.restoreState(state);
   if (s.selection) Selection.set(s.selection.objects, s.selection.active, false);
 }
 
@@ -300,8 +311,10 @@ function applySnapshot(s: Snapshot, undoingCreation: boolean) {
 function captureLike(s: Snapshot): Snapshot {
   const out = emptySnapshot();
   for (const t of s.transforms.keys()) out.transforms.set(t, captureTransform(t));
-  for (const o of s.objects.keys()) out.objects.set(o, { hidden: o.hidden, active: o.activeSelf, name: o.name });
+  for (const o of s.objects.keys()) out.objects.set(o, { active: o.activeSelf, name: o.name });
+  for (const target of s.states.keys()) out.states.set(target, target.captureState());
   out.created = s.created;
+  out.createdAt = s.created.map((go) => ({ go, parent: go.transform.parent, index: go.transform.getSiblingIndex() }));
   out.destroyed = s.destroyed;
   if (s.selection) out.selection = { objects: Selection.objects, active: Selection.activeGameObject };
   return out;
@@ -328,13 +341,15 @@ export const Undo = {
     for (const l of Undo.listeners) l();
   },
 
-  recordObject(target: Transform | GameObject, name: string) {
+  /** Keeps the target's state from before the group's first change to it. */
+  recordObject(target: Transform | GameObject | UndoableState, name: string) {
     const g = ensureOpen(name);
     if (!g.name) g.name = name;
-    if ('transform' in target && 'scene' in target) {
+    if ('captureState' in target) {
+      if (!g.before.states.has(target)) g.before.states.set(target, target.captureState());
+    } else if ('transform' in target && 'scene' in target) {
       const go = target;
-      if (!g.before.objects.has(go))
-        g.before.objects.set(go, { hidden: go.hidden, active: go.activeSelf, name: go.name });
+      if (!g.before.objects.has(go)) g.before.objects.set(go, { active: go.activeSelf, name: go.name });
       if (!g.before.transforms.has(go.transform)) g.before.transforms.set(go.transform, captureTransform(go.transform));
     } else {
       const t = target;
@@ -372,7 +387,7 @@ export const Undo = {
   recordSelection() {
     // A selection change is its own step unless something else is being recorded alongside it.
     if (!open || open.id !== currentGroup) Undo.incrementCurrentGroup();
-    const g = ensureOpen('Select Objects');
+    const g = ensureOpen('Selection Change');
     if (!g.before.selection) g.before.selection = { objects: Selection.objects, active: Selection.activeGameObject };
   },
 
@@ -402,6 +417,7 @@ export const Undo = {
       for (const [k, v] of g.before.transforms)
         if (!target.before.transforms.has(k)) target.before.transforms.set(k, v);
       for (const [k, v] of g.before.objects) if (!target.before.objects.has(k)) target.before.objects.set(k, v);
+      for (const [k, v] of g.before.states) if (!target.before.states.has(k)) target.before.states.set(k, v);
       target.before.created.push(...g.before.created);
       target.before.destroyed.push(...g.before.destroyed);
       if (!target.before.selection && g.before.selection) target.before.selection = g.before.selection;
@@ -431,6 +447,11 @@ export const Undo = {
     redoStack.length = 0;
     open = null;
     Undo.changed();
+  },
+
+  /** Undo.GetRecords: the group names on each stack, oldest first. */
+  getRecords() {
+    return { undo: undoStack.map((g) => g.name), redo: redoStack.map((g) => g.name) };
   },
 
   get canUndo() {

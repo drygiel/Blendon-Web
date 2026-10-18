@@ -434,6 +434,8 @@ export class SceneHost {
       if (passThrough(e)) return;
       e.preventDefault();
       if (ev.keyCode === KeyCode.None) return;
+      // The Editor starts a new undo group on every key and mouse press.
+      Undo.incrementCurrentGroup();
       if (MODIFIER_CODES.has(ev.keyCode)) this.endStaleClutches(ev);
       if (
         !MODIFIER_CODES.has(ev.keyCode) &&
@@ -482,6 +484,7 @@ export class SceneHost {
     this.pressed.add(button);
     const ev = this.mouseEvent(EventType.MouseDown, e, button);
     this.lastMouse = ev.mousePosition;
+    Undo.incrementCurrentGroup();
     if (!this.mouseShortcut(button, ev, true)) this.runPass(ev);
   }
 

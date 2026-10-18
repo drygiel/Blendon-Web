@@ -822,3 +822,142 @@ test.describe("Blendon's tool context", () => {
     await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toBeVisible();
   });
 });
+
+test.describe('Undo and Redo', () => {
+  interface VisibilityHost {
+    sceneHost: { scene: { allObjects(): Iterable<{ name: string; visible: boolean }>; isolation: unknown } };
+  }
+
+  const hiddenNames = (page: Page) =>
+    page
+      .locator('#try [role=application]')
+      .evaluate((el: unknown) =>
+        [...(el as VisibilityHost).sceneHost.scene.allObjects()].filter((o) => !o.visible).map((o) => o.name),
+      );
+
+  const isolated = (page: Page) =>
+    page
+      .locator('#try [role=application]')
+      .evaluate((el: unknown) => !!(el as VisibilityHost).sceneHost.scene.isolation);
+
+  /** Runs an entry of the menu opened over the cube; Shift opens the Editor's own one. */
+  async function fromMenu(page: Page, label: string, classic = false) {
+    const at = await pagePointOf(page, 'Cube');
+    if (classic) await page.keyboard.down('Shift');
+    await page.mouse.click(at.x, at.y, { button: 'right' });
+    if (classic) await page.keyboard.up('Shift');
+    await page.locator('#try [role=application]').getByText(label, { exact: true }).first().click();
+  }
+
+  const others = ['Cube (1)', 'Tilted Cube', 'Sphere', 'Cube (2)', 'Ramp', 'Group', 'Cylinder', 'Capsule'];
+
+  test('Ctrl+Z shows an object hidden from the context menu, Ctrl+Y hides it again', async ({ page }) => {
+    await openScene(page);
+    await fromMenu(page, 'Hide');
+    await expect.poll(() => hiddenNames(page)).toEqual(['Cube']);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+    expect(await selectionNames(page)).toEqual(['Cube']);
+    await page.keyboard.press('Control+y');
+    await expect.poll(() => hiddenNames(page)).toEqual(['Cube']);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+    await page.keyboard.press('Control+Shift+z');
+    await expect.poll(() => hiddenNames(page)).toEqual(['Cube']);
+  });
+
+  test("Hide Others, Show All, Isolate View and the Editor's Isolate are undo steps", async ({ page }) => {
+    await openScene(page);
+    await fromMenu(page, 'Hide Others');
+    await expect.poll(() => hiddenNames(page)).toEqual(others);
+    await fromMenu(page, 'Show All');
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => hiddenNames(page)).toEqual(others);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+
+    await page.keyboard.press('NumpadDivide');
+    await expect.poll(() => isolated(page)).toBe(true);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => isolated(page)).toBe(false);
+    expect(await hiddenNames(page)).toEqual([]);
+    await page.keyboard.press('Control+y');
+    await expect.poll(() => hiddenNames(page)).toEqual(others);
+    // Leaving is a step too: undoing it isolates again.
+    await page.keyboard.press('NumpadDivide');
+    await expect.poll(() => isolated(page)).toBe(false);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => isolated(page)).toBe(true);
+    await page.keyboard.press('NumpadDivide');
+    await expect.poll(() => isolated(page)).toBe(false);
+
+    await fromMenu(page, 'Isolate', true);
+    await expect.poll(() => hiddenNames(page)).toEqual(others);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => isolated(page)).toBe(false);
+    expect(await hiddenNames(page)).toEqual([]);
+  });
+
+  test('a click after an edit is an undo step of its own', async ({ page }) => {
+    const view = await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    await view.focus();
+    for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x + 2, 4);
+    // Empty floor: the click clears the selection.
+    const box = (await view.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.75);
+    await expect.poll(() => selectionNames(page)).toEqual([]);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
+    expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x + 2, 4);
+    await page.keyboard.press('Control+z');
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x, 4);
+  });
+
+  test("Ctrl+Z under Unity's held Move handle waits for the release, then undoes the whole drag", async ({ page }) => {
+    const view = await openScene(page);
+    await view.focus();
+    await page.keyboard.press('b');
+    await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+    const before = (await positionOf(page, 'Cube'))!;
+    const at = await pagePointOf(page, 'Cube');
+    await page.mouse.move(at.x, at.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
+    const held = await positionOf(page, 'Cube');
+    await page.keyboard.press('Control+z');
+    await page.waitForTimeout(300);
+    expect(await positionOf(page, 'Cube')).toEqual(held);
+    for (let i = 7; i <= 10; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
+    await page.mouse.up();
+    const after = await positionOf(page, 'Cube');
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+    await page.keyboard.press('Control+y');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(after);
+  });
+
+  test("the Editor's own box select is one undo step", async ({ page }) => {
+    const view = await openScene(page);
+    await view.focus();
+    await page.keyboard.press('b');
+    await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+    const [sphere, tilted, cube1] = await Promise.all(
+      ['Sphere', 'Tilted Cube', 'Cube (1)'].map((n) => pagePointOf(page, n)),
+    );
+    const from = { x: Math.min(sphere.x, tilted.x) - 60, y: Math.min(sphere.y, cube1.y) - 50 };
+    const to = { x: cube1.x + 40, y: tilted.y + 50 };
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i++)
+      await page.mouse.move(from.x + ((to.x - from.x) * i) / 10, from.y + ((to.y - from.y) * i) / 10);
+    await page.mouse.up();
+    await expect.poll(() => selectionNames(page)).toContain('Cube (1)');
+    expect(await selectionNames(page)).not.toContain('Cube');
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
+  });
+});

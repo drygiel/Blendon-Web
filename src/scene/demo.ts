@@ -87,7 +87,7 @@ export function resetDemoScene(host: SceneHost) {
   BoxSelect.cancel();
   const scene = host.scene;
   for (const t of [...scene.roots]) scene.destroy(t.gameObject);
-  scene.isolated = null;
+  scene.isolation = null;
   scene.visibilityEnabled = true;
   Prefs.local.clear();
   EditorSnapSettings.reset();
