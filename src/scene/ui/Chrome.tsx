@@ -1,6 +1,6 @@
 // The Scene view's overlays as they sit in the reference capture. Only what Blendon changes or reads
 // is interactive (tool buttons, pivot point, handle orientation); the rest is a picture of Unity.
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import tools from '../../assets/scene/overlay-tools.png';
 import dropdown from '../../assets/scene/icons/d_dropdown.png';
 import handleCenter from '../../assets/scene/icons/d_ToolHandleCenter.png';
@@ -15,11 +15,12 @@ import scaleOff from '../../assets/scene/icons/d_ScaleTool.png';
 import scaleOn from '../../assets/scene/icons/d_ScaleTool_On.png';
 import transformOff from '../../assets/scene/icons/d_TransformTool.png';
 import transformOn from '../../assets/scene/icons/d_TransformTool_On.png';
+import { BlendonContext, blendonContextActive } from '../blendon/tool-context.ts';
 import type { SceneHost } from '../engine/host.ts';
-import { PivotMode, PivotRotation, Tool, Tools } from '../unity/editor.ts';
+import { PivotMode, PivotRotation, Tool, ToolContext, ToolManager, Tools } from '../unity/editor.ts';
 import { iconUrl } from '../unity/icons.ts';
 import { pivotPointNames, type PivotPointApi } from './pivot.ts';
-import { TopStripHeight, useOverlays } from './overlays.ts';
+import { contextIcon, TopStripHeight, useOverlays } from './overlays.ts';
 import styles from './Scene.module.scss';
 import { OverlayMenu, TopToolbar } from './Toolbars.tsx';
 
@@ -51,6 +52,12 @@ const TOOL_BUTTONS = [
   { tool: Tool.Rotate, top: 166, off: rotateOff, on: rotateOn, label: 'Rotate Tool' },
   { tool: Tool.Scale, top: 203, off: scaleOff, on: scaleOn, label: 'Scale Tool' },
   { tool: Tool.Transform, top: 277, off: transformOff, on: transformOn, label: 'Transform Tool' },
+];
+
+// Unity 6.4's names for the global contexts, its own and Blendon's.
+const CONTEXTS = [
+  { context: ToolContext.GameObject, title: 'Game Object (Default)' },
+  { context: ToolContext.Blendon, title: 'Game Object (Blendon)' },
 ];
 
 interface MenuItem {
@@ -114,8 +121,12 @@ function Dropdown({ icon, label, title, items }: { icon: string; label: string; 
 export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi }) {
   const [, setTick] = useState(0);
   useEffect(() => Tools.onChange(() => setTick((t) => t + 1)), []);
+  const inBlendon = useSyncExternalStore(BlendonContext.subscribe, blendonContextActive, () => true);
   const current = Tools.current;
   const mode = pivot.get();
+  // Blendon's tools have its Pivot Point in place of Unity's Pivot / Center. Unity's own tools keep theirs.
+  const blendonTool = BlendonContext.ownsSlot(current);
+  const pivotModes = pivot.blendon() ? [0, 1, 2, 3] : [0, 2];
   const rotation = HANDLE_ROTATIONS.find((o) => o.value === Tools.pivotRotation) ?? HANDLE_ROTATIONS[0];
   const pos = (left: number, topPx: number, w: number, h: number): CSSProperties => ({
     left: Edge + pt(left),
@@ -140,6 +151,13 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
           style={{ ...pos(0, 0, 76, 412), top: below(4) }}
           draggable={false}
         />
+      )}
+      {overlays.isShown('tools') && (
+        // The tool context button shows the active context, over the cube in the picture.
+        <span className={styles.ctxPic} style={{ ...pos(8, 0, 58, 38), top: below(4 + 42) }}>
+          <img src={contextIcon(inBlendon)} alt="" width={16} height={16} />
+          <img src={dropdown} alt="" width={12} height={12} />
+        </span>
       )}
       {overlays.isShown('tools') &&
         DEMO_ONLY.map((z) => (
@@ -171,61 +189,90 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
           </button>
         ))}
 
-      {overlays.isShown('toolSettings') && (
-        <div
-          className={styles.toolbar2}
-          style={{ left: Edge + pt(overlays.isShown('tools') ? 92 : 4), top: below(9), height: pt(45) }}
-        >
-          <i className={styles.grip} />
-          {pivot.blendon() ? (
+      {/* Unity 6.4 puts Tool Contexts before Tool Settings; here they float beside the Tools overlay. */}
+      <div className={styles.toolRow} style={{ left: Edge + pt(overlays.isShown('tools') ? 92 : 4), top: below(9) }}>
+        {overlays.isShown('toolContexts') && (
+          <div className={styles.toolbar2} style={{ height: pt(45) }}>
+            <i className={styles.grip} />
+            {CONTEXTS.map((c) => {
+              const on = inBlendon === (c.context === ToolContext.Blendon);
+              return (
+                <button
+                  key={c.context}
+                  type="button"
+                  className={styles.ctxBtn + (on ? ' ' + styles.ctxOn : '')}
+                  title={c.title}
+                  aria-label={c.title}
+                  aria-pressed={on}
+                  onClick={() => {
+                    ToolManager.setActiveContext(c.context);
+                    focusView();
+                    host.requestFrame();
+                  }}
+                >
+                  <img src={contextIcon(c.context === ToolContext.Blendon)} alt="" width={16} height={16} />
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {overlays.isShown('toolSettings') && (
+          <div className={styles.toolbar2} style={{ height: pt(45) }}>
+            <i className={styles.grip} />
+            {blendonTool ? (
+              // Keyed apart, so a menu left open doesn't carry over to the other dropdown.
+              <Dropdown
+                key="blendon"
+                icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
+                label={pivotPointNames[mode].short}
+                title={'Pivot Point: ' + (pivot.blendon() ? pivotPointNames[mode].long : pivotPointNames[mode].short)}
+                items={pivotModes.map((m) => ({
+                  // With the menu off each side is the mode named like it.
+                  label: pivot.blendon() ? pivotPointNames[m].long : pivotPointNames[m].short,
+                  checked: m === mode,
+                  separatorBefore: pivot.blendon() && m === 2,
+                  run: () => {
+                    pivot.set(m);
+                    focusView();
+                    host.requestFrame();
+                  },
+                }))}
+              />
+            ) : (
+              // The Editor's own Pivot / Center, for Unity's tools and outside Blendon's context.
+              <Dropdown
+                key="unity"
+                icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
+                label={Tools.pivotMode === PivotMode.Pivot ? 'Pivot' : 'Center'}
+                title="Tool Handle Position"
+                items={[PivotMode.Pivot, PivotMode.Center].map((m) => ({
+                  label: m === PivotMode.Pivot ? 'Pivot' : 'Center',
+                  checked: Tools.pivotMode === m,
+                  run: () => {
+                    Tools.pivotMode = m;
+                    focusView();
+                    host.requestFrame();
+                  },
+                }))}
+              />
+            )}
             <Dropdown
-              icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
-              label={pivotPointNames[mode].short}
-              title={'Pivot Point: ' + pivotPointNames[mode].long}
-              items={[0, 1, 2, 3].map((m) => ({
-                label: pivotPointNames[m].long,
-                checked: m === mode,
-                separatorBefore: m === 2,
+              icon={rotation.icon}
+              label={rotation.label}
+              title="Tool Handle Rotation"
+              items={HANDLE_ROTATIONS.map((o) => ({
+                label: o.label,
+                checked: Tools.pivotRotation === o.value,
                 run: () => {
-                  pivot.set(m);
+                  Tools.pivotRotation = o.value;
                   focusView();
                   host.requestFrame();
                 },
               }))}
             />
-          ) : (
-            // The Editor's own Pivot / Center, while Blendon's pivot point menu is off.
-            <Dropdown
-              icon={Tools.pivotMode === PivotMode.Pivot ? handlePivot : handleCenter}
-              label={Tools.pivotMode === PivotMode.Pivot ? 'Pivot' : 'Center'}
-              title="Tool Handle Position"
-              items={[PivotMode.Pivot, PivotMode.Center].map((m) => ({
-                label: m === PivotMode.Pivot ? 'Pivot' : 'Center',
-                checked: Tools.pivotMode === m,
-                run: () => {
-                  Tools.pivotMode = m;
-                  focusView();
-                  host.requestFrame();
-                },
-              }))}
-            />
-          )}
-          <Dropdown
-            icon={rotation.icon}
-            label={rotation.label}
-            title="Tool Handle Rotation"
-            items={HANDLE_ROTATIONS.map((o) => ({
-              label: o.label,
-              checked: Tools.pivotRotation === o.value,
-              run: () => {
-                Tools.pivotRotation = o.value;
-                focusView();
-                host.requestFrame();
-              },
-            }))}
-          />
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

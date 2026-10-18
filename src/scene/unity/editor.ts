@@ -1,6 +1,6 @@
 // Editor services the tools lean on: EditorApplication's clock and update loop, Selection, Undo,
 // Tools, EditorSnapSettings, settings (EditorPrefs) and the Shortcut Manager.
-import { Event, IS_MAC, KeyCode, keyCodeName } from './imgui.ts';
+import { Event, EventType, IS_MAC, KeyCode, keyCodeName } from './imgui.ts';
 import { Bounds, Quaternion, Vector3 } from './math.ts';
 import type { GameObject, Scene, Transform, TransformState } from './scene.ts';
 import { Hook } from './sceneview.ts';
@@ -125,6 +125,39 @@ export const Tools = {
   onChange(cb: Callback) {
     toolListeners.add(cb);
     return () => void toolListeners.delete(cb);
+  },
+};
+
+// ---- ToolManager: the Scene view's tool context ---------------------------------------------------------------
+
+/** The global tool contexts of the demo: Unity's own and the one Blendon registers. */
+export const ToolContext = { GameObject: 'GameObject', Blendon: 'Blendon' } as const;
+export type ToolContext = (typeof ToolContext)[keyof typeof ToolContext];
+
+const contextListeners = new Set<Callback>();
+
+export const ToolManager = {
+  /** Every visit starts in GameObject, as every Editor session does. */
+  _context: ToolContext.GameObject as ToolContext,
+  get activeContext(): ToolContext {
+    return ToolManager._context;
+  },
+  setActiveContext(context: ToolContext) {
+    if (context === ToolManager._context) return;
+    ToolManager._context = context;
+    for (const l of [...contextListeners]) l();
+  },
+  onContextChanged(cb: Callback) {
+    contextListeners.add(cb);
+    return () => void contextListeners.delete(cb);
+  },
+
+  /** The Editor's answer to an Escape the tools pass left unused: back to GameObject. The View tool ignores it. */
+  escapeToGameObject(ev: Event) {
+    if (ev.type !== EventType.KeyDown || ev.keyCode !== KeyCode.Escape) return;
+    if (ToolManager._context === ToolContext.GameObject || Tools.viewToolActive || Tools.current === Tool.View) return;
+    ToolManager.setActiveContext(ToolContext.GameObject);
+    ev.use();
   },
 };
 

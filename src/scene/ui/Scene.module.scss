@@ -68,6 +68,16 @@
   background: #46607c;
 }
 
+.toolRow {
+  position: absolute;
+  display: flex;
+  gap: 4px;
+
+  > .toolbar2 {
+    position: relative;
+  }
+}
+
 .toolbar2 {
   position: absolute;
   display: flex;
@@ -267,6 +277,43 @@
 .demoOnly {
   position: absolute;
   cursor: not-allowed;
+}
+
+// Tool Contexts: one switch per global context, the active one lit.
+.ctxBtn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: #585858;
+  cursor: default;
+
+  &:hover {
+    background: #676767;
+  }
+
+  img {
+    display: block;
+  }
+}
+
+.ctxOn,
+.ctxOn:hover {
+  background: #46607c;
+}
+
+// The Tools overlay's tool context button, over the icon baked into the picture.
+.ctxPic {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  padding-left: 3px;
+  background: #0d0d0d;
 }
 
 .viewport {

@@ -22,6 +22,7 @@ import { SceneView } from '../../unity/sceneview.ts';
 import { SceneTutorial } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { GeneralSettings } from '../settings.ts';
+import { blendonContextActive } from '../tool-context.ts';
 import {
   BoxSelectCombinedMode,
   BoxSelectHighlightStyle,
@@ -36,6 +37,9 @@ type BoxSelectMode = (typeof BoxSelectMode)[keyof typeof BoxSelectMode];
 
 const VisibleOnlyShortcutId = 'Blendon/Box Select Visible Only';
 const MoveBoxShortcutId = 'Blendon/Box Select Move Box';
+
+// Unity's own box outside Blendon's context, like the gizmos.
+const live = () => BoxSelectSettings.Enabled && blendonContextActive();
 
 // The box starts inside the Editor's begin command; a fixed id far above the per-pass ones can't be
 // mistaken for any handle's.
@@ -573,7 +577,7 @@ function onDuringSceneGui(view: SceneView) {
   }
 
   // Something else taking hotControl, or Blendon standing down, means the box lost the drag.
-  if (GUIUtility.hotControl !== ControlId || !BoxSelectSettings.Enabled || ViewportGesture.busy) {
+  if (GUIUtility.hotControl !== ControlId || !live() || ViewportGesture.busy) {
     cancel();
     return;
   }
@@ -611,7 +615,7 @@ function tryBegin(view: SceneView, e: Event) {
   const hotBefore = hotBeforeCommand;
   hotBeforeCommand = -1;
   if (hotBefore !== 0 || GUIUtility.hotControl === 0) return;
-  if (!BoxSelectSettings.Enabled || ViewportGesture.busy) return;
+  if (!live() || ViewportGesture.busy) return;
   if (view !== pressView) {
     GUIUtility.hotControl = 0;
     return;
@@ -622,7 +626,7 @@ function tryBegin(view: SceneView, e: Event) {
 // No Box Select binding holds the add and invert modifiers together, so the Editor never starts that box.
 function tryBeginCombined(view: SceneView, e: Event) {
   if (e.type !== EventType.MouseDrag || e.button !== 0 || view !== pressView) return;
-  if (GUIUtility.hotControl !== 0 || !BoxSelectSettings.Enabled || ViewportGesture.busy) return;
+  if (GUIUtility.hotControl !== 0 || !live() || ViewportGesture.busy) return;
   if (Tools.current === Tool.View || Tools.viewToolActive) return;
   if (e.mousePosition.sub(pressAt).sqrMagnitude < DragThreshold * DragThreshold) return;
   const mode = modeFor(e);
@@ -727,7 +731,7 @@ export const BoxSelect = {
     ShortcutManager.register(
       VisibleOnlyShortcutId,
       () => {
-        if (!BoxSelectSettings.Enabled || ViewportGesture.busy) return;
+        if (!live() || ViewportGesture.busy) return;
         toggleVisibleOnly(SceneView.lastActiveSceneView);
       },
       false,

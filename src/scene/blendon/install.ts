@@ -28,6 +28,7 @@ import { ClickSelectParent, HierarchyWalk } from './scenetools/selection-tools.t
 import { SnapToFloor } from './scenetools/snap-to-floor.ts';
 import { ShortcutGates } from './shortcut-gates.ts';
 import { ShortcutTipCard } from './shortcut-tips.ts';
+import { blendonContextActive, ContextSwitch } from './tool-context.ts';
 import { SceneTutorial } from './tutorial/scene-tutorial.ts';
 import { EditorEdit } from './scenetools/scene-menu/editor-menu.ts';
 import { SceneMenu } from './scenetools/scene-menu/scene-menu.ts';
@@ -48,6 +49,8 @@ export function installBlendon() {
   // Blendon's grab takes its keys (Y for the Y axis) or a pie menu owns the view.
   ShortcutManager.profile = (id) => Keymap.binding(id, ShortcutGates.reader);
   ShortcutManager.gate = (id) => ShortcutGates.isOpen(id);
+  // Outside Blendon's tool context the keys that follow it are the Editor's again.
+  ShortcutGates.inBlendonContext = blendonContextActive;
   Keymap.subscribe(() => {
     ShortcutManager.invalidate();
     SceneView.repaintAll();
@@ -84,4 +87,6 @@ export function installBlendon() {
   ShortcutTipCard.install();
   // Last, so an open menu draws over every gizmo.
   PieMenus.install();
+  // After every scene hook, as Unity answers an unused Escape after the tools.
+  ContextSwitch.install();
 }

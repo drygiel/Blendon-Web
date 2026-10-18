@@ -1,16 +1,10 @@
-// GizmoVisibility: the Hide Gizmo switch. On hides every Blendon tool gizmo and Unity's own handles.
+// GizmoVisibility: Hide Gizmo, Blender's Show Gizmo inverted. Only Blendon's tools in its context hide (the Editor's
+// Rect too, which the demo lacks). Unity's tool in a switched-off gizmo's slot stays, and Game Object hides nothing.
+// Gone with the visit, as an Editor restart shows the gizmos again.
+import { PlaygroundEvents } from '../../../../bridge/events.ts';
 import { SceneView } from '../../../unity/sceneview.ts';
-import { GeneralSettings } from '../../settings.ts';
-import { GizmoToolsOverride } from '../common/layout.ts';
 
-const owner = {};
 let hidden = false;
-
-// Re-checked every pass, so switching Blendon off hands Unity its handles back even while hidden.
-function sync() {
-  if (hidden && GeneralSettings.Enabled) GizmoToolsOverride.acquire(owner);
-  else GizmoToolsOverride.release(owner);
-}
 
 export const GizmoVisibility = {
   get hidden() {
@@ -18,10 +12,9 @@ export const GizmoVisibility = {
   },
   toggle() {
     hidden = !hidden;
-    sync();
     SceneView.repaintAll();
   },
   install() {
-    SceneView.duringSceneGui.add(sync);
+    PlaygroundEvents.on('reset', () => void (hidden = false));
   },
 };
