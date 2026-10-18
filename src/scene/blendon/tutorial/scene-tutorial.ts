@@ -3,6 +3,7 @@
 // come back later in the journey. The Scene view only gets the badge (ui/TutorialBadge.tsx), and shortcut tips
 // stay quiet meanwhile.
 import { PlaygroundEvents } from '../../../bridge/events.ts';
+import { SharedSettings } from '../../../bridge/settings.ts';
 import { Tool, Tools } from '../../unity/editor.ts';
 import { SceneTutorial as Reports, type TutorialReport } from '../foundation.ts';
 import { GeneralSettings } from '../settings.ts';
@@ -68,13 +69,13 @@ export const SceneTutorial = {
 
   /** The badge's close button, no questions asked: progress is kept and the settings page switches it back on. */
   skip() {
-    PlaygroundEvents.emit('setSetting', { key: ShowKey, value: false });
+    SharedSettings.write(ShowKey, false);
   },
 
   /** The settings page's Start Over. */
   restart() {
     TutorialProgress.reset();
-    PlaygroundEvents.emit('setSetting', { key: ShowKey, value: true });
+    SharedSettings.write(ShowKey, true);
   },
 
   install() {

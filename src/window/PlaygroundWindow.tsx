@@ -57,7 +57,11 @@ function drawGizmos(app: WindowModel, now: number, spin: boolean) {
 }
 
 export default function PlaygroundWindow() {
-  const [state, update] = useReducer(reduce, D.initial, (i) => ({ ...initialState(i), docked: !DEV_SIZE }));
+  // Starts from what the Scene view wrote before the window loaded (the badge closed early).
+  const [state, update] = useReducer(reduce, D.initial, (i) => ({
+    ...initialState({ ...i, ...SharedSettings.early }),
+    docked: !DEV_SIZE,
+  }));
   const [inst] = useState(newInstance);
   const app = useMemo(() => new WindowModel(state, inst, update), [state, inst]);
   // The keys live in the bridge, shared with the Scene view; the model reads them as it lays out.

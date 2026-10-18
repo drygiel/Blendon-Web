@@ -56,7 +56,7 @@ function defaultVal(key: string): SharedValue | undefined {
 
 /** The window's values once it has loaded, the defaults until then. */
 export const sharedSettings: LiveSettings = {
-  val: (key) => SharedSettings.reader?.val(key) ?? defaultVal(key),
+  val: (key) => SharedSettings.val(key) ?? defaultVal(key),
   pieOn: (pie) => SharedSettings.reader?.pieOn(pie) ?? !!D.pies.find((p) => p.id === pie)?.enabled,
   get version() {
     return SharedSettings.version;
