@@ -10,16 +10,20 @@ import { AppContext, useApp, useTip } from './context.ts';
 import { ItemView } from './Items.tsx';
 import { PieEditor } from '../pie-editor/PieEditor.tsx';
 
+const DISABLED_TIP = 'This feature is off - its keys belong to the Editor';
+
 function SideItem({ s, collapsed, searching }: { s: SideEntry; collapsed: boolean; searching: boolean }) {
   const app = useApp();
   const p = s.page!;
   const matches = s.matches ?? -1;
   const enabled = !!s.enabled;
+  // The rail's tooltip carries what its margin can't show; a full row only says why it is dimmed.
   const tip = {
-    t:
-      p.label +
-      (searching ? (matches > 0 ? ` - ${matches} matching` : ' - no matches') : '') +
-      (enabled ? '' : '\nThis feature is off - its shortcuts are parked'),
+    t: collapsed
+      ? p.label +
+        (searching ? (matches > 0 ? ` - ${matches} matching` : ' - no matches') : '') +
+        (enabled ? '' : '\n' + DISABLED_TIP)
+      : DISABLED_TIP,
     native: true,
   };
   const ind = p.indent && !collapsed;
@@ -27,7 +31,7 @@ function SideItem({ s, collapsed, searching }: { s: SideEntry; collapsed: boolea
     <button
       className={'si' + (s.selected ? ' sel' : '') + (enabled ? '' : ' off') + (ind ? ' ind' : '')}
       onClick={() => app.goTo(p.id)}
-      onMouseEnter={(e) => collapsed && app.tipIn(e, tip)}
+      onMouseEnter={(e) => (collapsed || !enabled) && app.tipIn(e, tip)}
       onMouseLeave={() => app.tipOut()}
       aria-label={p.label}
     >

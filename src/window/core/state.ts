@@ -59,22 +59,14 @@ export interface FrameStep {
 
 export const NEW_PIE = 'new';
 
-export type KeyboardSide = 'Blendon' | 'Unity';
-
-/** Everything the window remembers; changes live only in this tab. */
+/** Everything the window remembers; changes live only in this tab. The keys live in the bridge's Keymap. */
 export interface WindowState {
   // settings
   vals: Record<string, PropValue>;
   ovr: Record<string, boolean>;
-  sc: Record<string, string>;
   pies: Record<string, boolean>;
   frameSeq: FrameStep[] | null;
   extras: string[] | null;
-  kbSide: KeyboardSide;
-  /** The keyboard presets whose shortcut profile exists; the first pick of the other one writes it. */
-  kbMade: KeyboardSide[];
-  /** Keys still landing after a profile write or a master-switch handover, shown as the Writing Keys bar. */
-  writing: { done: number; total: number } | null;
   // navigation
   page: string;
   search: string;
@@ -106,13 +98,9 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
   return {
     vals: { ...initial },
     ovr: {},
-    sc: {},
     pies: {},
     frameSeq: null,
     extras: null,
-    kbSide: 'Blendon',
-    kbMade: ['Blendon'],
-    writing: null,
     // The site opens on the checklist, where a first visit starts.
     page: 'Tutorial',
     search: '',

@@ -1,7 +1,6 @@
 // The page layout builder: runs a page's draw ops (SettingsControls calls) into rows of cells,
 // with the two-column grid, cards and folds of SettingsEditorWindow.
 import type { Cond, Op, PageHeader, Tip } from '../../plugin/schema.ts';
-import { fillTokens, presetSource } from '../../plugin/keys.ts';
 import { D } from '../../plugin/window-data.ts';
 import { TutorialCurriculum } from '../../scene/blendon/tutorial/curriculum.ts';
 import { type WindowModel, pageInfo } from './model.ts';
@@ -36,7 +35,6 @@ export type ItemData =
   | { k: 'space'; h: number }
   | { k: 'prev'; owner: string }
   | { k: 'action'; label: string; btn: string; tip: TipSource }
-  | { k: 'progress'; label: string; tip: TipSource; done: number; total: number }
   | { k: 'actions2'; a: { text: string; tip: TipSource }; b: { text: string; tip: TipSource } }
   | {
       k: 'master';
@@ -192,15 +190,13 @@ const NotSimulated: Record<string, string> = {
   'SnapToFloorSettings.SurfaceLayers': 'the demo scene has a single layer',
   'BoxSelectSettings.SelectPrefabRoots': 'the demo scene has no prefabs',
   'BoxSelectSettings.RespectSelectionBase': 'the demo scene has no Selection Base objects',
-  'SceneMenuSettings.SharpText': 'the browser lays out its own text',
 };
 
-const propTip = (key: string, t: string, i = '') => {
+// `src` is the card as written, filled from the live keys when shown.
+const propTip = (key: string, t: string, i = '', src?: string): TipSource => {
   const why = NotSimulated[key];
-  return tipOf(
-    why ? `${t}\n\n<size=9><b><color=#D98E38>BROWSER DEMO</color></b></size>\nNot simulated here: ${why}.` : t,
-    i,
-  );
+  const demo = why ? `\n\n<size=9><b><color=#D98E38>BROWSER DEMO</color></b></size>\nNot simulated here: ${why}.` : '';
+  return { t: t + demo, i, src: src && src + demo };
 };
 
 export class Builder {
@@ -510,7 +506,7 @@ export class Builder {
     if (!this.matches(p.l, p.t)) return;
     this.count();
     this.flush();
-    this.add({ ...extra, label: p.l, pkey: key, tip: propTip(key, p.t, p.i), mark: !this.app.isDefault(key) });
+    this.add({ ...extra, label: p.l, pkey: key, tip: propTip(key, p.t, p.i, p.src), mark: !this.app.isDefault(key) });
   }
 
   general(key: string, src: string, k: PropKind, extra?: { min?: number; max?: number; srcPage?: string }) {
@@ -528,7 +524,7 @@ export class Builder {
       src,
       srcPage: extra?.srcPage ?? 'Overview',
       ovr,
-      tip: propTip(key, p.t, p.i),
+      tip: propTip(key, p.t, p.i, p.src),
       mark: ovr,
     });
   }
@@ -536,37 +532,29 @@ export class Builder {
   shortcut(o: Extract<Op, ['sc', ...unknown[]]>) {
     const id = o[1];
     let label: string;
-    let tip: string;
-    let img: string;
+    let tip: TipSource;
     if (o[2] === null) {
-      [, , , label, tip, img] = o;
-      // The card as written: its keys read for the preset until the window tracks live bindings.
-      tip = fillTokens(tip, presetSource(D, this.app.st.kbSide)).text;
+      // The card as written, so its keys read as they are bound now, for the search too.
+      const [, , , l, src, i] = o;
+      label = l;
+      tip = { t: this.app.resolve(src), i, src };
     } else {
       const p = D.props[o[2]];
       label = p.l;
-      tip = p.t;
-      img = p.i;
+      tip = { t: p.t, i: p.i, src: p.src };
     }
-    if (!this.matches(label, tip)) return;
+    if (!this.matches(label, tip.t)) return;
     this.count();
     this.flush();
-    this.add({ k: 'sc', sid: id, label, tip: tipOf(tip, img), mark: this.app.shortcutChanged(id), caption: '' });
+    this.add({ k: 'sc', sid: id, label, tip, mark: this.app.shortcutChanged(id), caption: '' });
   }
 
   nativeNote(id: string) {
     if (this.spansAll) return;
-    const row = D.known[id];
-    if (!row) return;
+    const note = this.app.nativeNote(id);
+    if (!note) return;
     this.flush();
-    const moved = this.app.unityMoved(row);
-    this.add({
-      k: 'nat',
-      lead: `Replaces the Editor's native "${row.ul}" command. Open in`,
-      link: "Unity's Shortcuts window",
-      hint: `"${row.ul}" is ${moved ? 'now on ' + moved : 'left unset'}. Open it in Unity's Shortcuts window`,
-      ul: row.ul,
-    });
+    this.add({ k: 'nat', lead: note.lead, link: "Unity's Shortcuts window", hint: note.hint, ul: note.ul });
   }
 
   note(text: string, tip: string, img = '') {
@@ -680,7 +668,7 @@ export class Builder {
     const owner = key.split('.')[0] ?? '';
     const header = D.headers[owner] ?? null;
     const p = D.props[key];
-    const tip: Tip = D.switchTips[owner] ?? { t: p?.t ?? '', i: p?.i ?? '' };
+    const tip: Tip = D.switchTips[owner] ?? { t: p?.t ?? '', i: p?.i ?? '', src: p?.src };
     if (this.matches(p?.l ?? 'Enable', tip.t) || (header && this.searching && this.contains(plain(header.search))))
       this.count();
     this.flush();
@@ -694,7 +682,7 @@ export class Builder {
       title,
       subtitle,
       pkey: key,
-      tip: tipOf(tip.t, tip.i),
+      tip,
       header: header && !this.searching ? header : null,
       gizmoPresets,
       key: 'm' + this.n++,
@@ -714,8 +702,7 @@ export class Builder {
       this.newRow(15, { band: true, master: true });
       const c = this.newCell(this.row!, 2, M.labelW);
       c.master = true;
-      const sw = D.switchTips.GeneralSettings;
-      c.items.push({ k: 'ovMaster', key: 'ovm', tip: tipOf(sw.t, sw.i), dis: false, acc: this.accent });
+      c.items.push({ k: 'ovMaster', key: 'ovm', tip: D.switchTips.GeneralSettings, dis: false, acc: this.accent });
       this.endRow();
     }
     if (!app.val('GeneralSettings.Enabled')) {
@@ -723,23 +710,14 @@ export class Builder {
       this.extraAfter(10);
     }
     this.extraAfter(10);
+    // Outside the switch's scope: the preset is about the Editor's keys too, and holds with Blendon off.
     this.sub('Keyboard Presets', 'd_Keyboard', 15, D.contestedMinWidth);
-    // Keys still landing lock the presets, so a half-written profile is never left behind.
-    const writing = app.st.writing;
-    if (writing) this.dis++;
     if (this.matches('Keyboard Presets', C.layoutTooltip)) {
       this.count();
       this.flush();
       this.add({ k: 'kbPreset' });
     }
-    if (writing && !this.searching) {
-      this.dis--;
-      this.flush();
-      this.add({ k: 'progress', label: C.handoverLabel ?? '', tip: tipOf(C.handoverTip ?? '', ''), ...writing });
-      this.dis++;
-    }
     this.contested();
-    if (writing) this.dis--;
     const off = !app.val('GeneralSettings.Enabled');
     if (off) this.dis++;
     this.features();
@@ -908,7 +886,7 @@ export class Builder {
       if (!enabled && !this.searching) {
         this.banner(
           false,
-          `${info.label} is off, so its keys are parked and belong to the rest of the Editor. Switch it back on to edit them.`,
+          `${info.label} is off, so its keys belong to the rest of the Editor again. Switch it back on to edit them.`,
         );
         this.pageLink(info.id, 'Open');
         continue;

@@ -556,11 +556,8 @@ interface ShortcutEntry {
   fallback: string;
   /** Still answers while a drag holds the mouse (a key meant to be held mid-drag). */
   duringDrag: boolean;
-  /**
-   * An Editor command (not a plugin's): it keeps its default key until a live plugin shortcut is bound
-   * to the same one, then moves to `moved` ('' leaves it unbound).
-   */
-  native?: { moved: string };
+  /** An Editor command, not a plugin's: never gated, a live plugin shortcut on its key only covers it. */
+  native: boolean;
 }
 
 const NAMED_KEYS: Record<string, number> = {
@@ -665,15 +662,6 @@ export function eventShortcutModifiers(ev: Event) {
 }
 
 const registry = new Map<string, ShortcutEntry>();
-
-function takenByPlugin(combo: KeyCombination) {
-  for (const e of registry.values()) {
-    if (e.native) continue;
-    const b = ShortcutManager.getShortcutBinding(e.id);
-    if (b && b.keyCode === combo.keyCode && b.modifiers === combo.modifiers) return true;
-  }
-  return false;
-}
 const activeClutches = new Map<number, ShortcutEntry>();
 const bindingCache = new Map<string, KeyCombination | null>();
 
@@ -682,23 +670,25 @@ export const ShortcutManager = {
   onTriggered: new Set<(id: string, stage: number) => void>(),
 
   register(id: string, handler: (args: ShortcutArguments) => void, clutch = false, fallback = '', duringDrag = false) {
-    registry.set(id, { id, clutch, handler, fallback, duringDrag });
+    registry.set(id, { id, clutch, handler, fallback, duringDrag, native: false });
   },
 
-  /** One of the Editor's own commands, on its default key unless a live plugin shortcut takes that key. */
+  /** One of the Editor's own commands. It keeps its key: a live plugin shortcut on the same one covers it. */
   registerNative(
     id: string,
     handler: (args: ShortcutArguments) => void,
     clutch: boolean,
     key: string,
-    moved = '',
     duringDrag = false,
   ) {
-    registry.set(id, { id, clutch, handler, fallback: key, duringDrag, native: { moved } });
+    registry.set(id, { id, clutch, handler, fallback: key, duringDrag, native: true });
   },
 
-  /** Set by a plugin: its shortcuts whose feature is switched off give their keys back to the Editor. */
-  parked: (_id: string) => false,
+  /** The key the shortcut profile holds for an id, '' when unbound; undefined falls back to the registered one. */
+  profile: (id: string): string | undefined => Prefs.source?.shortcut(id),
+
+  /** Set by a plugin: whether its shortcut answers now. A shut one leaves the key to the Editor's command. */
+  gate: (_id: string) => true,
 
   /** Set by a plugin: an Editor command stands down while the plugin's gesture owns the view (or takes the key). */
   standDown: (_id: string) => false,
@@ -712,12 +702,8 @@ export const ShortcutManager = {
   getShortcutBinding(id: string): KeyCombination | null {
     if (!bindingCache.has(id)) {
       const e = registry.get(id);
-      let combo: KeyCombination | null;
-      if (e?.native) {
-        combo = parseBinding(e.fallback);
-        if (combo && takenByPlugin(combo)) combo = parseBinding(e.native.moved);
-      } else combo = ShortcutManager.parked(id) ? null : parseBinding(Prefs.source?.shortcut(id) ?? e?.fallback ?? '');
-      bindingCache.set(id, combo);
+      const open = e?.native || ShortcutManager.gate(id);
+      bindingCache.set(id, open ? parseBinding(ShortcutManager.profile(id) ?? e?.fallback ?? '') : null);
     }
     return bindingCache.get(id) ?? null;
   },

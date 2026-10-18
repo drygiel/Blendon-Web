@@ -109,7 +109,7 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<PieDraft>(() => defaultDraft(sid));
-  const defaultBinding = sid ? app.shortcutDefault(sid) : '';
+  const defaultBinding = sid ? app.shortcutReference(sid) : '';
   const [binding, setBinding] = useState(() => (sid ? app.shortcut(sid) : ''));
   const [capturing, setCapturing] = useState(false);
   const [pop, setPop] = useState<Pop | null>(null);
@@ -219,8 +219,8 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
   const bindable = isNew || (!!app.val('PieMenuSettings.Enabled') && app.pieOn(id));
   const canRestore = bindable && !!sid && binding !== defaultBinding;
   const canClear = bindable && !!binding;
-  const native = sid ? D.known[sid] : undefined;
-  const collides = !!native && !!binding && binding === native.key;
+  // Judged on the draft's key, which the window only takes on save.
+  const native = sid ? app.nativeNote(sid, binding) : null;
   const accent = pageInfo('PieMenus').accent;
 
   const press = (e: MouseEvent<HTMLButtonElement>) => {
@@ -393,14 +393,14 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
                 </button>
               </div>
             </div>
-            {collides && (
+            {native && (
               <div className="pe-native">
                 <span />
                 <div className="pe-nt">
-                  <span className="nlead">{`Replaces the Editor's native "${native.ul}" command. Open in `}</span>
+                  <span className="nlead">{native.lead + ' '}</span>
                   <span
                     className="lnk sm"
-                    title={`In Unity this opens the Editor's Shortcuts window at ${native.ul}`}
+                    title={native.hint}
                     onClick={() =>
                       setNotice({
                         title: 'Demo only',

@@ -513,7 +513,6 @@ export const UnityToolHandles = {
       },
       true,
       'V',
-      '',
       true,
     );
   },

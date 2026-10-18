@@ -1,6 +1,6 @@
-// The Editor's own key commands the demo runs: the tool keys, the handle toggles and Frame Selected.
-// Each keeps its default key unless a live plugin shortcut holds it; the moved keys are where Blendon's
-// Blender preset puts the Editor's command aside.
+// The Editor's own key commands the demo runs: the tool keys, the handle toggles and Frame Selected. Each keeps
+// its own key; a live Blendon shortcut on the same key only covers it in the Scene view, and a Move on the
+// Overview page is the one thing that puts it elsewhere.
 import { PivotMode, PivotRotation, Selection, ShortcutManager, Tool, Tools } from '../../unity/editor.ts';
 import { Bounds, Vector3 } from '../../unity/math.ts';
 import { SceneView } from '../../unity/sceneview.ts';
@@ -25,20 +25,28 @@ const tool = (t: Tool) => () => {
   SceneView.repaintAll();
 };
 
+/**
+ * Tools/Cycle Tool Modes steps to the next tool context. With the Editor's one context there is nowhere to go;
+ * whatever adds a context sets `cycle`.
+ */
+export const ToolModes = {
+  cycle: () => {},
+};
+
 export const UnityCommands = {
   install() {
     const R = (...a: Parameters<typeof ShortcutManager.registerNative>) => ShortcutManager.registerNative(...a);
-    R('Tools/View', tool(Tool.View), false, 'Q', 'Alt+Q');
+    R('Tools/View', tool(Tool.View), false, 'Q');
     R('Tools/Move', tool(Tool.Move), false, 'W');
     R('Tools/Rotate', tool(Tool.Rotate), false, 'E');
-    R('Tools/Scale', tool(Tool.Scale), false, 'R', 'Shift+R');
+    R('Tools/Scale', tool(Tool.Scale), false, 'R');
     R('Tools/Transform', tool(Tool.Transform), false, 'Y');
+    R('Tools/Cycle Tool Modes', () => ToolModes.cycle(), false, 'G');
     R(
       'Tools/Toggle Pivot Position',
       () => (Tools.pivotMode = Tools.pivotMode === PivotMode.Pivot ? PivotMode.Center : PivotMode.Pivot),
       false,
       'Z',
-      'Alt+Z',
     );
     R(
       'Tools/Toggle Pivot Orientation',

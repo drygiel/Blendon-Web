@@ -1,13 +1,15 @@
 // Page header cards (MasterHeader + PageHeader), the Overview's master panel and keyboard presets.
 import { Fragment, type CSSProperties } from 'react';
+import { Keymap } from '../../bridge/keymap.ts';
 import { useReducedMotion } from '../../lib/hooks.ts';
 import type { ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { capsWidth, rich } from '../core/text.ts';
 import { clamp, M, PAL } from '../core/util.ts';
-import { presetKey } from '../../plugin/keys.ts';
-import type { Keys } from '../../plugin/schema.ts';
+import { KEY_END, KEY_OPEN, presetKey } from '../../plugin/keys.ts';
+import type { ContestedRow as Row, KeyboardPreset, Keys, Tip } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
+import type { TipSource } from '../core/state.ts';
 import { Caps, Runs } from './common.tsx';
 import { useApp, useTip } from './context.ts';
 import { itemBase } from './item-base.ts';
@@ -16,7 +18,7 @@ interface Seg {
   label: string;
   sel: boolean;
   pick: () => void;
-  tip: { t: string; i?: string; native?: boolean };
+  tip: TipSource;
 }
 
 function SegButton({ seg }: { seg: Seg }) {
@@ -89,7 +91,8 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
     </>
   );
   const h = it.header;
-  const bindingsOf = (kk: { bindings: Keys[] }) => kk.bindings.map((b) => presetKey(b, app.st.kbSide) ?? '');
+  const preset = app.keyboardPreset();
+  const bindingsOf = (kk: { bindings: Keys[] }) => kk.bindings.map((b) => presetKey(b, preset) ?? '');
   if (!h)
     return (
       <div className={base.cls}>
@@ -247,34 +250,99 @@ export function OverviewMaster({ it }: { it: ItemOf<'ovMaster'> }) {
   );
 }
 
+// Tip markup (Settings.Tip) for the cards built here, the way OverviewPage builds them.
+const TITLE_OPEN = '<size=14><b>';
+const TITLE_END = '</b></size>\n';
+const SECTION = '\n\n<size=9><b><color=#92929A>';
+const SECTION_END = '</color></b></size>\n';
+const NOTE = '\n\n<size=9><color=#92929A>';
+const END = '</color></size>';
+const UNITY_OPEN = '<b><color=#3DB892>';
+const UNITY_END = '</color></b>';
+const keyText = (key: string) => KEY_OPEN + key + KEY_END;
+
+// The rows each preset card names, keys read off the table so the card can't promise other keys.
+const CARD_ROWS = ['Blendon/Grab', 'Blendon/Grab Rotate', 'Blendon/Orbit Selected', 'Blendon/Camera Pan'];
+
+function rowKeys(key: (row: Row) => string) {
+  const parts: string[] = [];
+  for (const id of CARD_ROWS) {
+    const row = D.known[id];
+    if (row) parts.push(row.bl + ' ' + keyText(key(row)));
+  }
+  return parts.join(', ') + '.';
+}
+
+function blenderCard() {
+  const grab = D.known['Blendon/Grab'];
+  const covered = grab ? ', like ' + UNITY_OPEN + grab.ul + UNITY_END + ' on ' + keyText(grab.key) : '';
+  return (
+    TITLE_OPEN +
+    'Blendon Keys' +
+    TITLE_END +
+    "Blender's keys answer in the Scene View." +
+    SECTION +
+    "BLENDON'S" +
+    SECTION_END +
+    rowKeys((row) => row.key) +
+    SECTION +
+    "THE EDITOR'S COMMANDS" +
+    SECTION_END +
+    "Wait in the Scene View while Blendon's feature is on" +
+    covered +
+    '. The table below moves one aside.' +
+    NOTE +
+    'Nothing is written to your shortcut profile' +
+    END
+  );
+}
+
+function unityCard() {
+  return (
+    TITLE_OPEN +
+    'Unity Keys' +
+    TITLE_END +
+    'The Editor keeps every key it has, and Blendon moves instead.' +
+    SECTION +
+    'BLENDON MOVES TO' +
+    SECTION_END +
+    rowKeys((row) => row.blendonAlt) +
+    NOTE +
+    "Written to your shortcut profile. On Unity's read-only Default, Blendon offers a copy" +
+    END
+  );
+}
+
+let presetCards: Tip[] | null = null;
+
 export function KeyboardPresets({ it }: { it: ItemOf<'kbPreset'> }) {
   const app = useApp();
   const base = itemBase(app, it);
   const linkTip = useTip({
-    t: "Opens Unity's own Shortcuts window, where profiles are created, renamed and switched.",
+    t: "Opens Unity's own Shortcuts window, where every key and profile can be changed.",
     native: true,
   });
-  const segs: Seg[] = (['Blendon', 'Unity'] as const).map((l, i) => ({
+  const sel = app.keyboardPreset();
+  const cards = (presetCards ??= [blenderCard(), unityCard()].map((t, i) => ({ t, i: D.kbTips[i]?.i ?? '' })));
+  const segs: Seg[] = (['Blendon', 'Unity'] as const).map((l: KeyboardPreset, i) => ({
     label: l,
-    sel: l === app.st.kbSide,
-    pick: () => app.pickKeyboard(l),
-    tip: D.kbTips[i] ?? { t: '' },
+    sel: l === sel,
+    pick: () => app.applyKeyboardPreset(l),
+    tip: cards[i] ?? { t: '' },
   }));
   return (
     <div className={base.cls}>
       <Segs segs={segs} />
       <div className="prn">
-        Decides who keeps the keys Blendon and the Editor both want. Each preset is a shortcut profile of its own, so
-        your tuning on either one is left alone.
+        Decides who answers the keys Blendon and the Editor both want. Blender keys write nothing: the Editor&apos;s
+        command is only covered in the Scene View while the feature is on.
       </div>
       <div className="kbl">
-        <span className="nlead">Want an arrangement of your own? Make a profile in </span>
+        <span className="nlead">Want to tune keys one by one? Use </span>
         <span
           className="lnk sm"
           onClick={() =>
-            app.demo(
-              "In Unity this opens the Editor's Shortcuts window, where shortcut profiles are created, renamed and switched.",
-            )
+            app.demo("In Unity this opens the Editor's Shortcuts window, where every key and profile can be changed.")
           }
           {...linkTip}
         >
@@ -285,14 +353,43 @@ export function KeyboardPresets({ it }: { it: ItemOf<'kbPreset'> }) {
   );
 }
 
-function ContestedRow({ r, i, grid }: { r: (typeof D.contested)[number]; i: number; grid: CSSProperties }) {
+const MOVE_TIP = (r: Row) =>
+  `Put the Editor's "${r.ul}" on ${r.editorAlt}, so it works in the Scene View too. Blendon keeps ${r.key}.`;
+const RESET_TIP = "Give the Editor's command its own key back. Blendon covers it again.";
+
+/** Move a covered command aside, or give a moved one its key back. The Editor's menu follows ours on its own. */
+function RowAction({ r, state }: { r: Row; state: string }) {
   const app = useApp();
+  const move = state === 'Covered';
+  const tip = useTip({ t: move ? MOVE_TIP(r) : RESET_TIP, native: true });
+  if (r.uid === 'Scene View/Menu' || (state !== 'Covered' && state !== 'Moved')) return <span />;
+  return (
+    <button
+      className="nb ctb"
+      onClick={() => {
+        app.dismissTip();
+        if (move) Keymap.move(r);
+        else Keymap.giveBack(r);
+      }}
+      {...tip}
+    >
+      {move ? 'Move' : 'Reset'}
+    </button>
+  );
+}
+
+function ContestedRow({ r, i, grid }: { r: Row; i: number; grid: CSSProperties }) {
+  const app = useApp();
+  const state = app.contestState(r);
   const bk = app.shortcut(r.bid);
-  const uk = app.st.kbSide === 'Blendon' ? r.editorAlt : r.key;
-  const tip = useTip(r.cards[app.st.kbSide === 'Blendon' ? (r.replaces ? 'Replaced' : 'Covered') : 'Free']);
+  const uk = app.shortcut(r.uid);
+  // One card for the row, by what it says now.
+  const tip = useTip(r.cards[state]);
+  // Muted while covered: the key is there, but the Scene View doesn't hear it.
+  const covered = state === 'Covered' || state === 'Replaced';
   return (
     <div className={'ct' + (i % 2 ? ' odd' : '')} style={grid} {...tip}>
-      <span className="ctn lk" onClick={() => app.goTo('Keyboard')}>
+      <span className="ctn lk" onClick={() => app.goTo('Keyboard', r.bid)}>
         {r.bl}
       </span>
       <span />
@@ -310,36 +407,41 @@ function ContestedRow({ r, i, grid }: { r: (typeof D.contested)[number]; i: numb
         {r.ul}
       </span>
       <span />
-      <span className="ctk dim">
+      <span className={'ctk' + (covered ? ' dim' : '')}>
         <Caps binding={uk} />
         {!uk && <span className="kun">not set</span>}
       </span>
+      <span />
+      <RowAction r={r} state={state} />
     </div>
   );
 }
 
+// OverviewContestedTable's columns: action + key twice, either side of a rule.
+const ACTION_W = 56;
+const TABLE_GAP = 10;
+
 export function ContestedTable({ it }: { it: ItemOf<'contested'> }) {
   const app = useApp();
   const base = itemBase(app, it);
-  const blendon = app.st.kbSide === 'Blendon';
   let widest = 0;
   for (const r of it.rows)
-    widest = Math.max(widest, capsWidth(app.shortcut(r.bid), 4), capsWidth(blendon ? r.editorAlt : r.key, 4));
+    widest = Math.max(widest, capsWidth(app.shortcut(r.bid), 4), capsWidth(app.shortcut(r.uid), 4));
   // The table always spans the card (band cell): its width minus the cell padding and LabelIndent.
-  const tableW = app.pageW - M.cellPadX - (app.st.li ?? 24.3);
+  const tableW = app.pageW - M.cellPadX - (app.st.li ?? 24.3) - ACTION_W - TABLE_GAP;
   let keyW = Math.min(148, widest);
   const forNames = tableW - (14 + 8 + keyW) * 2;
   const nameW = clamp(forNames * 0.5, 0, 118);
   if (forNames < 0) keyW = Math.max(0, keyW + forNames * 0.5);
   const grid: CSSProperties = {
-    gridTemplateColumns: `${nameW}px 8px ${keyW}px 14px 1px 13px minmax(0,1fr) 8px ${keyW}px`,
+    gridTemplateColumns: `${nameW}px 8px ${keyW}px 14px 1px 13px minmax(0,1fr) 8px ${keyW}px ${TABLE_GAP}px ${ACTION_W}px`,
   };
   return (
     <div className={base.cls}>
       <div className="cth">
-        <span className="cthl">{blendon ? 'BLENDON KEEPS' : 'BLENDON MOVED TO'}</span>
+        <span className="cthl">BLENDON</span>
         <span className="cthr" style={{ left: nameW + 8 + keyW + 28 + 'px' }}>
-          {blendon ? 'UNITY EDITOR MOVED TO' : 'UNITY EDITOR KEEPS'}
+          UNITY EDITOR
         </span>
       </div>
       {it.rows.map((r, i) => (

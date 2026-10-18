@@ -95,7 +95,7 @@ export function FeatureShortcut({ it }: { it: ItemOf<'fsub'> }) {
   // A shortcut's own card already ends on the Keyboard page note (OverviewTips.Shortcut).
   const tip = useTip(
     sh?.t
-      ? { t: sh.t, i: sh.i }
+      ? { t: sh.t, i: sh.i, src: sh.src }
       : { t: `One of ${page.label}'s keys.${HINT('Click to open this shortcut on the Keyboard page')}` },
   );
   return (

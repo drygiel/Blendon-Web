@@ -333,7 +333,7 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
           className={'gb rs' + (canRestore ? '' : ' off')}
           onClick={(e) => {
             e.stopPropagation();
-            if (canRestore) app.clearShortcutOverride(id);
+            if (canRestore) app.restoreShortcut(id);
           }}
           {...restoreTip}
           aria-label="Restore default"
