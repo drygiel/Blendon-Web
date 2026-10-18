@@ -1,9 +1,11 @@
 // Blendon's orientation gizmo as the Scene view overlay it is in Unity, docked top right.
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { PlaygroundEvents } from '../../bridge/events.ts';
 import { OrientationGizmoElement } from '../blendon/navigation/orientation/drag-controller.ts';
 import { OrientationGizmoSettings } from '../blendon/navigation/orientation/gizmo.ts';
 import { ViewAlignment, ViewSnap, WorldAxes } from '../blendon/navigation/view-snap.ts';
 import type { SceneHost } from '../engine/host.ts';
+import { Prefs } from '../unity/editor.ts';
 import { iconUrl } from '../unity/icons.ts';
 import { Vector2 } from '../unity/math.ts';
 import { TopStripHeight, useOverlays } from './overlays.ts';
@@ -12,6 +14,19 @@ import styles from './Scene.module.scss';
 // The overlay window's padding around the widget, and its distance from the view's corner.
 const WindowPadding = 2;
 const Margin = { right: 2.3, top: 3.6 };
+// OrientationGizmo.ShowBackground: the overlay's own pref rather than a settings page row.
+const BackgroundKey = 'Blendon.OrientationGizmo.ShowBackground';
+// LockButton: off until the overlay is hovered (never quite 0, so it stays clickable), full while locked or hovered.
+const LockOpacity = { hidden: 0.0001, idle: 0.6, hover: 1 };
+
+interface MenuItem {
+  label: string;
+  checked: boolean;
+  run: () => void;
+  /** A rule above the item, as GizmoContextMenu's AppendSeparator. */
+  sep?: boolean;
+  role?: 'menuitemradio' | 'menuitemcheckbox' | 'menuitem';
+}
 
 export function OrientationOverlay({ host }: { host: SceneHost }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,6 +34,7 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
   const [, setTick] = useState(0);
   const [menu, setMenu] = useState<Vector2 | null>(null);
   const [overlayHover, setOverlayHover] = useState(false);
+  const [lockHover, setLockHover] = useState(false);
   const size = element.size;
   const w = size.x - 2 * WindowPadding;
   const h = size.y - 2 * WindowPadding;
@@ -85,7 +101,10 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
   const label = OrientationGizmoSettings.DirectionLabelEnabled ? element.directionLabel : '';
   const animated = OrientationGizmoSettings.AnimationEnabled;
   const current = ViewAlignment.currentDirection(host.view);
-  const items = [
+  const background = Prefs.bool(BackgroundKey, false);
+  const locked = host.view.isRotationLocked;
+  const lockIcon = `url(${iconUrl(locked ? 'LockIcon-On' : 'LockIcon')})`;
+  const items: MenuItem[] = [
     { label: 'Free', checked: current < 0, run: () => ViewSnap.toNiceAngle(host.view, animated) },
     ...WorldAxes.Directions.map((d, i) => ({
       label: d.name,
@@ -98,11 +117,29 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       run: () => ViewSnap.toggleProjection(host.view, animated),
       sep: true,
     },
+    {
+      label: 'Show Background',
+      checked: background,
+      role: 'menuitemcheckbox',
+      run: () => {
+        Prefs.set(BackgroundKey, !background);
+        setTick((t) => t + 1);
+        host.view.repaint();
+      },
+      sep: true,
+    },
+    {
+      label: 'Settings',
+      checked: false,
+      role: 'menuitem',
+      run: () => PlaygroundEvents.emit('openSettings', { page: 'OrientationGizmo' }),
+      sep: true,
+    },
   ];
 
   return (
     <div
-      className={styles.orientation}
+      className={styles.orientation + (background ? ' ' + styles.orientationBackground : '')}
       style={{
         right: Margin.right,
         top: Margin.top + (overlays.topStrip ? TopStripHeight : 0),
@@ -147,25 +184,44 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       <button
         type="button"
         className={styles.orientationLock}
-        style={{ opacity: host.view.isRotationLocked ? 1 : overlayHover ? 0.6 : 0.0001 }}
+        style={{
+          opacity:
+            !overlayHover && !locked ? LockOpacity.hidden : locked || lockHover ? LockOpacity.hover : LockOpacity.idle,
+        }}
         title={
-          host.view.isRotationLocked
+          locked
             ? 'Unlock rotation - the gizmo follows the Scene View camera again.'
             : 'Lock rotation - the gizmo stays facing this direction as the camera moves.'
         }
-        aria-pressed={host.view.isRotationLocked}
+        aria-pressed={locked}
+        onPointerEnter={() => setLockHover(true)}
+        onPointerLeave={() => setLockHover(false)}
         onPointerDown={(e) => {
           e.stopPropagation();
           element.toggleRotationLock();
         }}
       >
-        <img src={iconUrl(host.view.isRotationLocked ? 'LockIcon-On' : 'LockIcon')} alt="" width={10} height={10} />
+        {/* GizmoColors.NavLockIconLocked: red while locked, a state worth noticing. */}
+        <span
+          style={{
+            backgroundImage: lockIcon,
+            maskImage: lockIcon,
+            WebkitMaskImage: lockIcon,
+            backgroundColor: locked ? '#FF0000' : '#FFFFFF',
+          }}
+        />
       </button>
       {label && (
         <button
           type="button"
           className={styles.orientationLabel}
-          style={{ top: w - 1 + WindowPadding, width: size.x, height: Math.max(0, h - w) }}
+          style={{
+            top: w - 1 + WindowPadding,
+            width: size.x,
+            height: Math.max(0, h - w),
+            // DirectionLabel.Refresh: GizmoColors.NavLabel faded to the gizmo's opacity * 0.6.
+            color: `rgba(255, 255, 255, ${OrientationGizmoSettings.Opacity * 0.6})`,
+          }}
           onPointerDown={(e) => {
             e.stopPropagation();
             if (e.button === 0 || e.button === 1) element.toggleProjection();
@@ -185,8 +241,8 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
               {it.sep && <div className={styles.menuSep} />}
               <button
                 type="button"
-                role="menuitemradio"
-                aria-checked={it.checked}
+                role={it.role ?? 'menuitemradio'}
+                aria-checked={it.role === 'menuitem' ? undefined : it.checked}
                 className={styles.menuItem}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => {

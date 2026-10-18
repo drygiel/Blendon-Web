@@ -104,7 +104,11 @@ export function FeatureShortcut({ it }: { it: ItemOf<'fsub'> }) {
   return (
     <div className={itemBase(app, it).cls}>
       <div className={'fr' + (it.stripe % 2 ? ' odd' : '') + ' sub'}>
-        <span className={'ft2' + (enabled ? '' : ' muted') + ' lk'} onClick={() => app.goTo('Keyboard', it.sid)} {...tip}>
+        <span
+          className={'ft2' + (enabled ? '' : ' muted') + ' lk'}
+          onClick={() => app.goTo('Keyboard', it.sid)}
+          {...tip}
+        >
           {it.name}
         </span>
         <span className="fkey">
@@ -358,14 +362,19 @@ export function PieEmpty({ it }: { it: ItemOf<'pieEmpty'> }) {
 }
 
 // PieMenuConfigPaths.UserFile: the user's settings folder, spelled the way the platform names it.
-const CONFIG_FILE = IS_MAC ? '~/Library/Application Support/Blendon/PieMenus.json' : '%APPDATA%\\Blendon\\PieMenus.json';
+const CONFIG_FILE = IS_MAC
+  ? '~/Library/Application Support/Blendon/PieMenus.json'
+  : '%APPDATA%\\Blendon\\PieMenus.json';
 
 /** CustomPie.SlotCount: the pie shortcuts Blendon declares up front. */
 const CUSTOM_SLOTS = 8;
 
 export function PieFooter({ it }: { it: ItemOf<'pieFooter'> }) {
   const app = useApp();
-  const configTip = useTip({ t: 'Show the file every pie menu on this page is saved in:\n' + CONFIG_FILE, native: true });
+  const configTip = useTip({
+    t: 'Show the file every pie menu on this page is saved in:\n' + CONFIG_FILE,
+    native: true,
+  });
   const addTip = useTip({
     t: `Blendon pre-declares ${CUSTOM_SLOTS} rebindable pie shortcuts, so that is how many custom menus there can be`,
     native: true,

@@ -88,14 +88,17 @@ export const SnapToFloor = {
       // From slightly behind the pivot, so a surface level with it still registers; never itself.
       const ray = new Ray(t.position.sub(dir.mul(0.1)), dir);
       const hit = EditorRaycastUtility.raycast(ray, [t]);
-      if (!hit) continue;
       const start = t.position;
+      // A miss lands on the ground: the plane at Y=0, as there is no terrain here. Its normal faces the cast
+      // like a real surface, so an upward cast meets the ground's underside.
+      const point = hit?.point ?? new Vector3(start.x, 0, start.z);
+      const normal = hit?.normal ?? (up ? Vector3.down : Vector3.up);
       Undo.recordObject(t, 'Snap to Floor');
       // Tilted first, so the contact offset is read from the rotated bounds.
-      if (s.AlignToSurface) t.rotation = Quaternion.fromToRotation(t.up, hit.normal).mul(t.rotation);
+      if (s.AlignToSurface) t.rotation = Quaternion.fromToRotation(t.up, normal).mul(t.rotation);
       const b = go.bounds;
       const contact = b ? (up ? b.max.y - t.position.y : t.position.y - b.min.y) : 0;
-      const end = hit.point.sub(dir.mul(contact + s.SurfaceOffset));
+      const end = point.sub(dir.mul(contact + s.SurfaceOffset));
       t.position = end;
       SceneTutorial.reportShortcut(ShortcutId);
       if (s.AnimationEnabled && !reducedMotion()) pending.push([t, start, end]);

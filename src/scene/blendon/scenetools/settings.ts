@@ -106,7 +106,7 @@ export const ViewHistorySettings = {
 const B = 'BoxSelectSettings.';
 export const BoxSelectSettings = {
   get Enabled() {
-    return GeneralSettings.Enabled && sBool(B + 'Enabled', false);
+    return GeneralSettings.Enabled && sBool(B + 'Enabled', true);
   },
   get ClickSelectsParent() {
     return sBool(B + 'ClickSelectsParent', true);
@@ -142,7 +142,7 @@ export const BoxSelectSettings = {
     return sEnum(B + 'HighlightStyle', ['Fill', 'Outline', 'Both'], BoxSelectHighlightStyle.Outline);
   },
   get HighlightOutlineWidth() {
-    return Mathf.Clamp(sNum(B + 'HighlightOutlineWidth', 2.1), 0.5, 6);
+    return Mathf.Clamp(sNum(B + 'HighlightOutlineWidth', 2.1), 0.5, 3);
   },
   get HighlightOccludedOpacity() {
     return Mathf.Clamp01(sNum(B + 'HighlightOccludedOpacity', 0.5));

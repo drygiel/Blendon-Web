@@ -2,6 +2,7 @@
 // what the right-click menu reads in, plus the edit commands and keys it lists. Entries that need a
 // window the page doesn't have (Add Component, Properties) or grid placement look as in Unity but do nothing.
 import { Selection, ShortcutManager, Undo, EditorSnapSettings } from '../../../unity/editor.ts';
+import { IS_MAC } from '../../../unity/imgui.ts';
 import { Quaternion, Vector3 } from '../../../unity/math.ts';
 import {
   instantiate,
@@ -34,13 +35,13 @@ export interface SceneMenuSnapshot {
   componentRoots: Set<string>;
 }
 
-// Unity's menu hotkey suffix: % action key, # Shift, & Alt, _ no modifier.
+// Unity's menu hotkey suffix: % action key (Cmd on macOS), ^ Ctrl, # Shift, & Alt, _ no modifier.
 function hotkeyText(token: string) {
   if (!token) return '';
   const mods: string[] = [];
   let i = 0;
   for (; i < token.length - 1; i++) {
-    const m = { '%': 'Ctrl', '^': 'Ctrl', '#': 'Shift', '&': 'Alt', _: '' }[token[i]];
+    const m = { '%': IS_MAC ? 'Cmd' : 'Ctrl', '^': 'Ctrl', '#': 'Shift', '&': 'Alt', _: '' }[token[i]];
     if (m === undefined) break;
     if (m) mods.push(m);
   }
