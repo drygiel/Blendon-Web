@@ -92,6 +92,10 @@ const selectionNames = (page: Page) =>
 const drawMode = (page: Page) =>
   page.locator('#try [role=application]').evaluate((el: unknown) => (el as HostElement).sceneHost.view.drawMode);
 
+/** The Tool Contexts overlay's switch for the Editor's own context. */
+const gameObjectContext = (page: Page) =>
+  page.locator('#try [role=application]').getByRole('button', { name: 'Game Object (Default)', exact: true });
+
 test.beforeEach(async ({ page }) => {
   errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -438,6 +442,8 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   await page.waitForTimeout(800);
   expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
   await expect(view.getByText('Blendon answers this key here')).toHaveCount(0);
+  // The command steps on to the next tool context.
+  await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('Move puts Cycle Tool Modes on Shift+G, and Reset gives it G back', async ({ page }) => {
@@ -457,6 +463,9 @@ test('Move puts Cycle Tool Modes on Shift+G, and Reset gives it G back', async (
   for (const key of ['Shift+g', 'x', '2', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(500);
   expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
+  // Cycle Tool Modes stepped on to Game Object, where G is no grab.
+  await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('b');
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before + 1, 4);
   await expect(view.getByText('Blendon owns this shortcut now')).toBeVisible();
@@ -484,6 +493,9 @@ test('the Unity preset puts Grab on Shift+G and the menu on Alt+right-click', as
   for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(500);
   expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
+  // G is Cycle Tool Modes, which stepped on to Game Object.
+  await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('b');
   for (const key of ['Shift+g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before + 1, 4);
 
@@ -583,8 +595,7 @@ test('the camera orbits the cube until the playground is touched', async ({ page
 test.describe("Blendon's tool context", () => {
   const blendonContext = (page: Page) =>
     page.locator('#try [role=application]').getByRole('button', { name: 'Game Object (Blendon)', exact: true });
-  const gameObject = (page: Page) =>
-    page.locator('#try [role=application]').getByRole('button', { name: 'Game Object (Default)', exact: true });
+  const gameObject = gameObjectContext;
   // Tool Settings follows the tool in the slot: Blendon's Pivot Point or Unity's Pivot / Center.
   const blendonPivot = (page: Page) => page.locator('#try [role=application] button[title^="Pivot Point:"]');
   const unityPivot = (page: Page) => page.locator('#try [role=application] button[title="Tool Handle Position"]');
@@ -631,11 +642,17 @@ test.describe("Blendon's tool context", () => {
     await page.keyboard.press('b');
     await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
 
-    // G is not a grab here.
+    // G is the Editor's Cycle Tool Modes here, not a grab: it steps on to the next context, Blendon's.
     const before = (await positionOf(page, 'Cube'))!;
-    for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
-    await page.waitForTimeout(800);
-    expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x, 4);
+    const at = await pagePointOf(page, 'Cube');
+    await page.mouse.move(at.x, at.y);
+    await page.keyboard.press('g');
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+    for (let i = 1; i <= 6; i++) await page.mouse.move(at.x + i * 10, at.y);
+    await page.waitForTimeout(300);
+    expect(await positionOf(page, 'Cube')).toEqual(before);
+    await page.keyboard.press('b');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
 
     // R, E and W pick Unity's own tools, each with Unity's Tool Settings.
     for (const [key, name] of [
@@ -795,6 +812,9 @@ test.describe("Blendon's tool context", () => {
     await win.locator('.si[aria-label="Tutorial"]').click();
     const note = win.getByText('The tasks need the Blendon tool context.', { exact: false });
     await expect(note).toBeVisible();
+    // The tasks wait for the context, none is skipped for a key that only rests outside it.
+    await expect(win.locator('.tutstat')).toContainText(/^0 of \d+ tasks done/);
+    await expect(win.locator('.tutr', { hasText: 'Grab the cube and drop it' })).toContainText('G');
     await note.getByText('Toggle Blendon', { exact: true }).click();
     await expect(win.locator('.htitle')).toHaveText('Blendon');
     await page.keyboard.press('b');
