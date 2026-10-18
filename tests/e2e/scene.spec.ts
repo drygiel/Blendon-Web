@@ -1282,7 +1282,7 @@ test.describe("Unity's own tools in Game Object", () => {
     for (let i = 7; i <= 10; i++) await page.mouse.move(at.x - i * 10, at.y + i * 4);
     await page.mouse.up();
     expect(await positionOf(page, 'Cube')).toEqual(before);
-    // Escape went to the drag, not to the tool context.
+    // The Editor's own context has nothing to step back to on Escape.
     await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
 
     // The view ring of the Rotate tool, 1.1 handle sizes (88 points) out.

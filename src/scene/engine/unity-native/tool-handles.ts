@@ -128,19 +128,21 @@ function endIfReleased() {
   }
 }
 
+// The handle an Escape took the drag from: it holds the mouse until the tools' own pass, as in the Editor.
+let cancelled = 0;
+
 /**
- * The Editor itself reverts a drag on Escape while a handle holds the mouse, before any scene GUI sees the key.
- * Every key opens an undo group, so the revert goes back to the drag's own.
+ * The Editor reverts a handle's drag on Escape, before any scene GUI sees the key. Like Unity's handles it leaves
+ * the key unused, for the tool context to answer. Every key opens an undo group, so this goes back to the drag's.
  */
 function cancelOnEscape() {
   const ev = Event.current;
   if (!session || ev.type !== EventType.KeyDown || ev.keyCode !== KeyCode.Escape) return;
   if (GUIUtility.hotControl !== session.id) return;
   Undo.revertAllDownToGroup(session.group);
-  GUIUtility.hotControl = 0;
+  cancelled = session.id;
   session = null;
   BuiltinHandles.endDrag();
-  ev.use();
   SceneView.repaintAll();
 }
 
@@ -280,6 +282,8 @@ export const UnityToolHandles = {
   },
 
   onGUI(_view: SceneView) {
+    if (cancelled && GUIUtility.hotControl === cancelled) GUIUtility.hotControl = 0;
+    cancelled = 0;
     endIfReleased();
     if (Tools.hidden || !Selection.activeTransform || Selection.transforms.length === 0) {
       if (session && GUIUtility.hotControl === session.id) GUIUtility.hotControl = 0;
