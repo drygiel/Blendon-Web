@@ -74,6 +74,9 @@ export interface Keys {
 
 export type KeyboardPreset = 'Blendon' | 'Unity';
 
+/** A Blendon key that answers only in the Game Object (Blendon) tool context: always, or while it covers a command. */
+export type ContextNeed = 'Always' | 'WhenCovering';
+
 export type PropValue = boolean | number | string;
 
 export interface PropInfo {
@@ -202,6 +205,8 @@ export interface WindowDataFile {
   shortcuts: Record<string, ShortcutInfo>;
   /** Default bindings per preset: every Blendon id, the contested Editor commands, every id a card names. */
   keymap: Record<string, Keys>;
+  /** Keys outside the Blendon tool context are Unity's; ids that answer everywhere are left out. */
+  contextNeed: Record<string, ContextNeed>;
   pages: Record<string, Op[]>;
   headers: Record<string, PageHeader>;
   switchTips: Record<string, Tip>;

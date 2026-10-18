@@ -3,7 +3,7 @@
 // anything is built from it, so a dump from an older exporter fails with a list instead of half a site.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { ContestState, PropValue, Tip } from '../../src/plugin/schema.ts';
+import type { ContestState, ContextNeed, PropValue, Tip } from '../../src/plugin/schema.ts';
 
 export const DUMP_SCHEMA = 2;
 
@@ -62,6 +62,8 @@ export interface Model2 {
   consts: Record<string, string>;
   pageShortcuts: Record<string, { enabled: boolean; full: boolean; primary: string | null; ids: DumpShortcut[] }>;
   keymap: Record<string, DumpKeys>;
+  /** ContextNeedOf of each gated Blendon id, None left out. */
+  contextNeed: Record<string, ContextNeed>;
   known: {
     row: DumpRow;
     editorKey: string;
@@ -207,6 +209,9 @@ const obj =
   };
 
 const card = obj({ text: str, image: str, source: str });
+const contextNeed: Check = (v, at, like, out) => {
+  if (v !== 'Always' && v !== 'WhenCovering') mismatch(out, like, at, v, 'Always or WhenCovering');
+};
 const keys = obj({ blendon: str, unity: str });
 const row = obj({ UnityId: str, UnityLabel: str, BlendonId: str, BlendonLabel: str, Key: str, Replaces: bool });
 
@@ -256,6 +261,7 @@ const MODEL2 = obj({
     }),
   ),
   keymap: rec(keys),
+  contextNeed: rec(contextNeed),
   known: arr(
     obj({
       row,
