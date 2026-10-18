@@ -42,6 +42,7 @@ function visible(cam: SceneCamera, point: Vector3, liftWorld: number) {
 const MaxVerticesPerObject = 500;
 const MaxVerticesTotal = 4000;
 const TargetMarkerScale = 0.6;
+const MaxCachedMeshes = 64;
 // Depth lift toward the camera before the visibility test: a marker sits on the surface it marks.
 const PreviewLiftPixels = 64;
 
@@ -71,18 +72,26 @@ class MarkerBatch {
     return b.worldPerPixelUnit > 0 ? b : null;
   }
 
+  // Split corners share a point, and each of them draws, so one ray answers for all of them.
+  private readonly shown = new Map<string, boolean>();
+
   /** GUI centre, snapped to the device pixel grid, and whether it shows; null off screen. */
   build(world: Vector3, testDepth: boolean): { x: number; y: number; visible: boolean } | null {
     const g = HandleUtility.worldToGUIPointWithDepth(world);
     if (g.z <= 0) return null;
     const m = 64;
     if (g.x < -m || g.y < -m || g.x > this.view.x + m || g.y > this.view.y + m) return null;
-    const wpp = this.cam.orthographic ? this.worldPerPixelUnit : this.worldPerPixelUnit * g.z;
-    return {
-      x: Math.round(g.x * this.ppp) / this.ppp,
-      y: Math.round(g.y * this.ppp) / this.ppp,
-      visible: !testDepth || visible(this.cam, world, (PreviewLiftPixels + 1) * wpp),
-    };
+    const x = Math.round(g.x * this.ppp) / this.ppp;
+    const y = Math.round(g.y * this.ppp) / this.ppp;
+    if (!testDepth) return { x, y, visible: true };
+    const key = `${world.x},${world.y},${world.z}`;
+    let shown = this.shown.get(key);
+    if (shown === undefined) {
+      const wpp = this.cam.orthographic ? this.worldPerPixelUnit : this.worldPerPixelUnit * g.z;
+      shown = visible(this.cam, world, (PreviewLiftPixels + 1) * wpp);
+      this.shown.set(key, shown);
+    }
+    return { x, y, visible: shown };
   }
 
   drawSquare(x: number, y: number, halfPx: number, color: Color) {
@@ -96,23 +105,18 @@ class MarkerBatch {
 
 const sampled = new Map<Mesh, Vector3[]>();
 
+// Every stride-th vertex, split corners included: their faint markers stack, as the plugin's do.
 function sampledOf(mesh: Mesh, budget: number) {
-  const key = mesh;
-  const cached = sampled.get(key);
   const total = mesh.vertexCount;
   const stride = Math.max(1, Math.floor(total / budget));
-  // Split corners of a hard-edged mesh share a position; one marker each is enough.
-  if (cached && cached.length <= Math.ceil(total / stride)) return cached;
-  const seen = new Set<string>();
+  const count = Math.ceil(total / stride);
+  const cached = sampled.get(mesh);
+  if (cached && cached.length === count) return cached;
   const out: Vector3[] = [];
-  for (let i = 0; i < total; i += stride) {
-    const v = mesh.vertices[i];
-    const k = `${v.x.toFixed(5)},${v.y.toFixed(5)},${v.z.toFixed(5)}`;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(v);
-  }
-  sampled.set(key, out);
+  for (let i = 0; i < total; i += stride) out.push(mesh.vertices[i]);
+  // Nothing says a mesh is done with, so the cache starts over rather than grow.
+  if (sampled.size >= MaxCachedMeshes) sampled.clear();
+  sampled.set(mesh, out);
   return out;
 }
 

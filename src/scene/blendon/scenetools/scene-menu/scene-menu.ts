@@ -17,8 +17,10 @@ import type { PrimitiveType } from '../../../unity/primitives.ts';
 import { GameObject, SceneVisibilityManager } from '../../../unity/scene.ts';
 import { SceneView } from '../../../unity/sceneview.ts';
 import { ModalViewportGate, SceneTutorial } from '../../foundation.ts';
+import { VertexSnappingUtility } from '../../gizmos/vertex-snapping.ts';
 import { ViewportGesture } from '../../gizmos/viewport-gesture.ts';
 import { ResetActions, SpawnPlacement } from '../../piemenus/actions.ts';
+import { GeneralSettings } from '../../settings.ts';
 import { FrameSelected, unityFrameSelected } from '../frame-selected.ts';
 import { HierarchyWalk } from '../selection-tools.ts';
 import { FrameSelectedSettings, SceneMenuEditActions, SceneMenuSettings, SnapToFloorSettings } from '../settings.ts';
@@ -741,11 +743,15 @@ let armed = false;
 let classic = false;
 let pressedAt = Vector2.zero;
 let heldButtons = 0;
+let pressOurs = false;
 // The last pointer over a view: a binding off the right button opens the menu there.
 let pointerView: SceneView | null = null;
 let pointerAt = Vector2.zero;
 
 const gestureRunning = () => heldButtons !== 0 || ViewportGesture.busy;
+
+/** Vertex pick mode keeps Blendon's menu shut, and the Editor's own while the pick's right-click cancel takes it. */
+const pickHolds = (ours: boolean) => VertexSnappingUtility.isPickMode && (ours || GeneralSettings.RmbCancelEnabled);
 
 /** The menu's binding when it is a right-click one; null when it has no key or sits on another button. */
 function rightClickBinding(): KeyCombination | null {
@@ -757,7 +763,8 @@ function rightClickBinding(): KeyCombination | null {
 function opensAtOnce(e: Event) {
   if (e.type !== EventType.KeyDown && e.type !== EventType.MouseDown) return false;
   const b = ShortcutManager.getShortcutBinding(ShortcutId);
-  if (!b || b.keyCode === KeyCode.Mouse1 || !SceneMenuSettings.Enabled || gestureRunning()) return false;
+  if (!b || b.keyCode === KeyCode.Mouse1 || !SceneMenuSettings.Enabled || gestureRunning() || pickHolds(true))
+    return false;
   const keyCode = e.type === EventType.MouseDown ? KeyCode.Mouse0 + e.button : e.keyCode;
   return keyCode === b.keyCode && eventShortcutModifiers(e) === b.modifiers;
 }
@@ -819,7 +826,8 @@ function onBeforeSceneGui(view: SceneView) {
         const binding = rightClickBinding();
         const ours = SceneMenuSettings.Enabled && binding !== null && modifiersFit(e, binding);
         classic = ours ? e.shift && !(binding.modifiers & ShortcutModifiers.Shift) : true;
-        armed = !gestureRunning() && (ours || (!e.control && !e.alt && !e.command));
+        pressOurs = ours;
+        armed = !gestureRunning() && !pickHolds(ours) && (ours || (!e.control && !e.alt && !e.command));
       } else heldButtons |= 1 << e.button;
       break;
     case EventType.MouseMove:
@@ -840,6 +848,7 @@ function onBeforeSceneGui(view: SceneView) {
       if (!armed) break;
       armed = false;
       if (e.mousePosition.sub(pressedAt).sqrMagnitude > ClickSlop * ClickSlop || gestureRunning()) break;
+      if (pickHolds(pressOurs)) break;
       SceneMenu.open(view, pressedAt, classic);
       e.use();
       break;

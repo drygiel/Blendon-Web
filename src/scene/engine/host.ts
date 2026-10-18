@@ -509,7 +509,7 @@ export class SceneHost {
     return ev;
   }
 
-  /** The Editor ends a clutch once the held modifiers stop matching its binding. */
+  /** The Editor ends a running clutch only when a modifier change makes its key another clutch's. */
   private endStaleClutches(ev: Event) {
     ShortcutManager.endMismatched(eventShortcutModifiers(ev), this.view);
   }
