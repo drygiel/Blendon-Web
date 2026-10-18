@@ -7,7 +7,7 @@ import { MANUAL_FILE } from '../../src/lib/paths.ts';
 import { commitStaged, missingSources, stageAssets } from './assets.ts';
 import { Problems } from './dump.ts';
 import { buildTutorialData } from './tutorial.ts';
-import { buildWindowData } from './window-data.ts';
+import { buildWindowData, checkTokens } from './window-data.ts';
 
 const check = process.argv.includes('--check');
 const root = resolve(import.meta.dirname, '..', '..');
@@ -34,6 +34,7 @@ const windowData = problems.guard('Window data', () =>
 const assets = [...(windowData?.assets ?? []), ...(tutorial?.assets ?? [])];
 assets.push({ kind: 'copy', src: join(plugin, 'Documentation', 'Blendon_Manual.pdf'), out: MANUAL_FILE });
 for (const src of missingSources(assets)) problems.add('Missing source file ' + src);
+if (tutorial && windowData) checkTokens(tutorial.data, windowData.data, problems);
 
 if (problems.count || !windowData || !tutorial) {
   console.error(`${problems.count} problem(s), nothing written:\n  ${problems.lines().join('\n  ')}`);

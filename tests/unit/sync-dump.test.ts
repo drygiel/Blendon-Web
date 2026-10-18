@@ -164,26 +164,27 @@ describe('dump contract', () => {
   it('flags tokens the site could not resolve', () => {
     const out = new Problems();
     const props = { 'SharedGizmoSettings.AimModifier': { l: '', t: '', i: '', d: 'Alt', k: 'ModifierKey' } };
-    checkTokens(
-      {
-        keymap: { 'Blendon/Grab': { b: 'G', u: 'Shift+G' } },
-        props: {
-          ...props,
-          'A.B': {
-            l: '',
-            t: 'x',
-            i: '',
-            src: '{key:Blendon/Grab} {key:Tools/Gone} {setting:A.Gone}',
-            d: true,
-            k: 'Boolean',
-          },
+    const data = {
+      keymap: { 'Blendon/Grab': { b: 'G', u: 'Shift+G' } },
+      props: {
+        ...props,
+        'A.B': {
+          l: '',
+          t: 'x',
+          i: '',
+          src: '{key:Blendon/Grab} {key:Tools/Gone} {setting:A.Gone}',
+          d: true,
+          k: 'Boolean',
         },
       },
-      out,
-    );
+    };
+    checkTokens(data, data, out);
+    // Texts outside the window data, the tutorial's hints, answer to the same keymap.
+    checkTokens({ hint: 'Press {key:Main Menu/Edit/Duplicate}' }, data, out);
     expect(out.lines()).toEqual([
-      'A card names {key:Tools/Gone}, which model2.json keymap lacks',
-      'A card names {setting:A.Gone}, which is no setting',
+      'A text names {key:Tools/Gone}, which model2.json keymap lacks',
+      'A text names {setting:A.Gone}, which is no setting',
+      'A text names {key:Main Menu/Edit/Duplicate}, which model2.json keymap lacks',
     ]);
   });
 });

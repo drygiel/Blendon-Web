@@ -975,7 +975,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     pageOwner: PAGE_OWNER,
     resetOwners,
   };
-  checkTokens(data, out);
+  checkTokens(data, data, out);
   return { data, assets };
 }
 
@@ -999,18 +999,18 @@ function checkOverviewCopy(editorDir: string, out: Problems): void {
   }
 }
 
-/** Every {key:} and {setting:} a text names must resolve on the site, as TipText warns in the Editor. */
-export function checkTokens(data: Pick<WindowDataFile, 'keymap' | 'props'>, out: Problems): void {
+/** Every {key:} and {setting:} a text in `texts` names must resolve on the site, as TipText warns in the Editor. */
+export function checkTokens(texts: unknown, data: Pick<WindowDataFile, 'keymap' | 'props'>, out: Problems): void {
   const walk = (o: unknown): void => {
     if (typeof o === 'string') {
       for (const m of o.matchAll(/\{key:([^}]*)\}/g))
-        if (!data.keymap[m[1] ?? '']) out.add(`A card names {key:${m[1]}}, which model2.json keymap lacks`);
+        if (!data.keymap[m[1] ?? '']) out.add(`A text names {key:${m[1]}}, which model2.json keymap lacks`);
       for (const m of o.matchAll(/\{setting:([^}]*)\}/g))
-        if (!data.props[m[1] ?? '']) out.add(`A card names {setting:${m[1]}}, which is no setting`);
+        if (!data.props[m[1] ?? '']) out.add(`A text names {setting:${m[1]}}, which is no setting`);
     } else if (Array.isArray(o)) o.forEach(walk);
     else if (o && typeof o === 'object') Object.values(o).forEach(walk);
   };
-  walk(data);
+  walk(texts);
 }
 
 /** Icon name -> file in the UI dump. The dump writes numbers with the editor's locale decimal comma. */
