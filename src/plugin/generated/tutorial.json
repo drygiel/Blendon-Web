@@ -13,7 +13,12 @@
      "picture": "plugin/headers/OrbitSelected_Header.webp",
      "clip": "plugin/video/OrbitSelected.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "OrbitSelected",
+     "ids": [
+      "Blendon/Orbit Selected"
+     ]
     },
     {
      "id": "nav.pan",
@@ -22,16 +27,42 @@
      "picture": "plugin/headers/Pan_Header.webp",
      "clip": "plugin/video/Pan.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "Pan",
+     "ids": [
+      "Blendon/Camera Pan"
+     ]
     },
     {
      "id": "scene.add-plane",
      "title": "Add a floor",
-     "hint": "Press {key:Blendon/Context Menu} on an empty spot, open Add, then pick Plane. It lands where you clicked, and everything after this stands on it.",
+     "hint": "Press Mouse 1 on an empty spot, open Add, then pick Plane. It lands where you clicked, and everything after this stands on it.",
+     "hintSrc": "Press {key:Blendon/Context Menu} on an empty spot, open Add, then pick Plane. It lands where you clicked, and everything after this stands on it.",
      "picture": "plugin/tips/ContextMenu_AddObject.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "SceneMenu",
+     "commands": [
+      "Blendon/Add/Plane",
+      "Blendon/Add Object/Plane"
+     ],
+     "pressing": true,
+     "keysPage": "SceneMenu",
+     "availableWhen": {
+      "reason": "Add Object is off, or the menu has no key, on the Context Menu page"
+     },
+     "otherwise": [
+      {
+       "gate": "PieOn:Blendon/Pie Menus/Add Object",
+       "keys": "Blendon/Pie Menus/Add Object",
+       "text": "Point at an empty spot, hold the key, flick toward Plane and let go. It lands under the cursor, and everything after this stands on it.",
+       "picture": "plugin/tips/PieMenus_AddObject.webp",
+       "aspect": "640 / 360"
+      }
+     ]
     },
     {
      "id": "nav.zoom",
@@ -40,7 +71,11 @@
      "picture": "plugin/headers/Zoom_Header.webp",
      "clip": "plugin/video/Zoom.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "Zoom",
+     "signal": "ZoomWheel",
+     "pressing": true
     },
     {
      "id": "scene.add-cube",
@@ -49,7 +84,23 @@
      "picture": "plugin/tips/PieMenus_AddObject.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Add Object/Cube",
+      "Blendon/Add/Cube"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Add Object",
+     "otherwise": [
+      {
+       "gate": "ContextMenuAdds",
+       "keys": "Blendon/Context Menu",
+       "text": "Press {key:Blendon/Context Menu} on the floor, open Add and pick Cube. It lands on the floor where you clicked.",
+       "picture": "plugin/tips/ContextMenu_AddObject.webp",
+       "aspect": "640 / 360"
+      }
+     ]
     },
     {
      "id": "nav.frame",
@@ -58,7 +109,12 @@
      "picture": "plugin/headers/FrameSelected_Header.webp",
      "clip": "plugin/video/FrameSelected.mp4",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "shortcut",
+     "page": "FrameSelected",
+     "ids": [
+      "Blendon/Frame Selected"
+     ]
     },
     {
      "id": "nav.orbit-selection",
@@ -67,7 +123,12 @@
      "picture": "plugin/tips/OrbitSelected_OrbitSelected.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "shortcut",
+     "page": "OrbitSelected",
+     "ids": [
+      "Blendon/Orbit Selected"
+     ]
     }
    ]
   },
@@ -84,7 +145,14 @@
      "picture": "plugin/tips/Move_Grab.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab"
+     ],
+     "keysShortcut": "Blendon/Grab"
     },
     {
      "id": "grab.cancel",
@@ -93,7 +161,12 @@
      "picture": "plugin/tips/Overview_RmbCancel.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "gesture",
+     "page": "MoveGizmo",
+     "signal": "TransformCancelled",
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab"
     },
     {
      "id": "grab.axis",
@@ -102,7 +175,16 @@
      "picture": "plugin/tips/AllTools_ConstraintLine.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab",
+      "Axis"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab"
     },
     {
      "id": "grab.exact",
@@ -111,7 +193,17 @@
      "picture": "plugin/tips/AllTools_LiveReadout.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab",
+      "Axis",
+      "Numeric"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab"
     },
     {
      "id": "snap.floor",
@@ -120,7 +212,12 @@
      "picture": "plugin/headers/SnapToFloor_Header.webp",
      "clip": "plugin/video/SnapToFloor.mp4",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "shortcut",
+     "page": "SnapToFloor",
+     "ids": [
+      "Blendon/Snap To Floor"
+     ]
     },
     {
      "id": "grab.floor-plane",
@@ -129,7 +226,19 @@
      "picture": "plugin/tips/AllTools_PlaneLock.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab",
+      "Plane"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab",
+     "availableWhen": {
+      "reason": "the Plane Lock key is None on the All Tools page"
+     }
     },
     {
      "id": "grab.grid",
@@ -138,7 +247,16 @@
      "picture": "plugin/tips/AllTools_SnapTicks.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab",
+      "Snapped"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab"
     },
     {
      "id": "grab.slow",
@@ -147,7 +265,19 @@
      "picture": "plugin/tips/AllTools_PrecisionMode.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab",
+      "Precision"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab",
+     "availableWhen": {
+      "reason": "Precision Mode is off, or its key is None, on the All Tools page"
+     }
     }
    ]
   },
@@ -164,7 +294,14 @@
      "picture": "plugin/tips/Rotate_Grab.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "RotateGizmo",
+     "traits": [
+      "Rotate",
+      "Grab"
+     ],
+     "keysShortcut": "Blendon/Grab Rotate"
     },
     {
      "id": "grab.rotate-exact",
@@ -173,7 +310,17 @@
      "picture": "plugin/tips/Rotate_AngleArc.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "RotateGizmo",
+     "traits": [
+      "Rotate",
+      "Grab",
+      "Axis",
+      "Numeric"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab Rotate"
     },
     {
      "id": "grab.local-axis",
@@ -182,7 +329,16 @@
      "picture": "plugin/tips/AllTools_PerObjectLocalAxes.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Grab",
+      "LocalAxis"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Grab"
     },
     {
      "id": "grab.scale",
@@ -191,7 +347,14 @@
      "picture": "plugin/tips/Scale_Grab.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "ScaleGizmo",
+     "traits": [
+      "Scale",
+      "Grab"
+     ],
+     "keysShortcut": "Blendon/Grab Scale"
     },
     {
      "id": "grab.reset-scale",
@@ -200,7 +363,13 @@
      "picture": "plugin/tips/PieMenus_Reset.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Reset/Scale"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Reset"
     }
    ]
   },
@@ -213,11 +382,36 @@
     {
      "id": "pair.add-cube",
      "title": "Add a second cube",
-     "hint": "Add another one the same way, from the context menu's Add, or duplicate the first with {key:Main Menu/Edit/Duplicate}. Leave a gap between the two.",
+     "hint": "Add another one the same way, from the context menu's Add, or duplicate the first with Ctrl+D. Leave a gap between the two.",
+     "hintSrc": "Add another one the same way, from the context menu's Add, or duplicate the first with {key:Main Menu/Edit/Duplicate}. Leave a gap between the two.",
      "picture": "plugin/tips/PieMenus_PlaceOnFloor.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Add Object/Cube",
+      "Blendon/Add/Cube",
+      "Duplicate"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Add Object",
+     "otherwise": [
+      {
+       "gate": "ContextMenuAdds",
+       "keys": "Blendon/Context Menu",
+       "text": "Press {key:Blendon/Context Menu} on the floor beside the first cube, open Add and pick Cube. Leave a gap between the two.",
+       "picture": "plugin/tips/ContextMenu_AddObject.webp",
+       "aspect": "640 / 360"
+      },
+      {
+       "gate": "Always",
+       "keys": "Main Menu/Edit/Duplicate",
+       "text": "Duplicate the first cube with the Scene view focused. The copy sits right on it, so grab it and move it aside.",
+       "picture": "plugin/tips/ContextMenu_EditActions.webp",
+       "aspect": "640 / 360"
+      }
+     ]
     },
     {
      "id": "snap.vertex",
@@ -226,7 +420,15 @@
      "picture": "plugin/tips/AllTools_VertexSnapping.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "OnVertex"
+     ],
+     "pressing": true,
+     "keysShortcut": "Blendon/Vertex Snap"
     },
     {
      "id": "snap.surface",
@@ -235,7 +437,18 @@
      "picture": "plugin/tips/Move_SurfaceSnap.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Surface"
+     ],
+     "pressing": true,
+     "keysSetting": "MoveGizmoSettings.SurfaceSnapModifier",
+     "availableWhen": {
+      "reason": "Surface Snap is off, or its key is None, on the Move page"
+     }
     }
    ]
   },
@@ -252,7 +465,22 @@
      "picture": "plugin/tips/PieMenus_Tools.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Tools/Move"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Unity Tools",
+     "otherwise": [
+      {
+       "gate": "Always",
+       "keys": "Tools/Move",
+       "text": "Press Unity's own key for the Move tool, or pick it in the Tools overlay. The arrows you get are Blendon's.",
+       "picture": "plugin/tips/Move_MoveTool.webp",
+       "aspect": "640 / 360"
+      }
+     ]
     },
     {
      "id": "handles.axis",
@@ -261,7 +489,13 @@
      "picture": "plugin/headers/Move_Header.webp",
      "clip": "plugin/video/Move.mp4",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Arrow"
+     ]
     },
     {
      "id": "handles.plane",
@@ -270,7 +504,13 @@
      "picture": "plugin/tips/Move_PlaneHandles.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "MoveGizmo",
+     "traits": [
+      "Move",
+      "Square"
+     ]
     },
     {
      "id": "handles.local",
@@ -279,7 +519,13 @@
      "picture": "plugin/tips/PieMenus_Orientation.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Tools Handle/Local"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Tools Handle"
     },
     {
      "id": "handles.rotate-tool",
@@ -288,7 +534,22 @@
      "picture": "plugin/tips/Rotate_RotateTool.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Tools/Rotate"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Unity Tools",
+     "otherwise": [
+      {
+       "gate": "Always",
+       "keys": "Tools/Rotate",
+       "text": "Press Unity's own key for the Rotate tool, or pick it in the Tools overlay. The next three tasks need its rings.",
+       "picture": "plugin/tips/Rotate_RotateTool.webp",
+       "aspect": "640 / 360"
+      }
+     ]
     },
     {
      "id": "handles.ring",
@@ -297,7 +558,13 @@
      "picture": "plugin/headers/Rotate_Header.webp",
      "clip": "plugin/video/Rotate.mp4",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "RotateGizmo",
+     "traits": [
+      "Rotate",
+      "Ring"
+     ]
     },
     {
      "id": "snap.lookat",
@@ -306,7 +573,18 @@
      "picture": "plugin/tips/Rotate_LookAt.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "RotateGizmo",
+     "traits": [
+      "Rotate",
+      "LookAt"
+     ],
+     "pressing": true,
+     "keysSetting": "RotateGizmoSettings.LookAtModifier",
+     "availableWhen": {
+      "reason": "Look At is off, or its key is None, on the Rotate page"
+     }
     },
     {
      "id": "snap.virtual-pivot",
@@ -315,7 +593,14 @@
      "picture": "plugin/tips/AllTools_PickVirtualPivot.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "transform",
+     "page": "RotateGizmo",
+     "traits": [
+      "Rotate",
+      "VirtualPivot"
+     ],
+     "keysShortcut": "Blendon/Pick Virtual Pivot"
     },
     {
      "id": "snap.keep-pivot",
@@ -324,7 +609,14 @@
      "picture": "plugin/tips/AllTools_PickVirtualPivot.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "SharedGizmos",
+     "signal": "VirtualPivotKept",
+     "pressing": true,
+     "after": [
+      "snap.virtual-pivot"
+     ]
     }
    ]
   },
@@ -341,25 +633,44 @@
      "picture": "plugin/headers/BoxSelect_Header.webp",
      "clip": "plugin/video/BoxSelect.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "BoxSelect",
+     "signal": "BoxSelected"
     },
     {
      "id": "select.box-modes",
      "title": "Add to the box, or take away",
-     "hint": "Drag with {key:Scene View/Add Box Select} to add what the box touches, or with {key:Scene View/Invert Box Select} to take it away.",
+     "hint": "Drag with Shift+Mouse 0 to add what the box touches, or with Ctrl+Mouse 0 to take it away.",
+     "hintSrc": "Drag with {key:Scene View/Add Box Select} to add what the box touches, or with {key:Scene View/Invert Box Select} to take it away.",
      "picture": "plugin/tips/BoxSelect_BoxSelect.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "BoxSelect",
+     "signal": "BoxSelectModified",
+     "pressing": true
     },
     {
      "id": "select.group",
      "title": "Group the two cubes",
-     "hint": "With both selected, press {key:Blendon/Context Menu} and pick Group: an empty is made with both cubes under it.",
+     "hint": "With both selected, press Mouse 1 and pick Group: an empty is made with both cubes under it.",
+     "hintSrc": "With both selected, press {key:Blendon/Context Menu} and pick Group: an empty is made with both cubes under it.",
      "picture": "plugin/tips/ContextMenu_Grouping.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select both cubes first"
+     "needs": "Select both cubes first",
+     "kind": "command",
+     "page": "SceneMenu",
+     "commands": [
+      "Blendon/Group"
+     ],
+     "pressing": true,
+     "keysPage": "SceneMenu",
+     "availableWhen": {
+      "reason": "Group & Unparent is off, or the menu has no key, on the Context Menu page"
+     }
     },
     {
      "id": "select.parent",
@@ -368,7 +679,16 @@
      "picture": "plugin/tips/BoxSelect_SelectParent.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select a cube under the group or the pivot first"
+     "needs": "Select a cube under the group or the pivot first",
+     "kind": "shortcut",
+     "page": "BoxSelect",
+     "ids": [
+      "Blendon/Select Parent"
+     ],
+     "after": [
+      "select.group",
+      "snap.keep-pivot"
+     ]
     },
     {
      "id": "select.children",
@@ -377,7 +697,16 @@
      "picture": "plugin/tips/BoxSelect_SelectChildren.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select the group or the pivot first"
+     "needs": "Select the group or the pivot first",
+     "kind": "shortcut",
+     "page": "BoxSelect",
+     "ids": [
+      "Blendon/Select Children"
+     ],
+     "after": [
+      "select.group",
+      "snap.keep-pivot"
+     ]
     },
     {
      "id": "select.click-parent",
@@ -386,16 +715,33 @@
      "picture": "plugin/tips/BoxSelect_ClickSelectsParent.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select a cube under the group or the pivot first"
+     "needs": "Select a cube under the group or the pivot first",
+     "kind": "gesture",
+     "page": "BoxSelect",
+     "signal": "ClickSelectedParent",
+     "availableWhen": {
+      "reason": "Click Selects Parent is off on the Box Select page"
+     },
+     "after": [
+      "select.group",
+      "snap.keep-pivot"
+     ]
     },
     {
      "id": "tools.selection-history",
      "title": "Step back through selections",
-     "hint": "Browser-style back and forward for what you had selected: {key:Blendon/History/Undo Selection} goes back, {key:Blendon/History/Redo Selection} goes forward.",
+     "hint": "Browser-style back and forward for what you had selected: Mouse 3 goes back, Mouse 4 goes forward.",
+     "hintSrc": "Browser-style back and forward for what you had selected: {key:Blendon/History/Undo Selection} goes back, {key:Blendon/History/Redo Selection} goes forward.",
      "picture": "plugin/headers/NavigationHistory_SelectionHeader.webp",
      "clip": "plugin/video/SelectionHistory.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "History",
+     "ids": [
+      "Blendon/History/Undo Selection",
+      "Blendon/History/Redo Selection"
+     ]
     },
     {
      "id": "select.pivot-point",
@@ -404,16 +750,33 @@
      "picture": "plugin/tips/PieMenus_PivotPoint.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select both cubes first"
+     "needs": "Select both cubes first",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Pivot Point/"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Pivot Point"
     },
     {
      "id": "select.align",
      "title": "Match one cube's turn to the other",
-     "hint": "Select both, the last one clicked is the active one. Press {key:Blendon/Context Menu}, then Align to Active, Rotation: the other takes its turn.",
+     "hint": "Select both, the last one clicked is the active one. Press Mouse 1, then Align to Active, Rotation: the other takes its turn.",
+     "hintSrc": "Select both, the last one clicked is the active one. Press {key:Blendon/Context Menu}, then Align to Active, Rotation: the other takes its turn.",
      "picture": "plugin/tips/ContextMenu_AlignToActive.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": "Select both cubes first"
+     "needs": "Select both cubes first",
+     "kind": "command",
+     "page": "SceneMenu",
+     "commands": [
+      "Blendon/Align/"
+     ],
+     "pressing": true,
+     "keysPage": "SceneMenu",
+     "availableWhen": {
+      "reason": "Align to Active is off, or the menu has no key, on the Context Menu page"
+     }
     }
    ]
   },
@@ -426,11 +789,16 @@
     {
      "id": "nav.axis-view",
      "title": "Look from the front, the side and the top",
-     "hint": "The axis views: front on {key:Blendon/Viewport Nav/View Front}, right on {key:Blendon/Viewport Nav/View Right} and top on {key:Blendon/Viewport Nav/View Top}. Back, left and bottom look from the opposite side, on {key:Blendon/Viewport Nav/View Back}, {key:Blendon/Viewport Nav/View Left} and {key:Blendon/Viewport Nav/View Bottom}. NumLock has to be on for the keypad.",
+     "hint": "The axis views: front on Num 1, right on Num 3 and top on Num 7. Back, left and bottom look from the opposite side, on Ctrl+Num 1, Ctrl+Num 3 and Ctrl+Num 7. NumLock has to be on for the keypad.",
+     "hintSrc": "The axis views: front on {key:Blendon/Viewport Nav/View Front}, right on {key:Blendon/Viewport Nav/View Right} and top on {key:Blendon/Viewport Nav/View Top}. Back, left and bottom look from the opposite side, on {key:Blendon/Viewport Nav/View Back}, {key:Blendon/Viewport Nav/View Left} and {key:Blendon/Viewport Nav/View Bottom}. NumLock has to be on for the keypad.",
      "picture": "plugin/headers/NumpadViews_Header.webp",
      "clip": "plugin/video/NumpadViews.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "ViewportNav",
+     "signal": "AxisView",
+     "keysShortcut": "Blendon/Viewport Nav/View Front"
     },
     {
      "id": "nav.projection",
@@ -439,16 +807,30 @@
      "picture": "plugin/tips/NumpadViews_Projection.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "ViewportNav",
+     "ids": [
+      "Blendon/Viewport Nav/Toggle Projection"
+     ]
     },
     {
      "id": "nav.orbit-step",
      "title": "Orbit in steps",
-     "hint": "Each press turns the view by a fixed step around the pivot: {key:Blendon/Viewport Nav/Orbit Left} left, {key:Blendon/Viewport Nav/Orbit Right} right, {key:Blendon/Viewport Nav/Orbit Up} up, {key:Blendon/Viewport Nav/Orbit Down} down.",
+     "hint": "Each press turns the view by a fixed step around the pivot: Num 4 left, Num 6 right, Num 8 up, Num 2 down.",
+     "hintSrc": "Each press turns the view by a fixed step around the pivot: {key:Blendon/Viewport Nav/Orbit Left} left, {key:Blendon/Viewport Nav/Orbit Right} right, {key:Blendon/Viewport Nav/Orbit Up} up, {key:Blendon/Viewport Nav/Orbit Down} down.",
      "picture": "plugin/tips/NumpadViews_OrbitSteps.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "ViewportNav",
+     "ids": [
+      "Blendon/Viewport Nav/Orbit Left",
+      "Blendon/Viewport Nav/Orbit Right",
+      "Blendon/Viewport Nav/Orbit Up",
+      "Blendon/Viewport Nav/Orbit Down"
+     ]
     },
     {
      "id": "nav.axis-snap",
@@ -457,7 +839,15 @@
      "picture": "plugin/tips/OrbitSelected_SnapToAxis.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "OrbitSelected",
+     "signal": "OrbitAxisSnap",
+     "pressing": true,
+     "keysSetting": "OrbitSelectedSettings.SnapModifier",
+     "availableWhen": {
+      "reason": "Snap View To World Axis is off, or its key is None, on the Orbit Selected page"
+     }
     },
     {
      "id": "nav.quick-roll",
@@ -466,7 +856,12 @@
      "picture": "plugin/tips/OrbitSelected_QuickRoll.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "OrbitSelected",
+     "ids": [
+      "Blendon/Quick Roll"
+     ]
     },
     {
      "id": "tools.orientation",
@@ -475,7 +870,10 @@
      "picture": "plugin/headers/OrientationGizmo_Header.webp",
      "clip": "plugin/video/OrientationGizmo.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "OrientationGizmo",
+     "signal": "OrientationGizmoClick"
     },
     {
      "id": "nav.view-pie",
@@ -484,7 +882,13 @@
      "picture": "plugin/tips/PieMenus_View.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/View/"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/View"
     },
     {
      "id": "nav.camera",
@@ -493,7 +897,12 @@
      "picture": "plugin/tips/NumpadViews_AlignToCamera.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "ViewportNav",
+     "ids": [
+      "Blendon/Viewport Nav/Align To Camera"
+     ]
     },
     {
      "id": "tools.view-history",
@@ -502,7 +911,13 @@
      "picture": "plugin/headers/NavigationHistory_ViewHeader.webp",
      "clip": "plugin/video/ViewHistory.mp4",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "History",
+     "ids": [
+      "Blendon/History/Undo View",
+      "Blendon/History/Redo View"
+     ]
     },
     {
      "id": "tools.isolate",
@@ -511,7 +926,12 @@
      "picture": "plugin/headers/IsolateView_Header.webp",
      "clip": "plugin/video/IsolateView.mp4",
      "aspect": "640 / 360",
-     "needs": "Select the cube first"
+     "needs": "Select the cube first",
+     "kind": "shortcut",
+     "page": "IsolateView",
+     "ids": [
+      "Blendon/Isolate View"
+     ]
     }
    ]
   },
@@ -528,7 +948,13 @@
      "picture": "plugin/tips/PieMenus_DrawMode.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Shading/"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Shading"
     },
     {
      "id": "pie.tap",
@@ -537,7 +963,11 @@
      "picture": "plugin/tips/PieMenus_TapTimeout.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "PieMenus",
+     "signal": "PieTap",
+     "keysShortcut": "Blendon/Pie Menus/Shading"
     },
     {
      "id": "pie.wireframe",
@@ -546,7 +976,12 @@
      "picture": "plugin/tips/PieMenus_ToggleWireframe.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "shortcut",
+     "page": "PieMenus",
+     "ids": [
+      "Blendon/Toggle Wireframe"
+     ]
     },
     {
      "id": "pie.number",
@@ -555,7 +990,15 @@
      "picture": "plugin/tips/PieMenus_ShowNumbers.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "PieMenus",
+     "signal": "PieNumber",
+     "pressing": true,
+     "keysShortcut": "Blendon/Pie Menus/Unity Tools",
+     "availableWhen": {
+      "reason": "Show Numbers is off on the Pie Menus page"
+     }
     },
     {
      "id": "pie.snapping",
@@ -564,7 +1007,13 @@
      "picture": "plugin/tips/PieMenus_Snapping.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "command",
+     "page": "PieMenus",
+     "commands": [
+      "Blendon/Snapping/"
+     ],
+     "keysShortcut": "Blendon/Pie Menus/Snapping"
     },
     {
      "id": "pie.rebind",
@@ -573,7 +1022,11 @@
      "picture": "plugin/tips/Overview_KeyboardCustom.webp",
      "clip": "",
      "aspect": "640 / 360",
-     "needs": ""
+     "needs": "",
+     "kind": "gesture",
+     "page": "Keyboard",
+     "signal": "ShortcutRebound",
+     "keysPage": "Keyboard"
     }
    ]
   }

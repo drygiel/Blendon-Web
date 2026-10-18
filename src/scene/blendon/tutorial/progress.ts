@@ -1,6 +1,13 @@
 // TutorialProgress: only the done ids are kept, the current task and finishing are read off them. Kept per visitor
 // in the browser, as the plugin keeps it per machine.
-import { TutorialCurriculum, TutorialTasks, findTask, type TutorialChapter, type TutorialTask } from './curriculum.ts';
+import {
+  TutorialCurriculum,
+  TutorialTasks,
+  findTask,
+  readDoneFrom,
+  type TutorialChapter,
+  type TutorialTask,
+} from './curriculum.ts';
 
 const StorageKey = 'blendon.tutorial';
 // The chapter-at-a-time card's progress, whose done ids carry over.
@@ -37,6 +44,7 @@ function load(): Stored {
 
 const state = load();
 const done = new Set(state.done);
+readDoneFrom((id) => done.has(id));
 const listeners = new Set<() => void>();
 const completedListeners = new Set<(id: string) => void>();
 let version = 0;

@@ -3,9 +3,15 @@
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
 import { publicUrl } from '../../lib/links.ts';
 import { D } from '../../plugin/window-data.ts';
-import { pageEnabled, TutorialCurriculum, type TutorialTask } from '../../scene/blendon/tutorial/curriculum.ts';
+import {
+  findTask,
+  shortcutLive,
+  TutorialCurriculum,
+  type TutorialTask,
+} from '../../scene/blendon/tutorial/curriculum.ts';
 import { TutorialProgress } from '../../scene/blendon/tutorial/progress.ts';
 import { SceneTutorial } from '../../scene/blendon/tutorial/scene-tutorial.ts';
+import { TutorialHint } from '../../scene/ui/TutorialHint.tsx';
 import type { ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { pageInfo, type WindowModel } from '../core/model.ts';
@@ -101,13 +107,42 @@ function ownerOf(shortcutId: string) {
   return null;
 }
 
-/** What to switch on to get the task back. */
+/** What to switch on to get the task back (TutorialTaskRow.SkipReason). */
 function skipReason(app: WindowModel, task: TutorialTask) {
   if (task.notInDemo) return 'Not in this demo: ' + task.notInDemo;
   if (!app.val('GeneralSettings.Enabled')) return 'Skipped while Blendon is switched off';
-  if (!pageEnabled(task.page))
-    return 'Skipped while ' + pageInfo(task.page).label + ' is switched off. Switch it on to do this task';
+
+  switch (task.skippedBy()) {
+    case 'page':
+      return 'Skipped while ' + pageInfo(task.page).label + ' is switched off. Switch it on to do this task';
+    case 'switch':
+      return 'Skipped while ' + task.switchText + '. Change that to do this task';
+    case 'earlier':
+      return (
+        'Skipped while ' +
+        earlierTitles(task) +
+        ' skipped. This task builds on ' +
+        (task.earlierIds.length > 1 ? 'one of them' : 'it')
+      );
+  }
+
+  // A feature switched off on a page that stays on shuts its key, e.g. one of the two histories.
+  const shortcut = task.shortcutIds[0] ?? task.keysShortcutId;
+  const owner = shortcut && !shortcutLive(shortcut) ? ownerOf(shortcut) : null;
+  if (owner)
+    return (
+      'Skipped while its feature is switched off on the ' +
+      pageInfo(owner).label +
+      ' page. Switch it on to do this task'
+    );
+
   return 'Skipped while its shortcut has no key. Give it one on the Keyboard page to do this task';
+}
+
+// "A" is / "A" and "B" are
+function earlierTitles(task: TutorialTask) {
+  const titles = task.earlierIds.map((id) => '"' + (findTask(id)?.title ?? id) + '"');
+  return titles.join(' and ') + (titles.length > 1 ? ' are' : ' is');
 }
 
 interface RowInfo {
@@ -167,7 +202,9 @@ function Detail({ task, open }: { task: TutorialTask; open: number }) {
             <video key={video} src={video} poster={picture} autoPlay muted loop playsInline aria-hidden="true" />
           )}
         </div>
-        <div className="tuthint">{task.hint}</div>
+        <div className="tuthint">
+          <TutorialHint text={task.hint} />
+        </div>
       </div>
     </div>
   );
