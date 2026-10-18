@@ -579,3 +579,226 @@ test('the camera orbits the cube until the playground is touched', async ({ page
   expect(await viewRotation(page)).toEqual(b);
   await expect(view).toBeAttached();
 });
+
+test.describe("Blendon's tool context", () => {
+  const blendonContext = (page: Page) =>
+    page.locator('#try [role=application]').getByRole('button', { name: 'Game Object (Blendon)', exact: true });
+  const gameObject = (page: Page) =>
+    page.locator('#try [role=application]').getByRole('button', { name: 'Game Object (Default)', exact: true });
+  // Tool Settings follows the tool in the slot: Blendon's Pivot Point or Unity's Pivot / Center.
+  const blendonPivot = (page: Page) => page.locator('#try [role=application] button[title^="Pivot Point:"]');
+  const unityPivot = (page: Page) => page.locator('#try [role=application] button[title="Tool Handle Position"]');
+
+  async function openWindowPage(page: Page, button: string) {
+    await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+    const win = page.locator('#try .uw');
+    if (button === 'Blendon') await win.locator('.si[aria-label="Blendon"]').click();
+    else await win.getByRole('button', { name: button, exact: true }).click();
+    return win;
+  }
+
+  async function backToScene(page: Page) {
+    await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+    await expect(page.locator('#try [role=application]')).toBeFocused();
+  }
+
+  test('starts in it, and B switches to Game Object and back, from the window too', async ({ page }) => {
+    const view = await openScene(page);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'false');
+    await expect(blendonPivot(page)).toBeVisible();
+    await view.focus();
+    await page.keyboard.press('b');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(unityPivot(page)).toBeVisible();
+    await page.keyboard.press('b');
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+
+    // Toggle Blendon answers in every window, the settings window too.
+    const win = await openWindowPage(page, 'Blendon');
+    await win.locator('.si[aria-label="Tutorial"]').focus();
+    await page.keyboard.press('b');
+    await backToScene(page);
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+    // The overlay is a switch of its own.
+    await blendonContext(page).click();
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test("in Game Object the gizmo keys and the selection drag are Unity's", async ({ page }) => {
+    const view = await openScene(page);
+    await view.focus();
+    await page.keyboard.press('b');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+
+    // G is not a grab here.
+    const before = (await positionOf(page, 'Cube'))!;
+    for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+    await page.waitForTimeout(800);
+    expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x, 4);
+
+    // R, E and W pick Unity's own tools, each with Unity's Tool Settings.
+    for (const [key, name] of [
+      ['r', 'Scale Tool'],
+      ['e', 'Rotate Tool'],
+      ['w', 'Move Tool'],
+    ]) {
+      await page.keyboard.press(key);
+      await expect(view.getByRole('button', { name, exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await expect(unityPivot(page)).toBeVisible();
+    }
+
+    // A drag draws the Editor's own box: Blendon's highlight never shows, the selection still changes.
+    const sphere = await pagePointOf(page, 'Sphere');
+    const cube1 = await pagePointOf(page, 'Cube (1)');
+    const from = { x: sphere.x - 60, y: sphere.y - 60 };
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) {
+      await page.mouse.move(from.x + ((cube1.x - from.x) * i) / 6, from.y + 120 * (i / 6));
+      expect(await highlighted(page)).toEqual([0, 0]);
+    }
+    await page.mouse.up();
+    await expect.poll(() => selectionNames(page)).toContain('Sphere');
+
+    // Back in Blendon's context the same G grabs.
+    await page.keyboard.press('b');
+    const start = (await positionOf(page, 'Sphere'))!;
+    for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
+    await expect.poll(async () => (await positionOf(page, 'Sphere'))!.x).toBeCloseTo(start.x + 2, 4);
+  });
+
+  test('leaving the context ends a running grab', async ({ page }) => {
+    const view = await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const at = await pagePointOf(page, 'Cube');
+    await page.mouse.move(at.x, at.y);
+    await view.focus();
+    await page.keyboard.press('g');
+    for (let i = 1; i <= 6; i++) await page.mouse.move(at.x + i * 10, at.y);
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
+    await page.keyboard.press('b');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+    // Nothing is left following the cursor.
+    await page.mouse.move(at.x + 120, at.y + 40);
+    await page.waitForTimeout(300);
+    expect(await positionOf(page, 'Cube')).toEqual(before);
+  });
+
+  test('Esc keeps the context, unless Esc Keeps Context is off', async ({ page }) => {
+    const view = await openScene(page);
+    await view.focus();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+
+    const win = await openWindowPage(page, 'Blendon');
+    const esc = win.getByRole('button', { name: 'Esc Keeps Context', exact: true });
+    await esc.scrollIntoViewIfNeeded();
+    await esc.click();
+    await expect(esc).toHaveAttribute('aria-pressed', 'false');
+    await backToScene(page);
+    await page.keyboard.press('Escape');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test("a switched-off gizmo leaves Unity's tool in its slot, all of them off leave the context", async ({ page }) => {
+    const view = await openScene(page);
+    let win = await openWindowPage(page, 'Move');
+    await win.getByRole('button', { name: 'Enable Move', exact: true }).click();
+    await backToScene(page);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(view.getByRole('button', { name: 'Move Tool' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(unityPivot(page)).toBeVisible();
+    await page.keyboard.press('e');
+    await expect(blendonPivot(page)).toBeVisible();
+
+    // With one tool off the page's switch reads off, so the first click turns all four on.
+    win = await openWindowPage(page, 'All Tools');
+    const all = win.getByRole('button', { name: 'Enable All Tools', exact: true });
+    await all.click();
+    await expect(all).toHaveAttribute('aria-pressed', 'true');
+    await all.click();
+    await backToScene(page);
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+    // Back on from all off brings the context back.
+    win = await openWindowPage(page, 'All Tools');
+    await win.getByRole('button', { name: 'Enable All Tools', exact: true }).click();
+    await backToScene(page);
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test("Tool Settings has Blendon's Pivot Point for its tools and Unity's Pivot / Center outside", async ({ page }) => {
+    const view = await openScene(page);
+    const items = view.getByRole('menuitemradio');
+    await blendonPivot(page).click();
+    // Each item after its tick column.
+    await expect(items).toHaveText([
+      /Center \(Bounding Box\)$/,
+      /Median Point$/,
+      /Pivot \(Individual Origins\)$/,
+      /Active Object$/,
+    ]);
+    await items.filter({ hasText: 'Pivot (Individual Origins)' }).click();
+    await expect(blendonPivot(page)).toHaveAttribute('title', 'Pivot Point: Pivot (Individual Origins)');
+
+    // With the menu off, Blendon's dropdown keeps Unity's two sides.
+    const win = await openWindowPage(page, 'All Tools');
+    await win.getByRole('button', { name: 'Pivot Point Menu', exact: true }).click();
+    await backToScene(page);
+    await blendonPivot(page).click();
+    await expect(items).toHaveText([/Center$/, /Pivot$/]);
+
+    await view.focus();
+    await page.keyboard.press('b');
+    await unityPivot(page).click();
+    await expect(items).toHaveText([/Pivot$/, /Center$/]);
+  });
+
+  test("Hide Gizmo hides Blendon's gizmos in its context and nothing in Game Object", async ({ page }) => {
+    const view = await openScene(page);
+    await view.focus();
+    // The Tools pie on Q, Hide Gizmo its sixth item.
+    await page.keyboard.press('q');
+    await page.keyboard.press('6');
+    const before = (await positionOf(page, 'Cube'))!;
+    const dragFromPivot = async () => {
+      const at = await pagePointOf(page, 'Cube');
+      await page.mouse.move(at.x, at.y);
+      await page.mouse.down();
+      for (let i = 1; i <= 8; i++) await page.mouse.move(at.x - i * 8, at.y + i * 2);
+      await page.mouse.up();
+    };
+    await dragFromPivot();
+    await page.waitForTimeout(300);
+    expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before.x, 4);
+
+    // Unity's own Move handle stays in Game Object.
+    await page.keyboard.press('b');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
+    await dragFromPivot();
+    await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(before.x, 2);
+  });
+
+  test('outside it the tutorial badge asks to switch, and the Tutorial page says why', async ({ page }) => {
+    const view = await openScene(page);
+    await view.focus();
+    await page.keyboard.press('b');
+    const line = view.getByRole('button', { name: 'Switch to Blendon' });
+    await expect(line).toBeVisible();
+    await line.click();
+    const win = page.locator('#try .uw');
+    await expect(win.locator('.htitle')).toHaveText('Blendon');
+    await expect(win.locator('[data-hl="true"]')).toContainText('Toggle Blendon');
+    await win.locator('.si[aria-label="Tutorial"]').click();
+    const note = win.getByText('The tasks need the Blendon tool context.', { exact: false });
+    await expect(note).toBeVisible();
+    await note.getByText('Toggle Blendon', { exact: true }).click();
+    await expect(win.locator('.htitle')).toHaveText('Blendon');
+    await page.keyboard.press('b');
+    await backToScene(page);
+    await expect(view.getByRole('button', { name: 'Blendon Tutorial' })).toBeVisible();
+  });
+});
