@@ -583,6 +583,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
       out.add(`${where}: keys of ${id} differ from model2.json keymap`);
   };
 
+  for (const id of Object.keys(M2.contextNeed)) keyed(id, 'model2.json contextNeed');
+
   // ---- props ----
   const enumLabels: Record<string, Record<string, string>> = {};
   for (const [k, v] of Object.entries(M3.enums)) enumLabels[k] = Object.fromEntries(v);
@@ -940,6 +942,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     props,
     shortcuts,
     keymap,
+    contextNeed: M2.contextNeed,
     pages,
     headers,
     switchTips,
