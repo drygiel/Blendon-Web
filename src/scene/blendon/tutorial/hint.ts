@@ -1,45 +1,11 @@
 // Tutorial hints with their key tokens filled in, as TutorialTask.Hint does with TipText.Resolve: a rebind or the
 // other keyboard preset reads right at once.
-import { SharedSettings } from '../../../bridge/settings.ts';
-import {
-  fillTokens,
-  KEY_END,
-  KEY_OPEN,
-  NO_KEY,
-  presetKey,
-  presetSource,
-  type TokenSource,
-} from '../../../plugin/keys.ts';
-import type { KeyboardPreset } from '../../../plugin/schema.ts';
-import { D } from '../../../plugin/window-data.ts';
+import { sharedTips } from '../../../bridge/keymap.ts';
+import { KEY_END, KEY_OPEN, NO_KEY } from '../../../plugin/keys.ts';
 
-/** The preset the settings window is on, Blendon's until it has loaded. */
-export function keyPreset(): KeyboardPreset {
-  return SharedSettings.reader?.kbSide() === 'Unity' ? 'Unity' : 'Blendon';
-}
-
-/**
- * The keys hint tokens read: the dump's keymap for the window's preset, with the window's own bindings and values
- * over it once it has loaded. The one place to point at the bridge's live keymap when it has one.
- */
-export function hintKeys(): TokenSource {
-  const preset = presetSource(D, keyPreset());
-  const reader = SharedSettings.reader;
-  if (!reader) return preset;
-  return {
-    ...preset,
-    // A gate leaves the binding alone, so a switched-off feature's hint still names its key, as in the Editor.
-    binding: (id) => (D.shortcuts[id] ? reader.shortcut(id) : presetKey(D.keymap[id], keyPreset())),
-    setting: (path) => {
-      const s = preset.setting(path);
-      return s && { ...s, v: reader.val(path) ?? s.v };
-    },
-  };
-}
-
-/** Unity rich text, keys bold in the cards' key colour. */
+/** Unity rich text, keys bold in the cards' key colour, from the page's one keymap and the window's settings. */
 export function resolveHint(text: string): string {
-  return text.includes('{') ? fillTokens(text, hintKeys()).text : text;
+  return sharedTips().resolve(text);
 }
 
 export interface HintRun {

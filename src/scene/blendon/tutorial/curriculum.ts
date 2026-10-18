@@ -1,15 +1,13 @@
 // TutorialCurriculum: one journey through a small scene the user builds, as Blendon ships it. The text, pictures,
 // chapters and the plain part of each task's rules (page, keys, other ways, earlier tasks) come from the plugin
 // (src/plugin/generated/tutorial.json). What those rules compute on the live scene is ported here.
-import { SharedSettings } from '../../../bridge/settings.ts';
-import { presetKey } from '../../../plugin/keys.ts';
+import { Keymap } from '../../../bridge/keymap.ts';
 import { TUTORIAL, type TutorialTask as TaskData, type TutorialWay } from '../../../plugin/tutorial.ts';
-import { D } from '../../../plugin/window-data.ts';
-import { Prefs, Selection, ShortcutManager, type PrefValue } from '../../unity/editor.ts';
+import { Selection, type PrefValue } from '../../unity/editor.ts';
 import { IS_MAC } from '../../unity/imgui.ts';
 import { ModifierKey, ModifierKeys, TransformTraits as T } from '../foundation.ts';
-import { ShortcutParking } from '../shortcut-parking.ts';
-import { keyPreset, resolveHint } from './hint.ts';
+import { ShortcutGates } from '../shortcut-gates.ts';
+import { resolveHint } from './hint.ts';
 
 /** Joins the steps of a key sequence ("G > X > Enter"). */
 export const Then = ' > ';
@@ -48,10 +46,9 @@ const PageOwner: Record<string, string> = {
   SceneMenu: 'SceneMenuSettings',
 };
 
-// The Scene view's settings once it has loaded, else the window's own values.
+// What the gates read: a value the Scene view set itself, else the window's, else the captured default.
 function setting<V extends PrefValue>(key: string, fallback: V): V {
-  if (Prefs.source) return Prefs.get(key, fallback);
-  return (SharedSettings.reader?.val(key) as V | undefined) ?? fallback;
+  return (ShortcutGates.reader.val(key) as V | undefined) ?? fallback;
 }
 
 const on = (key: string, fallback = true) => !!setting(key, fallback);
@@ -72,25 +69,15 @@ export function pageEnabled(page: string): boolean {
 }
 
 /**
- * A shortcut's live binding text, empty when unbound or gated off. An Editor command the demo doesn't run reads
- * the window's preset from the dump.
+ * The key the page's shortcut profile holds, "" when unbound, as TutorialTask.Binding reads it: a shut gate
+ * leaves the binding alone, shortcutSwitchedOn says whether it answers.
  */
 export function binding(id: string): string {
-  if (ShortcutManager.isRegistered(id)) return ShortcutManager.bindingText(id);
-  if (!D.shortcuts[id]) return presetKey(D.keymap[id], keyPreset()) ?? '';
-  return Prefs.source?.shortcut(id) ?? SharedSettings.reader?.shortcut(id) ?? '';
+  return Keymap.binding(id, ShortcutGates.reader) ?? '';
 }
-
-let pieOf: Map<string, string> | null = null;
 
 /** PageRegistry.IsShortcutLive: Blendon, the shortcut's feature and, for a pie's key, that pie are on. */
-export function shortcutLive(id: string): boolean {
-  if (ShortcutParking.isParked(id)) return false;
-  pieOf ??= new Map(D.pies.map((p) => [p.sid, p.id]));
-  const pie = pieOf.get(id);
-  const reader = SharedSettings.reader;
-  return !pie || !reader || reader.pieOn(pie);
-}
+export const shortcutSwitchedOn = (id: string) => ShortcutGates.isSwitchedOn(id);
 
 const modifierOf = (key: string, fallback: string) => ModifierKeys.parse(setting(key, fallback));
 const modifier = (key: string, fallback: string) => ModifierKeys.displayName(modifierOf(key, fallback));
@@ -125,7 +112,7 @@ const Gates: Record<string, (id: string) => boolean> = {
   Always: () => true,
   ContextMenuAdds: () => on('SceneMenuSettings.Enabled') && on('SceneMenuSettings.AddObject') && !!contextMenuKey(),
   // One pie can be off on its own, so its key's gate says more than the page switch.
-  PieOn: (id) => shortcutLive(id) && !!binding(id),
+  PieOn: (id) => shortcutSwitchedOn(id) && !!binding(id),
 };
 
 /** The port's gate for a way, null for one it doesn't know. */
@@ -365,7 +352,7 @@ export class TutorialTask {
     if (this.code.available && !this.code.available()) return 'switch';
     // A sub-feature (one history, one pie) can be off while its page stays on.
     const id = this.keyId;
-    return id && (!binding(id) || !shortcutLive(id)) ? 'key' : 'none';
+    return id && (!binding(id) || !shortcutSwitchedOn(id)) ? 'key' : 'none';
   }
 
   needsMet(): boolean {

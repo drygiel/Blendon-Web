@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { Keymap } from '../../src/bridge/keymap.ts';
 import { SharedSettings } from '../../src/bridge/settings.ts';
-import { KEY_OPEN, presetKey } from '../../src/plugin/keys.ts';
-import type { KeyboardPreset } from '../../src/plugin/schema.ts';
+import { KEY_OPEN } from '../../src/plugin/keys.ts';
 import { TUTORIAL, TUTORIAL_TASKS } from '../../src/plugin/tutorial.ts';
 import { loadWindowData, D } from '../../src/plugin/window-data.ts';
 import { SceneTutorial as Reports, TransformTraits as T } from '../../src/scene/blendon/foundation.ts';
@@ -28,8 +28,7 @@ const ids = () => TutorialTasks.filter((t) => TutorialProgress.isDone(t.id)).map
 const task = (id: string) => findTask(id)!;
 const data = (id: string) => TUTORIAL_TASKS.find((t) => t.id === id)!;
 
-// What the settings window would publish: its preset and the pies switched off in it.
-let preset: KeyboardPreset = 'Blendon';
+// What the settings window would publish: its values and the pies switched off in it.
 const piesOff = new Set<string>();
 const set = (key: string, v: boolean | string) => Prefs.local.set(key, v);
 const pieId = (shortcutId: string) => D.pies.find((p) => p.sid === shortcutId)!.id;
@@ -43,8 +42,7 @@ beforeAll(async () => {
   };
   SharedSettings.publish({
     val: (key) => Prefs.get(key, D.props[key]?.d ?? false),
-    shortcut: (id) => presetKey(D.keymap[id], preset) ?? '',
-    kbSide: () => preset,
+    shortcut: (id) => Keymap.binding(id) ?? '',
     pieOn: (id) => !piesOff.has(id),
   });
   SceneTutorial.install();
@@ -55,7 +53,7 @@ beforeEach(() => {
   Selection.set([], null, false);
   Prefs.local.clear();
   piesOff.clear();
-  preset = 'Blendon';
+  Keymap.reset();
 });
 
 describe('tutorial curriculum', () => {
@@ -131,7 +129,7 @@ describe('tutorial hints', () => {
     const menu = D.keymap['Blendon/Context Menu'];
     expect(data('scene.add-plane').hintSrc).toContain('{key:Blendon/Context Menu}');
     expect(task('scene.add-plane').hint).toContain(KEY_OPEN + menu.b);
-    preset = 'Unity';
+    Keymap.applyPreset('Unity');
     expect(task('scene.add-plane').hint).toContain(KEY_OPEN + menu.u);
   });
 });

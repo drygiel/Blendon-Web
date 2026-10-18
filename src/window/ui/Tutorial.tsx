@@ -5,7 +5,7 @@ import { publicUrl } from '../../lib/links.ts';
 import { D } from '../../plugin/window-data.ts';
 import {
   findTask,
-  shortcutLive,
+  shortcutSwitchedOn,
   TutorialCurriculum,
   type TutorialTask,
 } from '../../scene/blendon/tutorial/curriculum.ts';
@@ -128,7 +128,7 @@ function skipReason(app: WindowModel, task: TutorialTask) {
 
   // A feature switched off on a page that stays on shuts its key, e.g. one of the two histories.
   const shortcut = task.shortcutIds[0] ?? task.keysShortcutId;
-  const owner = shortcut && !shortcutLive(shortcut) ? ownerOf(shortcut) : null;
+  const owner = shortcut && !shortcutSwitchedOn(shortcut) ? ownerOf(shortcut) : null;
   if (owner)
     return (
       'Skipped while its feature is switched off on the ' +

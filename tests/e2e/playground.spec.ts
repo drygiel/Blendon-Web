@@ -7,7 +7,7 @@ import { expect, type Page, test } from './fixtures.ts';
 const readJson = <T>(file: string) =>
   JSON.parse(readFileSync(new URL('../../src/plugin/generated/' + file, import.meta.url), 'utf8')) as T;
 const TASKS = readJson<TutorialData>('tutorial.json').chapters.flatMap((c) => c.tasks);
-const KEYMAP = readJson<{ keymap: Record<string, { b: string }> }>('window-data.json').keymap;
+const KEYMAP = readJson<{ keymap: Record<string, { b: string; u: string }> }>('window-data.json').keymap;
 const taskData = (id: string) => TASKS.find((t) => t.id === id)!;
 
 let errors: string[] = [];
@@ -89,6 +89,18 @@ test('with the Tools pie off, picking the Move tool takes the other way, on its 
   await expect(row.locator('.tutkeys')).toHaveText(KEYMAP[way.keys].b);
   await row.locator('.tutt').click();
   await expect(row.locator('.tuthint')).toHaveText(way.text);
+});
+
+test("on the Unity preset a task's hint names the menu's Unity key", async ({ page }) => {
+  const win = await openWindow(page);
+  const menu = KEYMAP['Blendon/Context Menu'];
+  await openPage(win, 'Blendon');
+  await win.locator('.it-kbPreset').getByRole('button', { name: 'Unity', exact: true }).click();
+  await openPage(win, 'Tutorial');
+  const row = taskRow(win, 'scene.add-plane');
+  await row.locator('.tutt').click();
+  await expect(row.locator('.tuthint b').first()).toHaveText(menu.u);
+  await expect(row.locator('.tuthint')).not.toContainText('{key:');
 });
 
 test('stepping up to the parent builds on the group or the kept pivot, and is skipped once both are', async ({
