@@ -81,6 +81,13 @@ describe('window layout', () => {
     }
   });
 
+  it('spells the keys in shortcut row cards', () => {
+    const items = layoutWindow(harness({ page: 'Zoom' }).model()).rows.flatMap((r) => r.cells.flatMap((c) => c.items));
+    const zoomIn = items.find((it) => it.k === 'sc' && it.sid === 'Blendon/Zoom/Zoom In');
+    expect(zoomIn?.k === 'sc' && zoomIn.tip.t).toContain('<b><color=#D98E38>' + D.keymap['Blendon/Zoom/Zoom In']?.b);
+    for (const it of items) if (it.k === 'sc') expect(it.tip.t, it.sid).not.toContain('{key:');
+  });
+
   it('searches across all pages', () => {
     const L = layoutWindow(harness({ search: 'snap' }).model());
     expect(L.searching).toBe(true);

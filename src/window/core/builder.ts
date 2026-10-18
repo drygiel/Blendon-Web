@@ -1,6 +1,7 @@
 // The page layout builder: runs a page's draw ops (SettingsControls calls) into rows of cells,
 // with the two-column grid, cards and folds of SettingsEditorWindow.
 import type { Cond, Op, PageHeader, Tip } from '../../plugin/schema.ts';
+import { fillTokens, presetSource } from '../../plugin/keys.ts';
 import { D } from '../../plugin/window-data.ts';
 import { TutorialCurriculum } from '../../scene/blendon/tutorial/curriculum.ts';
 import { type WindowModel, pageInfo } from './model.ts';
@@ -537,8 +538,11 @@ export class Builder {
     let label: string;
     let tip: string;
     let img: string;
-    if (o[2] === null) [, , , label, tip, img] = o;
-    else {
+    if (o[2] === null) {
+      [, , , label, tip, img] = o;
+      // The card as written: its keys read for the preset until the window tracks live bindings.
+      tip = fillTokens(tip, presetSource(D, this.app.st.kbSide)).text;
+    } else {
       const p = D.props[o[2]];
       label = p.l;
       tip = p.t;
