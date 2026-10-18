@@ -2254,7 +2254,7 @@
   },
   "FrameSelectedSettings.Enabled": {
    "l": "Enable",
-   "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  the whole selection\n<b>2</b>  the active object's pivot\n<b>3</b>  zoom to that pivot, Unity's own frame\n<b>4</b>  back where you started\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>",
+   "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  <b>Selection Center</b> - turn to the middle of the selection\n<b>2</b>  <b>Active Pivot</b> - turn to the active object's pivot\n<b>3</b>  <b>Zoom In</b> - close in with Unity's own frame\n<b>4</b>  <b>Back to Start</b> - the view you started from\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>",
    "i": "Tips/FrameSelected/FrameSelected.png",
    "d": true,
    "k": "Boolean"
@@ -8446,7 +8446,7 @@
    "sections": [
     [
      "HOW IT WORKS",
-     "Press the frame key with something selected. The first press fits the whole selection in view, the next two close in on the active object's pivot, and a fourth takes you back where you started. The <b><color=#4FA8E8>Sequence</color></b> table changes the steps and their order."
+     "Press the frame key with something selected. The first press turns the camera to the middle of the selection, the second to the active object's pivot, the third zooms in with Unity's own frame, and a fourth takes you back where you started. The <b><color=#4FA8E8>Sequence</color></b> table changes the steps and their order."
     ],
     [
      "GOOD TO KNOW",
@@ -8465,7 +8465,7 @@
      ]
     }
    ],
-   "search": "HOW IT WORKS Press the frame key with something selected. The first press fits the whole selection in view, the next two close in on the active object's pivot, and a fourth takes you back where you started. The <b><color=#4FA8E8>Sequence</color></b> table changes the steps and their order. GOOD TO KNOW <b><color=#4FA8E8>Animate</color></b> flies the camera there instead of cutting. The <b><color=#4FA8E8>Context Menu</color></b>'s Frame Selected entry steps through the same cycle. frame, press again to step closer Off frees the key for the Editor."
+   "search": "HOW IT WORKS Press the frame key with something selected. The first press turns the camera to the middle of the selection, the second to the active object's pivot, the third zooms in with Unity's own frame, and a fourth takes you back where you started. The <b><color=#4FA8E8>Sequence</color></b> table changes the steps and their order. GOOD TO KNOW <b><color=#4FA8E8>Animate</color></b> flies the camera there instead of cutting. The <b><color=#4FA8E8>Context Menu</color></b>'s Frame Selected entry steps through the same cycle. frame, press again to step closer Off frees the key for the Editor."
   },
   "IsolateViewSettings": {
    "image": "Tips/IsolateView/Header.png",
@@ -8898,7 +8898,7 @@
    "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap To Floor}: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>"
   },
   "FrameSelectedSettings": {
-   "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  the whole selection\n<b>2</b>  the active object's pivot\n<b>3</b>  zoom to that pivot, Unity's own frame\n<b>4</b>  back where you started\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>",
+   "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  <b>Selection Center</b> - turn to the middle of the selection\n<b>2</b>  <b>Active Pivot</b> - turn to the active object's pivot\n<b>3</b>  <b>Zoom In</b> - close in with Unity's own frame\n<b>4</b>  <b>Back to Start</b> - the view you started from\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>",
    "i": "Tips/FrameSelected/FrameSelected.png"
   },
   "IsolateViewSettings": {
@@ -9738,7 +9738,7 @@
    "src": "<size=14><b>Transform Tool</b></size>\nMove, rotate and scale on one gizmo, for Unity's Transform tool {key:Tools/Transform}.\n\n<size=9><b><color=#92929A>NESTED</color></b></size>\n<color=#92929A>•</color> <b>Arrows</b> outside - Move\n<color=#92929A>•</color> <b>Rings</b> in the middle - Rotate\n<color=#92929A>•</color> <b>Boxes</b> inside - Scale\n\n<size=9><color=#92929A>Grab keys, Surface Snap and Look At come from the three tools' own pages</color></size>\n\n<size=9><color=#92929A>Click to open the Transform page</color></size>"
   },
   "Frame Selected": {
-   "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  the whole selection\n<b>2</b>  the active object's pivot\n<b>3</b>  zoom to that pivot, Unity's own frame\n<b>4</b>  back where you started\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>\n\n<size=9><color=#92929A>Click to open the Frame Selected page</color></size>",
+   "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  <b>Selection Center</b> - turn to the middle of the selection\n<b>2</b>  <b>Active Pivot</b> - turn to the active object's pivot\n<b>3</b>  <b>Zoom In</b> - close in with Unity's own frame\n<b>4</b>  <b>Back to Start</b> - the view you started from\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>\n\n<size=9><color=#92929A>Click to open the Frame Selected page</color></size>",
    "i": "Tips/FrameSelected/FrameSelected.png"
   },
   "Isolate View": {
