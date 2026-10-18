@@ -443,7 +443,30 @@ export const SceneVisibilityManager = {
     const scene = record('Show All');
     if (scene) setHidden(scene, [...scene.allObjects()], false, false);
   },
+  /** H: the first selected object decides whether the whole selection, children included, hides or shows. */
+  toggleSelectionAndDescendants(objects: GameObject[]) {
+    if (!objects.length) return;
+    const scene = record('Toggle Selection And Descendants Visibility');
+    if (scene) setHidden(scene, objects, true, !isHidden(scene, objects[0]));
+  },
+  /** Shift+H: isolates the selection with its children, or leaves an isolation already set. */
+  toggleIsolateSelectionAndDescendants(objects: GameObject[]) {
+    const scene = record('Toggle Isolation on Selection And Children');
+    if (!scene) return;
+    if (scene.isolation) {
+      scene.isolation = null;
+      scene.hierarchyChanged();
+      return;
+    }
+    scene.isolation = new Set();
+    setHidden(scene, [...scene.allObjects()], false, true);
+    setHidden(scene, objects, true, false);
+  },
 };
+
+function isHidden(scene: Scene, go: GameObject) {
+  return scene.isolation ? scene.isolation.has(go) : go.hidden;
+}
 
 function record(name: string) {
   const state = SceneVisibilityState.getInstance();
