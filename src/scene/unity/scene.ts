@@ -1,4 +1,5 @@
 // GameObject / Transform / Mesh: just enough of Unity's scene graph for the tools to act on.
+import { Undo, type UndoableState } from './editor.ts';
 import { Bounds, Color, Matrix4x4, Quaternion, Vector3 } from './math.ts';
 
 let nextId = 1;
@@ -78,6 +79,15 @@ export class Transform {
 
   getSiblingIndex() {
     return this._parent ? this._parent.children.indexOf(this) : this.gameObject.scene.roots.indexOf(this);
+  }
+
+  setSiblingIndex(index: number) {
+    const list = this._parent ? this._parent.children : this.gameObject.scene.roots;
+    const at = list.indexOf(this);
+    if (at < 0 || at === index) return;
+    list.splice(at, 1);
+    list.splice(Math.max(0, Math.min(index, list.length)), 0, this);
+    this.gameObject.scene.hierarchyChanged();
   }
 
   private touch() {
@@ -252,7 +262,7 @@ export class GameObject {
   readonly id = nextId++;
   readonly transform: Transform;
   activeSelf = true;
-  /** Scene-visibility hide (SceneVisibilityManager), not deactivation. */
+  /** Scene-visibility hide outside isolation (SceneVisibilityManager), not deactivation. */
   hidden = false;
   mesh: Mesh | null = null;
   color = new Color(0.5, 0.5, 0.5, 1);
@@ -291,12 +301,9 @@ export class GameObject {
     return Bounds.minMax(min, max);
   }
 
-  /** Whether it shows in the Scene view: active, not hidden by visibility, and inside any isolation. */
+  /** Whether it shows in the Scene view: active, and not hidden while the view's visibility toggle is on. */
   get visible() {
-    const isolated = this.scene.isolated;
-    if (isolated && !isolated.has(this)) return false;
-    // Scene visibility is per object: hiding with descendants marks each of them.
-    return !(this.hidden && this.scene.visibilityEnabled) && this.activeInHierarchy;
+    return !(this.scene.visibilityEnabled && this.scene.isHidden(this)) && this.activeInHierarchy;
   }
 }
 
@@ -317,10 +324,16 @@ export class Scene {
   /** The scene the Scene view shows; one at a time here. */
   static current: Scene | null = null;
   readonly roots: Transform[] = [];
-  /** SceneVisibilityManager's isolation: only these show while it is set. */
-  isolated: Set<GameObject> | null = null;
+  /** Isolation's own layer of hides, null outside it, so the hides from before come back on exit as in Unity. */
+  isolation: Set<GameObject> | null = null;
   /** The Scene view's visibility toggle: off shows hidden objects again, keeping their flags. */
   visibilityEnabled = true;
+  readonly visibilityState = new SceneVisibilityState(this);
+
+  /** SceneVisibilityManager.IsHidden: read from isolation's layer while it is on. */
+  isHidden(go: GameObject) {
+    return this.isolation ? this.isolation.has(go) : go.hidden;
+  }
   private changeListeners = new Set<(t: Transform) => void>();
   private hierarchyListeners = new Set<() => void>();
 
@@ -365,47 +378,90 @@ export class Scene {
   }
 }
 
-/** The isolation half of Unity's SceneVisibilityManager. */
+interface VisibilityRecord {
+  hidden: Map<GameObject, boolean>;
+  isolation: Set<GameObject> | null;
+}
+
+/** SceneVisibilityState.GetInstance(): every hide and the isolation layer as one object Undo records. */
+export class SceneVisibilityState implements UndoableState {
+  readonly scene: Scene;
+  constructor(scene: Scene) {
+    this.scene = scene;
+  }
+
+  static getInstance() {
+    return Scene.current?.visibilityState ?? null;
+  }
+
+  captureState(): VisibilityRecord {
+    const hidden = new Map<GameObject, boolean>();
+    for (const go of this.scene.allObjects()) hidden.set(go, go.hidden);
+    return { hidden, isolation: this.scene.isolation && new Set(this.scene.isolation) };
+  }
+
+  restoreState(state: unknown) {
+    const s = state as VisibilityRecord;
+    for (const [go, hidden] of s.hidden) go.hidden = hidden;
+    this.scene.isolation = s.isolation && new Set(s.isolation);
+    this.scene.hierarchyChanged();
+  }
+}
+
+/** Unity's SceneVisibilityManager: each change is one Undo record of the whole visibility state. */
 export const SceneVisibilityManager = {
   isCurrentStageIsolated() {
-    return !!Scene.current?.isolated;
+    return !!Scene.current?.isolation;
   },
   isolate(objects: GameObject[], includeDescendants: boolean) {
-    const scene = Scene.current;
+    const scene = record('Isolate GameObjects');
     if (!scene) return;
-    const shown = new Set<GameObject>();
-    for (const go of objects) {
-      if (includeDescendants) for (const t of go.transform.walk()) shown.add(t.gameObject);
-      else shown.add(go);
-    }
-    scene.isolated = shown;
-    scene.hierarchyChanged();
+    scene.isolation = new Set();
+    setHidden(scene, [...scene.allObjects()], false, true);
+    setHidden(scene, objects, includeDescendants, false);
   },
   exitIsolation() {
     const scene = Scene.current;
-    if (!scene?.isolated) return;
-    scene.isolated = null;
+    if (!scene?.isolation) return;
+    record('Exit Isolation');
+    scene.isolation = null;
     scene.hierarchyChanged();
   },
   hide(objects: GameObject[], includeDescendants: boolean) {
-    setHidden(objects, includeDescendants, true);
+    const scene = record('Hide GameObjects');
+    if (scene) setHidden(scene, objects, includeDescendants, true);
   },
   show(objects: GameObject[], includeDescendants: boolean) {
-    setHidden(objects, includeDescendants, false);
+    const scene = record('Show GameObjects');
+    if (scene) setHidden(scene, objects, includeDescendants, false);
   },
   hideAll() {
-    if (Scene.current) setHidden([...Scene.current.allObjects()], false, true);
+    const scene = record('Hide All');
+    if (scene) setHidden(scene, [...scene.allObjects()], false, true);
   },
   showAll() {
-    if (Scene.current) setHidden([...Scene.current.allObjects()], false, false);
+    const scene = record('Show All');
+    if (scene) setHidden(scene, [...scene.allObjects()], false, false);
   },
 };
 
-function setHidden(objects: GameObject[], includeDescendants: boolean, hidden: boolean) {
+function record(name: string) {
+  const state = SceneVisibilityState.getInstance();
+  if (state) Undo.recordObject(state, name);
+  return state?.scene ?? null;
+}
+
+function setHidden(scene: Scene, objects: GameObject[], includeDescendants: boolean, hidden: boolean) {
+  const mark = (go: GameObject) => {
+    if (!scene.isolation) go.hidden = hidden;
+    else if (hidden) scene.isolation.add(go);
+    else scene.isolation.delete(go);
+  };
+  // Scene visibility is per object: hiding with descendants marks each of them.
   for (const go of objects)
-    if (includeDescendants) for (const t of go.transform.walk()) t.gameObject.hidden = hidden;
-    else go.hidden = hidden;
-  Scene.current?.hierarchyChanged();
+    if (includeDescendants) for (const t of go.transform.walk()) mark(t.gameObject);
+    else mark(go);
+  scene.hierarchyChanged();
 }
 
 /** Object.Instantiate for a scene object: a deep copy under the given parent, placed after the source. */

@@ -129,7 +129,7 @@ export function TopToolbar({ host }: { host: SceneHost }) {
     ShadingModes.apply(view, m);
     touched();
   };
-  const hiddenCount = [...host.scene.allObjects()].filter((o) => o.hidden).length;
+  const hiddenCount = [...host.scene.allObjects()].filter((o) => host.scene.isHidden(o)).length;
 
   return (
     <div className={styles.top} style={{ height: TopStripHeight }} onPointerDown={(e) => e.stopPropagation()}>

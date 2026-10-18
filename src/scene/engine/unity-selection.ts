@@ -1,6 +1,14 @@
 // The Editor's own Scene view picking and box select (RectSelection), which Blendon builds on: a click
 // picks what is under the cursor, a drag sends the begin command whose hotControl Blendon's box takes.
-import { EditorApplication, Selection, ShortcutManager, Tool, Tools, eventShortcutModifiers } from '../unity/editor.ts';
+import {
+  EditorApplication,
+  Selection,
+  ShortcutManager,
+  Tool,
+  Tools,
+  Undo,
+  eventShortcutModifiers,
+} from '../unity/editor.ts';
 import { GUI, HandleUtility } from '../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility, KeyCode } from '../unity/imgui.ts';
 import { Color, Rect, Vector2, Vector3 } from '../unity/math.ts';
@@ -30,6 +38,7 @@ export class UnitySelection {
   private boxStart = Vector2.zero;
   private boxEnd = Vector2.zero;
   private baseline: GameObject[] = [];
+  private boxGroup = 0;
   // Projected once per box: the camera holds still while it is dragged.
   private picker: RectPicker | null = null;
   private lastHits = '';
@@ -89,6 +98,8 @@ export class UnitySelection {
         }
         if (GUIUtility.hotControl === id) {
           GUIUtility.hotControl = 0;
+          // Keys pressed mid-box open new undo groups, folded back into one step.
+          Undo.collapseUndoOperations(this.boxGroup);
           ev.use();
         }
         this.press = null;
@@ -124,6 +135,7 @@ export class UnitySelection {
     this.boxStart = this.press!;
     this.boxEnd = ev.mousePosition;
     this.baseline = Selection.objects;
+    this.boxGroup = Undo.getCurrentGroup();
     this.lastHits = '';
     const view = this.host.view;
     const c = view.camera,
@@ -158,7 +170,8 @@ export class UnitySelection {
     if (ev.shift) next = [...new Set([...this.baseline, ...hits])];
     else if (ev.actionKey) next = this.baseline.filter((o) => !hits.includes(o));
     else next = hits;
-    Selection.set(next, next.at(-1) ?? null, false);
+    // Recorded like any selection change, so the first write keeps the selection from before the box.
+    Selection.set(next, next.at(-1) ?? null);
   }
 
   private click(ev: Event) {
