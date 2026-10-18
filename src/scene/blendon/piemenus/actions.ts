@@ -318,7 +318,6 @@ export const UnityToolActions = [
   // Tools the browser Scene view doesn't have.
   new PieAction('Tools', 'Rect', 'd_RectTool', () => {}, unavailable),
   new PieAction('Tools', 'View', 'd_ViewToolMove', () => {}, unavailable),
-  new PieAction('Tools', 'Edit Box Collider', 'd_BoxCollider Icon', () => {}, unavailable),
   new PieAction('Tools', 'Create Spline', '', () => {}, unavailable),
 ];
 
