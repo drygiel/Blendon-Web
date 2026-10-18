@@ -960,6 +960,24 @@ test.describe('Undo and Redo', () => {
     await page.keyboard.press('Control+z');
     await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
   });
+
+  test("H and Shift+H hide and isolate the selection with its children, as Unity's keys do", async ({ page }) => {
+    await openScene(page);
+    await page.keyboard.press('h');
+    await expect.poll(() => hiddenNames(page)).toEqual(['Cube']);
+    await page.keyboard.press('h');
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => hiddenNames(page)).toEqual(['Cube']);
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+    await page.keyboard.press('Shift+h');
+    await expect.poll(() => isolated(page)).toBe(true);
+    await expect.poll(async () => (await hiddenNames(page)).sort()).toEqual([...others].sort());
+    await page.keyboard.press('Shift+h');
+    await expect.poll(() => isolated(page)).toBe(false);
+    await expect.poll(() => hiddenNames(page)).toEqual([]);
+  });
 });
 
 test.describe('Escape and vertex snapping', () => {

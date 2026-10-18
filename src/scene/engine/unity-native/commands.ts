@@ -1,8 +1,9 @@
-// The Editor's own key commands the demo runs: the tool keys, the handle toggles and Frame Selected. Each keeps
-// its own key; a live Blendon shortcut on the same key only covers it in the Scene view, and a Move on the
-// Overview page is the one thing that puts it elsewhere.
+// The Editor's own key commands the demo runs: the tool keys, the handle toggles, Frame Selected and the scene
+// visibility keys. Each keeps its own key; a live Blendon shortcut on the same key only covers it in the Scene view,
+// and a Move on the Overview page is the one thing that puts it elsewhere.
 import { PivotMode, PivotRotation, Selection, ShortcutManager, Tool, Tools } from '../../unity/editor.ts';
 import { Bounds, Vector3 } from '../../unity/math.ts';
+import { SceneVisibilityManager } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
 
 /** SceneView.FrameSelected: the selection's bounding sphere fills the view, eased over half a second. */
@@ -64,6 +65,18 @@ export const UnityCommands = {
       },
       false,
       'F',
+    );
+    R(
+      'Scene Visibility/Toggle Selection And Descendants Visibility',
+      () => SceneVisibilityManager.toggleSelectionAndDescendants(Selection.gameObjects),
+      false,
+      'H',
+    );
+    R(
+      'Scene Visibility/Toggle Isolation On Selection And Descendants',
+      () => SceneVisibilityManager.toggleIsolateSelectionAndDescendants(Selection.gameObjects),
+      false,
+      'Shift+H',
     );
   },
 };
