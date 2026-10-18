@@ -52,7 +52,7 @@ export default function ScenePlayground() {
       const pieOf = new Map(D.pies.map((p) => [p.sid, p.id]));
       // The settings window's values once its tab has loaded, the defaults until then.
       Prefs.source = {
-        val: (key) => SharedSettings.reader?.val(key) ?? val(key),
+        val: (key) => SharedSettings.val(key) ?? val(key),
         // Only Blendon's own shortcuts are in the window; Unity's (Undo, the tool keys) keep their defaults.
         // A pie switched off in the window gives its key back.
         shortcut: (id) => {
