@@ -819,12 +819,16 @@ export const ShortcutManager = {
     return true;
   },
 
-  /** Ends running clutches whose binding no longer matches the held modifiers. */
+  /**
+   * A modifier went down or up under a lone running clutch. The Editor keeps it (V stays held through Shift or
+   * Ctrl) unless the key with the new modifiers names another clutch.
+   */
   endMismatched(modifiers: number, context: unknown) {
-    for (const [k, e] of [...activeClutches]) {
-      const b = ShortcutManager.getShortcutBinding(e.id);
-      if (b && b.modifiers !== modifiers) ShortcutManager.dispatchUp(k, context);
-    }
+    if (activeClutches.size !== 1) return;
+    const [[k, e]] = activeClutches;
+    const b = ShortcutManager.getShortcutBinding(e.id);
+    if (!b || b.modifiers === modifiers) return;
+    if (ShortcutManager.find(k, modifiers)?.clutch) ShortcutManager.dispatchUp(k, context);
   },
 
   /** Ends every running clutch (focus lost). */

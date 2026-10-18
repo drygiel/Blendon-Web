@@ -1110,6 +1110,28 @@ test.describe('Escape and vertex snapping', () => {
       expect(grab.world[k] + after[k] - before[k]).toBeCloseTo(onto.world[k], 4);
   });
 
+  test('a right click leaves pick mode without opening a menu, the next one opens it', async ({ page }) => {
+    const view = await openScene(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const corner = nearest(await topCornersOf(page, 'Cube'), await pagePointOf(page, 'Cube (1)'));
+    const box = (await view.boundingBox())!;
+    const empty = { x: box.x + box.width * 0.3, y: box.y + box.height * 0.3 };
+    await view.focus();
+    await page.keyboard.press('Shift+V');
+    await page.mouse.click(empty.x, empty.y, { button: 'right' });
+    await page.waitForTimeout(300);
+    await expect(view.getByLabel('Search the menu')).toHaveCount(0);
+    // Out of the mode, a click near the corner settles nothing and a scale keeps the Cube's own pivot.
+    await page.mouse.click(corner.page.x + 4, corner.page.y + 4);
+    await page.waitForTimeout(200);
+    await expect.poll(() => selectionNames(page)).toEqual(['Cube']);
+    for (const key of ['s', '2', 'Enter']) await page.keyboard.press(key);
+    await page.waitForTimeout(300);
+    expect(await positionOf(page, 'Cube')).toEqual(before);
+    await page.mouse.click(empty.x, empty.y, { button: 'right' });
+    await expect(view.getByLabel('Search the menu')).toBeVisible();
+  });
+
   test('Shift+V settles a virtual pivot that a scale turns about, and Esc leaves it', async ({ page }) => {
     const view = await openScene(page);
     const before = (await positionOf(page, 'Cube'))!;
