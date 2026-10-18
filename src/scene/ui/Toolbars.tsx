@@ -308,7 +308,7 @@ interface MenuEntry {
 const MENU: MenuEntry[] = [
   { title: 'AI Navigation', img: 'd_NavigationOverlay' },
   { title: 'Tools', img: 'd_MoveTool', overlay: 'tools' },
-  { title: 'Tool Contexts', img: 'd_ToolContext' },
+  { title: 'Tool Contexts', img: 'd_ToolContext', overlay: 'toolContexts' },
   { title: 'Tool Settings', img: 'd_ToolSettings', overlay: 'toolSettings' },
   { title: 'Grid and Snap', img: 'd_GridAndSnap', overlay: 'gridAndSnap' },
   { title: 'Draw Modes', img: 'd_Shaded', overlay: 'drawModes' },

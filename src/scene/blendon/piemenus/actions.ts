@@ -11,6 +11,7 @@ import { GizmoVisibility } from '../gizmos/core/visibility.ts';
 import { PivotModes, SharedGizmoSettings, type PivotMode } from '../gizmos/shared-settings.ts';
 import { ViewportNavActions } from '../navigation/viewport-nav.ts';
 import { ViewAlignment } from '../navigation/view-snap.ts';
+import { blendonContextActive } from '../tool-context.ts';
 import { PieItem } from './model.ts';
 import { PieMenu } from './pie-menu.ts';
 import { PieMenuSettings } from './settings.ts';
@@ -134,16 +135,23 @@ export const ToolsHandleActions = [
 // ---- Pivot Point: filed under full names, shown by the toolbar's short ones ----
 
 const pivot = (mode: PivotMode, icon: string) => {
-  // Each Unity side's default mode stays pickable with the pivot menu off.
+  // Each Unity side's default mode stays pickable with the pivot menu off, and outside Blendon's context.
   const alwaysOn = mode === 0 || mode === 2;
   return new PieAction(
     'Pivot Point',
     PivotModes.displayName(mode),
     icon,
-    () => (SharedGizmoSettings.PivotPoint = mode),
+    () => {
+      // Unity's toggle only outside, so Blendon's side keeps its mode for when the context comes back.
+      if (blendonContextActive()) SharedGizmoSettings.PivotPoint = mode;
+      else Tools.pivotMode = PivotModes.unitySide(mode);
+    },
     {
-      isCurrent: () => SharedGizmoSettings.PivotPoint === mode,
-      isEnabled: () => alwaysOn || SharedGizmoSettings.PivotMenuEnabled,
+      isCurrent: () =>
+        blendonContextActive()
+          ? SharedGizmoSettings.PivotPoint === mode
+          : alwaysOn && Tools.pivotMode === PivotModes.unitySide(mode),
+      isEnabled: () => alwaysOn || (SharedGizmoSettings.PivotMenuEnabled && blendonContextActive()),
       label: () => PivotModes.shortName(mode),
     },
   );
@@ -298,10 +306,11 @@ export const UnityToolActions = [
   new PieAction('Tools', 'Create Spline', '', () => {}, unavailable),
 ];
 
-// The Hide Gizmo toggle, filed with Unity's tools whose handles it hides.
+// The Hide Gizmo toggle, filed with Unity's tools. Only Blendon's own hide, so it greys out outside their context.
 export const GizmoActions = [
   new PieAction('Tools', 'Hide Gizmo', 'd_scenevis_hidden', () => GizmoVisibility.toggle(), {
     isCurrent: () => GizmoVisibility.hidden,
+    isEnabled: () => blendonContextActive(),
   }),
 ];
 

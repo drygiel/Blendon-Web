@@ -14,6 +14,7 @@ import type { Transform } from '../../../unity/scene.ts';
 import { SceneView, type SceneCamera } from '../../../unity/sceneview.ts';
 import { ModalViewportGate, SelectionCache, TutorialTransform } from '../../foundation.ts';
 import { GeneralSettings } from '../../settings.ts';
+import { BlendonContext, blendonContextActive } from '../../tool-context.ts';
 import { GizmoAxis } from '../axis.ts';
 import { DragKind, GizmoDragCoordinator } from '../core/drag.ts';
 import { ModalNumericParser, ModalNumericState, TransformSpace } from '../core/numeric.ts';
@@ -89,6 +90,13 @@ EditorApplication.focusChanged.add((hasFocus) => {
   if (!hasFocus) releaseStrandedDrags();
 });
 
+BlendonContext.subscribe(() => {
+  if (blendonContextActive()) return;
+  GizmoController.cancelAll();
+  // A held V or a pick has no way to end outside the context either.
+  VertexSnappingUtility.isActive = false;
+});
+
 export const IndividualOrigins = {
   ownOrigins(coordinator: GizmoDragCoordinator) {
     return SharedGizmoSettings.PivotPoint === PivotMode.IndividualOrigins && multiple(coordinator);
@@ -138,8 +146,15 @@ export abstract class GizmoController {
 
   protected abstract get toolType(): Tool;
   protected abstract get enabled(): boolean;
+  // Outside Blendon's context the slot holds Unity's own tool.
   protected get shouldDraw() {
-    return this.enabled && Tools.current === this.toolType && SelectionCache.count !== 0;
+    return this.enabled && Tools.current === this.toolType && SelectionCache.count !== 0 && blendonContextActive();
+  }
+
+  /** Leaving the context: a drag or a grab has no way to end outside it, so it ends now. */
+  static cancelAll() {
+    for (const c of [...subscribed]) c.onDeactivated();
+    SceneView.repaintAll();
   }
   protected get altArmed() {
     return false;
@@ -387,7 +402,8 @@ export abstract class GrabSession extends GizmoController {
   }
 
   private tryBegin(sceneView: SceneView) {
-    if (this.active || !this.enabled) return;
+    // A late request, or the mid-drag route, outside Blendon's context: the key is the Editor's there.
+    if (this.active || !this.enabled || !blendonContextActive()) return;
     const camera = sceneView.camera;
     if (this.ownsDragKind(GizmoController.otherActiveDragKind(this))) return;
     // Is the gesture this session joins still under a held button? Three signals cover every route in.

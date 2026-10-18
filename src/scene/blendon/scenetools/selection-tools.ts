@@ -8,6 +8,7 @@ import type { GameObject } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
 import { SceneTutorial, ShortcutTips } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
+import { blendonContextActive } from '../tool-context.ts';
 import { BoxSelectSettings } from './settings.ts';
 
 // Selection.objects makes its first entry active, so the lead goes to the front.
@@ -127,6 +128,8 @@ export const ClickSelectParent = {
       selectedAtPress = null;
       if (!previous || handleHeld || (e.modifiers & HeldKeys) !== 0) return;
       if (!BoxSelectSettings.Enabled || !BoxSelectSettings.ClickSelectsParent) return;
+      // Unity's own picking outside Blendon's context.
+      if (!blendonContextActive()) return;
       if (e.mousePosition.sub(pressAt).sqrMagnitude > ClickSlop * ClickSlop) return;
       if (Tools.current === Tool.View || Tools.viewToolActive) return;
       // Only a click on the selected object, or on something under it, walks up.
