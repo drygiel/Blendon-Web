@@ -17,7 +17,7 @@ import type {
   WindowDataFile,
 } from '../../src/plugin/schema.ts';
 import type { AssetPlan } from './assets.ts';
-import { drawMethods, parse, type Stmt } from './csharp.ts';
+import { drawMethods, parse, stripComments, type Stmt } from './csharp.ts';
 import { type DumpCard, type DumpKeys, loadDump, type Problems, toTip } from './dump.ts';
 import { convert, Ctx, type Helper } from './ops.ts';
 
@@ -51,6 +51,9 @@ const FILE_OWNER: Record<string, string> = {
   'SceneMenuSettings.cs': 'SceneMenuSettings',
   'BoxSelectSettings.cs': 'BoxSelectSettings',
   'SnapToFloorSettings.cs': 'SnapToFloorSettings',
+  // The Overview's Defaults card (DrawSettings) and its rows drawn by OverviewPage.
+  'GeneralSettings.Defaults.cs': 'GeneralSettings',
+  'GeneralSettings.Overview.cs': 'GeneralSettings',
 };
 // TransformGizmoSettings.cs declares the composite and its three nested part settings.
 const TRANSFORM_FILE = 'TransformGizmoSettings.cs';
@@ -525,39 +528,17 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     Tutorial: [['tutorial']],
   };
 
-  // The General (Defaults) card is drawn by hand in GeneralSettings.Defaults.cs.
-  const G = 'GeneralSettings.';
-  const generalOps: Op[] = [
-    ['info', need('GeneralSettings.DefaultsIntro')],
-    ['sub', 'Animation', 'Motion Icon', 15, 0],
-    ['tog', G + 'AnimationEnabled'],
-    ['dis', ['!', ['v', G + 'AnimationEnabled']], [['sld', G + 'AnimationDuration', 0.0001, 2]]],
-    ['sub', 'Dragging', 'd_Grid.PickingTool', 15, 0],
-    ['tog', G + 'RmbCancelEnabled'],
-    ['tog', G + 'RestrictDragToActiveView'],
-    ['sub', 'Cursor Wrap', 'DotFrame', 15, 0],
-    ['tog', G + 'CursorWrapEnabled'],
-    [
-      'dis',
-      ['!', ['v', G + 'CursorWrapEnabled']],
-      [
-        ['pop', G + 'CursorWrap'],
-        ['if', ['f', 'supportsBounds', ['v', G + 'CursorWrap']], [['pop', G + 'WrapBounds']], null],
-      ],
-    ],
-    ['sub', 'Axis Colors', 'd_Grid.PaintTool', 15, 0],
-    [
-      'dis',
-      ['!', ['v', G + 'Enabled']],
-      [
-        ['col', G + 'AxisColorX'],
-        ['col', G + 'AxisColorY'],
-        ['col', G + 'AxisColorZ'],
-      ],
-    ],
-    ['col', G + 'OutlineColor'],
+  // OverviewPage draws the Tool Context section from GeneralSettings rows, copied here and checked below.
+  const toolContext: Op[] = [
+    ['sub', 'Tool Context', 'd_Transform Icon', 15, 0],
+    ...page(
+      'Overview',
+      ['GeneralSettings', 'DrawToggleContextShortcut'],
+      ['GeneralSettings', 'DrawEscapeKeepsContextToggle'],
+    ),
   ];
-  pages.Overview = [['overview', generalOps]];
+  checkOverviewCopy(paths.editor, out);
+  pages.Overview = [['overview', page('Overview', ['GeneralSettings', 'DrawSettings']), toolContext]];
 
   // ---- constants ----
   const consts: Record<string, string> = {
@@ -996,6 +977,26 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   };
   checkTokens(data, out);
   return { data, assets };
+}
+
+// OverviewPage's statements the sync copies by hand, in draw order.
+const OVERVIEW_COPY = [
+  's.SubLabel("Tool Context", "d_Transform Icon");',
+  'general.DrawToggleContextShortcut(s);',
+  'general.DrawEscapeKeepsContextToggle(s);',
+];
+
+/** The Overview's own layout isn't parsed, so a change to the part the sync copies must stop the sync. */
+function checkOverviewCopy(editorDir: string, out: Problems): void {
+  const file = walkFiles(editorDir).find((f) => basename(f) === 'OverviewPage.cs');
+  if (!file) return out.add('OverviewPage.cs: not found');
+  const code = stripComments(readFileSync(file, 'utf8')).replace(/\s+/g, ' ');
+  let at = 0;
+  for (const statement of OVERVIEW_COPY) {
+    const i = code.indexOf(statement, at);
+    if (i < 0) return out.add('OverviewPage.cs no longer draws, in this order: ' + OVERVIEW_COPY.join(' '));
+    at = i + statement.length;
+  }
 }
 
 /** Every {key:} and {setting:} a text names must resolve on the site, as TipText warns in the Editor. */
