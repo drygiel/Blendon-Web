@@ -247,26 +247,55 @@ is mounted in (`../`, or `BLENDON_DIR`):
 - `Editor/Tutorial/TutorialCurriculum.cs` - the tutorial's chapters, task text and pictures. How each task is ticked
   is ported by hand in `src/scene/blendon/tutorial/curriculum.ts`, and a unit test fails when the two lists drift
 - `Editor/Icons` - tooltip images, page header images and Blendon's own icons
-- `Metadata~/PlaygroundRef` - labels, tooltips, defaults and constants plus the Editor's built-in icons, dumped from
-  the Unity Editor (`model*.json`, `ui/`)
+- `Metadata~/PlaygroundRef` - labels, tooltips, defaults and constants, the keys of both keyboard presets, the
+  contested keys and the Editor's built-in icons, dumped from the Unity Editor (`meta.json`, `model*.json`, `ui/`).
+  `BLENDON_REF` points the sync at another dump folder, e.g. a trial dump that is not committed
 - `Metadata~/Video` - the feature clips
 - `Documentation/Blendon_Manual.pdf` - the manual the page links to
 
 It writes `src/plugin/generated/` (`window-data.json`, `tutorial.json`), `public/plugin/` and `public/docs/`. Both are
 committed, so CI never needs the plugin. Run it after changing the plugin's settings pages, then commit the result.
 
+```bash
+BLENDON_DIR=E:/Unity/_wt/integration BLENDON_REF=E:/Unity/_wt/web-trial-dump pnpm sync
+```
+
+Tooltips come in twice: `text` as shown on the Blender keys, and `source` with Blendon's live key tokens still in
+(`{key:<shortcut id>}`, `{setting:<Class>.<Property>}`). The site fills the tokens in itself from the dump's
+`keymap`, so a tooltip follows the keyboard preset and a rebound key the way it does in the Editor.
+
 ### Refreshing the Unity dump
 
 `Metadata~/PlaygroundRef` holds what only a running Editor can answer: labels, tooltips and defaults resolved through
-the settings classes, the shortcut tables, the pie menus, and the built-in icons. When those change:
+the settings classes, the shortcut tables, the pie menus, and the built-in icons. The exporter lives in the plugin, as
+a dev tool in its test assembly (`Tests/Editor/Tools/WebExport/BlendonWebExport.cs`), so it compiles and is tested with
+the code it reads and never ships. When the dump has to change:
 
-1. Copy `tools/unity/BlendonWebExport.cs` into any `Editor` folder of the Unity project.
-2. Run **Tools > Blendon > Export Web Data**. It rewrites `Metadata~/PlaygroundRef` (`model*.json`, `ui/`).
-3. Delete the copied script, then run `pnpm sync` and commit.
+1. Use a test bed project, never your working project: Unity 6000.4 with the Test Framework and URP, its
+   `Assets/Blendon` a junction to the plugin checkout to export from. Close every editor that has the bed open.
+2. Wrap the run in the prefs guard (`E:/Unity/_wt/tools/prefs-guard.py`), Unity started from a shell rewrites the
+   machine-wide EditorPrefs: `python -I prefs-guard.py snapshot <file.reg>` before, `restore <file.reg>` after. Use
+   a python that is not the Microsoft Store one, which only sees its own copy of the registry. Copy
+   `%APPDATA%\Unity\Editor-5.x\Preferences\shortcuts` first and compare it afterwards.
+3. Run the export in batch mode:
 
-The exporter reads Blendon only through reflection, so it compiles in any assembly and changes no settings. It reads
-the shortcut keys from the active profile, so export on the **Blendon** keyboard preset with no key retuned: Blendon's
-shortcuts declare no key of their own, and on any other profile the site would get empty or moved keys.
+   ```bash
+   Unity.exe -batchmode -quit -projectPath <bed> \
+     -executeMethod Blendon.Editor.Tests.Tools.BlendonWebExport.ExportFromCommandLine \
+     -blendonWebOut <folder> -logFile <log>
+   ```
+
+   Without `-blendonWebOut` it rewrites the plugin's own `Metadata~/PlaygroundRef`. It exits with 0, or with 1 and a
+   `[WebExport]` line in the log saying why. Inside an open editor the same export is **Blendon > Dev > Export Web
+   Data**.
+
+4. Run `pnpm sync` with `BLENDON_DIR` on that plugin checkout (and `BLENDON_REF` on the folder when it is not the
+   plugin's own), then commit.
+
+The export never reads the machine's state: it runs on an in-memory shortcut manager and in-memory preferences, so
+the keys are the Blender preset's declared ones, every value is its default, and the pie menus are the shipped ones.
+It then switches that manager to the Unity preset and reads every key a second time. Under `-executeMethod` and in
+batch mode the first-run keyboard question never shows, and the shortcut profile on disk is left as it was.
 
 ### README clips
 
@@ -295,7 +324,6 @@ for f in public/plugin/video/*.mp4; do ffmpeg -v error -y -i "$f" -vf "fps=25,sc
 | `src/lib/`                | Small helpers every part uses                                                    |
 | `scripts/sync/`           | `pnpm sync`: reads the plugin's C# sources and the Unity dump                    |
 | `src/entry-server.tsx`    | `pnpm prerender`'s server entry; `scripts/prerender.ts` writes its output        |
-| `tools/unity/`            | The Unity-side exporter for `Metadata~/PlaygroundRef`                            |
 | `.github/readme/`         | Animated WebP clips for this README                                              |
 | `tests/unit`, `tests/e2e` | Vitest and Playwright suites                                                     |
 
