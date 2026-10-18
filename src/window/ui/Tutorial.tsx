@@ -10,6 +10,12 @@ import {
   type TutorialTask,
 } from '../../scene/blendon/tutorial/curriculum.ts';
 import { TutorialProgress } from '../../scene/blendon/tutorial/progress.ts';
+import {
+  BlendonContext,
+  blendonContextActive,
+  toggleBlendonKey,
+  ToggleContextId,
+} from '../../scene/blendon/tool-context.ts';
 import { SceneTutorial } from '../../scene/blendon/tutorial/scene-tutorial.ts';
 import { TutorialHint } from '../../scene/ui/TutorialHint.tsx';
 import type { ItemOf } from '../core/builder.ts';
@@ -312,7 +318,7 @@ function TaskRow({
 // ---- items ------------------------------------------------------------------------------------------
 
 /** The page's opening card: the badge switch beside the page name, the progress and Start Over under it. */
-export function TutorialHeader({ it }: { it: ItemOf<'tutHeader'> }) {
+function TutorialHeaderCard({ it }: { it: ItemOf<'tutHeader'> }) {
   const app = useApp();
   useTutorialFrame();
   const base = itemBase(app, it);
@@ -373,6 +379,43 @@ export function TutorialHeader({ it }: { it: ItemOf<'tutHeader'> }) {
         >
           {'↺  Start Over'}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** The opening card, then the badge's ask while the view is outside Blendon's tool context. */
+export function TutorialHeader({ it }: { it: ItemOf<'tutHeader'> }) {
+  return (
+    <>
+      <TutorialHeaderCard it={it} />
+      <ContextNote />
+    </>
+  );
+}
+
+/** Same ask as the badge: the tasks need Blendon's tool context. */
+function ContextNote() {
+  const app = useApp();
+  const inBlendon = useSyncExternalStore(BlendonContext.subscribe, blendonContextActive, () => true);
+  if (inBlendon || !app.val('GeneralSettings.Enabled') || !app.val(ShowKey)) return null;
+  const key = toggleBlendonKey();
+  return (
+    <div className="bn info tutctx">
+      <i className="bdg">
+        <b />
+        <b />
+      </i>
+      <div className="btx">
+        {'The tasks need the Blendon tool context. Switch to it with '}
+        <span
+          className="blk"
+          style={{ color: pageInfo('Overview').accent }}
+          onClick={() => app.goTo('Overview', ToggleContextId)}
+        >
+          Toggle Blendon
+        </span>
+        {key ? ` (${key}).` : '.'}
       </div>
     </div>
   );

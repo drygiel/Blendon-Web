@@ -19,6 +19,7 @@ import { TutorialProgress } from '../blendon/tutorial/progress.ts';
 import { SceneTutorial } from '../blendon/tutorial/scene-tutorial.ts';
 import { reducedMotion } from '../blendon/navigation/camera.ts';
 import { GeneralSettings } from '../blendon/settings.ts';
+import { BlendonContext, blendonContextActive, toggleBlendonKey, ToggleContextId } from '../blendon/tool-context.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { Selection } from '../unity/editor.ts';
 import { KeyCaps } from './KeyCaps.tsx';
@@ -60,6 +61,8 @@ const FlashSeconds = FlashInSeconds + FlashHoldSeconds + FlashOutSeconds;
 const OffsetKey = 'blendon.tutorialBadge';
 
 const Logo = publicUrl('plugin/icons/B@2x.png');
+
+const SwitchText = 'Switch to Blendon';
 
 const clock = () => performance.now() / 1000;
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
@@ -125,6 +128,8 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
   useSyncExternalStore(TutorialProgress.subscribe, () => TutorialProgress.version);
   // What a task needs reads the selection, which changes without a tick.
   useSyncExternalStore(subscribeSelection, selectionVersion);
+  // The tasks teach the Blender way, which Unity's own contexts don't have.
+  const switching = !useSyncExternalStore(BlendonContext.subscribe, blendonContextActive);
   const view = useViewSize(host);
   const [, frame] = useReducer((n: number) => n + 1, 0);
   const [offset, setOffset] = useState(loadOffset);
@@ -163,8 +168,10 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
   const task: TutorialTask | null = TutorialProgress.started ? TutorialProgress.current() : null;
   const unmet = !!task && !!task.needsText && !task.needsMet();
   // No keys beside a need, they'd read as the way to meet it.
-  const restText = task ? (unmet ? task.needsText : task.title) : (D.consts.tutorialBadgeLabel ?? 'Blendon Tutorial');
-  const keys = task && !unmet ? task.keys() : '';
+  const taskText = task ? (unmet ? task.needsText : task.title) : (D.consts.tutorialBadgeLabel ?? 'Blendon Tutorial');
+  const taskKeys = task && !unmet ? task.keys() : '';
+  const restText = switching ? SwitchText : taskText;
+  const keys = switching ? toggleBlendonKey() : taskKeys;
 
   useLayoutEffect(() => {
     const el = measure.current;
@@ -270,8 +277,11 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
     PlaygroundEvents.emit('openSettings', { page: 'Tutorial' });
   };
 
+  // The key row, where the way back can be seen and rebound.
+  const openSwitch = () => PlaygroundEvents.emit('openSettings', { page: 'Overview', hl: ToggleContextId });
+
   // The task asked for, in detail, while its line is up.
-  const tipTask = f < 0.5 ? task : null;
+  const tipTask = f < 0.5 && !switching ? task : null;
   const enterLine = (e: PointerEvent<HTMLElement>) => {
     if (!tipTask || e.pointerType !== 'mouse' || drag.current || dismissed.current === tipTask.id) return;
     window.clearTimeout(hoverTimer.current);
@@ -328,7 +338,7 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
               type="button"
               className={styles.link}
               style={{ maxWidth: Math.max(0, textW - (keysW ? keysW + KeysGap : 0)) }}
-              onClick={open}
+              onClick={switching ? openSwitch : open}
               tabIndex={f < 0.5 ? 0 : -1}
             >
               {restText}

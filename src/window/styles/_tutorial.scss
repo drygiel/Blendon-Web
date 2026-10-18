@@ -8,6 +8,10 @@
     border: 1px solid #212121;
     border-radius: 6px;
   }
+  // the note under the header while the view is outside Blendon's tool context
+  .bn.tutctx {
+    margin: 10px 0 0;
+  }
   .tutrule {
     height: 1px;
     margin: 6px 0 7px;

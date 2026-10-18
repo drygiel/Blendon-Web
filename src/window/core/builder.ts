@@ -442,7 +442,7 @@ export class Builder {
       case 'master':
         return this.master(o);
       case 'overview':
-        return this.overview(o[1]);
+        return this.overview(o[1], o[2]);
       case 'tog':
       case 'pop':
       case 'col':
@@ -693,7 +693,7 @@ export class Builder {
   }
 
   // ---- overview -----------------------------------------------------------------------------------
-  overview(ops: Op[]) {
+  overview(ops: Op[], toolContext: Op[]) {
     const app = this.app;
     const C = D.consts;
     if (this.searching) this.op(['tog', 'GeneralSettings.Enabled']);
@@ -736,6 +736,8 @@ export class Builder {
         tip: { t: "Open the PDF manual from the package's Documentation folder", i: '', native: true },
       });
     }
+    // Toggle Blendon and Esc Keeps Context, above Export as on the plugin's page.
+    this.run(toolContext);
     this.sub('Export', 'd_Refresh', 15, 0);
     if (!this.searching && this.matches('', C.ioTooltip)) {
       this.count();
