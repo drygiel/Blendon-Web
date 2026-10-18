@@ -1,8 +1,18 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { SharedSettings } from '../../src/bridge/settings.ts';
+import { KEY_OPEN, presetKey } from '../../src/plugin/keys.ts';
+import type { KeyboardPreset } from '../../src/plugin/schema.ts';
+import { TUTORIAL, TUTORIAL_TASKS } from '../../src/plugin/tutorial.ts';
 import { loadWindowData, D } from '../../src/plugin/window-data.ts';
-import { TUTORIAL } from '../../src/plugin/tutorial.ts';
 import { SceneTutorial as Reports, TransformTraits as T } from '../../src/scene/blendon/foundation.ts';
-import { TutorialCurriculum, TutorialTasks, unusedRules } from '../../src/scene/blendon/tutorial/curriculum.ts';
+import {
+  findTask,
+  gateOf,
+  Then,
+  TutorialCurriculum,
+  TutorialTasks,
+  unusedRules,
+} from '../../src/scene/blendon/tutorial/curriculum.ts';
 import { TutorialProgress } from '../../src/scene/blendon/tutorial/progress.ts';
 import { SceneTutorial } from '../../src/scene/blendon/tutorial/scene-tutorial.ts';
 import { Prefs, Selection } from '../../src/scene/unity/editor.ts';
@@ -15,6 +25,14 @@ const scene = new Scene();
 const cube = new GameObject(scene, 'Cube');
 
 const ids = () => TutorialTasks.filter((t) => TutorialProgress.isDone(t.id)).map((t) => t.id);
+const task = (id: string) => findTask(id)!;
+const data = (id: string) => TUTORIAL_TASKS.find((t) => t.id === id)!;
+
+// What the settings window would publish: its preset and the pies switched off in it.
+let preset: KeyboardPreset = 'Blendon';
+const piesOff = new Set<string>();
+const set = (key: string, v: boolean | string) => Prefs.local.set(key, v);
+const pieId = (shortcutId: string) => D.pies.find((p) => p.sid === shortcutId)!.id;
 
 beforeAll(async () => {
   await loadWindowData();
@@ -23,19 +41,62 @@ beforeAll(async () => {
     val: (key) => (key in D.initial ? D.initial[key] : D.props[key]?.d),
     shortcut: (id) => D.shortcuts[id]?.d,
   };
+  SharedSettings.publish({
+    val: (key) => Prefs.get(key, D.props[key]?.d ?? false),
+    shortcut: (id) => presetKey(D.keymap[id], preset) ?? '',
+    kbSide: () => preset,
+    pieOn: (id) => !piesOff.has(id),
+  });
   SceneTutorial.install();
 });
 
 beforeEach(() => {
   TutorialProgress.reset();
   Selection.set([], null, false);
+  Prefs.local.clear();
+  piesOff.clear();
+  preset = 'Blendon';
 });
 
 describe('tutorial curriculum', () => {
-  it('has a rule for every task the plugin teaches, and none left over', () => {
+  it('has a task for every one the plugin teaches, and no ported code left over', () => {
     expect(TutorialCurriculum).toHaveLength(TUTORIAL.chapters.length);
     expect(TutorialTasks).toHaveLength(TUTORIAL.chapters.reduce((n, c) => n + c.tasks.length, 0));
     expect(unusedRules()).toEqual([]);
+  });
+
+  it('ports every rule the plugin works out in code, and only those', () => {
+    for (const t of TUTORIAL_TASKS) {
+      expect({ id: t.id, ...task(t.id).ported() }).toEqual({
+        id: t.id,
+        keys: !!t.pressing,
+        needs: !!t.needs,
+        available: !!t.availableWhen,
+      });
+      for (const way of t.otherwise ?? []) expect(gateOf(way.gate), `${t.id}: gate ${way.gate}`).not.toBeNull();
+      for (const trait of t.traits ?? []) expect(Object.keys(T), `${t.id}: trait ${trait}`).toContain(trait);
+    }
+  });
+
+  it("names the plugin's pages, keys and settings", () => {
+    const pages = new Set(D.catalog.map((p) => p.id));
+    for (const t of TUTORIAL_TASKS) {
+      expect(task(t.id).page).toBe(t.page);
+      expect(pages, t.id).toContain(t.page);
+      if (t.keysPage) expect(pages, t.id).toContain(t.keysPage);
+      if (t.keysSetting) expect(D.props, t.id).toHaveProperty([t.keysSetting]);
+      for (const id of [...(t.ids ?? []), t.keysShortcut ?? '', ...(t.otherwise ?? []).map((w) => w.keys)])
+        if (id) expect(D.keymap, `${t.id}: ${id}`).toHaveProperty([id]);
+      // A shortcut task's first key is a row of its own page.
+      if (t.kind === 'shortcut') expect(D.pageShortcuts[t.page], t.id).toContain(t.ids?.[0]);
+      // After names tasks before it, so theirs is settled first.
+      const at = TUTORIAL_TASKS.indexOf(t);
+      for (const e of t.after ?? [])
+        expect(
+          TUTORIAL_TASKS.findIndex((x) => x.id === e),
+          t.id,
+        ).toBeLessThan(at);
+    }
   });
 
   it('draws key sequences from the live bindings', () => {
@@ -44,9 +105,94 @@ describe('tutorial curriculum', () => {
     expect(TutorialTasks.find((t) => t.id === 'scene.add-plane')!.keys()).toBe('Mouse 1');
   });
 
+  it('cancels a grab on Esc once the right mouse button no longer does', () => {
+    const grab = D.shortcuts['Blendon/Grab'].d;
+    expect(task('grab.cancel').keys()).toBe(grab + Then + 'Mouse 1');
+    set('GeneralSettings.RmbCancelEnabled', false);
+    expect(task('grab.cancel').keys()).toBe(grab + Then + 'Esc');
+  });
+
   it('skips what the browser demo cannot do', () => {
     expect(TutorialTasks.find((t) => t.id === 'nav.camera')!.isSkipped()).toBe(true);
+    expect(task('nav.camera').skippedBy()).toBe('demo');
     expect(TutorialTasks.find((t) => t.id === 'nav.orbit')!.isSkipped()).toBe(false);
+  });
+});
+
+describe('tutorial hints', () => {
+  it('reach the landing with every key spelled out', () => {
+    for (const t of TUTORIAL_TASKS) {
+      expect(t.hint, t.id).not.toMatch(/\{(key|setting):/);
+      if (t.hintSrc) expect(t.hintSrc, t.id).toMatch(/\{(key|setting):/);
+    }
+  });
+
+  it('fill their keys from the live keymap, for the preset the window is on', () => {
+    const menu = D.keymap['Blendon/Context Menu'];
+    expect(data('scene.add-plane').hintSrc).toContain('{key:Blendon/Context Menu}');
+    expect(task('scene.add-plane').hint).toContain(KEY_OPEN + menu.b);
+    preset = 'Unity';
+    expect(task('scene.add-plane').hint).toContain(KEY_OPEN + menu.u);
+  });
+});
+
+describe('tutorial rules', () => {
+  it('takes the other way while its own is off, with that way keys, hint and picture', () => {
+    const t = task('handles.move-tool');
+    const way = data('handles.move-tool').otherwise![0];
+    expect(t.keys()).toBe(D.shortcuts[t.keysShortcutId].d);
+    piesOff.add(pieId(t.keysShortcutId));
+    expect(t.isSkipped()).toBe(false);
+    expect(t.keys()).toBe(D.keymap[way.keys].b);
+    expect(t.hintSource).toBe(way.text);
+    expect(t.picture).toBe(way.picture);
+    expect(t.clip).toBe('');
+  });
+
+  it('tries the ways in order and skips the task when none is open', () => {
+    const t = task('scene.add-plane');
+    const own = data('scene.add-plane');
+    set('SceneMenuSettings.AddObject', false);
+    expect(t.hintSource).toBe(own.otherwise![0].text);
+    expect(t.keys()).toBe(D.shortcuts['Blendon/Pie Menus/Add Object'].d);
+    piesOff.add(pieId('Blendon/Pie Menus/Add Object'));
+    expect(t.skippedBy()).toBe('switch');
+    expect(t.switchText).toBe(own.availableWhen!.reason);
+  });
+
+  it('skips a task once every task it builds on is skipped and none is done', () => {
+    set('SceneMenuSettings.Grouping', false);
+    expect(task('select.group').skippedBy()).toBe('switch');
+    // The pivot kept in the chapter before is still a parent to walk.
+    expect(task('select.parent').isSkipped()).toBe(false);
+    set('RotateGizmoSettings.Enabled', false);
+    expect(task('snap.virtual-pivot').skippedBy()).toBe('page');
+    expect(task('snap.keep-pivot').skippedBy()).toBe('earlier');
+    for (const id of ['select.parent', 'select.children', 'select.click-parent'])
+      expect(task(id).skippedBy(), id).toBe('earlier');
+    // A done one left its parent in the scene.
+    TutorialProgress.complete('snap.keep-pivot');
+    expect(task('select.parent').isSkipped()).toBe(false);
+  });
+
+  it('skips a task whose switch below the page is off, for the reason the plugin gives', () => {
+    const t = task('grab.slow');
+    expect(t.isSkipped()).toBe(false);
+    set('SharedGizmoSettings.PrecisionModeEnabled', false);
+    expect(t.skippedBy()).toBe('switch');
+    expect(t.switchText).toBe(data('grab.slow').availableWhen!.reason);
+    Prefs.local.clear();
+    set('SharedGizmoSettings.PrecisionModifier', 'None');
+    expect(t.skippedBy()).toBe('switch');
+  });
+
+  it('tells a feature switched off on its own from its page switched off', () => {
+    set('PieMenuSettings.Enabled', false);
+    set('WireframeToggleSettings.Enabled', false);
+    expect(task('pie.draw-mode').skippedBy()).toBe('page');
+    Prefs.local.clear();
+    piesOff.add(pieId('Blendon/Pie Menus/Shading'));
+    expect(task('pie.draw-mode').skippedBy()).toBe('key');
   });
 });
 

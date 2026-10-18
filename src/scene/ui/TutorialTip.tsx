@@ -6,6 +6,7 @@ import { useReducedMotion } from '../../lib/hooks.ts';
 import { publicUrl } from '../../lib/links.ts';
 import type { TutorialTask } from '../blendon/tutorial/curriculum.ts';
 import { KeyCaps } from './KeyCaps.tsx';
+import { TutorialHint } from './TutorialHint.tsx';
 import styles from './TutorialBadge.module.scss';
 
 /** Milliseconds the cursor has to rest on the line, the same wait as the settings window's cards. */
@@ -59,7 +60,9 @@ export function TutorialTip({ task, badge, view }: TutorialTipProps) {
         <div className={styles.tipTitle}>{task.title}</div>
         {keys && <KeyCaps binding={keys} color="#fff" dim={false} joined className={styles.tipKeys} />}
       </div>
-      <div className={styles.tipHint}>{task.hint}</div>
+      <div className={styles.tipHint}>
+        <TutorialHint text={task.hint} />
+      </div>
       {/* The picture is the clip's poster while it loads, and the whole tip with reduced motion. */}
       {task.clip && !reduced ? (
         <video

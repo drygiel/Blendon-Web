@@ -1,4 +1,11 @@
+import { readFileSync } from 'node:fs';
+import type { TutorialData } from '../../src/plugin/tutorial.ts';
 import { expect, type Page, test } from './fixtures.ts';
+
+// The plugin's tutorial as the site ships it, so the checks follow its wording.
+const TUTORIAL_TASKS = (
+  JSON.parse(readFileSync(new URL('../../src/plugin/generated/tutorial.json', import.meta.url), 'utf8')) as TutorialData
+).chapters.flatMap((c) => c.tasks);
 
 let errors: string[] = [];
 
@@ -126,6 +133,20 @@ test('a gesture ticks its task, the badge flashes it and the checklist shows it 
   const row = page.locator('#try .uw .tutr', { hasText: 'Drop it back onto the floor' });
   await expect(row.locator('.tutbox.done')).toBeVisible();
   await expect(page.locator('#try .uw .tutstat')).toContainText(/1 of \d+ tasks done/);
+});
+
+test("the badge's card spells a task's keys out, never their tokens", async ({ page }) => {
+  const plane = TUTORIAL_TASKS.find((t) => t.id === 'scene.add-plane')!;
+  const view = await openScene(page);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  await page.locator('#try .uw .tutr', { hasText: plane.title }).locator('.tutt').click();
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await view.getByRole('button', { name: plane.title }).hover();
+  const tip = view.getByRole('tooltip');
+  // The landing's copy is the same hint filled for the Blendon preset, which the demo starts on.
+  await expect(tip).toContainText(plane.hint);
+  await expect(tip).not.toContainText('{key:');
+  await expect(tip.locator('b').first()).toBeVisible();
 });
 
 test('grabs the selection by a typed distance and undoes it', async ({ page }) => {

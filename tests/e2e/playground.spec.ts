@@ -1,4 +1,14 @@
+import { readFileSync } from 'node:fs';
+import type { Locator } from '@playwright/test';
+import type { TutorialData } from '../../src/plugin/tutorial.ts';
 import { expect, type Page, test } from './fixtures.ts';
+
+// The plugin's own tutorial texts and keys, so the checks follow its wording.
+const readJson = <T>(file: string) =>
+  JSON.parse(readFileSync(new URL('../../src/plugin/generated/' + file, import.meta.url), 'utf8')) as T;
+const TASKS = readJson<TutorialData>('tutorial.json').chapters.flatMap((c) => c.tasks);
+const KEYMAP = readJson<{ keymap: Record<string, { b: string }> }>('window-data.json').keymap;
+const taskData = (id: string) => TASKS.find((t) => t.id === id)!;
 
 let errors: string[] = [];
 
@@ -50,6 +60,69 @@ test('picks a tutorial task by clicking it', async ({ page }) => {
   await win.locator('.tutr', { hasText: 'Slide the camera sideways' }).locator('.tutgear').click();
   await expect(win.locator('.htitle')).toHaveText('Pan');
   await expect(win.locator('[data-hl="true"]')).toBeVisible();
+});
+
+/** A task's row on the Tutorial page. */
+const taskRow = (win: Locator, id: string) =>
+  win.locator('.tutr').filter({ has: win.page().locator('.tutname').getByText(taskData(id).title, { exact: true }) });
+
+const openPage = (win: Locator, label: string) => win.locator(`.si[aria-label="${label}"]`).click();
+
+/** The row's hover card says `text`. Hovered again while the page still scrolls to its current task. */
+async function expectCard(win: Locator, row: Locator, text: string) {
+  await expect(async () => {
+    // From outside, so the row sees the pointer come in again.
+    await win.page().mouse.move(0, 0);
+    await row.locator('.tutt').hover();
+    await expect(win.locator('.rtip')).toContainText(text, { timeout: 1500 });
+  }).toPass();
+}
+
+test('with the Tools pie off, picking the Move tool takes the other way, on its own keys', async ({ page }) => {
+  const win = await openWindow(page);
+  const way = taskData('handles.move-tool').otherwise![0];
+  await openPage(win, 'Pie Menus');
+  await win.getByRole('button', { name: 'Enable Tools', exact: true }).click();
+  await openPage(win, 'Tutorial');
+  const row = taskRow(win, 'handles.move-tool');
+  await expect(row.locator('.tuttag')).toHaveCount(0);
+  await expect(row.locator('.tutkeys')).toHaveText(KEYMAP[way.keys].b);
+  await row.locator('.tutt').click();
+  await expect(row.locator('.tuthint')).toHaveText(way.text);
+});
+
+test('stepping up to the parent builds on the group or the kept pivot, and is skipped once both are', async ({
+  page,
+}) => {
+  const win = await openWindow(page);
+  await openPage(win, 'Context Menu');
+  await win.getByRole('button', { name: 'Show Group & Unparent' }).click();
+  await openPage(win, 'Tutorial');
+  await expect(taskRow(win, 'select.group').locator('.tuttag')).toHaveText('OFF');
+  await expect(taskRow(win, 'select.parent').locator('.tuttag')).toHaveCount(0);
+
+  await openPage(win, 'Rotate');
+  await win.getByRole('button', { name: 'Enable Rotate', exact: true }).click();
+  await openPage(win, 'Tutorial');
+  const parent = taskRow(win, 'select.parent');
+  await expect(parent.locator('.tuttag')).toHaveText('OFF');
+  const titles = taskData('select.parent').after!.map((id) => `"${taskData(id).title}"`);
+  await expectCard(win, parent, `Skipped while ${titles.join(' and ')} are skipped. This task builds on one of them`);
+});
+
+test('with Precision Mode off, fine-tuning is skipped for the reason the plugin gives', async ({ page }) => {
+  const win = await openWindow(page);
+  await openPage(win, 'All Tools');
+  const precision = win.locator('.cell', { has: page.locator('.ctx', { hasText: 'PRECISION MODE' }) });
+  await precision.getByRole('button', { name: 'Enable', exact: true }).click();
+  await openPage(win, 'Tutorial');
+  const row = taskRow(win, 'grab.slow');
+  await expect(row.locator('.tuttag')).toHaveText('OFF');
+  await expectCard(
+    win,
+    row,
+    `Skipped while ${taskData('grab.slow').availableWhen!.reason}. Change that to do this task`,
+  );
 });
 
 test('navigates pages and searches every page', async ({ page }) => {
