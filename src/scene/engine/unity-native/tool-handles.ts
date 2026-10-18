@@ -22,6 +22,8 @@ import { alignedScaleDelta } from './handle-math.ts';
 
 const VertexSnapId = 'Scene View/Vertex Snapping';
 const VertexSnapToggleId = 'Scene View/Toggle Vertex Snapping';
+// Unity keys these ids by a hash per handle, so they hold however many ids the scene GUI before them took.
+const ToolIdBase = 1 << 20;
 
 const individualSpace = () => Tools.pivotRotation === PivotRotation.Local && Tools.pivotMode === PivotMode.Pivot;
 
@@ -95,6 +97,7 @@ let session: {
   pivot: Vector3;
   startRotation: Quaternion;
   handleRotation: Quaternion;
+  group: number;
 } | null = null;
 
 /** Starts the undo step and remembers every target's pose when one of the tool's handles took the mouse. */
@@ -113,6 +116,7 @@ function begin(before: number, ids: number[], kind: Kind, pivot: Vector3, rotati
     pivot,
     startRotation: rotation,
     handleRotation: rotation,
+    group: Undo.getCurrentGroup(),
   };
 }
 
@@ -124,12 +128,15 @@ function endIfReleased() {
   }
 }
 
-/** The Editor reverts a drag on Escape while a handle holds the mouse, and lets go of it. */
+/**
+ * The Editor itself reverts a drag on Escape while a handle holds the mouse, before any scene GUI sees the key.
+ * Every key opens an undo group, so the revert goes back to the drag's own.
+ */
 function cancelOnEscape() {
   const ev = Event.current;
   if (!session || ev.type !== EventType.KeyDown || ev.keyCode !== KeyCode.Escape) return;
   if (GUIUtility.hotControl !== session.id) return;
-  Undo.revertAllInCurrentGroup();
+  Undo.revertAllDownToGroup(session.group);
   GUIUtility.hotControl = 0;
   session = null;
   BuiltinHandles.endDrag();
@@ -269,6 +276,7 @@ export const UnityToolHandles = {
       false,
       'Shift+V',
     );
+    SceneView.beforeSceneGui.add(cancelOnEscape);
   },
 
   onGUI(_view: SceneView) {
@@ -278,13 +286,14 @@ export const UnityToolHandles = {
       endIfReleased();
       return;
     }
-    cancelOnEscape();
     // The handle follows the cursor to the selection's nearest vertex until a drag takes it.
     if (Tools.vertexDragging && GUIUtility.hotControl === 0 && Event.current.type === EventType.Layout) {
       updateVertexOffset();
       keptOffset = handleOffset;
     }
     const saved = Handles.color;
+    const nextId = GUIUtility.nextId;
+    GUIUtility.nextId = ToolIdBase;
     switch (session?.tool ?? Tools.current) {
       case Tool.Move:
         moveTool();
@@ -299,6 +308,7 @@ export const UnityToolHandles = {
         transformTool();
         break;
     }
+    GUIUtility.nextId = nextId;
     Handles.color = saved;
   },
 };

@@ -111,6 +111,17 @@ export class UnitySelection {
         this.press = null;
         break;
 
+      case EventType.KeyDown:
+        // RectSelection: Escape puts back the selection from before the box and lets go, leaving the key unused.
+        if (ev.keyCode === KeyCode.Escape && this.dragging && GUIUtility.hotControl === id) {
+          GUIUtility.hotControl = 0;
+          Undo.revertAllDownToGroup(this.boxGroup);
+          this.press = null;
+          this.dragging = false;
+          view.repaint();
+        }
+        break;
+
       case EventType.Repaint:
         if (this.dragging && GUIUtility.hotControl === id) {
           const r = this.rect();
