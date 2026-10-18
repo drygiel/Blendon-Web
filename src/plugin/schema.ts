@@ -45,7 +45,8 @@ export type Op =
   | ['dis', Cond, Op[]]
   | ['if', Cond, Op[], Op[] | null]
   | ['fold', string, Op[]]
-  | ['overview', Op[]]
+  // The Defaults card, then the Tool Context section OverviewPage draws from GeneralSettings rows.
+  | ['overview', Op[], Op[]]
   | ['frameSeq']
   | ['extras']
   | ['pieList']

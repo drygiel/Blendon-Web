@@ -181,12 +181,63 @@ const SHARED_GIZMOS = `
     }
 `;
 
+// Editor/Core/Settings/Core/GeneralSettings.Defaults.cs and GeneralSettings.Overview.cs (main 0c766898).
+const GENERAL = `
+    public sealed partial class GeneralSettings
+    {
+        /// <summary>Overview's Defaults card. The axis palette has no per-tool override, so it lives here.</summary>
+        public override void DrawSettings(SettingsControls s)
+        {
+            s.Info(DefaultsIntro);
+
+            s.SubLabel("Animation", "Motion Icon");
+            var animate = s.Toggle(() => AnimationEnabled, v => AnimationEnabled = v);
+            using (new EditorGUI.DisabledScope(!animate))
+            {
+                s.Slider(() => AnimationDuration, v => AnimationDuration = v, 0.0001f, 2f);
+            }
+
+            s.SubLabel("Cursor Wrap", "DotFrame");
+            var wrapEnabled = s.Toggle(() => CursorWrapEnabled, v => CursorWrapEnabled = v);
+            using (new EditorGUI.DisabledScope(!wrapEnabled))
+            {
+                s.EnumPopup(() => CursorWrap, v => CursorWrap = v);
+
+                if (CursorWrap.SupportsBounds())
+                    s.EnumPopup(() => WrapBounds, v => WrapBounds = v);
+            }
+
+            s.SubLabel("Axis Colors", "d_Grid.PaintTool");
+
+            using (new EditorGUI.DisabledScope(!ColorsEditable))
+            {
+                s.ColorField(() => AxisColorX, v => AxisColorX = v);
+            }
+        }
+
+        /// <inheritdoc cref="DrawShortcutTipsToggle" />
+        public void DrawToggleContextShortcut(SettingsControls s)
+        {
+            s.ShortcutField(() => ToggleContextShortcut, v => ToggleContextShortcut = v, ToggleContextId);
+        }
+
+        /// <summary>Tutorial page's opening card, the switch beside the page name and a footer under it.</summary>
+        public void DrawTutorialHeader(SettingsControls s, float footerHeight, Action<Rect> drawFooter)
+        {
+            s.MasterHeader(SettingsPage.Tutorial, () => ShowTutorial, v => ShowTutorial = v, footerHeight,
+                drawFooter);
+        }
+    }
+`;
+
 const CONSTS: Record<string, string> = {
   'Zoom.ZoomInShortcutId': 'Blendon/Zoom/Zoom In',
   'Zoom.ZoomOutShortcutId': 'Blendon/Zoom/Zoom Out',
   'FrameSelected.ShortcutId': 'Blendon/Frame Selected',
   'VertexSnapping.ShortcutId': 'Blendon/Vertex Snap',
   'VertexSnapping.PickShortcutId': 'Blendon/Pick Virtual Pivot',
+  'GeneralSettings.DefaultsIntro': 'Values the rest of Blendon falls back to.',
+  'GeneralSettings.ToggleContextId': 'Blendon/Tool Context/Toggle Blendon',
 };
 
 // Cards as the dump carries them: `src` as written, `t` resolved for the Blendon preset.
@@ -208,7 +259,7 @@ function bodiesOf(...sources: string[]): Map<string, Stmt[]> {
 }
 
 describe('ops from the plugin pages', () => {
-  const run = pageConverter(bodiesOf(ZOOM, VIEWPORT_NAV, FRAME_SELECTED, SHARED_GIZMOS), CONSTS, TIPS);
+  const run = pageConverter(bodiesOf(ZOOM, VIEWPORT_NAV, FRAME_SELECTED, SHARED_GIZMOS, GENERAL), CONSTS, TIPS);
 
   it('reads a two-argument ShortcutField with the card as written', () => {
     expect(run('ZoomSettings', 'DrawKeyboardSettings')).toEqual([
@@ -274,6 +325,39 @@ describe('ops from the plugin pages', () => {
         ],
         ['sc', 'Blendon/Pick Virtual Pivot', null, 'Pick Virtual Pivot', 'Pick', 'Tips/AllTools/PickVirtualPivot.png'],
       ],
+    ]);
+  });
+
+  it("reads the Overview's Defaults card and its Tool Context row", () => {
+    expect(run('GeneralSettings', 'DrawSettings')).toEqual([
+      ['info', 'Values the rest of Blendon falls back to.'],
+      ['sub', 'Animation', 'Motion Icon', 15, 0],
+      ['tog', 'GeneralSettings.AnimationEnabled'],
+      [
+        'dis',
+        ['!', ['v', 'GeneralSettings.AnimationEnabled']],
+        [['sld', 'GeneralSettings.AnimationDuration', 0.0001, 2]],
+      ],
+      ['sub', 'Cursor Wrap', 'DotFrame', 15, 0],
+      ['tog', 'GeneralSettings.CursorWrapEnabled'],
+      [
+        'dis',
+        ['!', ['v', 'GeneralSettings.CursorWrapEnabled']],
+        [
+          ['pop', 'GeneralSettings.CursorWrap'],
+          [
+            'if',
+            ['f', 'supportsBounds', ['v', 'GeneralSettings.CursorWrap']],
+            [['pop', 'GeneralSettings.WrapBounds']],
+            null,
+          ],
+        ],
+      ],
+      ['sub', 'Axis Colors', 'd_Grid.PaintTool', 15, 0],
+      ['dis', ['!', ['v', 'GeneralSettings.Enabled']], [['col', 'GeneralSettings.AxisColorX']]],
+    ]);
+    expect(run('GeneralSettings', 'DrawToggleContextShortcut')).toEqual([
+      ['sc', 'Blendon/Tool Context/Toggle Blendon', 'GeneralSettings.ToggleContextShortcut'],
     ]);
   });
 
