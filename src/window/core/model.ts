@@ -3,7 +3,7 @@
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { type GateReader, Keymap, type LiveSettings, switchedOn } from '../../bridge/keymap.ts';
 import { TipResolver } from '../../plugin/keys.ts';
-import type { ContestedRow, KeyboardPreset, PropValue } from '../../plugin/schema.ts';
+import type { ContestedRow, KeyboardPreset, PropValue, SceneMenuExtra } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
 import { SceneTutorial } from '../../scene/blendon/foundation.ts';
 import type { DialogState, FrameStep, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
@@ -11,6 +11,10 @@ import { rich } from './text.ts';
 import { clamp, M } from './util.ts';
 
 const TOOLS = ['MoveGizmoSettings', 'RotateGizmoSettings', 'ScaleGizmoSettings', 'TransformGizmoSettings'];
+
+const FRAME_SEQUENCE = 'FrameSelectedSettings.SequenceText';
+const EXTRA_PREFIX = 'SceneMenuSettings.';
+const EXTRA_ORDER = EXTRA_PREFIX + 'ExtraOrderText';
 
 // The Transform tool's sub-settings that store nothing of their own (DelegateTarget in C#).
 const DELEGATED: Record<string, string> = {};
@@ -339,24 +343,40 @@ export class WindowModel {
   }
 
   // ---- tables -----------------------------------------------------------------------------------
+  /** FrameSelectedSettings.Parse: the stored text in order, then any step it misses, switched off. */
   frameSteps() {
-    const seq = this.st.frameSeq ?? D.frameSteps.map((s) => ({ id: s.id, on: s.on }));
+    const seq: FrameStep[] = [];
+    for (const token of String(this.val(FRAME_SEQUENCE) ?? '').split(',')) {
+      const on = token.length > 0 && token[0] !== '-';
+      const id = on ? token : token.replace(/^-+/, '');
+      if (D.frameStepInfo[id] && !seq.some((s) => s.id === id)) seq.push({ id, on });
+    }
+    for (const s of D.frameSteps) if (!seq.some((x) => x.id === s.id)) seq.push({ id: s.id, on: false });
     return seq.map((s) => ({ ...D.frameStepInfo[s.id], id: s.id, on: s.on }));
   }
 
+  /** FrameSelectedSettings.Store: one text, an off step keeping its place behind a '-'. */
   setFrame(seq: FrameStep[]) {
-    this.update({ frameSeq: seq });
+    this.set(FRAME_SEQUENCE, seq.map((s) => (s.on ? '' : '-') + s.id).join(','));
   }
 
+  /** SceneMenuCatalog.Ordered: the stored names first, once each, then the groups they leave out. */
   extrasOrder() {
-    const order = this.st.extras ?? D.extras.map((e) => e.id ?? '');
-    return order.map((id) => D.extras.find((e) => e.id === id)!);
+    const text = String(this.val(EXTRA_ORDER) ?? '');
+    const order: SceneMenuExtra[] = [];
+    for (const name of text ? text.split(',') : []) {
+      const e = D.extras.find((x) => x.id === EXTRA_PREFIX + name);
+      if (e && !order.includes(e)) order.push(e);
+    }
+    for (const e of D.extras) if (!order.includes(e)) order.push(e);
+    return order;
   }
 
+  /** SceneMenuCatalog.Store: every group's setting name, in the new order. */
   moveExtra(ids: string[], i: number, j: number) {
     const next = [...ids];
     [next[i], next[j]] = [next[j], next[i]];
-    this.update({ extras: next });
+    this.set(EXTRA_ORDER, next.map((id) => id.slice(EXTRA_PREFIX.length)).join(','));
   }
 
   pieOn(id: string): boolean {
@@ -454,8 +474,6 @@ export class WindowModel {
       for (const k of Object.keys(vals)) if (owned(k)) delete vals[k];
       for (const k of Object.keys(ovr)) if (owned(k)) delete ovr[k];
       const patch: Partial<WindowState> = { vals, ovr };
-      if (page === 'FrameSelected') patch.frameSeq = null;
-      if (page === 'SceneMenu') patch.extras = null;
       if (page === 'PieMenus') patch.pies = {};
       return patch;
     });
@@ -470,8 +488,6 @@ export class WindowModel {
     this.update({
       vals: {},
       ovr: {},
-      frameSeq: null,
-      extras: null,
       pies: {},
     });
   }

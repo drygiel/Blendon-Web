@@ -3,6 +3,7 @@
 // Only the curated pairs (D.known) are told here: the browser has no Editor shortcut registry to scan for clashes.
 import { PlaygroundEvents } from '../../bridge/events.ts';
 import { Keymap } from '../../bridge/keymap.ts';
+import { TipsSeen } from '../../bridge/tips.ts';
 import { D } from '../../plugin/window-data.ts';
 import { ShortcutManager } from '../unity/editor.ts';
 import { GUIUtility } from '../unity/imgui.ts';
@@ -40,7 +41,6 @@ const HoverGrace = 2.5;
 // The Editor commands Blendon's curated keys push aside, and the context each is heard in.
 const UnityContexts: Record<string, string> = {
   'Show Overlay Menu': 'Scene View',
-  'Toggle Pivot Position': 'Scene View',
   'Decal: Stretch UV': 'Decal Projector',
   'Decal: Pivot & UVs': 'Decal Projector',
 };
@@ -125,6 +125,7 @@ function tick(): boolean {
     if (!c) return false;
     // Spent when shown: a card never drawn has taught nobody anything.
     seen.add(seenKey(id));
+    TipsSeen.changed();
     card = c;
     shownAt = t;
     expiresAt = t + Linger;
@@ -180,16 +181,20 @@ export const ShortcutTipCard = {
   /** The window's "bring back dismissed tips". */
   resetAll() {
     seen.clear();
+    TipsSeen.changed();
   },
 
   install() {
     Hook.onNote = note;
+    // ShortcutTips.AnySeen: a card spent on a key as it is bound now.
+    TipsSeen.register(() => Object.keys(D.known).some((id) => seen.has(seenKey(id))));
     PlaygroundEvents.on('tipsReset', () => ShortcutTipCard.resetAll());
     PlaygroundEvents.on('reset', () => {
       seen.clear();
       waiting = null;
       card = null;
       changed();
+      TipsSeen.changed();
     });
   },
 };

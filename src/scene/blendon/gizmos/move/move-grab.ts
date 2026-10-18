@@ -216,6 +216,8 @@ export class MoveGrab extends GrabSession {
       this.numeric,
       new AxisBasis(this.spaceRotation(this.numeric.currentActiveSpace, this.numeric.isSpaceExplicit)),
     );
+    // Relayed keys skip the parser's applyNumeric, so the typed value is carried over to the new axis here.
+    if (this.numeric.state === ModalNumericState.NumericInput) this.applyNumeric();
   }
 
   protected drawSessionOverlays() {

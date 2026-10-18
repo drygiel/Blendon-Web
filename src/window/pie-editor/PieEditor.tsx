@@ -216,7 +216,8 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
 
   // ---- shortcut ----
 
-  const bindable = isNew || (!!app.val('PieMenuSettings.Enabled') && app.pieOn(id));
+  const menuOn = isNew || app.pieOn(id);
+  const bindable = isNew || (!!app.val('PieMenuSettings.Enabled') && menuOn);
   const canRestore = bindable && !!sid && binding !== defaultBinding;
   const canClear = bindable && !!binding;
   // Judged on the draft's key, which the window only takes on save.
@@ -262,13 +263,14 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
       title: 'Restore Defaults',
       body:
         `Put "${pie?.title}" back the way Blendon ships it?\n\nIts title and items are restored` +
-        (bindable ? ', and its shortcut goes back to its default key.' : '.') +
+        (menuOn ? ", and its shortcut goes back to its keyboard preset's key." : '.') +
         '\n\nNothing is stored until you Save.',
       ok: 'Restore',
       cancel: 'Cancel',
       run: () => {
         setDraft(defaultDraft(sid));
-        if (bindable) setBinding(defaultBinding);
+        // A switched-off menu's field is read-only, so its key is left as it is.
+        if (menuOn) setBinding(defaultBinding);
       },
     });
 
@@ -350,7 +352,9 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
                 title={
                   bindable
                     ? 'Hold to open this pie and release on a direction to run that item, or tap to leave it open for a click'
-                    : 'This menu or pie menus as a whole are switched off; switch them back on to give it a shortcut'
+                    : menuOn
+                      ? 'Pie menus are switched off on their settings page; switch them back on to give this one a shortcut'
+                      : 'This menu is switched off in the pie menus list; switch it on to give it a shortcut'
                 }
               >
                 <div>Shortcut</div>

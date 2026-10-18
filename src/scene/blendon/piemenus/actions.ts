@@ -1,6 +1,14 @@
 // PieAction + ActionCatalog: everything Blendon's pies can do, described rather than placed. An action
 // holds no slot and no view; createItem binds it to the view the pie opened in.
-import { EditorSnapSettings, PivotRotation, Selection, Tool, Tools, Undo } from '../../unity/editor.ts';
+import {
+  EditorSnapSettings,
+  PivotMode as UnityPivotMode,
+  PivotRotation,
+  Selection,
+  Tool,
+  Tools,
+  Undo,
+} from '../../unity/editor.ts';
 import { HandleUtility } from '../../unity/handles.ts';
 import { Plane, Quaternion, Vector3, type Vector2 } from '../../unity/math.ts';
 import { primitiveMesh, type PrimitiveType } from '../../unity/primitives.ts';
@@ -126,10 +134,18 @@ const rotation = (name: string, value: number, icon: string) =>
     isCurrent: () => Tools.pivotRotation === value,
   });
 
+// Unity's Tool Handle Position. Blendon's Pivot Point restores its last mode on that side.
+const position = (name: string, value: number, icon: string) =>
+  new PieAction('Tools Handle', name, icon, () => (Tools.pivotMode = value), {
+    isCurrent: () => Tools.pivotMode === value,
+  });
+
 export const ToolsHandleActions = [
   rotation('Global', PivotRotation.Global, 'd_ToolHandleGlobal'),
   rotation('Local', PivotRotation.Local, 'd_ToolHandleLocal'),
   rotation('Grid', PivotRotation.Grid, 'd_GridAndSnap'),
+  position('Pivot', UnityPivotMode.Pivot, 'd_ToolHandlePivot'),
+  position('Center', UnityPivotMode.Center, 'd_ToolHandleCenter'),
 ];
 
 // ---- Pivot Point: filed under full names, shown by the toolbar's short ones ----

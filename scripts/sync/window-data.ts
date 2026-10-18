@@ -950,8 +950,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     switchTips,
     consts,
     contested,
-    // Overview contested table: two label/key column pairs plus the divider and side padding.
-    contestedMinWidth: 22 + (118 + 8 + 148 + 14) * 2 + 10 + 22,
+    // OverviewContestedTable.MinWidth: the label indent, two name/key column pairs with their gutters, the action column.
+    contestedMinWidth: 22 + (118 + 8 + 148 + 14) * 2 + 10 + 56,
     featureGroups,
     pies,
     pageShortcuts,

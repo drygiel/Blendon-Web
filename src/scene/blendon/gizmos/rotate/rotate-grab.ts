@@ -10,6 +10,7 @@ import { GrabSession, IndividualOrigins } from '../common/controller.ts';
 import { AxisBasis } from '../common/layout.ts';
 import { DragKind, GizmoDragCoordinator } from '../core/drag.ts';
 import { ModalNumericState } from '../core/numeric.ts';
+import { RotateSnap } from '../core/rotate-snap.ts';
 import { RingAngleTracker, RingGeometry } from '../handles/ring.ts';
 import { GizmoHud } from '../hud.ts';
 import { DrawOverlays } from '../overlays.ts';
@@ -114,7 +115,7 @@ export class RotateGrab extends GrabSession {
   protected followCursor() {
     const pivot = this.coordinator.pivotAtDragStart;
     const viewDir = GizmoRenderer.computeViewDir(pivot, GizmoRenderer.currentCamera());
-    this.totalAngle += this.tracker.frameDelta(
+    const frameDelta = this.tracker.frameDelta(
       pivot,
       this.axisDir,
       this.refDir,
@@ -122,7 +123,8 @@ export class RotateGrab extends GrabSession {
       viewDir,
       this.coordinator.wrap.virtualMousePosition,
     );
-    this.apply(this.totalAngle);
+    this.totalAngle += frameDelta * RotateSnap.precisionScale;
+    this.apply(RotateSnap.snap(this.totalAngle));
   }
 
   private apply(angle: number) {
@@ -163,7 +165,7 @@ export class RotateGrab extends GrabSession {
     this.seedTracking(dir, pivot);
     // Re-applied at once so the switch shows on the key press; typed digits stay authoritative.
     if (this.numeric.state === ModalNumericState.NumericInput) this.applyNumeric();
-    else this.apply(this.totalAngle);
+    else this.apply(RotateSnap.snap(this.totalAngle));
   }
 
   protected drawSessionOverlays(sceneView: SceneView) {

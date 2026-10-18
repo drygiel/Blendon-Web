@@ -71,7 +71,7 @@ export const PIES: PieDemo[] = [
     items: ['Center', 'Median', 'Active', 'Pivot'],
     icons: ['d_ToolHandleCenter', 'd_RectTool', 'd_AvatarPivot', 'd_ToolHandlePivot'],
     active: 0,
-    note: "Blender's four pivot modes, laid out as Blender lays them out",
+    note: "Four of Blender's pivot modes, Active in the 3D Cursor's slot",
   },
   {
     id: 'reset',

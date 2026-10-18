@@ -1,5 +1,7 @@
 // The page layout builder: runs a page's draw ops (SettingsControls calls) into rows of cells,
 // with the two-column grid, cards and folds of SettingsEditorWindow.
+import { TipsSeen } from '../../bridge/tips.ts';
+import { HOME_URL, MANUAL_URL } from '../../lib/links.ts';
 import type { Cond, Op, PageHeader, Tip } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
 import { TutorialCurriculum } from '../../scene/blendon/tutorial/curriculum.ts';
@@ -31,7 +33,7 @@ export type ItemData =
   | { k: 'note'; runs: Run[]; tip: TipSource }
   | { k: 'banner'; warn: boolean; runs: Run[]; indent: boolean; lead: boolean; link?: BannerLink }
   | { k: 'plink'; page: string; text: string; icon: string; accent: string; tip: TipSource }
-  | { k: 'link'; lead: string; text: string; tip: TipSource }
+  | { k: 'link'; lead: string; text: string; tip: TipSource; url: string }
   | { k: 'space'; h: number }
   | { k: 'prev'; owner: string }
   | { k: 'action'; label: string; btn: string; tip: TipSource }
@@ -724,16 +726,28 @@ export class Builder {
     // Under the picker: the picker decides who gives way, this decides if you're told when you hit it.
     this.propItem('GeneralSettings.ShowShortcutTips', { k: 'tog' });
     if (!this.searching) {
-      const d = !app.val('GeneralSettings.ShowShortcutTips');
-      if (d) this.dis++;
-      this.action('Tips Shown', C.tipsShownTip ?? '', '↺  Show Again', 'Tips/Overview/TipsShown.png');
-      if (d) this.dis--;
+      // OverviewPage.DrawTipsReset: only once a tip was shown, since tips re-arm on every binding change.
+      if (TipsSeen.any()) {
+        const d = !app.val('GeneralSettings.ShowShortcutTips');
+        if (d) this.dis++;
+        this.action('Tips Shown', C.tipsShownTip ?? '', '↺  Show Again', 'Tips/Overview/TipsShown.png');
+        if (d) this.dis--;
+      }
       this.flush();
       this.add({
         k: 'link',
         lead: 'The full guide to every feature: ',
         text: 'Blendon manual (PDF)',
         tip: { t: "Open the PDF manual from the package's Documentation folder", i: '', native: true },
+        url: MANUAL_URL,
+      });
+      this.flush();
+      this.add({
+        k: 'link',
+        lead: 'The latest manual and the interactive Playground: ',
+        text: 'blendon.drygiel.com',
+        tip: { t: 'Open the Blendon website in your browser', i: '', native: true },
+        url: HOME_URL,
       });
     }
     // Toggle Blendon and Esc Keeps Context, above Export as on the plugin's page.

@@ -1,14 +1,13 @@
 // The Rotate gizmo's handles: ring geometry and angle tracking, ring overlays, the rings and the trackball.
-import { EditorSnapSettings } from '../../../unity/editor.ts';
 import { HandleUtility, Handles } from '../../../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility, MouseButton } from '../../../unity/imgui.ts';
 import { Color, Mathf, Plane, Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import { withAlpha, withOpacity } from '../../color.ts';
-import { SnapCompat } from '../../foundation.ts';
 import type { GizmoAxis } from '../axis.ts';
 import { GizmoColors } from '../colors.ts';
 import { Signal } from '../common/signal.ts';
 import { DragKind, type GizmoDragCoordinator } from '../core/drag.ts';
+import { RotateSnap } from '../core/rotate-snap.ts';
 import { ScreenDragSolver } from '../core/screen-drag-solver.ts';
 import { AxisLabelDrawer, DrawOverlays } from '../overlays.ts';
 import { DrawPrimitives, GizmoRenderer } from '../rendering.ts';
@@ -21,7 +20,12 @@ import { AxisHandle } from './axis-handle.ts';
 const AngleBlendLowT = 0.15;
 const AngleBlendHighT = 0.5;
 
+// Under a hundredth of a pixel from the centre there is no direction to measure.
+const MinScreenDirSqr = 1e-4;
+
 function signedAngle2D(from: Vector2, to: Vector2) {
+  // Atan2 of signed zeros reads 0 or 180 by quadrant, so a cursor on the pivot would add half a turn.
+  if (from.sqrMagnitude < MinScreenDirSqr || to.sqrMagnitude < MinScreenDirSqr) return 0;
   return Math.atan2(from.x * to.y - from.y * to.x, Vector2.dot(from, to)) * Mathf.Rad2Deg;
 }
 
@@ -66,7 +70,7 @@ export const RingGeometry = {
     const p1 = HandleUtility.worldToGUIPoint(position.add(Quaternion.angleAxis(1, axis).mulV(visibleDir).mul(radius)));
     const v0 = p0.sub(center),
       v1 = p1.sub(center);
-    if (v0.sqrMagnitude < 1e-4 || v1.sqrMagnitude < 1e-4) return 0;
+    if (v0.sqrMagnitude < MinScreenDirSqr || v1.sqrMagnitude < MinScreenDirSqr) return 0;
     return raw * Mathf.Sign(signedAngle2D(v0, v1));
   },
 
@@ -200,7 +204,7 @@ export const RingOverlays = {
   drawSnapTicks(center: Vector3, axis: Vector3, refDir: Vector3, ringRadius: number) {
     const s = SharedGizmoSettings;
     const precision = s.PrecisionHeld;
-    const tickAngle = precision ? EditorSnapSettings.rotate * 0.5 : EditorSnapSettings.rotate;
+    const tickAngle = RotateSnap.step;
     const count = Math.max(1, Mathf.RoundToInt(360 / tickAngle));
     const inner = ringRadius * (1 + s.SnapTickGap);
     const majorOuter = inner + ringRadius * s.SnapTickLength;
@@ -378,7 +382,7 @@ export class RotationRingHandle {
     );
     if (!this.isScreenRing && drawConstraintLine)
       DrawOverlays.drawConstraintLine(position, this.dragAxis, this.dragAxisColor);
-    if (s.SnapTicksEnabled && SnapCompat.angleSnapEnabled && EditorSnapSettings.rotate > 0)
+    if (s.SnapTicksEnabled && RotateSnap.active)
       RingOverlays.drawSnapTicks(position, this.dragAxis, this.refDir, arcRadius);
     if (!this.isScreenRing && s.AxisLabelsEnabled)
       AxisLabelDrawer.draw(
@@ -422,7 +426,6 @@ export class RotationRingHandle {
   }
 
   private updateRingDrag(position: Vector3, settings: RotateGizmoSettings) {
-    const s = SharedGizmoSettings;
     const current = this.coordinator.wrap.virtualMousePosition;
     let frameDelta: number;
     if (settings.RotateToCursorEnabled)
@@ -439,15 +442,8 @@ export class RotationRingHandle {
       frameDelta = raw * this.linearSign * this.linearDegPerPixel;
     }
     this.prevRingMousePos = current;
-    const precision = s.PrecisionHeld;
-    if (precision) frameDelta *= s.EffectivePrecisionFactor;
-    this.totalAngle += frameDelta;
-    // The total is snapped, not each frame's step, which would drift.
-    const snap = precision ? EditorSnapSettings.rotate * 0.5 : EditorSnapSettings.rotate;
-    this.appliedAngle =
-      SnapCompat.angleSnapEnabled && EditorSnapSettings.rotate > 0
-        ? Mathf.Round(this.totalAngle / snap) * snap
-        : this.totalAngle;
+    this.totalAngle += frameDelta * RotateSnap.precisionScale;
+    this.appliedAngle = RotateSnap.snap(this.totalAngle);
     this.dragged.invoke(this.dragAxis, this.appliedAngle);
   }
 
@@ -618,24 +614,14 @@ export class TrackballHandle {
       1,
     );
     const degPerPixel = 180 / (2 * screenRadius);
-    let yaw = -delta.x * degPerPixel;
-    let pitch = -delta.y * degPerPixel;
-    const s = SharedGizmoSettings;
-    const precision = s.PrecisionHeld;
-    if (precision) {
-      yaw *= s.EffectivePrecisionFactor;
-      pitch *= s.EffectivePrecisionFactor;
-    }
+    const precision = RotateSnap.precisionScale;
+    const yaw = -delta.x * degPerPixel * precision;
+    const pitch = -delta.y * degPerPixel * precision;
     // Running totals snapped fresh each frame; only the change in the snapped value is applied.
     this.totalYaw += yaw;
     this.totalPitch += pitch;
-    let snappedYaw = this.totalYaw,
-      snappedPitch = this.totalPitch;
-    if (SnapCompat.angleSnapEnabled && EditorSnapSettings.rotate > 0) {
-      const snap = precision ? EditorSnapSettings.rotate * 0.5 : EditorSnapSettings.rotate;
-      snappedYaw = Mathf.Round(this.totalYaw / snap) * snap;
-      snappedPitch = Mathf.Round(this.totalPitch / snap) * snap;
-    }
+    const snappedYaw = RotateSnap.snap(this.totalYaw);
+    const snappedPitch = RotateSnap.snap(this.totalPitch);
     const angleY = snappedYaw - this.appliedYaw;
     const angleX = snappedPitch - this.appliedPitch;
     this.appliedYaw = snappedYaw;

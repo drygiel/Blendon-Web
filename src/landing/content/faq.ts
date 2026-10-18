@@ -11,7 +11,7 @@ export interface FaqEntry {
 export const FAQ: FaqEntry[] = [
   {
     q: 'Does it work in Unity 2022 LTS or older?',
-    a: 'No. Blendon needs Unity 6000.0 (Unity 6) or newer. Everything added after 6.0 goes through a compatibility layer, so Unity 6.0 and the newest release behave the same.',
+    a: 'No. Blendon needs Unity 6000.0 (Unity 6) or newer. Everything added after 6.0 goes through a compatibility layer, so Unity 6.0 and the newest release behave the same wherever the Editor allows it.',
   },
   {
     q: 'Will it break my Unity muscle memory?',
@@ -20,7 +20,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Do I need a numpad or a three-button mouse?',
-    a: 'A numpad only for Numpad Views: the View pie and the Orientation Gizmo reach the same views without one. Orbit and pan use the middle mouse button by default, and both can be rebound to suit a trackpad.',
+    a: 'A numpad only for the keypad defaults of Numpad Views, Frame Selected, Isolate View and keyboard zoom, all rebindable. The View pie and the Orientation Gizmo reach the axis views without one. Orbit and pan use the middle mouse button by default, and both can be rebound to suit a trackpad.',
   },
   {
     q: 'Does it work on macOS and Linux?',
@@ -32,7 +32,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Does it touch my project, my builds or version control?',
-    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs, keys you change to your active Shortcut Manager profile and pie menus to a file in your user settings folder. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
+    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs and pie menus to a file in your user settings folder. Your active Shortcut Manager profile holds only keys you change, the Unity preset's keys if you pick it, and the Editor's right-click menu, set aside while Blendon's holds the button. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
   },
   {
     q: 'Can I undo what it does?',

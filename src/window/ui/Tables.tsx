@@ -6,6 +6,7 @@ import { iconStyle } from '../core/icons.ts';
 import { pageInfo } from '../core/model.ts';
 import { NEW_PIE, type TipSource } from '../core/state.ts';
 import { D } from '../../plugin/window-data.ts';
+import { IS_MAC } from '../../scene/unity/imgui.ts';
 import { Caps, Check } from './common.tsx';
 import { useApp, useTip } from './context.ts';
 import { itemBase } from './item-base.ts';
@@ -62,6 +63,7 @@ export function FeaturePie({ it }: { it: ItemOf<'fpie'> }) {
   const tip = useTip(
     pie.tipOverview.t ? pie.tipOverview : { t: pie.desc + '\n\nClick to edit this menu.', native: true },
   );
+  const toggleTip = useTip({ t: 'Switch this menu off to free its key without losing what it holds', native: true });
   return (
     <div className={itemBase(app, it).cls}>
       <div className={'fr' + (it.stripe % 2 ? ' odd' : '') + ' sub'}>
@@ -70,6 +72,7 @@ export function FeaturePie({ it }: { it: ItemOf<'fpie'> }) {
           onClick={() => featureOn && !it.dis && app.setPie(pie.id, !on)}
           disabled={!featureOn}
           aria-label={'Enable ' + pie.title}
+          {...toggleTip}
         >
           <Check />
         </button>
@@ -101,7 +104,7 @@ export function FeatureShortcut({ it }: { it: ItemOf<'fsub'> }) {
   return (
     <div className={itemBase(app, it).cls}>
       <div className={'fr' + (it.stripe % 2 ? ' odd' : '') + ' sub'}>
-        <span className={'ft2' + (enabled ? '' : ' muted') + ' lk'} onClick={() => app.goTo('Keyboard')} {...tip}>
+        <span className={'ft2' + (enabled ? '' : ' muted') + ' lk'} onClick={() => app.goTo('Keyboard', it.sid)} {...tip}>
           {it.name}
         </span>
         <span className="fkey">
@@ -290,16 +293,19 @@ function PieRow({ id, i }: { id: string; i: number }) {
   const binding = app.shortcut(pie.sid);
   const edit = () => app.editPie(id);
   const tip = useTip(pie.tipRow.t ? pie.tipRow : { t: pie.desc, native: true });
+  const toggleTip = useTip({ t: 'Switch this menu off to free its keys without keeping it open', native: true });
   const keyTip = useTip({ t: 'Edit this menu to change its shortcut', native: true });
   const itemsTip = useTip({ t: "How many of the ring's slots run something", native: true });
-  const editTip = useTip({ t: 'Edit this menu: its items, title, icon and shortcut', native: true });
-  const resetTip = useTip({ t: 'Already at its shipped defaults', native: true });
+  const editTip = useTip({ t: 'Rename this menu, change its shortcut, and edit its items', native: true });
+  // The demo never saves an edit, so a built-in menu is always the one Blendon ships.
+  const resetTip = useTip({ t: "This menu's title, items and key are already the ones Blendon ships", native: true });
   return (
     <div className={'pr' + (i % 2 ? ' odd' : '')}>
       <button
         className={'tg' + (on ? ' on' : '')}
         onClick={() => featureOn && app.setPie(id, !on)}
         aria-label={'Enable ' + pie.title}
+        {...toggleTip}
       >
         <Check />
       </button>
@@ -326,11 +332,14 @@ function PieRow({ id, i }: { id: string; i: number }) {
 
 export function PieTable({ it }: { it: ItemOf<'pieTable'> }) {
   const app = useApp();
+  const toggleHead = useTip({ t: 'Whether the menu answers to its shortcut', native: true });
   return (
     <div className={itemBase(app, it).cls}>
       {it.header && (
         <div className="pth">
-          <span className="ph1">#</span>
+          <span className="ph1" {...toggleHead}>
+            #
+          </span>
           <span className="ph2">TITLE</span>
           <span className="ph3">SHORTCUT</span>
           <span className="ph4">ITEMS</span>
@@ -348,18 +357,30 @@ export function PieEmpty({ it }: { it: ItemOf<'pieEmpty'> }) {
   return <div className={itemBase(app, it).cls}>No custom pie menus yet.</div>;
 }
 
+// PieMenuConfigPaths.UserFile: the user's settings folder, spelled the way the platform names it.
+const CONFIG_FILE = IS_MAC ? '~/Library/Application Support/Blendon/PieMenus.json' : '%APPDATA%\\Blendon\\PieMenus.json';
+
+/** CustomPie.SlotCount: the pie shortcuts Blendon declares up front. */
+const CUSTOM_SLOTS = 8;
+
 export function PieFooter({ it }: { it: ItemOf<'pieFooter'> }) {
   const app = useApp();
+  const configTip = useTip({ t: 'Show the file every pie menu on this page is saved in:\n' + CONFIG_FILE, native: true });
+  const addTip = useTip({
+    t: `Blendon pre-declares ${CUSTOM_SLOTS} rebindable pie shortcuts, so that is how many custom menus there can be`,
+    native: true,
+  });
   return (
     <div className={itemBase(app, it).cls}>
       <button
         className="nb cfg"
         onClick={() => app.demo('In Unity this shows the pie menu config file in your file browser.')}
+        {...configTip}
       >
         <span style={iconStyle('d_Folder Icon', 12)} />
         Config File
       </button>
-      <button className="nb add" onClick={() => app.editPie(NEW_PIE)}>
+      <button className="nb add" onClick={() => app.editPie(NEW_PIE)} {...addTip}>
         <span style={iconStyle('d_Toolbar Plus', 12, '#EEEEEE')} />
         Add
       </button>

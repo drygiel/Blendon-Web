@@ -1,6 +1,5 @@
 // One builder item -> its row, by kind.
 import { PlaygroundEvents } from '../../bridge/events.ts';
-import { MANUAL_URL } from '../../lib/links.ts';
 import type { Item, ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { extent, preferredHeight, settings } from '../gizmo/gizmo.ts';
@@ -116,13 +115,13 @@ function PageLink({ it }: { it: ItemOf<'plink'> }) {
   );
 }
 
-// The Overview's one text link is the manual, which the site carries too.
+// The Overview's text links: the manual, which the site carries too, and the site itself.
 function TextLink({ it }: { it: ItemOf<'link'> }) {
   const app = useApp();
   const tip = useTip(it.tip);
   const open = () => {
     app.dismissTip();
-    window.open(MANUAL_URL, '_blank', 'noopener');
+    window.open(it.url, '_blank', 'noopener');
   };
   return (
     <div className={itemBase(app, it).cls}>

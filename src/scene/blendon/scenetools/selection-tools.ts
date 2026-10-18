@@ -43,9 +43,10 @@ export const HierarchyWalk = {
         () => {
           if (!BoxSelectSettings.Enabled || !BoxSelectSettings.HierarchyKeys) return;
           if (ViewportGesture.claimed(id) || ViewportGesture.busy) return;
+          // Before the step, a task's needs read the selection it started from.
+          SceneTutorial.reportShortcut(id);
           H.apply(down, extend);
           ShortcutTips.note(id);
-          SceneTutorial.reportShortcut(id);
         },
         false,
         key,
@@ -137,8 +138,9 @@ export const ClickSelectParent = {
       if (!hit || !hit.transform.isChildOf(previous.transform)) return;
       // Past the top the walk wraps to the object under the cursor, so the parts below stay reachable.
       const next = previous.transform.parent?.gameObject ?? hit;
-      Selection.activeGameObject = next;
+      // Before the selection moves, a task's needs read the object that was clicked.
       if (previous.transform.parent) SceneTutorial.report('ClickSelectedParent');
+      Selection.activeGameObject = next;
       // The Editor's own pick may land after this event; only that pick is overridden.
       EditorApplication.delayCall(() => {
         const active = Selection.activeGameObject;

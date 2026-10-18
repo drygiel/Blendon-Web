@@ -31,7 +31,7 @@ function layout(): Key[] {
   ]);
   row(0, 15.4, ['Ins', 'Home', 'PgUp']);
   row(1, 15.4, ['Del', 'End', 'PgDn']);
-  row(0, 18.8, ['Num Lock', 'Num /', 'Num *', 'Num −']);
+  row(0, 18.8, ['Num Lock', 'Num /', 'Num *', 'Num -']);
   row(1, 18.8, ['Num 7', 'Num 8', 'Num 9']);
   row(2, 18.8, ['Num 4', 'Num 5', 'Num 6']);
   row(3, 18.8, ['Num 1', 'Num 2', 'Num 3']);

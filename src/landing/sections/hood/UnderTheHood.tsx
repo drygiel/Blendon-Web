@@ -21,7 +21,7 @@ const COLUMNS: [string, ReactNode[]][] = [
       'Built-in Render Pipeline, URP or HDRP',
       'Windows, macOS or Linux',
       'A middle mouse button for orbit and pan. On a trackpad, rebind both in Tools → Blendon',
-      'A numeric keypad, only for Numpad Views. Without one, the View pie and the Orientation Gizmo reach the same views',
+      'A numeric keypad, only for the keypad defaults (Numpad Views, Frame Selected, Isolate View, keyboard zoom), all rebindable',
     ],
   ],
   [

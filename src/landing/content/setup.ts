@@ -37,7 +37,7 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
     title: 'Orbit Selected',
     sub: "Turn the camera around whatever is selected, not the Scene View's pivot",
     desc: 'Each feature page opens with an illustrated card: how it works, what to know, every key. Below it sits the tuning. With Depth on, orbiting with nothing selected turns around the surface under the cursor.',
-    chips: ['Depth', 'Show Pivot Dot', 'Sensitivity', 'Snap View to World Axis', 'Quick Roll'],
+    chips: ['Depth', 'Show Pivot Dot', 'Sensitivity', 'Snap view to world axis', 'Quick Roll'],
     image: slideOrbitSelected,
   },
   {
@@ -51,7 +51,7 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
     title: 'Numpad Views',
     sub: "Blender's numpad: axis views, stepped orbit, projection toggle",
     desc: 'The axis keys send the view to a fixed angle around the pivot, and the same key always lands on the same view. The orbit keys turn it one step at a time, around the selection with Orbit Selected on. Animate flies to each view instead of cutting.',
-    chips: ['Animate', 'Axis views', 'Orbit steps', 'Toggle Projection'],
+    chips: ['Animate', 'Axis Views', 'Orbit Steps', 'Toggle Projection'],
     image: slideViewportNav,
   },
   {
@@ -64,8 +64,8 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
   {
     title: 'Box Select',
     sub: 'Drag a box that selects everything it touches, not just what fits inside it',
-    desc: "The box is tested against real shapes, so a long diagonal object counts only where the box actually crosses it. Visible Only skips what is hidden behind other objects. Switch it off to hand the drag back to the Editor's own box.",
-    chips: ['Select Prefab Roots', 'Visible Only', 'Click Selects Parent', 'Hierarchy keys'],
+    desc: "The box is tested against real shapes, so a long diagonal object counts only where the box actually crosses it. Visible Only skips what is hidden behind other objects. Switch Box Select off to hand the drag back to the Editor's own box.",
+    chips: ['Select Prefab Roots', 'Visible Only', 'Click Selects Parent', 'Hierarchy Keys'],
     image: slideBoxSelect,
   },
   {

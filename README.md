@@ -38,7 +38,7 @@ project.
   to it.
 - **A clip for every feature.** Eighteen short loops in the tooltip style, the same ones the plugin's tooltip cards use.
 - **The tour.** Promo video, what changes against stock Unity, features, precision tools, pie menus, the in-editor
-  tutorial, setup, feature presets, shortcuts, under the hood, FAQ.
+  tutorial, setup, keyboard and feature presets, the Try it dock, shortcuts, under the hood, FAQ.
 - **Static and fast.** Prerendered landing with JSON-LD, the Scene view and the window load as their own chunks when
   they come near, and every animation stops under `prefers-reduced-motion`.
 
@@ -101,8 +101,10 @@ Each press steps on: the selection, its pivot, a close-up, then back to where yo
 
 ## Transform Gizmos
 
-Blender-style **Move**, **Rotate**, **Scale** and **Transform** gizmos. Each one can be switched off on its own and
-falls back to Unity's gizmo. All of them honor Local/Global and Blendon's pivot modes, work with multi-selection and
+Blender-style **Move**, **Rotate**, **Scale** and **Transform** gizmos. They live in a tool context of their own,
+**Game Object (Blendon)**, which switches itself on and <kbd>B</kbd> toggles from any window. In Game Object, Splines or
+ProBuilder the grab, vertex-snap and box-select keys, and <kbd>Z</kbd> / <kbd>Q</kbd> while the Draw Mode and Tools pies
+sit on them, are the Editor's own again. Each one can be switched off on its own and falls back to Unity's gizmo. All of them honor Local/Global and Blendon's pivot modes, work with multi-selection and
 Unity's grid snapping, and cancel on right-click.
 
 <table>
@@ -122,7 +124,7 @@ Rings that follow the cursor, a trackball and an angle arc. Hold <kbd>Alt</kbd> 
 <td width="50%" valign="top">
 <img src=".github/readme/Scale.webp" alt="Scale" width="100%">
 <br><b>Scale</b> &nbsp; <kbd>R</kbd><br>
-Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In the Scene view <kbd>R</kbd> alone starts a grab rotate; elsewhere, and on the Unity keyboard preset, <kbd>R</kbd> is the Scale tool.
+Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context <kbd>R</kbd> alone starts a grab rotate; in other windows and tool contexts, and on the Unity keyboard preset, <kbd>R</kbd> is the Scale tool.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/Transform.webp" alt="Transform" width="100%">
@@ -151,7 +153,7 @@ Snap a vertex onto another object's vertex, or pick any vertex as a virtual pivo
 <td width="50%" valign="top">
 <img src="public/plugin/tips/AllTools_PivotPointMenu.webp" alt="Pivot Point" width="100%">
 <br><b>Pivot Point</b><br>
-Blendon's tools put a Pivot Point dropdown in Tool Settings, with Blender's four pivot modes for both rotating and scaling.
+Blendon's tools put a Pivot Point dropdown in Tool Settings, with four of Blender's pivot modes for both rotating and scaling.
 </td>
 </tr>
 </table>
@@ -194,7 +196,7 @@ Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align a
 <td width="50%" valign="top">
 <img src="public/plugin/tips/Overview_KeyboardBlendon.webp" alt="Keyboard presets" width="100%">
 <br><b>Keyboard presets</b><br>
-<b>Blendon</b> answers the Blender keys in the Scene view and writes nothing; Unity's commands on them keep working everywhere else, and one click moves any of them aside. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead.
+<b>Blendon</b> answers the Blender keys in the Scene view and writes nothing but the right-click menu's handover; Unity's commands on them keep working everywhere else, and one click moves most of them aside. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead.
 </td>
 </tr>
 </table>

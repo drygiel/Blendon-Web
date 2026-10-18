@@ -15,7 +15,7 @@ const WHILE_DRAGGING: [KeyTokens, string][] = [
   [['X', 'Y', 'Z'], 'Constrain to an axis. Press again for the other orientation.'],
   [['Shift', '~+', 'X'], 'Lock the plane of the other two axes.'],
   [['0–9', '.'], 'Type the value. The mouse stops driving the transform.'],
-  [['−'], 'Toggle the sign.'],
+  [['-'], 'Toggle the sign.'],
   [['Backspace'], 'Delete a digit. On an empty field, hand control back to the mouse.'],
   [['Enter', 'Mouse 0'], 'Confirm.'],
   [['Esc', 'Mouse 1'], 'Cancel and restore the pre-drag transform.'],
@@ -65,7 +65,7 @@ export function Precision() {
         <div className={styles.panelHead}>
           <span className={styles.panelLabel}>WHILE DRAGGING</span>
           <span className={styles.readout}>
-            <b>Δx:</b> <Scramble value="2.000" /> m <span className={styles.space}>Global</span>
+            <b>Δx:</b> <Scramble value="2.00" />m <span className={styles.space}>Global</span>
           </span>
         </div>
         <div className={styles.rows}>

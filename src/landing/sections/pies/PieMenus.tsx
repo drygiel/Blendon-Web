@@ -26,7 +26,7 @@ import styles from './PieMenus.module.scss';
 
 const iconUrl = (name: string) => publicUrl(`scene/icons/${name}.png`);
 const CARDS = [
-  ['Build your own', 'A visual editor makes new pies from Editor actions or any menu command, on any key.'],
+  ['Build your own', 'A visual editor makes new pies from Blendon actions or any menu command, on any key.'],
   ['Numbered items', 'While a pie is open, the top-row or keypad number runs its item directly.'],
   [
     'State at a glance',
