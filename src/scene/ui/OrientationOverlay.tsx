@@ -155,7 +155,8 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       <i className={styles.orientationGrip} />
       <canvas
         ref={canvasRef}
-        style={{ width: w, height: h }}
+        style={{ width: w, height: h, outline: 'none' }}
+        tabIndex={-1}
         aria-label="Orientation gizmo"
         role="img"
         onPointerDown={(e) => {
@@ -167,7 +168,8 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
             return;
           }
           if (element.pointerDown(e.button, p, geometry)) e.currentTarget.setPointerCapture(e.pointerId);
-          focusView();
+          // Focused like the plugin's element, so an Escape mid-drag reaches it. Other keys bubble on to the view.
+          e.currentTarget.focus({ preventScroll: true });
         }}
         onPointerMove={(e) => {
           element.setHovered(element.containsPoint(local(e), geometry) || element.isDragging);
@@ -179,7 +181,12 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
         }}
         onPointerLeave={() => element.setHovered(element.isDragging)}
         onLostPointerCapture={() => element.isDragging && element.cancel()}
-        onKeyDown={(e) => e.key === 'Escape' && element.keyEscape()}
+        // Ahead of the view's own key handler: the Escape that cancels the drag never reaches the Scene view.
+        onKeyDownCapture={(e) => {
+          if (e.key !== 'Escape' || !element.keyEscape()) return;
+          e.stopPropagation();
+          e.preventDefault();
+        }}
       />
       <button
         type="button"

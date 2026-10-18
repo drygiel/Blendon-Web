@@ -4,8 +4,14 @@ import { loadWindowData } from '../../src/plugin/window-data.ts';
 import { GizmoActions, PivotPointActions } from '../../src/scene/blendon/piemenus/actions.ts';
 import { SharedGizmoSettings } from '../../src/scene/blendon/gizmos/shared-settings.ts';
 import { ShortcutGates } from '../../src/scene/blendon/shortcut-gates.ts';
-import { BlendonContext, blendonContextActive, ContextSwitch } from '../../src/scene/blendon/tool-context.ts';
-import { PivotMode, Prefs, ToolContext, ToolManager, Tools } from '../../src/scene/unity/editor.ts';
+import {
+  BlendonContext,
+  blendonContextActive,
+  ContextSwitch,
+  EscapeGuard,
+} from '../../src/scene/blendon/tool-context.ts';
+import { PivotMode, Prefs, Tool, ToolContext, ToolManager, Tools } from '../../src/scene/unity/editor.ts';
+import { Event, EventType, GUIUtility, KeyCode } from '../../src/scene/unity/imgui.ts';
 
 const Gizmos = ['MoveGizmoSettings', 'RotateGizmoSettings', 'ScaleGizmoSettings', 'TransformGizmoSettings'];
 const setGizmos = (on: boolean) => {
@@ -92,5 +98,48 @@ describe("Blendon's tool context", () => {
     expect(Tools.pivotMode).toBe(PivotMode.Center);
     ContextSwitch.toggle();
     expect(SharedGizmoSettings.PivotPoint).toBe(1);
+  });
+});
+
+describe('EscapeGuard', () => {
+  const escape = () => {
+    const ev = new Event(EventType.KeyDown);
+    ev.keyCode = KeyCode.Escape;
+    return ev;
+  };
+
+  beforeEach(() => {
+    Tools.current = Tool.Move;
+    Tools.viewToolActive = false;
+    GUIUtility.hotControl = 0;
+  });
+
+  it("uses the Escape after Blendon's tool, so the Editor never leaves the context on it", () => {
+    const ev = escape();
+    EscapeGuard.afterTool(ev);
+    expect(ev.type).toBe(EventType.Used);
+  });
+
+  it("leaves a press that holds one of Unity's handles to that handle", () => {
+    GUIUtility.hotControl = 7;
+    const held = escape();
+    EscapeGuard.beforeUnityTool(held);
+    expect(held.type).toBe(EventType.KeyDown);
+    GUIUtility.hotControl = 0;
+    const idle = escape();
+    EscapeGuard.beforeUnityTool(idle);
+    expect(idle.type).toBe(EventType.Used);
+  });
+
+  it('lets the Escape through with Esc Keeps Context off, every gizmo off, or the View tool', () => {
+    Prefs.set('GeneralSettings.EscapeKeepsContext', false);
+    expect(EscapeGuard.holds(escape())).toBe(false);
+    Prefs.set('GeneralSettings.EscapeKeepsContext', true);
+    expect(EscapeGuard.holds(escape())).toBe(true);
+    Tools.current = Tool.View;
+    expect(EscapeGuard.holds(escape())).toBe(false);
+    Tools.current = Tool.Move;
+    setGizmos(false);
+    expect(EscapeGuard.holds(escape())).toBe(false);
   });
 });
