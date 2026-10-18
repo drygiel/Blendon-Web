@@ -135,20 +135,24 @@ export const EditorEdit = {
 
   /** Unity's edit keys, which reach the Scene view as commands rather than shortcuts. */
   install() {
+    // Action is Cmd on macOS, as the menu's % keys are; a plain Ctrl would be the Control key there.
     const keys: [string, string, () => void][] = [
-      ['Edit/Cut', 'Ctrl+X', EditorEdit.cut],
-      ['Edit/Copy', 'Ctrl+C', EditorEdit.copy],
-      ['Edit/Paste', 'Ctrl+V', EditorEdit.paste],
+      ['Edit/Cut', 'Action+X', EditorEdit.cut],
+      ['Edit/Copy', 'Action+C', EditorEdit.copy],
+      ['Edit/Paste', 'Action+V', EditorEdit.paste],
       // Reaches the view as the "Duplicate" command, the name the tutorial knows it by.
       [
         'Edit/Duplicate',
-        'Ctrl+D',
+        'Action+D',
         () => {
           EditorEdit.duplicate();
           SceneTutorial.reportCommand('Duplicate');
         },
       ],
       ['Edit/Delete', 'Delete', EditorEdit.delete],
+      // The GameObject menu's keys the context menu lists beside its entries.
+      ['GameObject/Move To View', 'Action+Alt+F', () => Selection.count > 0 && moveToView()],
+      ['GameObject/Align With View', 'Action+Shift+F', () => Selection.count > 0 && alignWithView()],
     ];
     for (const [id, key, run] of keys) ShortcutManager.register(id, () => !ViewportGesture.busy && run(), false, key);
   },
