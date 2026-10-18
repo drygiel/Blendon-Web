@@ -127,7 +127,7 @@ const Catalog: CatalogGroup[] = [
       const n = command(
         'Blendon/Frame',
         'Frame Selected',
-        'd_Grid.BoxTool',
+        'd_Grid.BoxTool@2x',
         () => (FrameSelectedSettings.Enabled ? FrameSelected.run() : unityFrameSelected(view)),
         selected > 0,
       );
@@ -315,12 +315,18 @@ function repeatEntry(built: MenuExtra[]) {
 
 let pendingSnapshot: SceneMenuSnapshot | null = null;
 
-function buildExtras(view: SceneView, cursor: Vector2, renameTarget: GameObject | null): MenuExtra[] {
+function buildExtras(
+  view: SceneView,
+  cursor: Vector2,
+  snapshot: SceneMenuSnapshot,
+  renameTarget: GameObject | null,
+): MenuExtra[] {
   const built: MenuExtra[] = [];
   const byGroup = new Map<string, MenuExtra[]>();
   const ctx = { view, cursor, selected: Selection.count, built };
   let rename: MenuExtra | null = null;
-  if (renameTarget) {
+  // The header's Rename as an entry, unless the Editor's own menu already carries one.
+  if (renameTarget && !snapshot.items.some((item) => item.path === 'Rename')) {
     rename = entry(Group.Quick, command('Blendon/Rename', 'Rename', 'Rename', beginRename, true, true));
     built.push(rename);
   }
@@ -330,11 +336,12 @@ function buildExtras(view: SceneView, cursor: Vector2, renameTarget: GameObject 
     built.push(...entries);
     byGroup.set(g.name, entries);
   }
-  // Handed on in the user's order, which only ever moves an entry inside its own section.
-  const order = SceneMenuSettings.ExtraOrderText.split(',').filter(Boolean);
+  // Handed on in the user's order, which only ever moves an entry inside its own section. A name stored twice
+  // counts once, like SceneMenuCatalog.Ordered.
+  const order = new Set(SceneMenuSettings.ExtraOrderText.split(',').filter(Boolean));
   const names = [
-    ...order.filter((n) => byGroup.has(n)),
-    ...Catalog.map((g) => g.name).filter((n) => !order.includes(n)),
+    ...[...order].filter((n) => byGroup.has(n)),
+    ...Catalog.map((g) => g.name).filter((n) => !order.has(n)),
   ];
   const ordered: MenuExtra[] = rename ? [rename] : [];
   for (const n of names) ordered.push(...(byGroup.get(n) ?? []));
@@ -531,7 +538,7 @@ export const SceneMenu = {
     const iconRow = SceneMenuSettings.EditActions === SceneMenuEditActions.IconRow;
     const model = classic
       ? buildClassicModel(snapshot)
-      : buildModel(snapshot, iconRow, buildExtras(view, cursor, d.target));
+      : buildModel(snapshot, iconRow, buildExtras(view, cursor, snapshot, d.target));
     pendingSnapshot = null;
     session = new MenuSession(view, cursor, snapshot, model, d.title, SceneMenuSettings.ClassicMenuRow, classic);
     session.place('', SceneMenuSettings.SearchField);
@@ -726,6 +733,9 @@ let armed = false;
 let classic = false;
 let pressedAt = Vector2.zero;
 let heldButtons = 0;
+// The last pointer over a view: a binding off the right button opens the menu there.
+let pointerView: SceneView | null = null;
+let pointerAt = Vector2.zero;
 
 const gestureRunning = () => heldButtons !== 0 || ViewportGesture.busy;
 
@@ -733,6 +743,15 @@ const gestureRunning = () => heldButtons !== 0 || ViewportGesture.busy;
 function rightClickBinding(): KeyCombination | null {
   const b = ShortcutManager.getShortcutBinding(ShortcutId);
   return b && b.keyCode === KeyCode.Mouse1 ? b : null;
+}
+
+/** SceneMenuTrigger.OpenMenu: a binding on any other key or button opens at once, with no click to settle. */
+function opensAtOnce(e: Event) {
+  if (e.type !== EventType.KeyDown && e.type !== EventType.MouseDown) return false;
+  const b = ShortcutManager.getShortcutBinding(ShortcutId);
+  if (!b || b.keyCode === KeyCode.Mouse1 || !SceneMenuSettings.Enabled || gestureRunning()) return false;
+  const keyCode = e.type === EventType.MouseDown ? KeyCode.Mouse0 + e.button : e.keyCode;
+  return keyCode === b.keyCode && eventShortcutModifiers(e) === b.modifiers;
 }
 
 // Ctrl, Alt and Cmd only arm a right press when the binding itself asks for them.
@@ -770,6 +789,16 @@ function onBeforeSceneGui(view: SceneView) {
         e.use();
         return;
     }
+    return;
+  }
+  // A key binding opens under the pointer, which only a GUI pass knows; the view's centre without one.
+  if (e.isMouse) {
+    pointerView = view;
+    pointerAt = e.mousePosition;
+  }
+  if (opensAtOnce(e)) {
+    SceneMenu.open(view, pointerView === view ? pointerAt : view.cameraViewport.size.mul(0.5));
+    e.use();
     return;
   }
   // rawType, so a press or release some other handler already used still resets the gesture.

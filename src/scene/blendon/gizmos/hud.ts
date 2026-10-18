@@ -13,7 +13,13 @@ const Gray = '#B0B0B0';
 const CornerRadius = 4;
 const MONO = 'Consolas, "JetBrains Mono", ui-monospace, monospace';
 
-const HudStyle: RichStyle = { fontSize: 10, font: MONO, color: Color.hex('#EBEBEB'), padding: [5, 5, 2, 2] };
+/** EditorStyles.GizmoHudStyle: the readout's monospace label, also Box Select's cursor text. */
+export const GizmoHudStyle: RichStyle = {
+  fontSize: 10,
+  font: MONO,
+  color: Color.hex('#EBEBEB'),
+  padding: [5, 5, 2, 2],
+};
 const ErrorStyle: RichStyle = { fontSize: 10, font: MONO, color: Color.hex('#FFEBEB'), padding: [6, 6, 3, 3] };
 const HudBackground = Color.hex('#141414').withAlpha(0.7);
 const ErrorBackground = Color.hex('#B81C1C').withAlpha(0.92);
@@ -74,7 +80,7 @@ function spaceLabel(p: NumericReadout) {
 
 function renderLabel(view: SceneView, text: string, topOffset: number, snapToCursor: boolean) {
   Handles.beginGUI();
-  const size = GUI.richSize(text, HudStyle);
+  const size = GUI.richSize(text, GizmoHudStyle);
   const bottomOffset = 26;
   const vp = view.position.size;
   let x: number, y: number;
@@ -87,7 +93,7 @@ function renderLabel(view: SceneView, text: string, topOffset: number, snapToCur
     y = Math.round(Mathf.Clamp01(topOffset) * Math.max(0, vp.y - size.y - bottomOffset));
   }
   const rect = new Rect(x, y, size.x, size.y);
-  GizmoHudLayer.queue(view, rect, text, HudStyle, HudBackground, CornerRadius);
+  GizmoHudLayer.queue(view, rect, text, GizmoHudStyle, HudBackground, CornerRadius);
   Handles.endGUI();
 }
 

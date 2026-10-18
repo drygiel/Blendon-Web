@@ -35,7 +35,7 @@ export const OrientationGizmoSettings = {
     return sBool(K + 'OrbitEnabled', true);
   },
   get AnimationEnabled() {
-    return sBool(K + 'AnimationEnabled', true);
+    return sBool(K + 'AnimationEnabled', GeneralSettings.AnimationEnabled);
   },
   get MiddleClickTogglesProjection() {
     return sBool(K + 'MiddleClickTogglesProjection', true);

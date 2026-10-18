@@ -20,6 +20,7 @@ import { RectPicker } from '../../unity/raycast.ts';
 import { Scene, type GameObject } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
 import { SceneTutorial } from '../foundation.ts';
+import { GizmoHudStyle } from '../gizmos/hud.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { GeneralSettings } from '../settings.ts';
 import { blendonContextActive } from '../tool-context.ts';
@@ -52,8 +53,10 @@ const InfoOffset = 16;
 const InfoCornerRadius = 4;
 const MaxListedNames = 8;
 const MarkerSize = 18;
-const FadeSeconds = 0.12;
-const InfoFont = { size: 12, line: 16, padX: 7, padY: 4 };
+// After release the highlight holds a few repaints, then fades, so the selection outline has time to show
+// and there is never a frame with neither.
+const FadeHoldRepaints = 2;
+const FadeSeconds = 0.05;
 
 // ---- Modes ----------------------------------------------------------------------------------------------
 
@@ -62,11 +65,19 @@ function holds(id: string, modifiers: number) {
   return ShortcutManager.matches(id, KeyCode.Mouse0, modifiers);
 }
 
+/** RectSelectionCompat.HoldsBoth: exactly the two bindings' modifiers together, where neither half alone matches. */
+function holdsBoth(modifiers: number) {
+  const add = ShortcutManager.getShortcutBinding(BoxSelectIds.Add);
+  const invert = ShortcutManager.getShortcutBinding(BoxSelectIds.Invert);
+  if (!add || !invert) return false;
+  return (
+    add.modifiers !== modifiers && invert.modifiers !== modifiers && (add.modifiers | invert.modifiers) === modifiers
+  );
+}
+
 function modeFor(ev: Event): BoxSelectMode {
   const mods = eventShortcutModifiers(ev);
-  const add = ShortcutManager.getShortcutBinding(BoxSelectIds.Add)?.modifiers ?? 0;
-  const invert = ShortcutManager.getShortcutBinding(BoxSelectIds.Invert)?.modifiers ?? 0;
-  if (add && invert && (mods & (add | invert)) === (add | invert))
+  if (holdsBoth(mods))
     return BoxSelectSettings.CombinedMode === BoxSelectCombinedMode.Difference
       ? BoxSelectMode.Difference
       : BoxSelectMode.Intersect;
@@ -333,8 +344,8 @@ let lastDragAt = Vector2.zero;
 let hotBeforeCommand = -1;
 let drag: Drag | null = null;
 
-// What the last release left fading in its view.
-let fade: { view: SceneView; sets: HighlightSets; start: number } | null = null;
+// What the last release left fading in its view; the clock starts once the hold is over.
+let fade: { view: SceneView; sets: HighlightSets; repaints: number; start: number } | null = null;
 
 function repaint(view: SceneView) {
   view.repaint();
@@ -451,15 +462,21 @@ function highlightSets(selects: GameObject[], deselects: GameObject[]): Highligh
   };
 }
 
-// A committed highlight lingers a moment over the selection outline taking its place, outline only.
+// A committed highlight lingers a moment over the selection outline taking its place; the fill goes at once.
 function startFade(view: SceneView, sets: HighlightSets) {
-  fade = { view, sets: { ...sets, fill: false, outline: true }, start: EditorApplication.timeSinceStartup };
+  fade = { view, sets: { ...sets, fill: false }, repaints: 0, start: 0 };
   view.highlight = fade.sets;
   EditorApplication.update.add(tickFade);
 }
 
 function tickFade() {
   if (!fade) return EditorApplication.update.remove(tickFade);
+  // Frames stand in for the plugin's repaints.
+  if (fade.repaints < FadeHoldRepaints) {
+    if (++fade.repaints === FadeHoldRepaints) fade.start = EditorApplication.timeSinceStartup;
+    repaint(fade.view);
+    return;
+  }
   const t = (EditorApplication.timeSinceStartup - fade.start) / FadeSeconds;
   if (t >= 1) {
     const view = fade.view;
@@ -662,12 +679,16 @@ function draw(d: Drag) {
 }
 
 // Hangs off the cursor's corner of the box towards the opposite one, so it always sits inside the box.
+// Set in the gizmo readout's style, as the plugin's InfoStyle copies GizmoHudStyle.
 function drawInfo(d: Drag, box: Rect, lines: string[]) {
   const ctx = GUI.ctx!;
+  const style = GizmoHudStyle;
+  const [padL, padR, padT, padB] = style.padding ?? [0, 0, 0, 0];
+  const line = style.fontSize * (style.lineHeight ?? 1.25);
   ctx.save();
-  ctx.font = `600 ${InfoFont.size}px Inter, system-ui, sans-serif`;
-  const w = Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width))) + InfoFont.padX * 2;
-  const h = lines.length * InfoFont.line + InfoFont.padY * 2;
+  ctx.font = `400 ${style.fontSize}px ${style.font}`;
+  const w = Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width)) + padL + padR);
+  const h = Math.ceil(lines.length * line + padT + padB);
   const size = d.view.cameraViewport.size;
   let x = d.end.x >= d.start.x ? box.xMax - InfoOffset - w : box.xMin + InfoOffset;
   let y = d.end.y >= d.start.y ? box.yMax - InfoOffset - h : box.yMin + InfoOffset;
@@ -679,7 +700,7 @@ function drawInfo(d: Drag, box: Rect, lines: string[]) {
   ctx.fill();
   ctx.fillStyle = BoxSelectSettings.NamesTextColor.css();
   ctx.textBaseline = 'middle';
-  lines.forEach((l, i) => ctx.fillText(l, x + InfoFont.padX, y + InfoFont.padY + InfoFont.line * (i + 0.5)));
+  lines.forEach((l, i) => ctx.fillText(l, x + padL, y + padT + line * (i + 0.5)));
   ctx.restore();
 }
 
@@ -693,7 +714,8 @@ function drawMarkers(view: SceneView, sets: HighlightSets) {
     const p = project(go.transform.position);
     if (p.z <= 0) continue;
     const c = sets.markerOf.has(go) ? sets.deselectColor : sets.selectColor;
-    const color = new Color(c[0], c[1], c[2], 1);
+    // The border is opaque but fades out with the rest after release.
+    const color = new Color(c[0], c[1], c[2], sets.alpha);
     ctx.fillStyle = sets.fill ? new Color(c[0], c[1], c[2], c[3]).css() : 'transparent';
     ctx.strokeStyle = color.css();
     ctx.lineWidth = 1;

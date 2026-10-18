@@ -23,7 +23,7 @@ export const TipsSeen = {
     for (const l of listeners) l();
   },
 
-  subscribe(fn: () => void) {
+  subscribe: (fn: () => void) => {
     listeners.add(fn);
     return () => void listeners.delete(fn);
   },

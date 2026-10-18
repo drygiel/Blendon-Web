@@ -194,6 +194,12 @@
   }
 }
 
+// OrientationGizmo.ShowBackground: GizmoColors.NavPanelBackground on the overlay's panel.
+.orientationBackground {
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
 .nativeGizmo {
   position: absolute;
   pointer-events: auto;
@@ -235,8 +241,14 @@
   background: none;
   cursor: default;
 
-  img {
+  // The icon multiplied by the tint, as unityBackgroundImageTintColor does.
+  span {
     display: block;
+    width: 10px;
+    height: 10px;
+    background-size: 100% 100%;
+    background-blend-mode: multiply;
+    mask-size: 100% 100%;
   }
 }
 
@@ -246,7 +258,6 @@
   padding: 0;
   border: 0;
   background: none;
-  color: rgba(255, 255, 255, 0.6);
   font:
     400 11px/1 Inter,
     system-ui,
