@@ -1156,3 +1156,137 @@ test.describe('Escape and vertex snapping', () => {
     await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
   });
 });
+
+test.describe("Unity's own tools in Game Object", () => {
+  interface MeshObject {
+    name: string;
+    mesh: { vertices: Vec3[] } | null;
+    transform: { position: Vec3; rotation: Vec3 & { w: number }; transformPoint(p: Vec3): Vec3 };
+  }
+  interface MeshHost {
+    sceneHost: {
+      root: HostElement['sceneHost']['root'];
+      view: HostElement['sceneHost']['view'];
+      scene: { allObjects(): Iterable<MeshObject> };
+    };
+  }
+
+  async function inGameObject(page: Page) {
+    const view = await openScene(page);
+    await view.focus();
+    await page.keyboard.press('b');
+    await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+    return view;
+  }
+
+  /** A drag of the left button in steps, with a key held through it. */
+  async function drag(page: Page, from: { x: number; y: number }, by: { x: number; y: number }, key?: string) {
+    if (key) await page.keyboard.down(key);
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) await page.mouse.move(from.x + (by.x * i) / 8, from.y + (by.y * i) / 8);
+    await page.mouse.up();
+    if (key) await page.keyboard.up(key);
+  }
+
+  /** Each of the object's corners where it is on the page, with where it is in the world. */
+  const cornersOf = (page: Page, name: string) =>
+    page.locator('#try [role=application]').evaluate((el: unknown, n) => {
+      const h = (el as MeshHost).sceneHost;
+      const v = h.view;
+      const r = h.root.getBoundingClientRect();
+      const go = [...h.scene.allObjects()].find((o) => o.name === n)!;
+      return go.mesh!.vertices.map((p) => {
+        const w = go.transform.transformPoint(p);
+        const s = v.camera.worldToScreenPoint(w);
+        const page = { x: r.left + s.x / v.pixelsPerPoint, y: r.top + (v.camera.pixelHeight - s.y) / v.pixelsPerPoint };
+        return { page, world: { x: w.x, y: w.y, z: w.z } };
+      });
+    }, name);
+
+  const unchanged = (a: Vec3, b: Vec3) => ['x', 'y', 'z'].filter((k) => Math.abs(a[k as 'x'] - b[k as 'x']) < 1e-5);
+
+  test('the Move handle has nothing in its middle: a drag from the pivot keeps to an arrow or a plane', async ({
+    page,
+  }) => {
+    await inGameObject(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    await drag(page, await pagePointOf(page, 'Cube'), { x: -60, y: 30 });
+    const after = (await positionOf(page, 'Cube'))!;
+    expect(after).not.toEqual(before);
+    expect(unchanged(before, after).length).toBeGreaterThan(0);
+
+    // Shift shows the Editor's free-move square there, which slides on the camera's plane.
+    await page.keyboard.press('Control+z');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+    await drag(page, await pagePointOf(page, 'Cube'), { x: -60, y: 30 }, 'Shift');
+    expect(unchanged(before, (await positionOf(page, 'Cube'))!)).toEqual([]);
+  });
+
+  test('V, held or toggled with Shift+V, drags a corner onto the nearest corner of another object', async ({
+    page,
+  }) => {
+    await inGameObject(page);
+    const target = await cornersOf(page, 'Cube (1)');
+    const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+    // The cube's corner nearest Cube (1) on the page, dropped on Cube (1)'s corner nearest to it.
+    const snapDrag = async (key?: string) => {
+      const own = await cornersOf(page, 'Cube');
+      const from = own.reduce((a, b) => (dist(a.page, target[0].page) < dist(b.page, target[0].page) ? a : b));
+      const to = target.reduce((a, b) => (dist(a.page, from.page) < dist(b.page, from.page) ? a : b));
+      await page.mouse.move(from.page.x + 30, from.page.y + 30);
+      if (key) await page.keyboard.down(key);
+      await drag(page, from.page, { x: to.page.x - from.page.x, y: to.page.y - from.page.y });
+      if (key) await page.keyboard.up(key);
+      const moved = await cornersOf(page, 'Cube');
+      return Math.min(
+        ...moved.map((c) => Math.hypot(c.world.x - to.world.x, c.world.y - to.world.y, c.world.z - to.world.z)),
+      );
+    };
+    expect(await snapDrag('v')).toBeLessThan(1e-4);
+    await page.keyboard.press('Control+z');
+    // Shift+V keeps it on until pressed again.
+    await page.keyboard.press('Shift+V');
+    expect(await snapDrag()).toBeLessThan(1e-4);
+    await page.keyboard.press('Shift+V');
+  });
+
+  test('Escape mid-drag puts a move and a turn back and lets go of the handle', async ({ page }) => {
+    const view = await inGameObject(page);
+    const before = (await positionOf(page, 'Cube'))!;
+    const at = await pagePointOf(page, 'Cube');
+    await page.mouse.move(at.x, at.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(at.x - i * 10, at.y + i * 4);
+    await expect.poll(() => positionOf(page, 'Cube')).not.toEqual(before);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => positionOf(page, 'Cube')).toEqual(before);
+    // The handle let go: the rest of the drag moves nothing.
+    for (let i = 7; i <= 10; i++) await page.mouse.move(at.x - i * 10, at.y + i * 4);
+    await page.mouse.up();
+    expect(await positionOf(page, 'Cube')).toEqual(before);
+    // Escape went to the drag, not to the tool context.
+    await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
+
+    // The view ring of the Rotate tool, 1.1 handle sizes (88 points) out.
+    await page.keyboard.press('e');
+    await expect(view.getByRole('button', { name: 'Rotate Tool', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    const rotation = () =>
+      view.evaluate((el: unknown) => {
+        const go = [...(el as MeshHost).sceneHost.scene.allObjects()].find((o) => o.name === 'Cube')!;
+        const q = go.transform.rotation;
+        return [q.x, q.y, q.z, q.w];
+      });
+    const turned = await rotation();
+    await page.mouse.move(at.x + 88, at.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(at.x + 88, at.y + i * 10);
+    await expect.poll(rotation).not.toEqual(turned);
+    await page.keyboard.press('Escape');
+    await expect.poll(rotation).toEqual(turned);
+    await page.mouse.up();
+  });
+});
