@@ -137,7 +137,7 @@ test('loads the Scene view with the tutorial badge', async ({ page }) => {
   await expect(view.getByLabel('Orientation gizmo')).toBeVisible();
 });
 
-test("the badge opens the checklist, then names the next task with the feature's clip", async ({ page }) => {
+test("the badge opens the checklist, then names the next task with the task's own picture", async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Blendon Tutorial' }).click();
   const win = page.locator('#try .uw');
@@ -147,7 +147,8 @@ test("the badge opens the checklist, then names the next task with the feature's
   await line.hover();
   const tip = view.getByRole('tooltip');
   await expect(tip).toBeVisible();
-  await expect(tip.locator('video')).toHaveAttribute('src', /OrbitSelected\.mp4$/);
+  await expect(tip.locator('img')).toHaveAttribute('src', /Tutorial_OrbitView\.webp$/);
+  await expect(tip.locator('video')).toHaveCount(0);
   await page.mouse.move(0, 0);
   await expect(tip).toHaveCount(0);
 });
