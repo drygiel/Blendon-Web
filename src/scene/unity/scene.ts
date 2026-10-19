@@ -309,7 +309,7 @@ export class GameObject {
 
 /**
  * Demo only: the floor the scene stands on, half a unit down so an object at the origin rests on it.
- * Drawn under the grid and hit by surface raycasts, but never picked or selected.
+ * Drawn behind every object as a backdrop and hit by surface raycasts, but never picked or selected.
  */
 export const Ground = {
   y: -0.5,
