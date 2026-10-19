@@ -322,6 +322,19 @@ export abstract class GizmoController {
 // A request older than this was pressed where no pass could serve it.
 const RequestLifetimeSeconds = 0.25;
 const sessions: GrabSession[] = [];
+// Held from a confirming press to its release, so the rest of that click never reaches picking.
+const ConfirmClickId = 0x47726162;
+
+function releaseConfirmClick(ev: Event) {
+  if (GUIUtility.hotControl !== ConfirmClickId) return;
+  if (ev.rawType === EventType.MouseUp && ev.button === MouseButton.LeftMouse) {
+    GUIUtility.hotControl = 0;
+    ev.use();
+  } else if (ev.type === EventType.MouseMove) {
+    // A move comes only with no button down: the release went somewhere else.
+    GUIUtility.hotControl = 0;
+  }
+}
 
 export abstract class GrabSession extends GizmoController {
   private confirmOnRelease = false;
@@ -398,6 +411,7 @@ export abstract class GrabSession extends GizmoController {
   }
 
   protected override onBeforeDraw(sceneView: SceneView) {
+    releaseConfirmClick(Event.current);
     if (this.consumeRequest(sceneView)) this.tryBegin(sceneView);
   }
 
@@ -465,8 +479,11 @@ export abstract class GrabSession extends GizmoController {
   }
 
   protected confirm() {
+    const ev = Event.current;
     this.coordinator.forceRelease();
     this.endSession();
+    if (ev.rawType === EventType.MouseDown && ev.button === MouseButton.LeftMouse)
+      GUIUtility.hotControl = ConfirmClickId;
   }
 
   // Nothing would end a grab once it stops drawing; it would resume mid-air later.

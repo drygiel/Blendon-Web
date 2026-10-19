@@ -188,6 +188,28 @@ test('grabs the selection by a typed distance and undoes it', async ({ page }) =
   await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before!.x, 4);
 });
 
+test('the click that confirms a grab selects nothing', async ({ page }) => {
+  await openScene(page);
+  expect(await selectionNames(page)).toEqual(['Cube']);
+  const before = (await positionOf(page, 'Cube'))!;
+  const from = await pagePointOf(page, 'Cube');
+  const to = await pagePointOf(page, 'Tilted Cube');
+  await page.mouse.move(from.x, from.y);
+  await page.keyboard.press('g');
+  // Held to Y, the Cube only rises, so the cursor ends up over the other cube.
+  await page.keyboard.press('y');
+  for (let i = 1; i <= 10; i++)
+    await page.mouse.move(from.x + ((to.x - from.x) * i) / 10, from.y + ((to.y - from.y) * i) / 10);
+  await page.mouse.down();
+  await page.mouse.up();
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.y).not.toBeCloseTo(before.y, 2);
+  expect(await selectionNames(page)).toEqual(['Cube']);
+  // Confirmed, so the cursor no longer carries the Cube.
+  const placed = await positionOf(page, 'Cube');
+  await page.mouse.move(from.x, from.y);
+  expect(await positionOf(page, 'Cube')).toEqual(placed);
+});
+
 test('opens the context menu on a right click and closes it with Escape', async ({ page }) => {
   const view = await openScene(page);
   const box = (await view.boundingBox())!;

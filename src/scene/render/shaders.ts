@@ -1,15 +1,14 @@
 // GLSL for the grid and the selection outline.
 
+// A full-screen pass: each pixel finds its own point on the grid plane.
 export const GRID_VERT = /* glsl */ `
-varying vec3 vWorld;
 void main() {
-  vec4 w = modelMatrix * vec4(position, 1.0);
-  vWorld = w.xyz;
-  gl_Position = projectionMatrix * viewMatrix * w;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
 }`;
 
 // Unity's grid: 1-unit lines that fade out with distance over 10-unit lines that carry further,
 // levels stepping by 10 as the view zooms. Constants matched to the reference capture.
+// Each pixel ray-casts the plane: a quad reaching the horizon rasterizes too coarse a depth for a floor laid on it.
 export const GRID_FRAG = /* glsl */ `
 uniform vec3 uCamPos;
 uniform vec3 uViewDir;
@@ -20,7 +19,13 @@ uniform vec2 uOrigin;
 uniform vec4 uColor;
 uniform vec4 uNear;
 uniform vec4 uFar;
-varying vec3 vWorld;
+uniform float uPlaneY;
+uniform vec2 uViewport;
+// Near and far clip distances.
+uniform vec2 uClip;
+// Columns: the ray at the view's centre, then its change per NDC unit in x and in y.
+uniform mat3 uRayOrigin;
+uniform mat3 uRayDir;
 
 float lineAlpha(vec2 p, float spacing) {
   vec2 q = p / spacing;
@@ -33,23 +38,36 @@ float lineAlpha(vec2 p, float spacing) {
 }
 
 void main() {
+  vec2 ndc = gl_FragCoord.xy / uViewport * 2.0 - 1.0;
+  vec3 ro = uRayOrigin * vec3(1.0, ndc);
+  vec3 rd = uRayDir * vec3(1.0, ndc);
+  // rd is one unit long along the view axis, so the hit's distance is its view depth too.
+  float hit = (uPlaneY - ro.y) / rd.y;
+  vec3 world = ro + rd * hit;
+  float depth = uOrtho > 0.5
+    ? (hit - uClip.x) / (uClip.y - uClip.x)
+    : uClip.y / (uClip.y - uClip.x) * (1.0 - uClip.x / hit);
+
   // The grid size from the Grid and Snap toolbar scales every level.
-  vec2 cell = (vWorld.xz - uOrigin) / uUnit;
+  vec2 cell = (world.xz - uOrigin) / uUnit;
   float lod = log(max(uSize / uUnit, 1e-4) * 0.35) / log(10.0);
   float level = floor(lod);
   float t = lod - level;
   float s0 = pow(10.0, max(level, -3.0));
-  float dist = uOrtho > 0.5 ? uSize : length(vWorld - uCamPos);
+  float dist = uOrtho > 0.5 ? uSize : length(world - uCamPos);
   float a0 = lineAlpha(cell, s0) * (1.0 - t) * (1.0 - smoothstep(uSize * uNear.y, uSize * uNear.z, dist));
   float a1 = lineAlpha(cell, s0 * 10.0) * (1.0 - smoothstep(uSize * uFar.y, uSize * uFar.z, dist));
   float a = max(a0 * uNear.x, a1 * uFar.x);
 
-  vec3 toFrag = normalize(vWorld - uCamPos);
+  vec3 toFrag = normalize(world - uCamPos);
   float grazing = uOrtho > 0.5 ? abs(uViewDir.y) : abs(toFrag.y);
   a *= smoothstep(0.0, 0.1, grazing);
 
+  // Pulled toward the camera like a polygon offset: a pixel's slope plus four steps of the 24-bit buffer.
+  float bias = fwidth(depth) + 4.0 / 16777216.0;
   float alpha = uColor.a * a;
-  if (alpha <= 0.002) discard;
+  if (!(hit > 0.0) || depth >= 1.0 || alpha <= 0.002) discard;
+  gl_FragDepth = max(depth - bias, 0.0);
   gl_FragColor = vec4(uColor.rgb, min(alpha, 1.0));
   #include <colorspace_fragment>
 }`;

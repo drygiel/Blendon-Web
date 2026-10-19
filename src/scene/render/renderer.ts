@@ -64,6 +64,8 @@ const LIGHT_INTENSITY = 12;
 const ENV_INTENSITY = 0.7;
 // sRGB input that comes out of the tonemapper as #454545.
 const GROUND_RGB = 0.265;
+// The grid's height over the Ground, so a floor laid on the Ground shows under the lines.
+const GRID_LIFT = 0.001;
 
 export interface OutlineSets {
   selected: GameObject[];
@@ -191,15 +193,12 @@ export class SceneRenderer {
     this.skyReady = applySkyEnvironment(this.three, this.renderer);
     this.three.environmentIntensity = ENV_INTENSITY;
 
-    // Pulled toward the camera like the selection masks, so it draws steadily over a floor laid on it.
+    // Drawn after the objects and tested against them with a depth it computes itself.
     this.gridMat = new THREE.ShaderMaterial({
       vertexShader: GRID_VERT,
       fragmentShader: GRID_FRAG,
       transparent: true,
       depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -4,
       uniforms: {
         uCamPos: { value: new THREE.Vector3() },
         uSize: { value: 10 },
@@ -211,27 +210,28 @@ export class SceneRenderer {
         // Strength, fade start and end (in view sizes), line width.
         uNear: { value: new THREE.Vector4(4, 1, 5, 0) },
         uFar: { value: new THREE.Vector4(1.4, 3, 40, 0.7) },
+        uPlaneY: { value: Ground.y + GRID_LIFT },
+        uViewport: { value: new THREE.Vector2(1, 1) },
+        uClip: { value: new THREE.Vector2(0.01, 1000) },
+        uRayOrigin: { value: new THREE.Matrix3() },
+        uRayDir: { value: new THREE.Matrix3() },
       },
     });
-    this.grid = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), this.gridMat);
+    this.grid = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.gridMat);
     this.grid.frustumCulled = false;
     this.grid.renderOrder = 10;
     this.three.add(this.grid);
 
-    // Unlit, drawn after the objects without writing depth: it still covers whatever sinks below it, but
-    // never competes with the grid's lines for depth, at any distance. Pushed back in depth, so a plane laid
-    // on it wins at every zoom instead of flickering. Lands as #454545 after the post.
+    // A backdrop drawn first without depth, so every object covers it, even one sunk below it. Lands as #454545.
     this.ground = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({
         color: new THREE.Color().setRGB(GROUND_RGB, GROUND_RGB, GROUND_RGB, THREE.SRGBColorSpace),
+        depthTest: false,
         depthWrite: false,
-        polygonOffset: true,
-        polygonOffsetFactor: 1,
-        polygonOffsetUnits: 4,
       }),
     );
-    this.ground.renderOrder = 5;
+    this.ground.renderOrder = -1;
     this.ground.frustumCulled = false;
     this.three.add(this.ground);
 
@@ -364,7 +364,7 @@ export class SceneRenderer {
       }
   }
 
-  private camera(view: SceneView): THREE.Camera {
+  private camera(view: SceneView): THREE.PerspectiveCamera | THREE.OrthographicCamera {
     const c = view.camera;
     const cam = c.orthographic ? this.ortho : this.persp;
     if (c.orthographic) {
@@ -441,20 +441,14 @@ export class SceneRenderer {
       e.wire.material = wireOnly ? this.wireMat : this.wireOverlayMat;
     }
 
-    // The grid plane follows the camera so it reaches the horizon at any zoom.
+    // The ground follows the camera so it reaches the horizon at any zoom.
     const c = view.camera;
     const reach = Math.max(view.size * 600, 50);
-    // Quads that wide lose depth precision as the view grows, so the gap that keeps a plane laid on the ground
-    // between the ground and the grid, at every zoom, grows with it.
-    const gap = Math.max(1e-4, view.size * 1e-3);
     this.grid.visible = view.showGrid;
-    this.grid.scale.set(reach * 2, 1, reach * 2);
-    this.grid.position.set(c.position.x, Ground.y + gap, -c.position.z);
-    this.grid.updateMatrixWorld();
-    // Seen from below it would hide the scene, as no floor in Unity would.
+    // Only from above, as a one-sided floor in Unity is.
     this.ground.visible = c.position.y > Ground.y;
-    this.ground.scale.copy(this.grid.scale);
-    this.ground.position.set(c.position.x, Ground.y - gap, -c.position.z);
+    this.ground.scale.set(reach * 2, 1, reach * 2);
+    this.ground.position.set(c.position.x, Ground.y, -c.position.z);
     this.ground.updateMatrixWorld();
     const u = this.gridMat.uniforms;
     (u.uCamPos.value as THREE.Vector3).copy(toThreeV(c.position));
@@ -462,6 +456,7 @@ export class SceneRenderer {
     u.uSize.value = view.size;
     u.uUnit.value = Math.max(1e-3, EditorSnapSettings.gridSize.x);
     u.uOrtho.value = c.orthographic ? 1 : 0;
+    this.setGridRays(cam);
 
     const r = this.renderer;
     r.setRenderTarget(this.hdrTarget);
@@ -509,6 +504,29 @@ export class SceneRenderer {
       r.render(this.quadScene, this.quadCam);
     }
     if (outline.highlight) this.renderHighlight(outline.highlight, cam, unlit);
+  }
+
+  /** Each pixel's view ray as an affine function of its NDC position, for the grid's own plane hit. */
+  private setGridRays(cam: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
+    const u = this.gridMat.uniforms;
+    const e = cam.matrixWorld.elements;
+    const pos = new THREE.Vector3(e[12], e[13], e[14]);
+    const right = new THREE.Vector3(e[0], e[1], e[2]);
+    const up = new THREE.Vector3(e[4], e[5], e[6]);
+    const forward = new THREE.Vector3(-e[8], -e[9], -e[10]);
+    const zero = new THREE.Vector3();
+    const origin = u.uRayOrigin.value as THREE.Matrix3;
+    const dir = u.uRayDir.value as THREE.Matrix3;
+    if (cam instanceof THREE.OrthographicCamera) {
+      setColumns(origin, pos, right.multiplyScalar(cam.right), up.multiplyScalar(cam.top));
+      setColumns(dir, forward, zero, zero);
+    } else {
+      const ty = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+      setColumns(origin, pos, zero, zero);
+      setColumns(dir, forward, right.multiplyScalar(ty * cam.aspect), up.multiplyScalar(ty));
+    }
+    (u.uClip.value as THREE.Vector2).set(cam.near, cam.far);
+    (u.uViewport.value as THREE.Vector2).set(this.hdrTarget.width, this.hdrTarget.height);
   }
 
   /** Shows only these meshes, each with its material, for one render into the current target. */
@@ -626,6 +644,10 @@ function maskMaterial(depthFunc: THREE.DepthModes, channel: [number, number, num
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -4,
   });
+}
+
+function setColumns(m: THREE.Matrix3, a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) {
+  m.set(a.x, b.x, c.x, a.y, b.y, c.y, a.z, b.z, c.z);
 }
 
 const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
