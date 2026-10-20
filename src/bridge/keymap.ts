@@ -33,6 +33,7 @@ let overrides: Record<string, string> = {};
 let version = 0;
 let batching = 0;
 let dirty = false;
+let started = false;
 const listeners = new Set<() => void>();
 let pageOf: Map<string, string> | null = null;
 let pieOf: Map<string, string> | null = null;
@@ -61,6 +62,12 @@ export const sharedSettings: LiveSettings = {
   get version() {
     return SharedSettings.version;
   },
+};
+
+// What the page starts with, also right after the dock's reset while the window still shows the old values.
+const firstValues: GateReader = {
+  val: defaultVal,
+  pieOn: (pie) => !!D.pies.find((p) => p.id === pie)?.enabled,
 };
 
 function flag(r: GateReader, key: string): boolean {
@@ -221,11 +228,21 @@ export const Keymap = {
     });
   },
 
-  /** The dock's reset: no user key left, which is the Blendon preset. */
+  /** No user key left, which is the Blendon preset. */
   reset() {
     if (!Object.keys(overrides).length) return;
     overrides = {};
     changed();
+  },
+
+  /** The page's first profile, once the data is in: every row the table lists with a Move already moved. */
+  start() {
+    if (started) return;
+    started = true;
+    Keymap.batch(() => {
+      for (const row of D.contested)
+        if (row.editorAlt && Keymap.contestState(row, firstValues) === 'Covered') Keymap.move(row);
+    });
   },
 
   /** Blendon's key also belongs to the Editor command its row names, so the two compete for it. */
@@ -300,4 +317,12 @@ export function sharedTips(): TipResolver {
   return (shared ??= new TipResolver(Keymap.tokens(() => sharedSettings)));
 }
 
-PlaygroundEvents.on('reset', () => Keymap.reset());
+// The dock's reset goes back to the page's first profile, the moves included.
+PlaygroundEvents.on('reset', () =>
+  Keymap.batch(() => {
+    Keymap.reset();
+    if (!started) return;
+    started = false;
+    Keymap.start();
+  }),
+);

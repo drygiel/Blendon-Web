@@ -1,4 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { PlaygroundEvents } from '../../src/bridge/events.ts';
 import { type GateReader, Keymap, switchedOn } from '../../src/bridge/keymap.ts';
 import { SharedSettings } from '../../src/bridge/settings.ts';
 import { KEY_END, KEY_OPEN, TipResolver } from '../../src/plugin/keys.ts';
@@ -120,6 +121,32 @@ describe('contested rows', () => {
     expect(Keymap.binding(GRAB)).toBe('Shift+G');
     expect(Keymap.binding(CYCLE)).toBe('G');
     expect(Keymap.changedFromDefault(CYCLE)).toBe(false);
+  });
+
+  it("start moved on the page, so each row offers Reset, and the dock's reset moves them again", () => {
+    Keymap.start();
+    const moved = D.contested.filter((r) => Keymap.contestState(r, settings()) === 'Moved').map((r) => r.bl);
+    expect(moved).toEqual([
+      'Grab',
+      'Grab Rotate',
+      'Grab Scale',
+      'View Back',
+      'View Left',
+      'View Pie',
+      'Draw Mode Pie',
+      'Tools Pie',
+    ]);
+    expect(D.contested.some((r) => Keymap.contestState(r, settings()) === 'Covered')).toBe(false);
+    expect(Keymap.binding(CYCLE)).toBe('Shift+G');
+    // The Blendon preset is still the one in force, nothing of ours moved.
+    expect(Keymap.preset()).toBe('Blendon');
+    expect(Keymap.binding(GRAB)).toBe('G');
+    // Once only: a row given back stays given back.
+    Keymap.giveBack(row(GRAB));
+    Keymap.start();
+    expect(Keymap.binding(CYCLE)).toBe('G');
+    PlaygroundEvents.emit('reset');
+    expect(Keymap.binding(CYCLE)).toBe('Shift+G');
   });
 
   it('tell the shortcut tip what to say', () => {

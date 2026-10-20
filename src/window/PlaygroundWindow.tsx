@@ -20,6 +20,7 @@ import styles from './PlaygroundWindow.module.scss';
 import { SettingsWindow } from './ui/Window.tsx';
 
 await loadWindowData();
+Keymap.start();
 
 // Dev hook for side-by-side checks against Unity captures: ?w=1100&h=740&page=OrbitSelected&yaw=0
 const DEV_SIZE = new URLSearchParams(location.search).has('w');
