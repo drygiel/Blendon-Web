@@ -3349,7 +3349,7 @@
   },
   "Blendon/Grab Scale": {
    "b": "S",
-   "u": "Alt+S"
+   "u": ""
   },
   "Blendon/History/Redo Selection": {
    "b": "Mouse 4",
@@ -3377,7 +3377,7 @@
   },
   "Blendon/Pick Virtual Pivot": {
    "b": "Shift+V",
-   "u": "Alt+Shift+V"
+   "u": "Shift+V"
   },
   "Blendon/Pie Menus/Add Object": {
    "b": "Shift+A",
@@ -3469,7 +3469,7 @@
   },
   "Blendon/Vertex Snap": {
    "b": "V",
-   "u": "Alt+V"
+   "u": "V"
   },
   "Blendon/Viewport Nav/Align To Camera": {
    "b": "Num 0",
@@ -7798,7 +7798,7 @@
      "bindings": [
       {
        "b": "V",
-       "u": "Alt+V"
+       "u": "V"
       }
      ]
     },
@@ -7808,7 +7808,7 @@
      "bindings": [
       {
        "b": "Shift+V",
-       "u": "Alt+Shift+V"
+       "u": "Shift+V"
       }
      ]
     },
@@ -8054,7 +8054,7 @@
      "bindings": [
       {
        "b": "S",
-       "u": "Alt+S"
+       "u": ""
       }
      ]
     },
@@ -8134,7 +8134,7 @@
       },
       {
        "b": "S",
-       "u": "Alt+S"
+       "u": ""
       }
      ]
     },
@@ -8370,7 +8370,7 @@
      "bindings": [
       {
        "b": "S",
-       "u": "Alt+S"
+       "u": ""
       }
      ]
     },
@@ -9027,7 +9027,7 @@
    "bl": "Grab Scale",
    "key": "S",
    "replaces": false,
-   "blendonAlt": "Alt+S",
+   "blendonAlt": "",
    "editorAlt": "Alt+S",
    "cards": {
     "Covered": {
@@ -9237,7 +9237,7 @@
    "bl": "Vertex Snap",
    "key": "V",
    "replaces": true,
-   "blendonAlt": "Alt+V",
+   "blendonAlt": "V",
    "editorAlt": "",
    "cards": {
     "Covered": {
@@ -9267,7 +9267,7 @@
    "bl": "Pick Virtual Pivot",
    "key": "Shift+V",
    "replaces": true,
-   "blendonAlt": "Alt+Shift+V",
+   "blendonAlt": "Shift+V",
    "editorAlt": "",
    "cards": {
     "Covered": {
@@ -9381,7 +9381,7 @@
    }
   }
  ],
- "contestedMinWidth": 664,
+ "contestedMinWidth": 628,
  "featureGroups": [
   {
    "caption": "TRANSFORM TOOLS",

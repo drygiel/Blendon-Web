@@ -303,6 +303,10 @@ export class WindowModel {
     return Keymap.contestState(row, this.gates);
   }
 
+  contestListed(row: ContestedRow) {
+    return Keymap.listed(row, this.gates);
+  }
+
   /**
    * NativeCollisionNote: while Blendon holds the key, the Editor command it covers or replaces, and where.
    * `binding` is the key on show, a draft in the pie menu editor.

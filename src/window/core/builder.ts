@@ -777,11 +777,13 @@ export class Builder {
   }
 
   contested() {
-    const rows = D.contested.filter((r) => this.matches(r.bl, r.ul));
+    const rows = D.contested.filter((r) => this.app.contestListed(r) && this.matches(r.bl, r.ul));
     for (const _ of rows) this.count();
-    if (!rows.length) return;
-    this.flush();
-    this.add({ k: 'contested', rows });
+    if (rows.length) {
+      this.flush();
+      this.add({ k: 'contested', rows });
+    }
+    // Also with no row left, as under the Unity keys: every key is still on that page.
     this.pageLink('Keyboard', 'Open');
   }
 

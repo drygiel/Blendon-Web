@@ -144,7 +144,7 @@ test('navigates pages and searches every page', async ({ page }) => {
   await expect(win.locator('canvas')).toBeVisible();
   await win.getByLabel('Search settings').fill('snap');
   await expect(win.locator('.htitle')).toHaveText('Results for "snap"');
-  await expect(win.locator('.hsub')).toHaveText('50 settings across all pages');
+  await expect(win.locator('.hsub')).toHaveText('49 settings across all pages');
 });
 
 test('edits values and resets them', async ({ page }) => {

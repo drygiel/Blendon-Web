@@ -108,6 +108,21 @@ function handedOver(r: GateReader): boolean {
   return !!theirs && !(MENU in overrides) && switchedOn(OUR_MENU, r) && Keymap.binding(OUR_MENU) === theirs;
 }
 
+/** Resolution.KeepsKey: the Unity keys leave ours on the Blender key too. */
+function keepsKey(row: ContestedRow): boolean {
+  return row.blendonAlt === row.key;
+}
+
+/** ShortcutPresets.GiveBackLanding: an Editor command parked where ours lands, or where the Blender keys moved it. */
+function giveBackLanding(row: ContestedRow) {
+  // Unset on purpose, by the user or the menu handover.
+  const live = Keymap.binding(row.uid);
+  if (!live) return;
+  // A kept key is the Editor command's own.
+  const landing = keepsKey(row) ? '' : row.blendonAlt;
+  if (live === landing || live === row.editorAlt) Keymap.clear(row.uid);
+}
+
 export const Keymap = {
   /** Bumped by every write, for holders of a binding. */
   get version() {
@@ -139,6 +154,8 @@ export const Keymap = {
     let blendon = 0;
     let unity = 0;
     for (const row of D.contested) {
+      // Same key under both presets, it can't vote.
+      if (keepsKey(row)) continue;
       const live = Keymap.binding(row.bid);
       if (live === row.blendonAlt) unity++;
       else if (live === row.key) blendon++;
@@ -196,7 +213,11 @@ export const Keymap = {
   /** Puts every contested Blendon shortcut on the preset's key. The Blendon preset only clears. */
   applyPreset(preset: KeyboardPreset) {
     Keymap.batch(() => {
-      for (const row of D.contested) Keymap.restore(row.bid, preset);
+      for (const row of D.contested) {
+        Keymap.restore(row.bid, preset);
+        // The Unity keys give the Editor its keys back.
+        if (preset === 'Unity') giveBackLanding(row);
+      }
     });
   },
 
@@ -228,6 +249,12 @@ export const Keymap = {
     if (row.replaces && !Keymap.binding(row.uid, r)) return 'Replaced';
     if (Keymap.changedFromDefault(row.uid, r)) return 'Moved';
     return row.replaces ? 'Replaced' : 'Covered';
+  },
+
+  /** OverviewContestedTable.Listed: only rows with a button. The Editor's menu follows ours on its own. */
+  listed(row: ContestedRow, r: GateReader = sharedSettings): boolean {
+    const state = Keymap.contestState(row, r);
+    return row.uid !== MENU && (state === 'Covered' || state === 'Moved');
   },
 
   /** ShortcutTips.Read: what the first press of Blendon's key has to tell. */

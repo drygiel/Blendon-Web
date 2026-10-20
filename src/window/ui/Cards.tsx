@@ -357,23 +357,23 @@ const MOVE_TIP = (r: Row) =>
   `Put the Editor's "${r.ul}" on ${r.editorAlt}, so it works in the Scene View too. Blendon keeps ${r.key}.`;
 const RESET_TIP = "Give the Editor's command its own key back. Blendon covers it again.";
 
-/** Move a covered command aside, or give a moved one its key back. The Editor's menu follows ours on its own. */
+/** Move a covered command aside, or give a moved one its key back. Only listed rows get here. */
 function RowAction({ r, state }: { r: Row; state: string }) {
   const app = useApp();
   const move = state === 'Covered';
   const tip = useTip({ t: move ? MOVE_TIP(r) : RESET_TIP, native: true });
-  if (r.uid === 'Scene View/Menu' || (state !== 'Covered' && state !== 'Moved')) return <span />;
   return (
     <button
-      className="nb ctb"
+      className="ctb"
       onClick={() => {
         app.dismissTip();
         if (move) Keymap.move(r);
         else Keymap.giveBack(r);
       }}
+      aria-label={move ? 'Move aside' : 'Reset'}
       {...tip}
     >
-      {move ? 'Move' : 'Reset'}
+      {move ? '↪' : '↺'}
     </button>
   );
 }
@@ -386,7 +386,7 @@ function ContestedRow({ r, i, grid }: { r: Row; i: number; grid: CSSProperties }
   // One card for the row, by what it says now.
   const tip = useTip(r.cards[state]);
   // Muted while covered: the key is there, but the Scene View doesn't hear it.
-  const covered = state === 'Covered' || state === 'Replaced';
+  const covered = state === 'Covered';
   return (
     <div className={'ct' + (i % 2 ? ' odd' : '')} style={grid} {...tip}>
       <span className="ctn lk" onClick={() => app.goTo('Keyboard', r.bid)}>
@@ -417,8 +417,8 @@ function ContestedRow({ r, i, grid }: { r: Row; i: number; grid: CSSProperties }
   );
 }
 
-// OverviewContestedTable's columns: action + key twice, either side of a rule.
-const ACTION_W = 56;
+// OverviewContestedTable's columns: action + key twice, either side of a rule. The glyph is one row square.
+const ACTION_W = 20;
 const TABLE_GAP = 10;
 
 export function ContestedTable({ it }: { it: ItemOf<'contested'> }) {
