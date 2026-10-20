@@ -1,6 +1,7 @@
 // The browser Scene view: an engine host on a canvas, Blendon installed into it, Unity's chrome on top.
 import { useEffect, useRef, useState } from 'react';
 import { PlaygroundEvents } from '../bridge/events.ts';
+import { Keymap } from '../bridge/keymap.ts';
 import { SharedSettings } from '../bridge/settings.ts';
 import { loadWindowData, D } from '../plugin/window-data.ts';
 import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
@@ -39,6 +40,7 @@ export default function ScenePlayground() {
     let h: SceneHost | null = null;
     let stopAttract = () => {};
     void loadWindowData().then(() => {
+      Keymap.start();
       if (disposed || !canvasRef.current || !frameRef.current) return;
       // The captured Editor's values, else the shipped defaults; a page that follows the Defaults card
       // reads the General value.

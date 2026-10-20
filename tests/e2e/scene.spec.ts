@@ -487,7 +487,10 @@ async function toScene(page: Page) {
 test('the first press of a key that covers an Editor command explains it once', async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
-  await view.focus();
+  // The page starts with the command moved aside; Reset gives it G back, so G covers it.
+  await openOverview(page);
+  await contestedRow(page, 'Grab').getByRole('button', { name: 'Reset', exact: true }).click();
+  await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   const card = view.getByText('Blendon answers this key here');
   await expect(card).toBeVisible();
@@ -507,6 +510,7 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   const win = await openOverview(page);
   const grab = contestedRow(page, 'Grab');
+  await grab.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(grab.getByRole('button', { name: 'Move aside', exact: true })).toBeVisible();
   await win.locator('.si[aria-label="Move"]').click();
   await win.getByRole('button', { name: 'Enable Move' }).click();
@@ -525,16 +529,17 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('Move puts Cycle Tool Modes on Shift+G, and Reset gives it G back', async ({ page }) => {
+test('the page starts with Cycle Tool Modes on Shift+G, Reset gives it G back and Move moves it again', async ({
+  page,
+}) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   await openOverview(page);
   const grab = contestedRow(page, 'Grab');
   const editorKey = grab.locator('.ctk').nth(1);
-  await expect(editorKey).toHaveText('G');
-  await grab.getByRole('button', { name: 'Move aside', exact: true }).click();
   await expect(editorKey).toHaveText('ShiftG');
   await expect(grab.getByRole('button', { name: 'Reset', exact: true })).toBeVisible();
+  await expect(grab.getByRole('button', { name: 'Move aside', exact: true })).toHaveCount(0);
 
   // Shift+G is the Editor's command now, G still Blendon's grab, and the tip says where the command went.
   const before = (await positionOf(page, 'Cube'))!.x;
@@ -553,7 +558,8 @@ test('Move puts Cycle Tool Modes on Shift+G, and Reset gives it G back', async (
   await openOverview(page);
   await grab.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(editorKey).toHaveText('G');
-  await expect(grab.getByRole('button', { name: 'Move aside', exact: true })).toBeVisible();
+  await grab.getByRole('button', { name: 'Move aside', exact: true }).click();
+  await expect(editorKey).toHaveText('ShiftG');
 });
 
 test('the Unity preset puts Grab on Shift+G and the menu on Alt+right-click', async ({ page }) => {
@@ -638,8 +644,8 @@ test("with Blendon off, the Editor's own navigation, keys, menu and gizmo come b
   await page.keyboard.up('Alt');
   expect(await viewRotation(page)).not.toEqual(before);
 
-  // R is the Editor's Scale tool again, not Blendon's rotate grab.
-  await page.keyboard.press('r');
+  // The Editor's Scale tool answers on Shift+R, where the page starts it, not Blendon's rotate grab.
+  await page.keyboard.press('Shift+r');
   await expect(view.getByRole('button', { name: 'Scale Tool' })).toHaveAttribute('aria-pressed', 'true');
 
   // A right click opens the Editor's own menu.
@@ -723,11 +729,12 @@ test.describe("Blendon's tool context", () => {
     await page.keyboard.press('b');
     await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
 
-    // G is the Editor's Cycle Tool Modes here, not a grab: it steps on to the next context, Blendon's.
+    // Shift+G, where the page starts it, is the Editor's Cycle Tool Modes here, not a grab: it steps on to the
+    // next context, Blendon's.
     const before = (await positionOf(page, 'Cube'))!;
     const at = await pagePointOf(page, 'Cube');
     await page.mouse.move(at.x, at.y);
-    await page.keyboard.press('g');
+    await page.keyboard.press('Shift+g');
     await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
     for (let i = 1; i <= 6; i++) await page.mouse.move(at.x + i * 10, at.y);
     await page.waitForTimeout(300);
@@ -735,9 +742,9 @@ test.describe("Blendon's tool context", () => {
     await page.keyboard.press('b');
     await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
 
-    // R, E and W pick Unity's own tools, each with Unity's Tool Settings.
+    // Shift+R, E and W pick Unity's own tools, each with Unity's Tool Settings.
     for (const [key, name] of [
-      ['r', 'Scale Tool'],
+      ['Shift+r', 'Scale Tool'],
       ['e', 'Rotate Tool'],
       ['w', 'Move Tool'],
     ]) {
