@@ -15,7 +15,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Will it break my Unity muscle memory?',
-    a: "Only if you let it. On the Unity keyboard preset the Editor keeps every key and Blendon's gestures move aside: orbit to Ctrl+Mouse 2, pan to Alt+Mouse 2. Answer Keep Editor keys on first load and that is where you start. Or start with the Tools Only preset and switch features on as you go.",
+    a: "Only if you let it. On the Unity keyboard preset the Editor keeps every key and Blendon's gestures move aside: orbit to Ctrl+Mouse 2, pan to Alt+Mouse 2. Press Cancel in the first-load question and that is where you start. Or start with the Tools Only preset and switch features on as you go.",
     link: ['#pace', 'Compare the two presets.'],
   },
   {
