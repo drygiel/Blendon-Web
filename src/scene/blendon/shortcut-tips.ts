@@ -158,6 +158,11 @@ export const ShortcutTipCard = {
     return version;
   },
 
+  /** Share of the linger time left, for the ring round the close button. Hover and drags hold it at the grace. */
+  get remaining() {
+    return card && shownAt > 0 ? Math.min(Math.max((expiresAt - now()) / Linger, 0), 1) : 1;
+  },
+
   /** 0 fully off the right edge, 1 docked; sliding out is sliding in run backwards. */
   get progress() {
     const t = now();

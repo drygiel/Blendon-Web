@@ -90,7 +90,7 @@ export function Dock({ page = false, className, ...rest }: DockProps) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // A shortcut tip's "Open in Blendon" and the tutorial badge's link open the Blendon tab.
+  // A shortcut tip's Blendon name link and the tutorial badge's link open the Blendon tab.
   useEffect(() => PlaygroundEvents.on('openKeyboard', () => setActive('blendon')), []);
   useEffect(() => PlaygroundEvents.on('openSettings', () => setActive('blendon')), []);
 

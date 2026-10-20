@@ -4,7 +4,7 @@
 interface EventMap {
   /** The dock's reset button: the scene, every setting and the tutorial back to the start. */
   reset: void;
-  /** A shortcut tip's "Open in Blendon": the Keyboard page, with that shortcut's row lit. */
+  /** A shortcut tip's Blendon name link: the Keyboard page, with that shortcut's row lit. */
   openKeyboard: { id?: string };
   /** The tutorial badge's link: a page of the window, with one row lit. */
   openSettings: { page: string; hl?: string };

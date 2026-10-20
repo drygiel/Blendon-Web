@@ -1,7 +1,7 @@
-// Blendon's shortcut tip card: the key just pressed and the Editor command it covers here, or where the user
-// moved that command. Slides in at the Scene view's bottom right corner, or just above the tutorial badge when the
-// badge sits there.
-import { useSyncExternalStore } from 'react';
+// Blendon's shortcut tip card: one line per command, the key just pressed first. Each name is a link to where its
+// key changes, and a ring round the close button counts the card's time down. Slides in at the Scene view's bottom
+// right corner, or just above the tutorial badge when the badge sits there.
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
 import { publicUrl } from '../../lib/links.ts';
 import { ShortcutTipCard as Tips, type TipSide } from '../blendon/shortcut-tips.ts';
@@ -12,8 +12,9 @@ import { useViewSize } from './view-size.ts';
 import styles from './ShortcutTipCard.module.scss';
 import { KeyCaps } from './KeyCaps.tsx';
 
-const Width = 400;
-const Height = 44 + 72 * 2 + 24;
+/** The card hugs its lines; never narrower than this (ShortcutTips.MinWidth). */
+const MinWidth = 300;
+const Height = 9 * 2 + 20 * 2 + 4;
 const RightMargin = 12;
 const BottomMargin = 26;
 /** Same gap as the tutorial's hover card above its badge. */
@@ -21,62 +22,58 @@ const AvoidGap = 6;
 /** Where a lifted card stops in a short view. */
 const TopMargin = 6;
 
+// The countdown band sits just inside the 24 px close button.
+const RingRadius = 10.75;
+const RingLength = 2 * Math.PI * RingRadius;
+
 const BlendonLogo = publicUrl('plugin/icons/B@2x.png');
-const BulbIcon = publicUrl('plugin/icons/Notice_TipBulb@2x.png');
 
 const openKeyboard = (id?: string) => PlaygroundEvents.emit('openKeyboard', { id });
 
-// One headline per situation (ShortcutTips' titles).
-const Titles = {
-  Covered: ['Blendon answers this key here', "In the Scene View the Editor's command waits while Blendon's is on."],
-  Moved: ['Blendon owns this shortcut now', "The Editor's own command moved to another key."],
-};
-const ContextSubtitle = "Outside Blendon's tool context the Editor's command answers again.";
+// Where each command answers (ShortcutTips' asides).
+const InToolContext = "in Blendon's tool context";
+const EverywhereElse = 'everywhere else';
+const where = (context: string) => (context === 'Global' ? 'everywhere' : `in the ${context}`);
 
-const crowds = (x: number, y: number, badge: BadgeRect) =>
+const crowds = (x: number, w: number, y: number, badge: BadgeRect) =>
   x < badge.x + badge.w + AvoidGap &&
-  x + Width > badge.x - AvoidGap &&
+  x + w > badge.x - AvoidGap &&
   y < badge.y + badge.h + AvoidGap &&
   y + Height > badge.y - AvoidGap;
 
-function Side({ side }: { side: TipSide }) {
-  const open = () => {
-    Tips.dismiss();
-    if (side.blendon) openKeyboard(side.id);
-  };
+/** Keys, logo, then the name and where it answers. Three grid cells, so every line's logo lines up. */
+function Line({ side, aside, was }: { side: TipSide; aside: string; was?: string }) {
   return (
-    <div className={styles.side}>
-      <span className={styles.tile}>
-        <img src={side.blendon ? BlendonLogo : iconUrl('UnityLogo')} alt="" />
+    <>
+      <KeyCaps binding={side.binding} color="#fff" dim={false} joined className={styles.keys} />
+      <img className={styles.logo} src={side.blendon ? BlendonLogo : iconUrl('UnityLogo')} alt="" />
+      <span className={styles.text}>
+        {side.blendon ? (
+          <button
+            type="button"
+            className={styles.name + ' ' + styles.blendon}
+            title={`Open Blendon's Keyboard page at "${side.label}"`}
+            onClick={() => {
+              Tips.dismiss();
+              openKeyboard(side.id);
+            }}
+          >
+            {side.label}
+          </button>
+        ) : (
+          <span
+            className={styles.name + ' ' + styles.unity}
+            title={`In Unity this opens the Shortcuts window at "${side.label}"; it isn't part of the browser demo`}
+          >
+            {side.label}
+          </span>
+        )}
+        <span className={styles.aside} title={was ? 'Its key before it moved' : 'Where this key is heard'}>
+          {aside}
+          {was && <KeyCaps binding={was} color="rgba(255, 255, 255, 0.52)" dim joined className={styles.was} />}
+        </span>
       </span>
-      <div className={styles.text}>
-        <div className={styles.name} title={side.id}>
-          {side.label}
-        </div>
-        <div className={styles.brand + ' ' + (side.blendon ? styles.blendon : styles.unity)}>
-          {side.blendon ? 'BLENDON' : 'UNITY'}
-        </div>
-        <KeyCaps binding={side.binding} color="#fff" dim={false} joined className={styles.caps} />
-      </div>
-      <div className={styles.right}>
-        <button
-          type="button"
-          className={styles.launch + (side.blendon ? '' : ' ' + styles.primary + ' ' + styles.demoOnly)}
-          title={
-            side.blendon
-              ? `Open Blendon's Keyboard page at "${side.label}"`
-              : "In Unity this opens the Shortcuts window; it isn't part of the browser demo"
-          }
-          onClick={side.blendon ? open : undefined}
-        >
-          {side.blendon ? 'Open in Blendon' : 'Open in Unity'}
-          <span className={styles.chevron}>›</span>
-        </button>
-        <div className={styles.note} title="Where this key is heard">
-          {side.context}
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -85,22 +82,35 @@ export function ShortcutTipCard({ host }: { host: SceneHost }) {
   // Dragged or closed, the badge moves a lifted card with it.
   useSyncExternalStore(TutorialBadgeSpot.subscribe, () => TutorialBadgeSpot.version);
   const view = useViewSize(host);
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(MinWidth);
 
   const card = Tips.card;
-  if (!card || view.w < Width + RightMargin * 2 || view.h < Height + BottomMargin + 8) return null;
-  const [title, subtitle] = Titles[card.story];
-  const docked = view.w - Width - RightMargin;
+
+  // The width comes from the lines, read back once the card is laid out. It never changes while it shows.
+  useLayoutEffect(() => {
+    const w = ref.current?.offsetWidth;
+    if (w) setWidth((old) => (old === w ? old : w));
+  }, [card]);
+
+  if (!card || view.w < width + RightMargin * 2 || view.h < Height + BottomMargin + 8) return null;
+  const docked = view.w - width - RightMargin;
   const x = view.w + (docked - view.w) * Tips.progress;
   let y = view.h - Height - BottomMargin;
   // Tested at the docked spot, so the card doesn't hop while it slides in. Never moved sideways: the right edge is
   // where it slides in from.
   const badge = TutorialBadgeSpot.bounds;
-  if (badge && crowds(docked, y, badge)) y = Math.max(TopMargin, badge.y - AvoidGap - Height);
+  if (badge && crowds(docked, width, y, badge)) y = Math.max(TopMargin, badge.y - AvoidGap - Height);
+
+  const ours = card.contextual ? InToolContext : where(card.ours.context);
+  const theirs = card.story === 'Moved' ? 'was' : EverywhereElse;
+  const left = Tips.remaining;
 
   return (
     <div
+      ref={ref}
       className={styles.card}
-      style={{ left: Math.round(x), top: Math.round(y), width: Width, height: Height }}
+      style={{ left: Math.round(x), top: Math.round(y), height: Height }}
       role="status"
       onPointerDown={(e) => e.stopPropagation()}
       onPointerEnter={() => Tips.setHovered(true)}
@@ -108,40 +118,27 @@ export function ShortcutTipCard({ host }: { host: SceneHost }) {
       onWheel={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className={styles.header}>
-        <span className={styles.badge}>i</span>
-        <div className={styles.headText}>
-          <div className={styles.title}>{title}</div>
-          <div className={styles.subtitle}>{card.contextual ? ContextSubtitle : subtitle}</div>
-        </div>
-        <button type="button" className={styles.close} title="Dismiss" onClick={() => Tips.dismiss()}>
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M6.5 6.5 13.5 13.5M13.5 6.5 6.5 13.5" />
-          </svg>
-        </button>
+      <div className={styles.lines}>
+        <Line side={card.ours} aside={ours} />
+        <Line side={card.theirs} aside={theirs} was={card.story === 'Moved' ? card.ours.binding : undefined} />
       </div>
-      <div className={styles.rule} />
-      <Side side={card.ours} />
-      <div className={styles.rule + ' ' + styles.inset} />
-      <Side side={card.theirs} />
-      <div className={styles.rule} />
-      <div className={styles.footer}>
-        <span className={styles.bulb}>
-          <i style={{ maskImage: `url(${BulbIcon})`, WebkitMaskImage: `url(${BulbIcon})` }} />
-        </span>
-        Tip: Every Blendon key is listed on the&nbsp;
-        <button
-          type="button"
-          className={styles.link}
-          title="Open Blendon's Keyboard page"
-          onClick={() => {
-            Tips.dismiss();
-            openKeyboard();
-          }}
-        >
-          Keyboard page
-        </button>
-      </div>
+      <button type="button" className={styles.close} title="Dismiss" onClick={() => Tips.dismiss()}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle className={styles.track} cx="12" cy="12" r={RingRadius} />
+          {left > 0 && (
+            <circle
+              className={styles.ring}
+              cx="12"
+              cy="12"
+              r={RingRadius}
+              strokeDasharray={RingLength}
+              strokeDashoffset={-(1 - left) * RingLength}
+              transform="rotate(-90 12 12)"
+            />
+          )}
+          <path className={styles.cross} d="M8.5 8.5 15.5 15.5M15.5 8.5 8.5 15.5" />
+        </svg>
+      </button>
     </div>
   );
 }

@@ -513,11 +513,13 @@ test('the first press of a key that covers an Editor command explains it once', 
   await contestedRow(page, 'Grab').getByRole('button', { name: 'Reset', exact: true }).click();
   await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
-  const card = view.getByText('Blendon answers this key here');
+  const card = view.getByRole('status');
   await expect(card).toBeVisible();
-  await expect(view.getByText("Outside Blendon's tool context the Editor's command answers again.")).toBeVisible();
-  await expect(view.getByText('Cycle Tool Modes')).toBeVisible();
-  await view.getByRole('button', { name: 'Open in Blendon' }).click();
+  // Grab answers in Blendon's tool context, the Editor's command everywhere else.
+  await expect(card).toContainText("Grabin Blendon's tool context");
+  await expect(card).toContainText('Cycle Tool Modeseverywhere else');
+  // Grab's name is the link to its row on the Keyboard page.
+  await card.getByRole('button', { name: 'Grab', exact: true }).click();
   await expect(page.locator('#try .uw [data-hl="true"]')).toBeVisible();
   await expect(card).toHaveCount(0);
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
@@ -536,7 +538,7 @@ test('with the tutorial on, the tip card sits just above the badge and makes way
   await contestedRow(page, 'Grab').getByRole('button', { name: 'Reset', exact: true }).click();
   await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
-  const card = view.getByRole('status').filter({ hasText: 'Blendon answers this key here' });
+  const card = view.getByRole('status').filter({ hasText: 'Cycle Tool Modes' });
   await expect(card).toBeVisible();
   const badge = view.getByRole('button', { name: 'Skip the tutorial' }).locator('..');
   // Docked: right edges aligned, the card's bottom 6 px above the badge.
@@ -573,7 +575,7 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   for (const key of ['g', 'x', '2', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(800);
   expect((await positionOf(page, 'Cube'))!.x).toBeCloseTo(before, 4);
-  await expect(view.getByText('Blendon answers this key here')).toHaveCount(0);
+  await expect(view.getByRole('status')).toHaveCount(0);
   // The command steps on to the next tool context.
   await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
 });
@@ -601,8 +603,11 @@ test('the page starts with Cycle Tool Modes on Shift+G, Reset gives it G back an
   await page.keyboard.press('b');
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before + 1, 4);
-  await expect(view.getByText('Blendon owns this shortcut now')).toBeVisible();
-  await expect(view.getByText("The Editor's own command moved to another key.")).toBeVisible();
+  // Grab's line first, then Cycle Tool Modes on Shift+G with the key it had before.
+  const card = view.getByRole('status');
+  await expect(card.getByRole('button', { name: 'Grab', exact: true })).toBeVisible();
+  await expect(card.getByText('Cycle Tool Modes', { exact: true })).toBeVisible();
+  await expect(card).toContainText('Shift+GCycle Tool ModeswasG');
 
   await openOverview(page);
   await grab.getByRole('button', { name: 'Reset', exact: true }).click();
