@@ -17,6 +17,7 @@ import { D } from '../../plugin/window-data.ts';
 import { findTask, type TutorialTask } from '../blendon/tutorial/curriculum.ts';
 import { TutorialProgress } from '../blendon/tutorial/progress.ts';
 import { SceneTutorial } from '../blendon/tutorial/scene-tutorial.ts';
+import { TutorialBadgeSpot } from '../blendon/tutorial/badge-spot.ts';
 import { reducedMotion } from '../blendon/navigation/camera.ts';
 import { GeneralSettings } from '../blendon/settings.ts';
 import { BlendonContext, blendonContextActive, toggleBlendonKey, ToggleContextId } from '../blendon/tool-context.ts';
@@ -217,15 +218,6 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
     return () => window.removeEventListener('keydown', dismiss);
   }, [hover]);
 
-  const measuring = (
-    <span ref={measure} className={styles.measure} aria-hidden="true">
-      <span className={styles.label}>{restText}</span>
-      <span>{keys && <KeyCaps binding={keys} color="#fff" dim={false} joined />}</span>
-      <span className={styles.label}>{flash.title}</span>
-    </span>
-  );
-  if (!visible || !fits) return measuring;
-
   const keysNatural = keys ? widths.keys : 0;
   const restingWidth = Chrome + Math.min(widths.rest, MaxTextWidth) + (keysNatural ? keysNatural + KeysGap : 0);
   const flashWidth = Chrome + CheckSize + CheckGap + Math.min(widths.done, MaxTextWidth);
@@ -239,6 +231,22 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
   const clampY = (y: number) => clamp(y, EdgeMargin, Math.max(EdgeMargin, view.h - Height - EdgeMargin));
   const spotX = clampX(anchorX(width) + offset[0], width);
   const spotY = clampY(anchorY + offset[1]);
+
+  // Docked, not mid-slide, so a card kept clear of the badge doesn't drift.
+  const drawn = visible && fits;
+  useLayoutEffect(() => {
+    TutorialBadgeSpot.setBounds(drawn ? { x: spotX, y: spotY, w: width, h: Height } : null);
+  });
+  useLayoutEffect(() => () => TutorialBadgeSpot.setBounds(null), []);
+
+  const measuring = (
+    <span ref={measure} className={styles.measure} aria-hidden="true">
+      <span className={styles.label}>{restText}</span>
+      <span>{keys && <KeyCaps binding={keys} color="#fff" dim={false} joined />}</span>
+      <span className={styles.label}>{flash.title}</span>
+    </span>
+  );
+  if (!drawn) return measuring;
   // Slides in from the right like the shortcut-tip card. Reduced motion keeps the fades and cuts the moves.
   const slide = reducedMotion() ? 1 : easeOutCubic((now - shownAt) / SlideSeconds);
   const x = Math.round(lerp(view.w, spotX, slide));

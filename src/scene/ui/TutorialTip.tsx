@@ -4,6 +4,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useReducedMotion } from '../../lib/hooks.ts';
 import { publicUrl } from '../../lib/links.ts';
+import { TutorialBadgeSpot } from '../blendon/tutorial/badge-spot.ts';
 import type { TutorialTask } from '../blendon/tutorial/curriculum.ts';
 import { KeyCaps } from './KeyCaps.tsx';
 import { TutorialHint } from './TutorialHint.tsx';
@@ -32,6 +33,12 @@ export function TutorialTip({ task, badge, view }: TutorialTipProps) {
   const width = Math.min(ContentWidth, Math.max(0, view.w - Margin * 2 - Padding * 2));
   // Read live, a rebind shows at once.
   const keys = task.keys();
+
+  // A shortcut tip card makes way while this one is up.
+  useLayoutEffect(() => {
+    TutorialBadgeSpot.setTipShown(true);
+    return () => TutorialBadgeSpot.setTipShown(false);
+  }, []);
 
   // Placed after layout on every render: the badge can slide or widen while hovered.
   useLayoutEffect(() => {

@@ -4,13 +4,7 @@ import { EditorGUIUtility, HandleUtility, MouseCursor } from '../../unity/handle
 import { Event, EventType, FocusType, GUIUtility, MouseButton } from '../../unity/imgui.ts';
 import { Plane, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import { SceneView, type SceneCamera } from '../../unity/sceneview.ts';
-import {
-  CursorWrapTracker,
-  EditorRaycastUtility,
-  ModalViewportGate,
-  SceneTutorial,
-  ShortcutTips,
-} from '../foundation.ts';
+import { CursorWrapTracker, EditorRaycastUtility, ModalViewportGate, SceneTutorial } from '../foundation.ts';
 import { GeneralSettings, sBool } from '../settings.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
@@ -83,10 +77,8 @@ export const Pan = {
 
 function panShortcut(args: ShortcutArguments) {
   st.shortcutHeld = args.stage !== ShortcutStage.End;
-  if (args.stage === ShortcutStage.End) {
-    ShortcutTips.note(ShortcutId);
-    SceneTutorial.reportShortcut(ShortcutId);
-  }
+  // Tutorial only. Pan never raises a shortcut tip.
+  if (args.stage === ShortcutStage.End) SceneTutorial.reportShortcut(ShortcutId);
   st.lastView?.repaint();
 }
 

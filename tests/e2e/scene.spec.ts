@@ -286,6 +286,27 @@ test('orbits with the middle mouse button', async ({ page }) => {
   await expect.poll(() => viewRotation(page)).not.toEqual(before);
 });
 
+test('orbit and pan on the middle button never raise a tip card, Quick Roll still does', async ({ page }) => {
+  const view = await openScene(page);
+  const box = (await view.boundingBox())!;
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  const drag = async (modifier?: string) => {
+    if (modifier) await page.keyboard.down(modifier);
+    await page.mouse.move(x, y);
+    await page.mouse.down({ button: 'middle' });
+    for (let i = 1; i <= 10; i++) await page.mouse.move(x + i * 12, y + i * 3);
+    await page.mouse.up({ button: 'middle' });
+    if (modifier) await page.keyboard.up(modifier);
+  };
+  const card = view.getByRole('status');
+  await drag();
+  await drag('Shift');
+  await page.waitForTimeout(800);
+  await expect(card).toHaveCount(0);
+  await drag('Alt');
+  await expect(card).toBeVisible();
+});
+
 test('cancels a handle drag with the right mouse button', async ({ page }) => {
   await openScene(page);
   const before = (await positionOf(page, 'Cube'))!;
@@ -502,6 +523,34 @@ test('the first press of a key that covers an Editor command explains it once', 
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   await page.waitForTimeout(800);
+  await expect(card).toHaveCount(0);
+});
+
+test('with the tutorial on, the tip card sits just above the badge and makes way for its hover card', async ({
+  page,
+}) => {
+  const view = await openScene(page);
+  // Started, so the badge's line names a task and has a hover card.
+  await view.getByRole('button', { name: 'Blendon Tutorial' }).click();
+  await openOverview(page);
+  await contestedRow(page, 'Grab').getByRole('button', { name: 'Reset', exact: true }).click();
+  await toScene(page);
+  for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
+  const card = view.getByRole('status').filter({ hasText: 'Blendon answers this key here' });
+  await expect(card).toBeVisible();
+  const badge = view.getByRole('button', { name: 'Skip the tutorial' }).locator('..');
+  // Docked: right edges aligned, the card's bottom 6 px above the badge.
+  await expect
+    .poll(async () => {
+      const c = (await card.boundingBox())!;
+      const b = (await badge.boundingBox())!;
+      return [Math.round(c.x + c.width - b.x - b.width), Math.round(b.y - c.y - c.height)];
+    })
+    .toEqual([0, 6]);
+  // A ticked task's flash has no hover card, so wait for the line to name the next one.
+  await expect(view.getByText('✓')).toHaveCount(0);
+  await badge.getByRole('button').first().hover();
+  await expect(view.getByRole('tooltip')).toBeVisible();
   await expect(card).toHaveCount(0);
 });
 

@@ -14,7 +14,6 @@ import {
   ModifierKeys,
   SceneTutorial,
   SelectionCache,
-  ShortcutTips,
 } from '../foundation.ts';
 import { GizmoColors } from '../gizmos/colors.ts';
 import { GizmoHud } from '../gizmos/hud.ts';
@@ -179,10 +178,8 @@ export const OrbitSelected = {
 
 function orbitShortcut(args: ShortcutArguments) {
   st.shortcutHeld = args.stage !== ShortcutStage.End;
-  if (args.stage === ShortcutStage.End) {
-    ShortcutTips.note(ShortcutId);
-    SceneTutorial.reportShortcut(ShortcutId);
-  }
+  // Tutorial only. Orbit never raises a shortcut tip.
+  if (args.stage === ShortcutStage.End) SceneTutorial.reportShortcut(ShortcutId);
   st.lastView?.repaint();
 }
 

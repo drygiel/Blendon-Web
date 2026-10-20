@@ -13,7 +13,7 @@ import { ViewNavigationState } from './navigation/state.ts';
 import { PieMenu } from './piemenus/pie-menu.ts';
 import { GeneralSettings } from './settings.ts';
 import { ShortcutGates } from './shortcut-gates.ts';
-import { SceneTutorial } from './tutorial/scene-tutorial.ts';
+import { TutorialBadgeSpot } from './tutorial/badge-spot.ts';
 
 export interface TipSide {
   id: string;
@@ -93,8 +93,6 @@ function resolve(id: string): TipCard | null {
 
 function note(id: string) {
   if (waiting || card) return;
-  // The tutorial owns the corner and is itself teaching this key.
-  if (SceneTutorial.isShowing) return;
   if (!GeneralSettings.ShowShortcutTips || seen.has(seenKey(id))) return;
   if (!resolve(id)) return;
   waiting = id;
@@ -118,10 +116,11 @@ function pump() {
 function tick(): boolean {
   const t = now();
   if (waiting) {
-    if (ViewNavigationState.inProgress || held()) return true;
+    // Would be dismissed at once, so it waits for the badge's hover card to close.
+    if (ViewNavigationState.inProgress || held() || TutorialBadgeSpot.tipShown) return true;
     const id = waiting;
     waiting = null;
-    const c = SceneTutorial.isShowing ? null : resolve(id);
+    const c = resolve(id);
     if (!c) return false;
     // Spent when shown: a card never drawn has taught nobody anything.
     seen.add(seenKey(id));
@@ -134,6 +133,8 @@ function tick(): boolean {
     return true;
   }
   if (!card) return false;
+  // The badge's hover card opens right where the card was lifted to.
+  if (TutorialBadgeSpot.tipShown && closingAt === 0) closingAt = t;
   if (held() || hovered) expiresAt = Math.max(expiresAt, t + HoverGrace);
   else if (t >= expiresAt && closingAt === 0) closingAt = t;
   if (closingAt > 0 && t - closingAt >= SlideOut) {
