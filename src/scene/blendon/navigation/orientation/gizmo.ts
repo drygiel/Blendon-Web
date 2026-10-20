@@ -49,6 +49,9 @@ export const OrientationGizmoSettings = {
   get NegativeLabelsAlways() {
     return sBool(K + 'NegativeLabelsAlways', false);
   },
+  get ShowBackground() {
+    return sBool(K + 'ShowBackground', false);
+  },
   get BackdropColor() {
     return sColor(K + 'BackdropColor', new Color(0.5, 0.5, 0.5, 0.5));
   },

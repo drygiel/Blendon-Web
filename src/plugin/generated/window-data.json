@@ -963,6 +963,13 @@
    "d": false,
    "k": "Boolean"
   },
+  "OrientationGizmoSettings.ShowBackground": {
+   "l": "Show Background",
+   "t": "<size=14><b>Show Background</b></size>\nA dark panel behind the gizmo, there all the time.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nThe axis ball sits on a dark square and stays easy to read over a bright scene.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nNothing behind it, the scene shows around the handles.\n\n<size=9><color=#92929A>Unlike <b><color=#4FA8E8>Hover Backdrop</color></b>, it stays when the cursor leaves\nAlso in the gizmo's right-click menu</color></size>",
+   "i": "Tips/OrientationGizmo/ShowBackground.png",
+   "d": false,
+   "k": "Boolean"
+  },
   "OrientationGizmoSettings.BackdropColor": {
    "l": "Hover Backdrop",
    "t": "<size=14><b>Hover Backdrop</b></size>\nThe circle behind the gizmo while the cursor is over it.",
@@ -4432,6 +4439,10 @@
         "d_Grid.PaintTool",
         15,
         0
+       ],
+       [
+        "tog",
+        "OrientationGizmoSettings.ShowBackground"
        ],
        [
         "col",
@@ -10208,6 +10219,7 @@
   "Tips/OrientationGizmo/Opacity.png": "plugin/tips/OrientationGizmo_Opacity.webp",
   "Tips/OrientationGizmo/OrientationGizmo.png": "plugin/tips/OrientationGizmo_OrientationGizmo.webp",
   "Tips/OrientationGizmo/Padding.png": "plugin/tips/OrientationGizmo_Padding.webp",
+  "Tips/OrientationGizmo/ShowBackground.png": "plugin/tips/OrientationGizmo_ShowBackground.webp",
   "Tips/OrientationGizmo/Size.png": "plugin/tips/OrientationGizmo_Size.webp",
   "Tips/OrientationGizmo/ViewName.png": "plugin/tips/OrientationGizmo_ViewName.webp",
   "Tips/Overview/ActiveViewOnly.png": "plugin/tips/Overview_ActiveViewOnly.webp",
@@ -10432,6 +10444,7 @@
   "Tips/OrientationGizmo/Opacity.png": "640 / 360",
   "Tips/OrientationGizmo/OrientationGizmo.png": "640 / 360",
   "Tips/OrientationGizmo/Padding.png": "640 / 360",
+  "Tips/OrientationGizmo/ShowBackground.png": "640 / 360",
   "Tips/OrientationGizmo/Size.png": "640 / 360",
   "Tips/OrientationGizmo/ViewName.png": "640 / 360",
   "Tips/Overview/ActiveViewOnly.png": "640 / 360",

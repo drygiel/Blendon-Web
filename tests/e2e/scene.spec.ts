@@ -179,6 +179,38 @@ test("the badge's card spells a task's keys out, never their tokens", async ({ p
   await expect(tip.locator('b').first()).toBeVisible();
 });
 
+test("the gizmo's Show Background and the page's row switch the same setting", async ({ page }) => {
+  const view = await openScene(page);
+  const gizmo = view.getByLabel('Orientation gizmo');
+  // The overlay window around the gizmo's canvas carries the panel.
+  const panel = gizmo.locator('..');
+  const none = 'rgba(0, 0, 0, 0)';
+  const toggle = () => view.getByRole('menu').getByRole('menuitemcheckbox', { name: 'Show Background' });
+  const openMenu = async () => {
+    const box = (await gizmo.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: 'right' });
+  };
+  await expect(panel).toHaveCSS('background-color', none);
+
+  await openMenu();
+  await expect(toggle()).toHaveAttribute('aria-checked', 'false');
+  await toggle().click();
+  await expect(panel).not.toHaveCSS('background-color', none);
+
+  await openMenu();
+  await expect(toggle()).toHaveAttribute('aria-checked', 'true');
+  await view.getByRole('menu').getByRole('menuitem', { name: 'Settings' }).click();
+  const win = page.locator('#try .uw');
+  await expect(win.locator('.htitle')).toHaveText('Orientation Gizmo');
+  const row = win.getByRole('button', { name: 'Show Background', exact: true });
+  await expect(row).toHaveAttribute('aria-pressed', 'true');
+  await row.click();
+  await expect(row).toHaveAttribute('aria-pressed', 'false');
+
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await expect(panel).toHaveCSS('background-color', none);
+});
+
 test('grabs the selection by a typed distance and undoes it', async ({ page }) => {
   const view = await openScene(page);
   const before = await positionOf(page, 'Cube');
