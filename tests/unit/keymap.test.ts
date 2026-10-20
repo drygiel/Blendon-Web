@@ -100,6 +100,28 @@ describe('contested rows', () => {
     expect(Keymap.binding(MENU, settings())).toBe('Mouse 1');
   });
 
+  it('are listed only with a button to press', () => {
+    const on = settings();
+    expect(Keymap.listed(row(GRAB), on)).toBe(true);
+    Keymap.move(row(GRAB));
+    expect(Keymap.listed(row(GRAB), on)).toBe(true);
+    expect(Keymap.listed(row('Blendon/Vertex Snap'), on)).toBe(false);
+    expect(Keymap.listed(row('Blendon/Context Menu'), on)).toBe(false);
+    // A key given to the Editor's menu by hand still has no button, the handover would fight it.
+    Keymap.rebind(MENU, 'Alt+M');
+    expect(Keymap.listed(row('Blendon/Context Menu'), on)).toBe(false);
+    expect(Keymap.listed(row(GRAB), settings({ 'MoveGizmoSettings.Enabled': false }))).toBe(false);
+  });
+
+  it('go home under the Unity keys when moved where ours lands', () => {
+    Keymap.move(row(GRAB));
+    expect(Keymap.binding(CYCLE)).toBe('Shift+G');
+    Keymap.applyPreset('Unity');
+    expect(Keymap.binding(GRAB)).toBe('Shift+G');
+    expect(Keymap.binding(CYCLE)).toBe('G');
+    expect(Keymap.changedFromDefault(CYCLE)).toBe(false);
+  });
+
   it('tell the shortcut tip what to say', () => {
     expect(Keymap.tipStory(row(GRAB))).toBe('Covered');
     Keymap.move(row(GRAB));
@@ -141,11 +163,13 @@ describe('gates', () => {
 
 describe('live cards', () => {
   it('spell a key as bound now', () => {
-    const src = D.shortcuts['Blendon/Vertex Snap'].src!;
+    const src = D.shortcuts[GRAB].src!;
     const tips = new TipResolver(Keymap.tokens(() => ({ ...settings(), version: 0 })));
-    expect(tips.resolve(src)).toContain(key('V'));
+    expect(tips.resolve(src)).toContain(key('G'));
     Keymap.applyPreset('Unity');
-    expect(tips.resolve(src)).toContain(key('Alt+V'));
+    expect(tips.resolve(src)).toContain(key('Shift+G'));
+    // Vertex snap keeps V on both presets.
+    expect(tips.resolve(D.shortcuts['Blendon/Vertex Snap'].src!)).toContain(key('V'));
   });
 
   it("follow the Editor's command in a moved row's card", () => {

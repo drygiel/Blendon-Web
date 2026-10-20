@@ -45,7 +45,7 @@ export function Pace() {
             Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
           </>
         }
-        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys writes nothing, and Cancel, or just Esc, moves Blendon's contested keys one modifier aside. Pick a preset any time on the Overview page of Tools → Blendon."
+        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys, or just Esc, writes nothing, and Keep Unity keys moves Blendon's contested keys one modifier aside. Pick a preset any time on the Overview page of Tools → Blendon."
       />
 
       <div className={table.panel} {...plotPart('above')}>
@@ -76,8 +76,8 @@ export function Pace() {
         </table>
         <p className={table.note}>
           Neither preset is a profile of its own: both work on whatever profile you are on, and keys you tune stay put,
-          apart from the contested ones a preset moves. In the Scene view a covered Editor command waits, one click
-          moves it one modifier aside, and the settings window lists every pair.
+          apart from the contested ones a preset moves. In the Scene view a covered Editor command waits, the settings
+          window lists each one, and one click there moves it one modifier aside.
         </p>
       </div>
 

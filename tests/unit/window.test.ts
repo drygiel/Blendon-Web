@@ -91,7 +91,7 @@ describe('window layout', () => {
   it('searches across all pages', () => {
     const L = layoutWindow(harness({ search: 'snap' }).model());
     expect(L.searching).toBe(true);
-    expect(L.matchCount).toBe(50);
+    expect(L.matchCount).toBe(49);
     expect(L.side.filter((s) => (s.matches ?? 0) > 0).length).toBeGreaterThan(3);
   });
 

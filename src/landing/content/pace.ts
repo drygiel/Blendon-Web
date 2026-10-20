@@ -9,8 +9,8 @@ export interface ContestedKey {
   unity: string;
   /** Where one click moves Unity's command on the Blendon preset, or a note when Blendon's own takes over. */
   unityTo: KeyTokens | string;
-  /** Where Blendon's command goes on the Unity preset. */
-  blendonTo: KeyTokens;
+  /** Where Blendon's command goes on the Unity preset, or a note when it has no key or keeps its own. */
+  blendonTo: KeyTokens | string;
 }
 
 export const CONTESTED_KEYS: ContestedKey[] = [
@@ -44,7 +44,7 @@ export const CONTESTED_KEYS: ContestedKey[] = [
     blendon: 'Grab Scale',
     unity: 'Show Tool Settings',
     unityTo: ['Alt', '~+', 'S'],
-    blendonTo: ['Alt', '~+', 'S'],
+    blendonTo: "Grab Scale has no key there, Alt+S is ProBuilder's",
   },
   {
     id: 'Blendon/Pie Menus/Shading',
@@ -76,7 +76,7 @@ export const CONTESTED_KEYS: ContestedKey[] = [
     blendon: "Blendon's vertex snap",
     unity: "Unity's vertex snap",
     unityTo: "Replaced: Blendon's is the same mode, without its limits",
-    blendonTo: ['Alt', '~+', 'V'],
+    blendonTo: "Blendon's still answers V in its own tool context",
   },
   {
     id: 'Blendon/Context Menu',

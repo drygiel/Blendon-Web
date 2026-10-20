@@ -59,8 +59,11 @@ describe('landing keys', () => {
     ];
     for (const [action, id] of rows) {
       const row = SHORTCUTS.find(([a]) => a === action);
-      expect(binding(row?.[1] ?? []), action).toBe(known(id)?.editorKey);
-      expect(binding(row?.[2] ?? []), action).toBe(known(id)?.blendonAlt);
+      const k = known(id);
+      expect(binding(row?.[1] ?? []), action).toBe(k?.editorKey);
+      // The same key on both presets needs no Unity column.
+      if (k?.blendonAlt === k?.editorKey) expect(row?.[2], action).toBeUndefined();
+      else expect(binding(row?.[2] ?? []), action).toBe(k?.blendonAlt);
     }
   });
 
@@ -69,7 +72,9 @@ describe('landing keys', () => {
       const k = known(row.id);
       expect(k, row.id).toBeDefined();
       expect(binding(row.keys), row.id).toBe(k?.editorKey);
-      expect(binding(row.blendonTo), row.id).toBe(k?.blendonAlt);
+      // A note instead of keys: Blendon's has none on the Unity preset, or keeps its own.
+      if (typeof row.blendonTo === 'string') expect(['', k?.editorKey], row.id).toContain(k?.blendonAlt);
+      else expect(binding(row.blendonTo), row.id).toBe(k?.blendonAlt);
       // No Move target: Blendon's command replaces the Editor's, and the row says what took its place.
       if (k?.editorAlt) expect(binding(row.unityTo as KeyTokens), row.id).toBe(k.editorAlt);
       else expect(row.unityTo, row.id).toMatch(/^(Replaced|Still there)/);
@@ -82,7 +87,7 @@ describe('landing keys', () => {
       ...SHORTCUTS.flatMap(([, blendon, unity]) => [...blendon, ...(unity ?? [])]),
       ...CONTESTED_KEYS.flatMap((r) => [
         ...r.keys,
-        ...r.blendonTo,
+        ...(typeof r.blendonTo === 'string' ? [] : r.blendonTo),
         ...(typeof r.unityTo === 'string' ? [] : r.unityTo),
       ]),
       ...COMPARISON.flatMap((c) => c.keys),
@@ -94,7 +99,7 @@ describe('landing keys', () => {
       ...FEATURES.map((f) => f.desc),
       ...FAQ.map((f) => f.a),
       ...SETTINGS_SLIDES.map((s) => s.desc),
-      ...CONTESTED_KEYS.flatMap((r) => (typeof r.unityTo === 'string' ? [r.unityTo] : [])),
+      ...CONTESTED_KEYS.flatMap((r) => [r.unityTo, r.blendonTo].filter((t) => typeof t === 'string')),
       ...PIES.map((p) => p.note),
       ...COMPARISON.map((c) => c.blendon),
     ];
@@ -104,7 +109,7 @@ describe('landing keys', () => {
   it('has a Move target exactly where Blendon does not replace the command', () => {
     for (const row of CONTESTED_KEYS) {
       const k = known(row.id);
-      expect(k?.blendonAlt, row.id).toBeTruthy();
+      if (typeof row.blendonTo !== 'string') expect(k?.blendonAlt, row.id).toBeTruthy();
       expect(!!k?.editorAlt, row.id).toBe(!k?.replaces);
     }
   });
