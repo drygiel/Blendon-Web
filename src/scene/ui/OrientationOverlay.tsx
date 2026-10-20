@@ -1,11 +1,11 @@
 // Blendon's orientation gizmo as the Scene view overlay it is in Unity, docked top right.
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
+import { SharedSettings } from '../../bridge/settings.ts';
 import { OrientationGizmoElement } from '../blendon/navigation/orientation/drag-controller.ts';
 import { OrientationGizmoSettings } from '../blendon/navigation/orientation/gizmo.ts';
 import { ViewAlignment, ViewSnap, WorldAxes } from '../blendon/navigation/view-snap.ts';
 import type { SceneHost } from '../engine/host.ts';
-import { Prefs } from '../unity/editor.ts';
 import { iconUrl } from '../unity/icons.ts';
 import { Vector2 } from '../unity/math.ts';
 import { TopStripHeight, useOverlays } from './overlays.ts';
@@ -14,8 +14,6 @@ import styles from './Scene.module.scss';
 // The overlay window's padding around the widget, and its distance from the view's corner.
 const WindowPadding = 2;
 const Margin = { right: 2.3, top: 3.6 };
-// OrientationGizmo.ShowBackground: the overlay's own pref rather than a settings page row.
-const BackgroundKey = 'Blendon.OrientationGizmo.ShowBackground';
 // LockButton: off until the overlay is hovered (never quite 0, so it stays clickable), full while locked or hovered.
 const LockOpacity = { hidden: 0.0001, idle: 0.6, hover: 1 };
 
@@ -101,7 +99,7 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
   const label = OrientationGizmoSettings.DirectionLabelEnabled ? element.directionLabel : '';
   const animated = OrientationGizmoSettings.AnimationEnabled;
   const current = ViewAlignment.currentDirection(host.view);
-  const background = Prefs.bool(BackgroundKey, false);
+  const background = OrientationGizmoSettings.ShowBackground;
   const locked = host.view.isRotationLocked;
   const lockIcon = `url(${iconUrl(locked ? 'LockIcon-On' : 'LockIcon')})`;
   const items: MenuItem[] = [
@@ -121,11 +119,8 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
       label: 'Show Background',
       checked: background,
       role: 'menuitemcheckbox',
-      run: () => {
-        Prefs.set(BackgroundKey, !background);
-        setTick((t) => t + 1);
-        host.view.repaint();
-      },
+      // A stored setting, so the page's row follows.
+      run: () => SharedSettings.write('OrientationGizmoSettings.ShowBackground', !background),
       sep: true,
     },
     {
