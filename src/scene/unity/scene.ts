@@ -265,7 +265,8 @@ export class GameObject {
   /** Scene-visibility hide outside isolation (SceneVisibilityManager), not deactivation. */
   hidden = false;
   mesh: Mesh | null = null;
-  color = new Color(0.5, 0.5, 0.5, 1);
+  /** Demo only: the paint (sRGB) under the grid texture. Objects made on the page get a neutral grey. */
+  color = new Color(0.38, 0.39, 0.41, 1);
   /** Kept out of picking and snapping (helpers like the floor grid). */
   pickable = true;
 

@@ -16,6 +16,7 @@ import {
   QUAD_VERT,
 } from './shaders.ts';
 import { applySkyEnvironment } from './sky.ts';
+import { techMaterials, techTile, type TechMaterials } from './tech-surface.ts';
 
 const toThreeV = (v: Vector3) => new THREE.Vector3(v.x, v.y, -v.z);
 const toThreeQ = (q: Quaternion) => new THREE.Quaternion(-q.x, -q.y, q.z, q.w);
@@ -53,19 +54,24 @@ interface Entry {
   go: GameObject;
   mesh: THREE.Mesh;
   wire: THREE.LineSegments;
+  surface: TechMaterials;
   version: number;
 }
 
 /** Unity's scene-view lighting for this demo: the scene's directional light and a sky ambient. */
 const LIGHT_EULER = new Vector3(50, 330, 0);
-// Unity lights without the 1/pi three.js puts on diffuse, so its intensity 4 is about 4 * pi here;
-// these and the sky in sky.ts were matched to the reference capture's face colours.
-const LIGHT_INTENSITY = 12;
-const ENV_INTENSITY = 0.7;
+// Unity lights without the 1/pi three.js puts on diffuse, so its intensity 4 would be about 4 * pi here.
+// A softer sun and a brighter sky keep the yard's dark paints readable on lit and shaded faces alike.
+const LIGHT_INTENSITY = 7.5;
+const ENV_INTENSITY = 1.1;
 // sRGB input that comes out of the tonemapper as #454545.
 const GROUND_RGB = 0.265;
 // The grid's height over the Ground, so a floor laid on the Ground shows under the lines.
 const GRID_LIFT = 0.001;
+// The sun's shadow covers this square round the demo yard's middle, in metres.
+const SHADOW_CENTER = new Vector3(0, 0, -3);
+const SHADOW_REACH = 26;
+const SHADOW_OPACITY = 0.38;
 
 export interface OutlineSets {
   selected: GameObject[];
@@ -110,6 +116,8 @@ export class SceneRenderer {
   private readonly entries = new Map<GameObject, Entry>();
   private readonly grid: THREE.Mesh;
   private readonly ground: THREE.Mesh;
+  private readonly shadowCatcher: THREE.Mesh;
+  private shadowDirty = true;
   private readonly gridMat: THREE.ShaderMaterial;
   private readonly maskTarget: THREE.WebGLRenderTarget;
   private readonly distTarget: THREE.WebGLRenderTarget;
@@ -149,26 +157,7 @@ export class SceneRenderer {
   private readonly quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   private readonly wireMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
   private readonly wireOverlayMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25 });
-  private readonly material = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5, metalness: 0 });
-  // Scene lighting off: Unity lights the view with a headlight on the camera instead of the scene's lights.
-  private readonly unlitMat = new THREE.ShaderMaterial({
-    vertexShader: /* glsl */ `
-      varying vec3 vNormal;
-      varying vec3 vView;
-      void main() {
-        vec4 p = modelViewMatrix * vec4(position, 1.0);
-        vNormal = normalMatrix * normal;
-        vView = isOrthographic ? vec3(0.0, 0.0, 1.0) : -p.xyz;
-        gl_Position = projectionMatrix * p;
-      }`,
-    fragmentShader: /* glsl */ `
-      varying vec3 vNormal;
-      varying vec3 vView;
-      void main() {
-        float ndl = max(dot(normalize(vNormal), normalize(vView)), 0.0);
-        gl_FragColor = vec4(vec3(0.214) * (0.35 + 1.6 * ndl), 1.0);
-      }`,
-  });
+  private unlit = false;
 
   constructor(canvas: HTMLCanvasElement, scene: Scene) {
     this.scene = scene;
@@ -180,6 +169,10 @@ export class SceneRenderer {
     });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.autoClear = false;
+    // The sun is fixed, so the shadow map is redrawn only when an object changes, never for the camera.
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.autoUpdate = false;
     this.three.background = new THREE.Color().setRGB(0.278431, 0.278431, 0.278431, THREE.SRGBColorSpace);
 
     const light = new THREE.DirectionalLight(
@@ -187,8 +180,23 @@ export class SceneRenderer {
       LIGHT_INTENSITY,
     );
     const dir = Quaternion.euler(LIGHT_EULER).mulV(Vector3.forward);
-    light.position.copy(toThreeV(dir.mul(-100)));
-    light.target.position.set(0, 0, 0);
+    light.position.copy(toThreeV(SHADOW_CENTER.sub(dir.mul(60))));
+    light.target.position.copy(toThreeV(SHADOW_CENTER));
+    light.castShadow = true;
+    const shadow = light.shadow;
+    shadow.mapSize.set(2048, 2048);
+    shadow.radius = 1;
+    shadow.bias = -0.0004;
+    shadow.normalBias = 0.02;
+    Object.assign(shadow.camera, {
+      left: -SHADOW_REACH,
+      right: SHADOW_REACH,
+      top: SHADOW_REACH,
+      bottom: -SHADOW_REACH,
+      near: 1,
+      far: 120,
+    });
+    shadow.camera.updateProjectionMatrix();
     this.three.add(light, light.target);
     this.skyReady = applySkyEnvironment(this.three, this.renderer);
     this.three.environmentIntensity = ENV_INTENSITY;
@@ -234,6 +242,16 @@ export class SceneRenderer {
     this.ground.renderOrder = -1;
     this.ground.frustumCulled = false;
     this.three.add(this.ground);
+
+    // The backdrop takes no light, so the sun's shadows land on a clear floor drawn over it, under the grid.
+    this.shadowCatcher = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+      new THREE.ShadowMaterial({ opacity: SHADOW_OPACITY, depthWrite: false }),
+    );
+    this.shadowCatcher.receiveShadow = true;
+    this.shadowCatcher.renderOrder = 5;
+    this.shadowCatcher.frustumCulled = false;
+    this.three.add(this.shadowCatcher);
 
     this.hdrTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
     this.postMat = new THREE.ShaderMaterial({
@@ -335,17 +353,20 @@ export class SceneRenderer {
       let e = this.entries.get(go);
       if (!e) {
         const geo = geometryFor(go.mesh);
-        const mesh = new THREE.Mesh(geo, this.material);
+        const surface = techMaterials(techTile(this.renderer), go.mesh, go.color);
+        const mesh = new THREE.Mesh(geo, this.unlit ? surface.unlit : surface.lit);
         mesh.matrixAutoUpdate = false;
+        mesh.castShadow = mesh.receiveShadow = true;
         const wire = new THREE.LineSegments(new THREE.WireframeGeometry(geo), this.wireMat);
         wire.matrixAutoUpdate = false;
         this.three.add(mesh, wire);
-        e = { go, mesh, wire, version: -1 };
+        e = { go, mesh, wire, surface, version: -1 };
         this.entries.set(go, e);
       }
       const t = go.transform;
       if (e.version !== t.version) {
         e.version = t.version;
+        this.shadowDirty = true;
         const m = t.localToWorldMatrix.m;
         // S * M * S with S = diag(1, 1, -1).
         const a = Array.from(m);
@@ -360,8 +381,17 @@ export class SceneRenderer {
     for (const [go, e] of this.entries)
       if (!seen.has(go)) {
         this.three.remove(e.mesh, e.wire);
+        e.wire.geometry.dispose();
+        e.surface.lit.dispose();
+        e.surface.unlit.dispose();
         this.entries.delete(go);
+        this.shadowDirty = true;
       }
+  }
+
+  /** Puts every object back in its own surface after a pass that drew it with another material. */
+  private restoreSurfaces() {
+    for (const e of this.entries.values()) e.mesh.material = this.unlit ? e.surface.unlit : e.surface.lit;
   }
 
   private camera(view: SceneView): THREE.PerspectiveCamera | THREE.OrthographicCamera {
@@ -400,6 +430,8 @@ export class SceneRenderer {
     // The environment is part of a lit program, so the sky goes on first.
     this.warming = this.skyReady
       .then(() => {
+        // The grid tile and its mipmaps go up now, not on the first visible frame.
+        r.initTexture(techTile(r));
         // A program depends on the target it draws into, so each pass compiles against its own.
         r.setRenderTarget(this.hdrTarget);
         const scene = r.compileAsync(this.three, cam);
@@ -432,11 +464,13 @@ export class SceneRenderer {
     const mode = view.drawMode;
     const wireOnly = mode === DrawCameraMode.Wireframe;
     // Unity's Unlit is the Textured draw mode with the scene lighting toggle off.
-    const unlit = !view.sceneLighting;
+    this.unlit = !view.sceneLighting;
+    this.restoreSurfaces();
     for (const e of this.entries.values()) {
       const vis = e.go.visible;
-      e.mesh.visible = vis && !wireOnly;
-      e.mesh.material = unlit ? this.unlitMat : this.material;
+      const shown = vis && !wireOnly;
+      if (e.mesh.visible !== shown) this.shadowDirty = true;
+      e.mesh.visible = shown;
       e.wire.visible = vis && (wireOnly || mode === DrawCameraMode.TexturedWire);
       e.wire.material = wireOnly ? this.wireMat : this.wireOverlayMat;
     }
@@ -450,6 +484,11 @@ export class SceneRenderer {
     this.ground.scale.set(reach * 2, 1, reach * 2);
     this.ground.position.set(c.position.x, Ground.y, -c.position.z);
     this.ground.updateMatrixWorld();
+    // Unity's unlit and wireframe modes draw no shadows.
+    this.shadowCatcher.visible = this.ground.visible && !this.unlit && !wireOnly;
+    this.shadowCatcher.scale.copy(this.ground.scale);
+    this.shadowCatcher.position.copy(this.ground.position);
+    this.shadowCatcher.updateMatrixWorld();
     const u = this.gridMat.uniforms;
     (u.uCamPos.value as THREE.Vector3).copy(toThreeV(c.position));
     (u.uViewDir.value as THREE.Vector3).copy(toThreeV(c.forward));
@@ -459,6 +498,10 @@ export class SceneRenderer {
     this.setGridRays(cam);
 
     const r = this.renderer;
+    if (this.shadowDirty) {
+      r.shadowMap.needsUpdate = true;
+      this.shadowDirty = false;
+    }
     r.setRenderTarget(this.hdrTarget);
     r.clear();
     r.render(this.three, cam);
@@ -497,13 +540,13 @@ export class SceneRenderer {
       }
       this.three.background = bg;
       for (const [o, v] of vis) o.visible = v;
-      for (const e of this.entries.values()) e.mesh.material = unlit ? this.unlitMat : this.material;
+      this.restoreSurfaces();
       r.setRenderTarget(this.distTarget);
       r.render(this.distScene, this.quadCam);
       r.setRenderTarget(null);
       r.render(this.quadScene, this.quadCam);
     }
-    if (outline.highlight) this.renderHighlight(outline.highlight, cam, unlit);
+    if (outline.highlight) this.renderHighlight(outline.highlight, cam);
   }
 
   /** Each pixel's view ray as an affine function of its NDC position, for the grid's own plane hit. */
@@ -552,7 +595,7 @@ export class SceneRenderer {
     return used;
   }
 
-  private renderHighlight(h: HighlightSets, cam: THREE.Camera, unlit: boolean) {
+  private renderHighlight(h: HighlightSets, cam: THREE.Camera) {
     const r = this.renderer;
     const visible = [...this.entries.values()].filter((e) => e.go.visible).map((e) => e.go);
     const meshes = (list: GameObject[]) => list.filter((go) => go.mesh && go.visible);
@@ -564,7 +607,7 @@ export class SceneRenderer {
     for (const go of meshes(h.selects)) draws.push([go, selVis], [go, selOcc]);
     for (const go of meshes(h.deselects)) draws.push([go, deVis], [go, deOcc]);
     this.renderOnly(cam, draws);
-    for (const e of this.entries.values()) e.mesh.material = unlit ? this.unlitMat : this.material;
+    this.restoreSurfaces();
 
     const rim = h.width * this.dpr;
     const u = this.hlMat.uniforms;
@@ -611,7 +654,7 @@ export class SceneRenderer {
     const data = new Uint8Array(w * h * 4);
     r.readRenderTargetPixels(this.idTarget, 0, 0, w, h, data);
     r.setRenderTarget(null);
-    for (const e of this.entries.values()) e.mesh.material = this.material;
+    this.restoreSurfaces();
     return { width: w, height: h, scale: this.dpr, data };
   }
 

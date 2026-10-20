@@ -988,7 +988,13 @@ test.describe('Undo and Redo', () => {
     await page.locator('#try [role=application]').getByText(label, { exact: true }).first().click();
   }
 
-  const others = ['Cube (1)', 'Tilted Cube', 'Sphere', 'Cube (2)', 'Ramp', 'Group', 'Cylinder', 'Capsule'];
+  /** Every object but the Cube, in Hierarchy order: what hiding or isolating the Cube leaves hidden. */
+  const othersThanCube = (page: Page) =>
+    page
+      .locator('#try [role=application]')
+      .evaluate((el: unknown) =>
+        [...(el as VisibilityHost).sceneHost.scene.allObjects()].map((o) => o.name).filter((n) => n !== 'Cube'),
+      );
 
   test('Ctrl+Z shows an object hidden from the context menu, Ctrl+Y hides it again', async ({ page }) => {
     await openScene(page);
@@ -1007,6 +1013,7 @@ test.describe('Undo and Redo', () => {
 
   test("Hide Others, Show All, Isolate View and the Editor's Isolate are undo steps", async ({ page }) => {
     await openScene(page);
+    const others = await othersThanCube(page);
     await fromMenu(page, 'Hide Others');
     await expect.poll(() => hiddenNames(page)).toEqual(others);
     await fromMenu(page, 'Show All');
@@ -1102,6 +1109,7 @@ test.describe('Undo and Redo', () => {
 
   test("H and Shift+H hide and isolate the selection with its children, as Unity's keys do", async ({ page }) => {
     await openScene(page);
+    const others = await othersThanCube(page);
     await page.keyboard.press('h');
     await expect.poll(() => hiddenNames(page)).toEqual(['Cube']);
     await page.keyboard.press('h');
