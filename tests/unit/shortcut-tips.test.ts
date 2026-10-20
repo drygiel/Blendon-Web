@@ -71,6 +71,19 @@ describe('shortcut tips', () => {
     expect(ShortcutTipCard.card).toBeNull();
   });
 
+  it('count their time down on the ring, held at the grace while hovered', () => {
+    ShortcutTips.note(GRAB);
+    frame();
+    expect(ShortcutTipCard.remaining).toBeCloseTo(1, 1);
+    run(5);
+    expect(ShortcutTipCard.remaining).toBeCloseTo(0.5, 1);
+    ShortcutTipCard.setHovered(true);
+    run(8);
+    expect(ShortcutTipCard.card).not.toBeNull();
+    expect(ShortcutTipCard.remaining).toBeGreaterThanOrEqual(0.24);
+    ShortcutTipCard.setHovered(false);
+  });
+
   it('wait for the badge hover card to close', () => {
     TutorialBadgeSpot.setTipShown(true);
     ShortcutTips.note(GRAB);

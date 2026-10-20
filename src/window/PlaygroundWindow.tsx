@@ -84,7 +84,7 @@ export default function PlaygroundWindow() {
     [app],
   );
 
-  // A shortcut tip's "Open in Blendon": the Keyboard page with that shortcut's row lit.
+  // A shortcut tip's Blendon name link: the Keyboard page with that shortcut's row lit.
   useEffect(() => PlaygroundEvents.on('openKeyboard', ({ id }) => app.goTo('Keyboard', id)), [app]);
   useEffect(
     () =>
