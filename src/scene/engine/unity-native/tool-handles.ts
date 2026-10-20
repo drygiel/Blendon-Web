@@ -12,7 +12,7 @@ import {
   Tools,
   Undo,
 } from '../../unity/editor.ts';
-import { EditorGUI, Handles, HandleUtility } from '../../unity/handles.ts';
+import { drawPixelated, EditorGUI, Handles, HandleUtility } from '../../unity/handles.ts';
 import { Event, EventType, GUIUtility, KeyCode } from '../../unity/imgui.ts';
 import { Quaternion, Vector2, Vector3 } from '../../unity/math.ts';
 import type { Transform } from '../../unity/scene.ts';
@@ -24,6 +24,8 @@ const VertexSnapId = 'Scene View/Vertex Snapping';
 const VertexSnapToggleId = 'Scene View/Toggle Vertex Snapping';
 // Unity keys these ids by a hash per handle, so they hold however many ids the scene GUI before them took.
 const ToolIdBase = 1 << 20;
+// Device pixels per block of the tools' pixel grid: the screen's own, hard edges without a coarser grid.
+const PixelBlock = 1;
 
 const individualSpace = () => Tools.pivotRotation === PivotRotation.Local && Tools.pivotMode === PivotMode.Pivot;
 
@@ -298,20 +300,23 @@ export const UnityToolHandles = {
     const saved = Handles.color;
     const nextId = GUIUtility.nextId;
     GUIUtility.nextId = ToolIdBase;
-    switch (session?.tool ?? Tools.current) {
-      case Tool.Move:
-        moveTool();
-        break;
-      case Tool.Rotate:
-        rotateTool();
-        break;
-      case Tool.Scale:
-        scaleTool();
-        break;
-      case Tool.Transform:
-        transformTool();
-        break;
-    }
+    // The Editor's GL lines have no anti-aliasing: hard pixel edges, next to Blendon's smooth ones.
+    drawPixelated(PixelBlock, () => {
+      switch (session?.tool ?? Tools.current) {
+        case Tool.Move:
+          moveTool();
+          break;
+        case Tool.Rotate:
+          rotateTool();
+          break;
+        case Tool.Scale:
+          scaleTool();
+          break;
+        case Tool.Transform:
+          transformTool();
+          break;
+      }
+    });
     GUIUtility.nextId = nextId;
     Handles.color = saved;
   },
