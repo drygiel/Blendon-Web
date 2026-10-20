@@ -1,7 +1,7 @@
 // SceneTutorial: the getting-started checklist, ticked where each gesture takes effect, in any order. One report
 // ticks one task: the one picked on the settings page, else the first open one that takes it, so a gesture can
-// come back later in the journey. The Scene view only gets the badge (ui/TutorialBadge.tsx), and shortcut tips
-// stay quiet meanwhile.
+// come back later in the journey. The Scene view only gets the badge (ui/TutorialBadge.tsx), and shortcut tip
+// cards lift above it.
 import { PlaygroundEvents } from '../../../bridge/events.ts';
 import { SharedSettings } from '../../../bridge/settings.ts';
 import { Tool, Tools } from '../../unity/editor.ts';
@@ -57,7 +57,7 @@ export const SceneTutorial = {
     return GeneralSettings.Enabled && GeneralSettings.ShowTutorial && !TutorialProgress.finished;
   },
 
-  /** Shortcut tips check this before showing their own card. */
+  /** The badge is up and teaching. */
   get isShowing() {
     return SceneTutorial.active;
   },
