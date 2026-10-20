@@ -21,6 +21,111 @@ export function setDrawTarget(t: DrawTarget | null) {
   target = t;
 }
 
+// ---- pixelated layer ----
+
+let layerCanvas: HTMLCanvasElement | null = null;
+let gridCanvas: HTMLCanvasElement | null = null;
+// Set while a pixelated layer draws: every shape gets hard edges, and a stroke at least this wide in points.
+let hardStroke: number | null = null;
+const HardEdgesId = 'handles-hard-edges';
+let hardEdgesSvg: SVGSVGElement | null = null;
+
+/**
+ * Runs draw on a layer of its own, shapes with hard edges, and shows it on a grid of block-sized device pixels (1 keeps
+ * the screen's own): the look of a GL path with no anti-aliasing. Outside a repaint it just runs draw.
+ */
+export function drawPixelated(block: number, draw: () => void) {
+  if (!target || !isRepaint()) {
+    draw();
+    return;
+  }
+  const main = target.ctx;
+  const w = Math.ceil(main.canvas.width / block);
+  const h = Math.ceil(main.canvas.height / block);
+  // Full resolution first, so the cap meshes and every other draw land where they always do.
+  layerCanvas ??= document.createElement('canvas');
+  if (layerCanvas.width !== w * block || layerCanvas.height !== h * block) {
+    layerCanvas.width = w * block;
+    layerCanvas.height = h * block;
+  }
+  const layer = layerCanvas.getContext('2d')!;
+  layer.setTransform(1, 0, 0, 1, 0, 0);
+  layer.clearRect(0, 0, layerCanvas.width, layerCanvas.height);
+  layer.setTransform(main.getTransform());
+  const outer = target;
+  const outerStroke = hardStroke;
+  target = { ...outer, ctx: layer };
+  // On a coarse grid a line under a block and a pixel wide could fall between the samples and break up.
+  hardStroke = (block > 1 ? block + 1 : 1) / ppp();
+  try {
+    draw();
+  } finally {
+    target = outer;
+    hardStroke = outerStroke;
+  }
+  let shown = layerCanvas;
+
+  if (block > 1) {
+    gridCanvas ??= document.createElement('canvas');
+    if (gridCanvas.width !== w || gridCanvas.height !== h) {
+      gridCanvas.width = w;
+      gridCanvas.height = h;
+    }
+    // Nearest samples of a hard-edged layer: hard edges on the coarse grid too.
+    const grid = gridCanvas.getContext('2d')!;
+    grid.clearRect(0, 0, w, h);
+    grid.imageSmoothingEnabled = false;
+    grid.drawImage(layerCanvas, 0, 0, w, h);
+    shown = gridCanvas;
+  }
+
+  main.save();
+  main.setTransform(1, 0, 0, 1, 0, 0);
+  main.imageSmoothingEnabled = false;
+  main.drawImage(shown, 0, 0, w * block, h * block);
+  main.restore();
+}
+
+/**
+ * An SVG filter that makes an opaque shape's coverage all or nothing and then gives it alpha, in hundredths. One per
+ * alpha, put in the page on first use: the canvas applies its globalAlpha before a filter, not after.
+ */
+function hardEdgesFilter(alpha = 1) {
+  const percent = Math.round(Mathf.Clamp01(alpha) * 100);
+  const id = `${HardEdgesId}-${percent}`;
+  if (!document.getElementById(id)) {
+    const ns = 'http://www.w3.org/2000/svg';
+    if (!hardEdgesSvg) {
+      hardEdgesSvg = document.createElementNS(ns, 'svg');
+      hardEdgesSvg.setAttribute('width', '0');
+      hardEdgesSvg.setAttribute('height', '0');
+      hardEdgesSvg.setAttribute('aria-hidden', 'true');
+      hardEdgesSvg.style.position = 'absolute';
+      document.body.append(hardEdgesSvg);
+    }
+    const filter = document.createElementNS(ns, 'filter');
+    filter.id = id;
+    filter.setAttribute('color-interpolation-filters', 'sRGB');
+    const transfer = document.createElementNS(ns, 'feComponentTransfer');
+    const func = document.createElementNS(ns, 'feFuncA');
+    func.setAttribute('type', 'discrete');
+    func.setAttribute('tableValues', `0 ${percent / 100}`);
+    transfer.append(func);
+    filter.append(transfer);
+    hardEdgesSvg.append(filter);
+  }
+  return `url(#${id})`;
+}
+
+/** Paints the shape opaque through the filter, which lays the colour's alpha on what's left. */
+function paintHard(ctx: CanvasRenderingContext2D, color: Color, paint: () => void) {
+  ctx.save();
+  ctx.filter = hardEdgesFilter(color.a);
+  ctx.fillStyle = ctx.strokeStyle = color.withAlpha(1).css();
+  paint();
+  ctx.restore();
+}
+
 function cam(): SceneCamera {
   return (target?.view ?? SceneViewRef.current!).camera;
 }
@@ -206,6 +311,11 @@ function drawMesh(faces: Face[], position: Vector3, rotation: Quaternion, size: 
     main.setTransform(1, 0, 0, 1, 0, 0);
     main.globalAlpha = pass ? 1 : a;
     main.globalCompositeOperation = pass ? 'lighter' : 'source-over';
+    // The black pass takes its alpha from the filter, the additive one carries it in its colour already.
+    if (hardStroke !== null) {
+      main.filter = hardEdgesFilter(pass ? 1 : a);
+      main.globalAlpha = 1;
+    }
     main.drawImage(meshCanvas, 0, 0, w, h, x0 * k, y0 * k, w, h);
     main.restore();
   }
@@ -217,6 +327,10 @@ function fillGui(pts: [number, number][], color: Color) {
   ctx.beginPath();
   pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
   ctx.closePath();
+  if (hardStroke !== null) {
+    paintHard(ctx, color, () => ctx.fill());
+    return;
+  }
   ctx.fillStyle = color.css();
   ctx.fill();
 }
@@ -228,11 +342,12 @@ function strokeGui(pts: [number, number][], color: Color, width: number, closed 
   pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
   if (closed) ctx.closePath();
   ctx.strokeStyle = color.css();
-  ctx.lineWidth = width;
+  ctx.lineWidth = hardStroke === null ? width : Math.max(width, hardStroke);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'butt';
   ctx.setLineDash(dash ?? []);
-  ctx.stroke();
+  if (hardStroke !== null) paintHard(ctx, color, () => ctx.stroke());
+  else ctx.stroke();
   ctx.setLineDash([]);
 }
 
