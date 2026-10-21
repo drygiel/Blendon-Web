@@ -822,12 +822,26 @@
    "d": true,
    "k": "Boolean"
   },
-  "ZoomSettings.ZoomToCursor": {
-   "l": "Zoom To Cursor",
-   "t": "<size=14><b>Zoom To Cursor</b></size>\nZoom toward whatever is under the cursor.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nThe point under the cursor stays put while everything grows around it.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nZooms toward the middle of the view, so you pan back to what you wanted.",
-   "i": "Tips/Zoom/ZoomToCursor.png",
-   "d": true,
-   "k": "Boolean"
+  "ZoomSettings.ZoomTo": {
+   "l": "Zoom To",
+   "t": "<size=14><b>Zoom To</b></size>\nWhat stays put on screen while everything grows around it.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Cursor</b> - whatever is under the cursor. The default\n<color=#92929A>•</color> <b>Selection</b> - the selected object. Several: the <b><color=#4FA8E8>Pivot Point</color></b> set in the toolbar\n<color=#92929A>•</color> <b>Center</b> - the middle of the view\n\n<size=9><color=#92929A>With nothing selected in view, Selection zooms to the middle</color></size>",
+   "i": "Tips/Zoom/ZoomTo.png",
+   "d": "Cursor",
+   "k": "ZoomTarget",
+   "o": [
+    [
+     "Cursor",
+     "Cursor"
+    ],
+    [
+     "Selection",
+     "Selection"
+    ],
+    [
+     "Center",
+     "Center"
+    ]
+   ]
   },
   "ZoomSettings.Method": {
    "l": "Method",
@@ -866,9 +880,9 @@
   },
   "ZoomSettings.KeyboardEnabled": {
    "l": "Keyboard Zoom",
-   "t": "<size=14><b>Keyboard Zoom</b></size>\nZoom from the keypad too.\n\n<size=9><b><color=#92929A>KEYS</color></b></size>\n<b><color=#D98E38>Num +</color></b> - zoom in\n<b><color=#D98E38>Num -</color></b> - zoom out\n\n<size=9><b><color=#92929A>TIP</color></b></size>\nWith <b><color=#4FA8E8>Zoom To Cursor</color></b> on, each press zooms toward the point under the cursor.\n\n<size=9><color=#92929A>Off frees both keys for the Editor</color></size>",
+   "t": "<size=14><b>Keyboard Zoom</b></size>\nZoom from the keypad too.\n\n<size=9><b><color=#92929A>KEYS</color></b></size>\n<b><color=#D98E38>Num +</color></b> - zoom in\n<b><color=#D98E38>Num -</color></b> - zoom out\n\n<size=9><b><color=#92929A>TIP</color></b></size>\nEach press zooms toward the point set in <b><color=#4FA8E8>Zoom To</color></b>, like the wheel.\n\n<size=9><color=#92929A>Off frees both keys for the Editor</color></size>",
    "i": "Tips/Zoom/KeyboardZoom.png",
-   "src": "<size=14><b>Keyboard Zoom</b></size>\nZoom from the keypad too.\n\n<size=9><b><color=#92929A>KEYS</color></b></size>\n{key:Blendon/Zoom/Zoom In} - zoom in\n{key:Blendon/Zoom/Zoom Out} - zoom out\n\n<size=9><b><color=#92929A>TIP</color></b></size>\nWith <b><color=#4FA8E8>Zoom To Cursor</color></b> on, each press zooms toward the point under the cursor.\n\n<size=9><color=#92929A>Off frees both keys for the Editor</color></size>",
+   "src": "<size=14><b>Keyboard Zoom</b></size>\nZoom from the keypad too.\n\n<size=9><b><color=#92929A>KEYS</color></b></size>\n{key:Blendon/Zoom/Zoom In} - zoom in\n{key:Blendon/Zoom/Zoom Out} - zoom out\n\n<size=9><b><color=#92929A>TIP</color></b></size>\nEach press zooms toward the point set in <b><color=#4FA8E8>Zoom To</color></b>, like the wheel.\n\n<size=9><color=#92929A>Off frees both keys for the Editor</color></size>",
    "d": true,
    "k": "Boolean"
   },
@@ -1385,6 +1399,14 @@
    "d": "G",
    "k": "ShortcutBinding"
   },
+  "MoveGizmoSettings.GrabFromAnyWindow": {
+   "l": "Grab From Any Window",
+   "t": "<size=14><b>Grab From Any Window</b></size>\nGrab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>G</color></b> in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>In the Hierarchy it takes the key from Unity's Cycle Tool Modes, in the Game Object (Blendon) context only</color></size>",
+   "i": "",
+   "src": "<size=14><b>Grab From Any Window</b></size>\nGrab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Grab} in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>In the Hierarchy it takes the key from Unity's Cycle Tool Modes, in the Game Object (Blendon) context only</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "MoveGizmoSettings.ScreenRingEnabled": {
    "l": "Enable",
    "t": "<size=14><b>Screen Ring</b></size>\nMove freely, parallel to the screen.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nDrag the ring in the gizmo's center: the selection follows the cursor across the view, on no particular axis.",
@@ -1487,6 +1509,14 @@
    "src": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Rotate} in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
    "d": "R",
    "k": "ShortcutBinding"
+  },
+  "RotateGizmoSettings.GrabFromAnyWindow": {
+   "l": "Grab From Any Window",
+   "t": "<size=14><b>Grab From Any Window</b></size>\nStart the grab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>R</color></b> in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>Outside the Scene View it takes the key from Unity's Scale tool, in the Game Object (Blendon) context only</color></size>",
+   "i": "",
+   "src": "<size=14><b>Grab From Any Window</b></size>\nStart the grab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Grab Rotate} in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>Outside the Scene View it takes the key from Unity's Scale tool, in the Game Object (Blendon) context only</color></size>",
+   "d": false,
+   "k": "Boolean"
   },
   "RotateGizmoSettings.RingDepthGradientEnabled": {
    "l": "Depth Gradient",
@@ -1687,6 +1717,14 @@
    "src": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Scale} in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. {setting:SharedGizmoSettings.AxisExcludeModifier} + an axis key scales the other two axes</color></size>",
    "d": "S",
    "k": "ShortcutBinding"
+  },
+  "ScaleGizmoSettings.GrabFromAnyWindow": {
+   "l": "Grab From Any Window",
+   "t": "<size=14><b>Grab From Any Window</b></size>\nStart the grab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>S</color></b> in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>In the Timeline window it takes the key from Split, in the Game Object (Blendon) context only</color></size>",
+   "i": "",
+   "src": "<size=14><b>Grab From Any Window</b></size>\nStart the grab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Grab Scale} in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>In the Timeline window it takes the key from Split, in the Game Object (Blendon) context only</color></size>",
+   "d": false,
+   "k": "Boolean"
   },
   "ScaleGizmoSettings.AxisForceLocalOrientation": {
    "l": "Force Local Orientation",
@@ -3916,8 +3954,8 @@
       "ZoomSettings.Method"
      ],
      [
-      "tog",
-      "ZoomSettings.ZoomToCursor"
+      "pop",
+      "ZoomSettings.ZoomTo"
      ],
      [
       "sub",
@@ -3934,7 +3972,7 @@
       "sld",
       "ZoomSettings.Speed",
       0.01,
-      1
+      0.9
      ],
      [
       "sub",
@@ -4876,7 +4914,7 @@
         "sld",
         "SharedGizmoSettings.SnapTickLength",
         0.01,
-        0.1
+        0.3
        ],
        [
         "sld",
@@ -4996,6 +5034,10 @@
      [
       "nat",
       "Blendon/Grab"
+     ],
+     [
+      "tog",
+      "MoveGizmoSettings.GrabFromAnyWindow"
      ],
      [
       "note",
@@ -5300,6 +5342,10 @@
      [
       "nat",
       "Blendon/Grab Rotate"
+     ],
+     [
+      "tog",
+      "RotateGizmoSettings.GrabFromAnyWindow"
      ],
      [
       "note",
@@ -5722,6 +5768,10 @@
      [
       "nat",
       "Blendon/Grab Scale"
+     ],
+     [
+      "tog",
+      "ScaleGizmoSettings.GrabFromAnyWindow"
      ],
      [
       "note",
@@ -7569,7 +7619,7 @@
    "sections": [
     [
      "HOW IT WORKS",
-     "Roll the wheel over the <b><color=#3DB892>Scene View</color></b>. The view zooms toward the point under the cursor, which stays where it is while everything grows around it."
+     "Roll the wheel over the <b><color=#3DB892>Scene View</color></b>. The view zooms toward the point under the cursor, which stays where it is while everything grows around it. <b><color=#4FA8E8>Zoom To</color></b> can pick the selection or the middle instead."
     ],
     [
      "METHOD",
@@ -7602,7 +7652,7 @@
      ]
     }
    ],
-   "search": "HOW IT WORKS Roll the wheel over the <b><color=#3DB892>Scene View</color></b>. The view zooms toward the point under the cursor, which stays where it is while everything grows around it. METHOD <b>Scale</b> zooms in even steps, <b>Dolly</b> flies the camera in, <b>Continue</b> zooms further the faster you roll. roll over the view to zoom zoom one step in or out Off gives the wheel back to Unity and frees the Numpad keys."
+   "search": "HOW IT WORKS Roll the wheel over the <b><color=#3DB892>Scene View</color></b>. The view zooms toward the point under the cursor, which stays where it is while everything grows around it. <b><color=#4FA8E8>Zoom To</color></b> can pick the selection or the middle instead. METHOD <b>Scale</b> zooms in even steps, <b>Dolly</b> flies the camera in, <b>Continue</b> zooms further the faster you roll. roll over the view to zoom zoom one step in or out Off gives the wheel back to Unity and frees the Numpad keys."
   },
   "OrientationGizmoSettings": {
    "image": "Tips/OrientationGizmo/Header.png",
@@ -10312,7 +10362,7 @@
   "Tips/Zoom/Method.png": "plugin/tips/Zoom_Method.webp",
   "Tips/Zoom/Sensitivity.png": "plugin/tips/Zoom_Sensitivity.webp",
   "Tips/Zoom/Zoom.png": "plugin/tips/Zoom_Zoom.webp",
-  "Tips/Zoom/ZoomToCursor.png": "plugin/tips/Zoom_ZoomToCursor.webp"
+  "Tips/Zoom/ZoomTo.png": "plugin/tips/Zoom_ZoomTo.webp"
  },
  "tipAR": {
   "Tips/AllTools/AimAtSurface.png": "640 / 360",
@@ -10537,7 +10587,7 @@
   "Tips/Zoom/Method.png": "640 / 360",
   "Tips/Zoom/Sensitivity.png": "640 / 360",
   "Tips/Zoom/Zoom.png": "640 / 360",
-  "Tips/Zoom/ZoomToCursor.png": "640 / 360"
+  "Tips/Zoom/ZoomTo.png": "640 / 360"
  },
  "logo": "plugin/icons/Blendon.png",
  "initial": {

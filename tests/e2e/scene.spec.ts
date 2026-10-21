@@ -43,8 +43,9 @@ interface HostElement {
     scene: { allObjects(): Iterable<{ name: string; transform: { position: Vec3 } }> };
     view: {
       rotation: Vec3 & { w: number };
+      size: number;
       pixelsPerPoint: number;
-      camera: { pixelHeight: number; worldToScreenPoint(p: Vec3): Vec3 };
+      camera: { pixelWidth: number; pixelHeight: number; worldToScreenPoint(p: Vec3): Vec3 };
       drawMode: number;
       highlight: { selects: unknown[]; deselects: unknown[] } | null;
     };
@@ -284,6 +285,93 @@ test('orbits with the middle mouse button', async ({ page }) => {
   for (let i = 1; i <= 10; i++) await page.mouse.move(x + i * 12, y + i * 3);
   await page.mouse.up({ button: 'middle' });
   await expect.poll(() => viewRotation(page)).not.toEqual(before);
+});
+
+test('Zoom To holds the point under the cursor, the selection or the middle of the view still', async ({ page }) => {
+  const view = await openScene(page);
+  const win = page.locator('#try .uw');
+  const box = (await view.boundingBox())!;
+  const floor = { x: box.x + box.width * 0.25, y: box.y + box.height * 0.7 };
+  const size = () =>
+    page.locator('#try [role=application]').evaluate((el: unknown) => (el as HostElement).sceneHost.view.size);
+  const center = () =>
+    page.locator('#try [role=application]').evaluate((el: unknown) => {
+      const h = (el as HostElement).sceneHost;
+      const v = h.view;
+      const r = h.root.getBoundingClientRect();
+      return {
+        x: r.left + v.camera.pixelWidth / 2 / v.pixelsPerPoint,
+        y: r.top + v.camera.pixelHeight / 2 / v.pixelsPerPoint,
+      };
+    });
+  const zoomTo = async (mode: string) => {
+    await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+    await win.getByRole('button', { name: 'Zoom', exact: true }).click();
+    const popup = win.locator('.it-pop', { has: page.locator('.lbl', { hasText: /^\s*Zoom To\s*$/ }) }).locator('.pp');
+    await popup.click();
+    await page.getByRole('menuitemcheckbox', { name: mode, exact: true }).click();
+    await expect(popup).toHaveText(mode);
+    await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  };
+  const zoomIn = async (at: { x: number; y: number }, key?: string) => {
+    const before = await size();
+    await page.mouse.move(at.x, at.y);
+    if (key) await page.keyboard.press(key);
+    else await page.mouse.wheel(0, -100);
+    await expect.poll(size).toBeLessThan(before);
+  };
+  const points = async () => ({
+    cube: await pagePointOf(page, 'Cube'),
+    tilted: await pagePointOf(page, 'Tilted Cube'),
+  });
+  const gap = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+  // Zooming about the middle moves every point straight out from it.
+  const expectRadial = (c: { x: number; y: number }, from: { x: number; y: number }, to: { x: number; y: number }) => {
+    const [ax, ay, bx, by] = [from.x - c.x, from.y - c.y, to.x - c.x, to.y - c.y];
+    expect(Math.hypot(bx, by)).toBeGreaterThan(Math.hypot(ax, ay) * 1.05);
+    expect(Math.abs(ax * by - ay * bx) / (Math.hypot(ax, ay) * Math.hypot(bx, by))).toBeLessThan(0.01);
+  };
+
+  // The Cube starts in the middle, so the selection has to be something else.
+  const tilted = await pagePointOf(page, 'Tilted Cube');
+  await page.mouse.click(tilted.x, tilted.y);
+  expect(await selectionNames(page)).toEqual(['Tilted Cube']);
+
+  await zoomTo('Selection');
+  let before = await points();
+  await zoomIn(floor);
+  let after = await points();
+  expect(gap(after.tilted, before.tilted)).toBeLessThan(1);
+  expect(gap(after.cube, before.cube)).toBeGreaterThan(5);
+  // Num + follows the same choice.
+  await zoomIn(floor, 'NumpadAdd');
+  expect(gap(await pagePointOf(page, 'Tilted Cube'), before.tilted)).toBeLessThan(1);
+
+  await zoomTo('Center');
+  const middle = await center();
+  before = await points();
+  await zoomIn(floor);
+  after = await points();
+  expectRadial(middle, before.cube, after.cube);
+  expectRadial(middle, before.tilted, after.tilted);
+
+  // Off the middle by now, so holding it still is the cursor's doing.
+  await zoomTo('Cursor');
+  before = await points();
+  expect(gap(before.cube, middle)).toBeGreaterThan(20);
+  await zoomIn(before.cube);
+  after = await points();
+  expect(gap(after.cube, before.cube)).toBeLessThan(1);
+  expect(gap(after.tilted, before.tilted)).toBeGreaterThan(5);
+
+  // With nothing selected, Selection zooms about the middle.
+  await page.mouse.click(floor.x, floor.y);
+  expect(await selectionNames(page)).toEqual([]);
+  await zoomTo('Selection');
+  before = await points();
+  await zoomIn(floor);
+  after = await points();
+  expectRadial(middle, before.cube, after.cube);
 });
 
 test('orbit and pan on the middle button never raise a tip card, Quick Roll still does', async ({ page }) => {
