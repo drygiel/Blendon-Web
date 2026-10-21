@@ -278,11 +278,12 @@ function drawMesh(faces: Face[], position: Vector3, rotation: Quaternion, size: 
   if (!tris.length) return;
   tris.sort((x, y) => y.depth - x.depth);
   const k = ppp();
-  const pad = 2;
-  const x0 = Math.floor(minX - pad),
-    y0 = Math.floor(minY - pad);
-  const w = Math.ceil((maxX - x0 + pad) * k),
-    h = Math.ceil((maxY - y0 + pad) * k);
+  // In device pixels: a fractional blit would filter in the stale pixels an earlier, larger mesh left past w x h.
+  const pad = 2 * k;
+  const x0 = Math.floor(minX * k - pad),
+    y0 = Math.floor(minY * k - pad);
+  const w = Math.ceil(maxX * k + pad) - x0,
+    h = Math.ceil(maxY * k + pad) - y0;
   if (w <= 0 || h <= 0 || w > 4096 || h > 4096) return;
   meshCanvas ??= document.createElement('canvas');
   if (meshCanvas.width < w || meshCanvas.height < h) {
@@ -294,7 +295,7 @@ function drawMesh(faces: Face[], position: Vector3, rotation: Quaternion, size: 
   for (const pass of [0, 1]) {
     mc.setTransform(1, 0, 0, 1, 0, 0);
     mc.clearRect(0, 0, w, h);
-    mc.setTransform(k, 0, 0, k, -x0 * k, -y0 * k);
+    mc.setTransform(k, 0, 0, k, -x0, -y0);
     for (const t of tris) {
       mc.beginPath();
       t.pts.forEach((p, i) => (i ? mc.lineTo(p[0], p[1]) : mc.moveTo(p[0], p[1])));
@@ -309,6 +310,7 @@ function drawMesh(faces: Face[], position: Vector3, rotation: Quaternion, size: 
     // dst * (1 - alpha) + alpha * colour: a black cut-out, then an additive pass of premultiplied colour.
     main.save();
     main.setTransform(1, 0, 0, 1, 0, 0);
+    main.imageSmoothingEnabled = false;
     main.globalAlpha = pass ? 1 : a;
     main.globalCompositeOperation = pass ? 'lighter' : 'source-over';
     // The black pass takes its alpha from the filter, the additive one carries it in its colour already.
@@ -316,7 +318,7 @@ function drawMesh(faces: Face[], position: Vector3, rotation: Quaternion, size: 
       main.filter = hardEdgesFilter(pass ? 1 : a);
       main.globalAlpha = 1;
     }
-    main.drawImage(meshCanvas, 0, 0, w, h, x0 * k, y0 * k, w, h);
+    main.drawImage(meshCanvas, 0, 0, w, h, x0, y0, w, h);
     main.restore();
   }
 }
