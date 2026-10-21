@@ -43,8 +43,8 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
   {
     title: 'Zoom',
     sub: 'Wheel and keyboard zoom that moves toward the cursor rather than the centre',
-    desc: 'Pick how the wheel zooms: Scale in even steps, Dolly flies the camera in, Continue zooms further the faster you roll. With Zoom To Cursor, the point under the cursor stays where it is.',
-    chips: ['Method', 'Zoom To Cursor', 'Invert Direction', 'Sensitivity', 'Keyboard Zoom'],
+    desc: 'Pick how the wheel zooms: Scale in even steps, Dolly flies the camera in, Continue zooms further the faster you roll. Zoom To picks what stays where it is: the point under the cursor, the selection, or the middle of the view.',
+    chips: ['Method', 'Zoom To', 'Invert Direction', 'Sensitivity', 'Keyboard Zoom'],
     image: slideZoom,
   },
   {

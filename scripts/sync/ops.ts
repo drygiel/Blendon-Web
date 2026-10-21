@@ -27,6 +27,10 @@ const NUMBER_NAMES: Record<string, number> = {
   MaxQuality: 6,
   MinOutlineWidth: 0.5,
   MaxOutlineWidth: 3,
+  MinSnapTickLength: 0.01,
+  MaxSnapTickLength: 0.3,
+  'Zoom.MinStep': 0.01,
+  'Zoom.MaxStep': 0.9,
 };
 
 export type Helper = (ctx: Ctx, args: string[]) => Op[];
