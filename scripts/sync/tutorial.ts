@@ -132,10 +132,13 @@ const member = (arg: string | undefined, type: string): string => {
 
 // A settings getter as a page row names it: MoveGizmo.Instance.Settings.X / OrbitSelected.Settings.X /
 // SharedGizmoSettings.Instance.X -> "<Owner>Settings.X".
+// "MoveGizmo.Instance.Settings.SurfaceSnapModifierSetting" names MoveGizmoSettings.SurfaceSnapModifier.
 function settingPath(expr: string): string {
   const parts = expr.split('.');
   const owner = parts[0] ?? '';
-  return (owner.endsWith('Settings') ? owner : owner + 'Settings') + '.' + parts.at(-1);
+  return (
+    (owner.endsWith('Settings') ? owner : owner + 'Settings') + '.' + (parts.at(-1) ?? '').replace(/(.)Setting$/, '$1')
+  );
 }
 
 export function buildTutorialData(paths: { editor: string; icons: string; video: string }): {

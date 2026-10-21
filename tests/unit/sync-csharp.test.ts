@@ -1,30 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { drawMethods, parse, splitArgs, stringConcat, stripComments, type Stmt } from '../../scripts/sync/csharp.ts';
+import { drawMethods, parse, splitArgs, stringConcat, stripComments } from '../../scripts/sync/csharp.ts';
+import type { Model1 } from '../../scripts/sync/dump.ts';
 import { cond, Ctx, num } from '../../scripts/sync/ops.ts';
-import { pageConverter } from '../../scripts/sync/window-data.ts';
+import { addViewBodies, pageConverter, propFacts, type ViewBody } from '../../scripts/sync/window-data.ts';
 import type { Tip } from '../../src/plugin/schema.ts';
 
 const SOURCE = `
 namespace Demo
 {
     // A comment with "quotes" and a { brace
-    public sealed class ZoomSettings : SettingsBase
+    internal static class ZoomPage
     {
         const string Tip = "Scroll { to zoom";
 
-        public override void DrawSettings(SettingsControls s)
+        public static void Draw(SettingsControls s)
         {
+            var m = Zoom.Settings;
             s.SubLabel("Wheel", "d_ViewToolZoom");
             /* block comment ; */
-            using (new EditorGUI.DisabledScope(!Enabled))
+            using (new EditorGUI.DisabledScope(!m.Enabled))
             {
-                s.Toggle(() => Invert, v => Invert = v);
+                s.Toggle(m.InvertSetting);
             }
-            if (Method == ZoomMethod.Dolly) s.Slider(() => Speed, v => Speed = v, 0.1f, 2f);
+            if (m.Method == ZoomMethod.Dolly) s.Slider(m.SpeedSetting);
             else s.Info(Tip);
         }
 
-        void Helper() { }
+        static void Helper() { }
     }
 }
 `;
@@ -36,17 +38,17 @@ describe('C# reader', () => {
     expect(out).not.toContain('gone');
   });
 
-  it('finds Draw* methods with their class', () => {
+  it('finds Draw* methods with their class and parameters', () => {
     const methods = drawMethods(SOURCE);
-    expect(methods.map((m) => [m.className, m.name])).toEqual([['ZoomSettings', 'DrawSettings']]);
+    expect(methods.map((m) => [m.className, m.name, m.params])).toEqual([['ZoomPage', 'Draw', 'SettingsControls s']]);
     expect(methods[0]?.body).not.toContain('block comment');
   });
 
   it('parses statements, using blocks and if/else', () => {
     const body = drawMethods(SOURCE)[0]?.body ?? '';
     const stmts = parse(body);
-    expect(stmts.map((s) => s[0])).toEqual(['stmt', 'using', 'if']);
-    const branch = stmts[2];
+    expect(stmts.map((s) => s[0])).toEqual(['stmt', 'stmt', 'using', 'if']);
+    const branch = stmts[3];
     expect(branch?.[0] === 'if' && branch[3]).toEqual(['stmt', 's.Info(Tip)']);
   });
 
@@ -66,7 +68,12 @@ describe('C# reader', () => {
 });
 
 describe('ops', () => {
-  const ctx = new Ctx('ZoomSettings', { 'ZoomSettings.Tip': 'Scroll' });
+  const ctx = new Ctx(
+    'ZoomSettings',
+    { 'ZoomPage.Tip': 'Scroll', 'ZoomSettings.Old': 'Kept' },
+    {},
+    { view: 'ZoomPage' },
+  );
 
   it('reads C# float literals', () => {
     expect(num('0.1f')).toBe(0.1);
@@ -83,149 +90,214 @@ describe('ops', () => {
     ]);
   });
 
-  it('resolves constants against the owner class', () => {
+  it('names a setting by its declaration on whatever object holds it', () => {
+    const c = new Ctx('TransformGizmoSettings', {}, {}, { models: { m: 'TransformGizmoSettings' } });
+    expect(c.prop('m.EnabledSetting')).toBe('TransformGizmoSettings.Enabled');
+    expect(c.prop('m.Enabled')).toBe('TransformGizmoSettings.Enabled');
+    expect(c.modelOf('m.Rotate')).toBe('TransformRotateSettings');
+    expect(c.prop('Zoom.Settings.KeyboardStepSetting')).toBe('ZoomSettings.KeyboardStep');
+  });
+
+  it('resolves constants against the view, then the owner class', () => {
     expect(ctx.constant('Tip')).toBe('Scroll');
+    expect(ctx.constant('Old')).toBe('Kept');
     expect(() => ctx.constant('Missing')).toThrow();
   });
 });
 
-// ---- fragments copied from the plugin's settings pages (remediation/2026-10), so a change in how a page
+// ---- fragments copied from the plugin's page views (settings descriptors, 2026-10), so a change in how a view
 // calls SettingsControls shows up here before it breaks `pnpm sync` ----
 
-// Editor/Navigation/Zoom/ZoomSettings.cs
+// Editor/Navigation/Zoom/ZoomPage.cs
 const ZOOM = `
-    public sealed class ZoomSettings : SettingsBase
+    internal static class ZoomPage
     {
         /// <summary>Numpad +/- zoom. Also shown on the Numpad Views page so its table is complete.</summary>
-        public void DrawKeyboardSettings(SettingsControls s)
+        public static void DrawKeyboard(SettingsControls s)
         {
-            var keyboard = s.Toggle(() => KeyboardEnabled, v => KeyboardEnabled = v);
+            var m        = Zoom.Settings;
+            var keyboard = s.Toggle(m.KeyboardEnabledSetting);
             using (new EditorGUI.DisabledScope(!keyboard))
             {
                 s.ShortcutField("Zoom In", Zoom.ZoomInShortcutId);
                 s.ShortcutField("Zoom Out", Zoom.ZoomOutShortcutId);
-                s.Slider(() => KeyboardStep, v => KeyboardStep = v, 0.01f, 0.9f);
+                s.Slider(m.KeyboardStepSetting);
             }
         }
     }
 `;
 
-// Editor/Navigation/NumpadViews/ViewportNavSettings.cs, the end of DrawSettings.
+// Editor/Navigation/NumpadViews/ViewportNavPage.cs, the end of Draw.
 const VIEWPORT_NAV = `
-    public sealed class ViewportNavSettings : SettingsBase
+    internal static class ViewportNavPage
     {
-        public override void DrawSettings(SettingsControls s)
+        public static void Draw(SettingsControls s)
         {
+            // These mirror other tools' bindings and follow those tools' switches. A live key stays editable.
+            s.SubLabel("Zoom", "d_ViewToolZoom");
+            using (new EditorGUI.DisabledScope(!Zoom.Settings.Enabled))
+            {
+                ZoomPage.DrawKeyboard(s);
+            }
+
             // Edits the owning tools' bindings, no second pair.
             s.SubLabel("Frame Selected", "d_Grid.BoxTool@2x");
-            s.MirroredShortcut(SettingsPage.FrameSelected, Blendon.Editor.Shortcuts.ShortcutIds.FrameSelectedId);
+            s.MirroredShortcut(SettingsPage.FrameSelected, ShortcutIds.FrameSelectedId);
 
             s.PageLink(SettingsPage.FrameSelected, "Open");
         }
     }
 `;
 
-// Editor/SceneTools/FrameSelected/FrameSelectedSettings.cs
-const FRAME_SELECTED = `
-    public sealed class FrameSelectedSettings : SettingsBase
+// Editor/Navigation/Pan/PanPage.cs
+const PAN = `
+    internal static class PanPage
     {
-        /// <summary>Also mirrored on the Numpad Views page so its table shows the real Numpad . binding.</summary>
-        protected internal override bool DrawMirroredShortcut(SettingsControls s, string shortcutId)
+        public static void Draw(SettingsControls s)
         {
-            if (shortcutId != FrameSelected.ShortcutId) return false;
+            var m = Pan.Settings;
+            s.MasterHeader(SettingsPage.Pan, m.EnabledSetting);
 
-            DrawShortcut(s);
-            return true;
-        }
+            using (new EditorGUI.DisabledScope(!m.Enabled))
+            {
+                s.ShortcutField(m.ShortcutSetting);
+                var wrapEnabled = s.Toggle(m.CursorWrapEnabledSetting);
+                using (new EditorGUI.DisabledScope(!wrapEnabled))
+                {
+                    var wrap = s.EnumPopup(m.CursorWrapSetting);
 
-        void DrawShortcut(SettingsControls s)
-        {
-            s.ShortcutField(() => Shortcut, v => Shortcut = v, FrameSelected.ShortcutId);
+                    if (wrap.SupportsBounds()) s.EnumPopup(m.WrapBoundsSetting);
+                }
+            }
         }
     }
 `;
 
-// Editor/Gizmos/Common/SharedGizmoSettings.cs
+// Editor/Gizmos/Common/SharedGizmoPage.cs
 const SHARED_GIZMOS = `
-    public sealed class SharedGizmoSettings : SettingsBase
+    internal static class SharedGizmoPage
     {
-        public override void DrawSettings(SettingsControls s)
+        const string TitleIcon = "d_Transform Icon";
+        const string Subtitle  = "Enable all four transform tools at once";
+
+        public static void Draw(SettingsControls s)
         {
+            var m = SharedGizmoSettings.Instance;
+            GizmoAppearancePresets.DrawHeader(s, m, TitleIcon, "All Tools", Subtitle, m.AllToolsEnabled,
+                SetAllTools);
+
             s.SubLabel("Vertex Snapping", "d_wireframe");
 
             // Keys go off with the last tool, so with all four off there's nothing to edit.
-            using (new EditorGUI.DisabledScope(!AnyToolEnabled))
+            using (new EditorGUI.DisabledScope(!m.AnyToolEnabled))
             {
                 s.ShortcutField("Hold", VertexSnapping.ShortcutId);
                 s.ShortcutField("Pick Virtual Pivot", VertexSnapping.PickShortcutId);
             }
         }
 
-        public static void DrawAxisColorsGroup(SettingsControls s)
+        public static void DrawAxisColors(SettingsControls s)
         {
+            var general = GeneralSettings.Instance;
+
             s.SubLabel("Axis Colors", "d_Grid.PaintTool");
             s.InfoLink("The axis palette is shared ", "plugin-wide", ".", SettingsPage.Overview,
-                () => General.AxisColorX);
+                general.AxisColorXSetting);
 
-            // Stored on General, no per-gizmo palette. Locked while parked on Unity's colors, an edit would be
-            // overwritten when the tools come back.
-            using (new EditorGUI.DisabledScope(!General.ColorsEditable))
+            // Stored on General, no per-gizmo palette.
+            using (new EditorGUI.DisabledScope(!general.ColorsEditable))
             {
-                s.ColorField(() => General.AxisColorX, v => General.AxisColorX = v);
-                s.ColorField(() => General.AxisColorY, v => General.AxisColorY = v);
-                s.ColorField(() => General.AxisColorZ, v => General.AxisColorZ = v);
+                s.ColorField(general.AxisColorXSetting);
+                s.ColorField(general.AxisColorYSetting);
+                s.ColorField(general.AxisColorZSetting);
             }
 
-            s.ColorField(() => General.OutlineColor, v => General.OutlineColor = v);
+            s.ColorField(general.OutlineColorSetting);
         }
     }
 `;
 
-// Editor/Core/Settings/Core/GeneralSettings.Defaults.cs and GeneralSettings.Overview.cs (main 0c766898).
-const GENERAL = `
-    public sealed partial class GeneralSettings
+// Editor/Gizmos/Move/MoveGizmoPage.cs, the surface snap rows.
+const MOVE = `
+    internal static class MoveGizmoPage
     {
-        /// <summary>Overview's Defaults card. The axis palette has no per-tool override, so it lives here.</summary>
-        public override void DrawSettings(SettingsControls s)
-        {
-            s.Info(DefaultsIntro);
+        const string SurfaceSnapNoKeyNote = "No key set, so Surface Snap won't engage.";
 
-            s.SubLabel("Animation", "Motion Icon");
-            var animate = s.Toggle(() => AnimationEnabled, v => AnimationEnabled = v);
-            using (new EditorGUI.DisabledScope(!animate))
+        const string SurfaceSnapNoKeyInfoText = "The modifier is None.";
+
+        public static void Draw(SettingsControls s)
+        {
+            var m = MoveGizmo.Instance.Settings;
+            GizmoAppearancePresets.DrawHeader(s, "d_MoveTool", "Move", "Enable Move", m.EnabledSetting);
+
+            var enabled = m.Enabled;
+            using (new EditorGUI.DisabledScope(!enabled))
             {
-                s.Slider(() => AnimationDuration, v => AnimationDuration = v, 0.0001f, 2f);
+                var surfaceSnap = s.Toggle(m.SurfaceSnapEnabledSetting);
+                using (new EditorGUI.DisabledScope(!surfaceSnap))
+                {
+                    var modifier = s.ModifierField(m.SurfaceSnapModifierSetting);
+
+                    if (surfaceSnap && modifier == ModifierKey.None)
+                        s.Note(SurfaceSnapNoKeyNote, SurfaceSnapNoKeyInfoText);
+                }
+            }
+        }
+    }
+`;
+
+// Editor/Gizmos/Composite/TransformGizmoPage.cs, the rotate part's card.
+const TRANSFORM = `
+    internal static class TransformGizmoPage
+    {
+        public static void Draw(SettingsControls s)
+        {
+            var m = TransformGizmo.Instance.Settings;
+
+            s.BeginGroupCard(SettingsPage.RotateGizmo);
+            DrawRotate(s, m.Rotate);
+            s.EndGroupCard();
+        }
+
+        static void DrawRotate(SettingsControls s, TransformRotateSettings m)
+        {
+            var showTrackball = s.Toggle(m.TrackballEnabledSetting);
+            using (new EditorGUI.DisabledScope(!showTrackball))
+            {
+                s.Slider(m.TrackballRadiusSetting);
             }
 
-            s.SubLabel("Cursor Wrap", "DotFrame");
-            var wrapEnabled = s.Toggle(() => CursorWrapEnabled, v => CursorWrapEnabled = v);
-            using (new EditorGUI.DisabledScope(!wrapEnabled))
-            {
-                s.EnumPopup(() => CursorWrap, v => CursorWrap = v);
+            RotateGizmoPage.TrackballRingNote(s, m, showTrackball);
+        }
+    }
+`;
 
-                if (CursorWrap.SupportsBounds())
-                    s.EnumPopup(() => WrapBounds, v => WrapBounds = v);
+// Editor/App/SettingsWindow/Overview/OverviewDefaults.cs
+const GENERAL = `
+    internal static class OverviewDefaults
+    {
+        const string Intro = "Values the rest of Blendon falls back to.";
+
+        /// <summary>The axis palette has no per-tool override, so it lives here.</summary>
+        public static void Draw(SettingsControls s)
+        {
+            var m = GeneralSettings.Instance;
+
+            s.Info(Intro);
+
+            s.SubLabel("Animation", "Motion Icon");
+            var animate = s.Toggle(m.AnimationEnabledSetting);
+            using (new EditorGUI.DisabledScope(!animate))
+            {
+                s.Slider(m.AnimationDurationSetting);
             }
 
             s.SubLabel("Axis Colors", "d_Grid.PaintTool");
 
-            using (new EditorGUI.DisabledScope(!ColorsEditable))
+            using (new EditorGUI.DisabledScope(!m.ColorsEditable))
             {
-                s.ColorField(() => AxisColorX, v => AxisColorX = v);
+                s.ColorField(m.AxisColorXSetting);
             }
-        }
-
-        /// <inheritdoc cref="DrawShortcutTipsToggle" />
-        public void DrawToggleContextShortcut(SettingsControls s)
-        {
-            s.ShortcutField(() => ToggleContextShortcut, v => ToggleContextShortcut = v, ToggleContextId);
-        }
-
-        /// <summary>Tutorial page's opening card, the switch beside the page name and a footer under it.</summary>
-        public void DrawTutorialHeader(SettingsControls s, float footerHeight, Action<Rect> drawFooter)
-        {
-            s.MasterHeader(SettingsPage.Tutorial, () => ShowTutorial, v => ShowTutorial = v, footerHeight,
-                drawFooter);
         }
     }
 `;
@@ -233,11 +305,14 @@ const GENERAL = `
 const CONSTS: Record<string, string> = {
   'Zoom.ZoomInShortcutId': 'Blendon/Zoom/Zoom In',
   'Zoom.ZoomOutShortcutId': 'Blendon/Zoom/Zoom Out',
-  'FrameSelected.ShortcutId': 'Blendon/Frame Selected',
+  'ShortcutIds.FrameSelectedId': 'Blendon/Frame Selected',
   'VertexSnapping.ShortcutId': 'Blendon/Vertex Snap',
   'VertexSnapping.PickShortcutId': 'Blendon/Pick Virtual Pivot',
-  'GeneralSettings.DefaultsIntro': 'Values the rest of Blendon falls back to.',
-  'GeneralSettings.ToggleContextId': 'Blendon/Tool Context/Toggle Blendon',
+  'SharedGizmoPage.TitleIcon': 'd_Transform Icon',
+  'SharedGizmoPage.Subtitle': 'Enable all four transform tools at once',
+  'MoveGizmoPage.SurfaceSnapNoKeyNote': "No key set, so Surface Snap won't engage.",
+  'MoveGizmoPage.SurfaceSnapNoKeyInfoText': 'The modifier is None.',
+  'OverviewDefaults.Intro': 'Values the rest of Blendon falls back to.',
 };
 
 // Cards as the dump carries them: `src` as written, `t` resolved for the Blendon preset.
@@ -252,32 +327,84 @@ const TIPS: Record<string, Tip> = {
   'Blendon/Pick Virtual Pivot': { t: 'Pick', i: 'Tips/AllTools/PickVirtualPivot.png' },
 };
 
-function bodiesOf(...sources: string[]): Map<string, Stmt[]> {
-  const bodies = new Map<string, Stmt[]>();
-  for (const src of sources) for (const m of drawMethods(src)) bodies.set(m.className + '#' + m.name, parse(m.body));
+// What the dump adds to a setting: bounds, a key row's shortcut, the value an Override row follows.
+type Fact = { min?: number; max?: number; shortcut?: string; follows?: string };
+function dumpOf(props: Record<string, Fact>): Model1 {
+  const pages = new Map<string, Model1['pages'][number]>();
+  for (const [key, fact] of Object.entries(props)) {
+    const [type = '', name = ''] = key.split('.');
+    const page = pages.get(type) ?? { type, switchTip: { text: '', image: '', source: '' }, props: [] };
+    page.props.push({
+      name,
+      ptype: '',
+      label: '',
+      tip: { text: '', image: '', source: '' },
+      value: 0,
+      default: 0,
+      ...fact,
+    });
+    pages.set(type, page);
+  }
+  return { pages: [...pages.values()] };
+}
+
+const FACTS = propFacts(
+  dumpOf({
+    'ZoomSettings.KeyboardStep': { min: 0.01, max: 0.9 },
+    'GeneralSettings.AnimationDuration': { min: 0.0001, max: 2 },
+    'RotateGizmoSettings.TrackballRadius': { min: 0.01, max: 2 },
+    'FrameSelectedSettings.Shortcut': { shortcut: 'Blendon/Frame Selected' },
+    'PanSettings.Shortcut': { shortcut: 'Blendon/Camera Pan' },
+    'PanSettings.CursorWrapEnabled': { follows: 'GeneralSettings.CursorWrapEnabled' },
+    'PanSettings.CursorWrap': { follows: 'GeneralSettings.CursorWrap' },
+    'PanSettings.WrapBounds': { follows: 'GeneralSettings.WrapBounds' },
+    'MoveGizmoSettings.SurfaceSnapModifier': { follows: 'SharedGizmoSettings.AimModifier' },
+  }),
+);
+
+function bodiesOf(...sources: [string, string][]): Map<string, ViewBody> {
+  const bodies = new Map<string, ViewBody>();
+  for (const [owner, src] of sources) addViewBodies(bodies, src, owner);
   return bodies;
 }
 
 describe('ops from the plugin pages', () => {
-  const run = pageConverter(bodiesOf(ZOOM, VIEWPORT_NAV, FRAME_SELECTED, SHARED_GIZMOS, GENERAL), CONSTS, TIPS);
+  const run = pageConverter(
+    bodiesOf(
+      ['ZoomSettings', ZOOM],
+      ['ViewportNavSettings', VIEWPORT_NAV],
+      ['PanSettings', PAN],
+      ['SharedGizmoSettings', SHARED_GIZMOS],
+      ['MoveGizmoSettings', MOVE],
+      ['TransformGizmoSettings', TRANSFORM],
+      ['GeneralSettings', GENERAL],
+    ),
+    CONSTS,
+    TIPS,
+    FACTS,
+  );
 
-  it('reads a two-argument ShortcutField with the card as written', () => {
-    expect(run('ZoomSettings', 'DrawKeyboardSettings')).toEqual([
-      ['tog', 'ZoomSettings.KeyboardEnabled'],
+  const zoomKeys = [
+    ['tog', 'ZoomSettings.KeyboardEnabled'],
+    [
+      'dis',
+      ['!', ['v', 'ZoomSettings.KeyboardEnabled']],
       [
-        'dis',
-        ['!', ['v', 'ZoomSettings.KeyboardEnabled']],
-        [
-          ['sc', 'Blendon/Zoom/Zoom In', null, 'Zoom In', 'Zoom in: {key:Blendon/Zoom/Zoom In}', 'Tips/Zoom/Keys.png'],
-          ['sc', 'Blendon/Zoom/Zoom Out', null, 'Zoom Out', 'Zoom out', ''],
-          ['sld', 'ZoomSettings.KeyboardStep', 0.01, 0.9],
-        ],
+        ['sc', 'Blendon/Zoom/Zoom In', null, 'Zoom In', 'Zoom in: {key:Blendon/Zoom/Zoom In}', 'Tips/Zoom/Keys.png'],
+        ['sc', 'Blendon/Zoom/Zoom Out', null, 'Zoom Out', 'Zoom out', ''],
+        ['sld', 'ZoomSettings.KeyboardStep', 0.01, 0.9],
       ],
-    ]);
+    ],
+  ];
+
+  it('reads a two-argument ShortcutField with the card as written, a slider with its declared bounds', () => {
+    expect(run('ZoomPage', 'DrawKeyboard')).toEqual(zoomKeys);
   });
 
-  it('draws a mirrored shortcut with its owner row, grayed with the owner page', () => {
-    expect(run('ViewportNavSettings', 'DrawSettings')).toEqual([
+  it("follows a call into another view's Draw method, and a mirrored shortcut to its owner's key row", () => {
+    expect(run('ViewportNavPage', 'Draw')).toEqual([
+      ['sub', 'Zoom', 'd_ViewToolZoom', 15, 0],
+      ['dis', ['!', ['v', 'ZoomSettings.Enabled']], zoomKeys],
       ['sub', 'Frame Selected', 'd_Grid.BoxTool@2x', 15, 0],
       [
         'dis',
@@ -288,8 +415,85 @@ describe('ops from the plugin pages', () => {
     ]);
   });
 
+  it('draws a key row from its declaration and rows with an Override box from what they follow', () => {
+    expect(run('PanPage', 'Draw')).toEqual([
+      ['master', 'page', 'Pan', 'PanSettings.Enabled'],
+      [
+        'dis',
+        ['!', ['v', 'PanSettings.Enabled']],
+        [
+          ['sc', 'Blendon/Camera Pan', 'PanSettings.Shortcut'],
+          ['gtog', 'PanSettings.CursorWrapEnabled', 'GeneralSettings.CursorWrapEnabled'],
+          [
+            'dis',
+            ['!', ['v', 'PanSettings.CursorWrapEnabled']],
+            [
+              ['gpop', 'PanSettings.CursorWrap', 'GeneralSettings.CursorWrap'],
+              [
+                'if',
+                ['f', 'supportsBounds', ['v', 'PanSettings.CursorWrap']],
+                [['gpop', 'PanSettings.WrapBounds', 'GeneralSettings.WrapBounds']],
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ]);
+  });
+
+  it('reads the gizmo header in both forms, and a modifier that follows another page as linked', () => {
+    expect(run('SharedGizmoPage', 'Draw')[0]).toEqual([
+      'master',
+      'gizmo',
+      'd_Transform Icon',
+      'All Tools',
+      'SharedGizmoSettings.AllToolsEnabled',
+    ]);
+    expect(run('MoveGizmoPage', 'Draw')).toEqual([
+      ['master', 'gizmo', 'd_MoveTool', 'Move', 'MoveGizmoSettings.Enabled'],
+      [
+        'dis',
+        ['!', ['v', 'MoveGizmoSettings.Enabled']],
+        [
+          ['tog', 'MoveGizmoSettings.SurfaceSnapEnabled'],
+          [
+            'dis',
+            ['!', ['v', 'MoveGizmoSettings.SurfaceSnapEnabled']],
+            [
+              ['imod', 'MoveGizmoSettings.SurfaceSnapModifier', 'SharedGizmoSettings.AimModifier', 'SharedGizmos'],
+              [
+                'if',
+                [
+                  '&&',
+                  ['v', 'MoveGizmoSettings.SurfaceSnapEnabled'],
+                  ['==', ['v', 'MoveGizmoSettings.SurfaceSnapModifier'], ['c', 'None']],
+                ],
+                [['note', "No key set, so Surface Snap won't engage.", 'The modifier is None.']],
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ]);
+  });
+
+  it('hands a Transform part to a method declared for it, its bounds falling back to the standalone tool', () => {
+    const ops = run('TransformGizmoPage', 'Draw');
+    expect(ops[0]).toEqual(['card', 'RotateGizmo']);
+    expect(ops[1]).toEqual(['tog', 'TransformRotateSettings.TrackballEnabled']);
+    expect(ops[2]).toEqual([
+      'dis',
+      ['!', ['v', 'TransformRotateSettings.TrackballEnabled']],
+      [['sld', 'TransformRotateSettings.TrackballRadius', 0.01, 2]],
+    ]);
+    expect(JSON.stringify(ops[3])).toContain('TransformRotateSettings.ScreenRingRadius');
+    expect(ops[4]).toEqual(['endcard']);
+  });
+
   it('locks the axis colours with the master switch', () => {
-    expect(run('SharedGizmoSettings', 'DrawAxisColorsGroup')).toEqual([
+    expect(run('SharedGizmoPage', 'DrawAxisColors')).toEqual([
       ['sub', 'Axis Colors', 'd_Grid.PaintTool', 15, 0],
       ['ilink', 'The axis palette is shared ', 'plugin-wide', '.', 'Overview'],
       [
@@ -303,15 +507,11 @@ describe('ops from the plugin pages', () => {
       ],
       ['col', 'GeneralSettings.OutlineColor'],
     ]);
-    expect(cond(new Ctx('SharedGizmoSettings', {}), 'new EditorGUI.DisabledScope(!General.ColorsEditable)')).toEqual([
-      '!',
-      ['v', 'GeneralSettings.Enabled'],
-    ]);
   });
 
   it('gates the vertex snapping keys on any tool', () => {
-    const ops = run('SharedGizmoSettings', 'DrawSettings');
-    expect(ops[1]).toEqual([
+    const ops = run('SharedGizmoPage', 'Draw');
+    expect(ops[2]).toEqual([
       'dis',
       ['!', ['f', 'anyTool']],
       [
@@ -328,8 +528,8 @@ describe('ops from the plugin pages', () => {
     ]);
   });
 
-  it("reads the Overview's Defaults card and its Tool Context row", () => {
-    expect(run('GeneralSettings', 'DrawSettings')).toEqual([
+  it("reads the Overview's Defaults card", () => {
+    expect(run('OverviewDefaults', 'Draw')).toEqual([
       ['info', 'Values the rest of Blendon falls back to.'],
       ['sub', 'Animation', 'Motion Icon', 15, 0],
       ['tog', 'GeneralSettings.AnimationEnabled'],
@@ -338,33 +538,17 @@ describe('ops from the plugin pages', () => {
         ['!', ['v', 'GeneralSettings.AnimationEnabled']],
         [['sld', 'GeneralSettings.AnimationDuration', 0.0001, 2]],
       ],
-      ['sub', 'Cursor Wrap', 'DotFrame', 15, 0],
-      ['tog', 'GeneralSettings.CursorWrapEnabled'],
-      [
-        'dis',
-        ['!', ['v', 'GeneralSettings.CursorWrapEnabled']],
-        [
-          ['pop', 'GeneralSettings.CursorWrap'],
-          [
-            'if',
-            ['f', 'supportsBounds', ['v', 'GeneralSettings.CursorWrap']],
-            [['pop', 'GeneralSettings.WrapBounds']],
-            null,
-          ],
-        ],
-      ],
       ['sub', 'Axis Colors', 'd_Grid.PaintTool', 15, 0],
       ['dis', ['!', ['v', 'GeneralSettings.Enabled']], [['col', 'GeneralSettings.AxisColorX']]],
-    ]);
-    expect(run('GeneralSettings', 'DrawToggleContextShortcut')).toEqual([
-      ['sc', 'Blendon/Tool Context/Toggle Blendon', 'GeneralSettings.ToggleContextShortcut'],
     ]);
   });
 
   it('names what it cannot read', () => {
-    const bare = pageConverter(bodiesOf(ZOOM), CONSTS, {});
-    expect(() => bare('ZoomSettings', 'DrawKeyboardSettings')).toThrow('No card for shortcut Blendon/Zoom/Zoom In');
-    const noConst = pageConverter(bodiesOf(ZOOM), {}, TIPS);
-    expect(() => noConst('ZoomSettings', 'DrawKeyboardSettings')).toThrow('Unknown constant Zoom.ZoomInShortcutId');
+    const bare = pageConverter(bodiesOf(['ZoomSettings', ZOOM]), CONSTS, {}, FACTS);
+    expect(() => bare('ZoomPage', 'DrawKeyboard')).toThrow('No card for shortcut Blendon/Zoom/Zoom In');
+    const noConst = pageConverter(bodiesOf(['ZoomSettings', ZOOM]), {}, TIPS, FACTS);
+    expect(() => noConst('ZoomPage', 'DrawKeyboard')).toThrow('Unknown constant Zoom.ZoomInShortcutId');
+    const noDump = pageConverter(bodiesOf(['ZoomSettings', ZOOM]), CONSTS, TIPS);
+    expect(() => noDump('ZoomPage', 'DrawKeyboard')).toThrow('No range for slider ZoomSettings.KeyboardStep');
   });
 });

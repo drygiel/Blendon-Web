@@ -32,6 +32,13 @@ export interface DumpProp {
   value: PropValue;
   default: PropValue;
   options?: string[];
+  /** A slider's bounds, from the declaration. */
+  min?: number;
+  max?: number;
+  /** A key row's shortcut id. */
+  shortcut?: string;
+  /** The setting a row with an Override box reads until ticked, as "Class.Name". */
+  follows?: string;
 }
 export interface DumpHeader {
   image: string;
@@ -245,6 +252,10 @@ const MODEL1 = obj({
           value,
           default: value,
           options: optional(arr(str)),
+          min: optional(num),
+          max: optional(num),
+          shortcut: optional(str),
+          follows: optional(str),
         }),
       ),
     }),

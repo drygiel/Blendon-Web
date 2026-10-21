@@ -159,6 +159,35 @@ test('edits values and resets them', async ({ page }) => {
   await expect(box).not.toHaveValue('0.5');
 });
 
+test('the picked gizmo look is the default, a change from it is marked and picking it again puts it back', async ({
+  page,
+}) => {
+  const win = await openWindow(page);
+  await win.getByRole('button', { name: 'Transform', exact: true }).click();
+  // The header card is laid out twice, side by side and stacked; CSS shows one.
+  const unity = win.locator('.seg:visible').filter({ hasText: 'Unity+' });
+  const marked = win.locator('i.mk:not([hidden])');
+  // The move part's arrow length: 1.15 in Blender's look, 1.05 in Unity+'s.
+  const length = win.locator('.nbox').first();
+  await expect(length).toHaveValue(/^1\.15/);
+
+  await unity.click();
+  await win.locator('.dlg').getByRole('button', { name: 'Apply' }).click();
+  await expect(length).toHaveValue(/^1\.05/);
+  await expect(marked).toHaveCount(0);
+  await expect(unity).toHaveText('Unity+');
+
+  await length.fill('0.5');
+  await length.press('Enter');
+  await expect(marked).toHaveCount(1);
+  await expect(unity).not.toHaveText('Unity+');
+
+  await unity.click();
+  await win.locator('.dlg').getByRole('button', { name: 'Put Back' }).click();
+  await expect(length).toHaveValue(/^1\.05/);
+  await expect(marked).toHaveCount(0);
+});
+
 test("a press on a shortcut's key caps starts capture, and Esc gives the key back", async ({ page }) => {
   const win = await openWindow(page);
   await win.getByRole('button', { name: 'Move', exact: true }).click();

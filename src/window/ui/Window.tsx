@@ -4,6 +4,7 @@ import type { Row } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { type SideEntry, type WindowLayout } from '../core/layout.ts';
 import { type WindowModel, pageInfo } from '../core/model.ts';
+import { D } from '../../plugin/window-data.ts';
 import { M, PAL, badgeFill, brighten, rgba, tinted } from '../core/util.ts';
 import { Runs } from './common.tsx';
 import { AppContext, useApp, useTip } from './context.ts';
@@ -241,11 +242,8 @@ function Footer({ L }: { L: WindowLayout }) {
   const app = useApp();
   const info = pageInfo(L.page);
   const linkTip = useTip({ t: "Open Unity's own Shortcuts window", native: true });
-  const resetTip = useTip({ t: 'Put every setting on this page back to the value Blendon ships', native: true });
-  const resetAllTip = useTip({
-    t: '<b>Reset All Pages</b>\nRestores every Blendon setting on every page, shortcuts included, to what the plugin ships with.',
-    native: true,
-  });
+  const resetTip = useTip({ t: D.consts.resetTip ?? '', native: true });
+  const resetAllTip = useTip({ t: D.consts.resetAllTip ?? '', native: true });
   return (
     <div className="ftr">
       {L.footerTip && (

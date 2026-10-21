@@ -58,7 +58,7 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
     title: 'All Tools',
     sub: 'Settings the four tools below share - size, snapping, precision, readouts',
     desc: "One switch for all four transform gizmos and everything a drag shares: the ghost of where it started, the constraint line, snap ticks and the live readout. Each tool's own page then multiplies or overrides what it needs.",
-    chips: ['Blender · Unity+ · Custom', 'Pivot Point Menu', 'Vertex Snapping', 'Precision Mode'],
+    chips: ['Blender · Unity+', 'Pivot Point Menu', 'Vertex Snapping', 'Precision Mode'],
     image: slideSharedGizmos,
   },
   {

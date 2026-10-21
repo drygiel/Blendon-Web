@@ -65,6 +65,8 @@ export interface WindowState {
   vals: Record<string, PropValue>;
   ovr: Record<string, boolean>;
   pies: Record<string, boolean>;
+  /** The picked gizmo look preset (D.gizmoPresets), the default of every setting it covers. */
+  look: number;
   // navigation
   page: string;
   search: string;
@@ -97,6 +99,7 @@ export function initialState(initial: Record<string, PropValue>): WindowState {
     vals: { ...initial },
     ovr: {},
     pies: {},
+    look: 0,
     // The site opens on the checklist, where a first visit starts.
     page: 'Tutorial',
     search: '',

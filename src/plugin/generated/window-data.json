@@ -508,14 +508,6 @@
    "d": true,
    "k": "Boolean"
   },
-  "GeneralSettings.ToggleContextShortcut": {
-   "l": "Toggle Blendon",
-   "t": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>B</color></b>\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
-   "i": "Tips/Overview/ToggleContext.png",
-   "src": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Tool Context/Toggle Blendon}\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
-   "d": "B",
-   "k": "ShortcutBinding"
-  },
   "GeneralSettings.AnimationEnabled": {
    "l": "Animate",
    "t": "<size=14><b>Animate</b></size>\nMove the camera smoothly instead of cutting straight to the new view.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nA short camera flight shows where you went.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe view jumps there at once.\n\n<size=9><color=#92929A>Default for every page that doesn't override it</color></size>",
@@ -596,21 +588,21 @@
   },
   "GeneralSettings.AxisColorX": {
    "l": "X Axis",
-   "t": "<size=14><b>X Axis Color</b></size>\nColor of everything Blendon draws for the <b>X</b> axis: arrows, rings, boxes and lines.\n\n<size=9><color=#92929A>Starts from Unity's own axis color in Preferences > Colors. Blendon keeps its own copy from then on</color></size>",
+   "t": "<size=14><b>X Axis Color</b></size>\nColor of everything Blendon draws for the <b>X</b> axis: arrows, rings, boxes and lines.\n\n<size=9><color=#92929A>Starts from the look preset picked on the gizmo pages. Reset puts back that preset's color</color></size>",
    "i": "Tips/Overview/AxisColorX.png",
    "d": "#FF3653FF",
    "k": "Color"
   },
   "GeneralSettings.AxisColorY": {
    "l": "Y Axis",
-   "t": "<size=14><b>Y Axis Color</b></size>\nColor of everything Blendon draws for the <b>Y</b> axis: arrows, rings, boxes and lines.\n\n<size=9><color=#92929A>Starts from Unity's own axis color in Preferences > Colors. Blendon keeps its own copy from then on</color></size>",
+   "t": "<size=14><b>Y Axis Color</b></size>\nColor of everything Blendon draws for the <b>Y</b> axis: arrows, rings, boxes and lines.\n\n<size=9><color=#92929A>Starts from the look preset picked on the gizmo pages. Reset puts back that preset's color</color></size>",
    "i": "Tips/Overview/AxisColorY.png",
    "d": "#8ADB00FF",
    "k": "Color"
   },
   "GeneralSettings.AxisColorZ": {
    "l": "Z Axis",
-   "t": "<size=14><b>Z Axis Color</b></size>\nColor of everything Blendon draws for the <b>Z</b> axis: arrows, rings, boxes and lines.\n\n<size=9><color=#92929A>Starts from Unity's own axis color in Preferences > Colors. Blendon keeps its own copy from then on</color></size>",
+   "t": "<size=14><b>Z Axis Color</b></size>\nColor of everything Blendon draws for the <b>Z</b> axis: arrows, rings, boxes and lines.\n\n<size=9><color=#92929A>Starts from the look preset picked on the gizmo pages. Reset puts back that preset's color</color></size>",
    "i": "Tips/Overview/AxisColorZ.png",
    "d": "#2C8FFFFF",
    "k": "Color"
@@ -621,6 +613,14 @@
    "i": "Tips/Overview/OutlineColor.png",
    "d": "#000000FF",
    "k": "Color"
+  },
+  "GeneralSettings.ToggleContextShortcut": {
+   "l": "Toggle Blendon",
+   "t": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>B</color></b>\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
+   "i": "Tips/Overview/ToggleContext.png",
+   "src": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Tool Context/Toggle Blendon}\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
+   "d": "B",
+   "k": "ShortcutBinding"
   },
   "OrbitSelectedSettings.Enabled": {
    "l": "Enable",
@@ -698,14 +698,6 @@
    "d": 12,
    "k": "Single"
   },
-  "OrbitSelectedSettings.Shortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 2</color></b> - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
-   "i": "Tips/OrbitSelected/Shortcut.png",
-   "src": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Orbit Selected} - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
-   "d": "Mouse 2",
-   "k": "ShortcutBinding"
-  },
   "OrbitSelectedSettings.RollEnabled": {
    "l": "Enable",
    "t": "<size=14><b>Quick Roll</b></size>\nFlick the mouse to swing the view 90 degrees.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nHold <b><color=#D98E38>Alt+Mouse 2</color></b>, then flick in any direction. The view rolls that way and lands on the nearest front, side or top view.",
@@ -713,14 +705,6 @@
    "src": "<size=14><b>Quick Roll</b></size>\nFlick the mouse to swing the view 90 degrees.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nHold {key:Blendon/Quick Roll}, then flick in any direction. The view rolls that way and lands on the nearest front, side or top view.",
    "d": true,
    "k": "Boolean"
-  },
-  "OrbitSelectedSettings.RollShortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt+Mouse 2</color></b>, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
-   "i": "Tips/OrbitSelected/QuickRoll.png",
-   "src": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Quick Roll}, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
-   "d": "Alt+Mouse 2",
-   "k": "ShortcutBinding"
   },
   "OrbitSelectedSettings.RollThresholdPixels": {
    "l": "Flick Distance (px)",
@@ -736,6 +720,22 @@
    "d": true,
    "k": "Boolean"
   },
+  "OrbitSelectedSettings.Shortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 2</color></b> - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
+   "i": "Tips/OrbitSelected/Shortcut.png",
+   "src": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Orbit Selected} - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
+   "d": "Mouse 2",
+   "k": "ShortcutBinding"
+  },
+  "OrbitSelectedSettings.RollShortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt+Mouse 2</color></b>, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
+   "i": "Tips/OrbitSelected/QuickRoll.png",
+   "src": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Quick Roll}, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
+   "d": "Alt+Mouse 2",
+   "k": "ShortcutBinding"
+  },
   "PanSettings.Enabled": {
    "l": "Enable",
    "t": "<size=14><b>Camera Pan</b></size>\nSlide the view sideways without turning the camera.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nHold <b><color=#D98E38>Shift+Mouse 2</color></b>, then move the mouse. The scene follows the cursor.\n\n<size=9><color=#92929A>Off frees the shortcut, handing it back to the Editor</color></size>",
@@ -743,14 +743,6 @@
    "src": "<size=14><b>Camera Pan</b></size>\nSlide the view sideways without turning the camera.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nHold {key:Blendon/Camera Pan}, then move the mouse. The scene follows the cursor.\n\n<size=9><color=#92929A>Off frees the shortcut, handing it back to the Editor</color></size>",
    "d": true,
    "k": "Boolean"
-  },
-  "PanSettings.Shortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
-   "i": "Tips/Pan/Shortcut.png",
-   "src": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Camera Pan} - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
-   "d": "Shift+Mouse 2",
-   "k": "ShortcutBinding"
   },
   "PanSettings.InvertDrag": {
    "l": "Invert Drag",
@@ -814,6 +806,14 @@
      "Screen"
     ]
    ]
+  },
+  "PanSettings.Shortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
+   "i": "Tips/Pan/Shortcut.png",
+   "src": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Camera Pan} - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
+   "d": "Shift+Mouse 2",
+   "k": "ShortcutBinding"
   },
   "ZoomSettings.Enabled": {
    "l": "Enable",
@@ -1391,14 +1391,6 @@
    "d": true,
    "k": "Boolean"
   },
-  "MoveGizmoSettings.GrabShortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>G</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
-   "i": "Tips/Move/Grab.png",
-   "src": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab} in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
-   "d": "G",
-   "k": "ShortcutBinding"
-  },
   "MoveGizmoSettings.GrabFromAnyWindow": {
    "l": "Grab From Any Window",
    "t": "<size=14><b>Grab From Any Window</b></size>\nGrab from any window, not only the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>G</color></b> in the Hierarchy, the Inspector or any other window. The Scene View under the cursor, or the last one used, comes to the front and the grab runs there.\n\n<size=9><color=#92929A>In the Hierarchy it takes the key from Unity's Cycle Tool Modes, in the Game Object (Blendon) context only</color></size>",
@@ -1502,12 +1494,12 @@
    "d": 0.166,
    "k": "Single"
   },
-  "RotateGizmoSettings.GrabShortcut": {
+  "MoveGizmoSettings.GrabShortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>R</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
-   "i": "Tips/Rotate/Grab.png",
-   "src": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Rotate} in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
-   "d": "R",
+   "t": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>G</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
+   "i": "Tips/Move/Grab.png",
+   "src": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab} in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
+   "d": "G",
    "k": "ShortcutBinding"
   },
   "RotateGizmoSettings.GrabFromAnyWindow": {
@@ -1710,12 +1702,12 @@
    "d": 1,
    "k": "Single"
   },
-  "ScaleGizmoSettings.GrabShortcut": {
+  "RotateGizmoSettings.GrabShortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>S</color></b> in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. <b><color=#D98E38>Shift</color></b> + an axis key scales the other two axes</color></size>",
-   "i": "Tips/Scale/Grab.png",
-   "src": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Scale} in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. {setting:SharedGizmoSettings.AxisExcludeModifier} + an axis key scales the other two axes</color></size>",
-   "d": "S",
+   "t": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>R</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
+   "i": "Tips/Rotate/Grab.png",
+   "src": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Rotate} in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
+   "d": "R",
    "k": "ShortcutBinding"
   },
   "ScaleGizmoSettings.GrabFromAnyWindow": {
@@ -1856,6 +1848,14 @@
    "d": 0.166,
    "k": "Single"
   },
+  "ScaleGizmoSettings.GrabShortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>S</color></b> in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. <b><color=#D98E38>Shift</color></b> + an axis key scales the other two axes</color></size>",
+   "i": "Tips/Scale/Grab.png",
+   "src": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Scale} in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. {setting:SharedGizmoSettings.AxisExcludeModifier} + an axis key scales the other two axes</color></size>",
+   "d": "S",
+   "k": "ShortcutBinding"
+  },
   "TransformGizmoSettings.Enabled": {
    "l": "Enable",
    "t": "<size=14><b>Transform Tool</b></size>\nMove, rotate and scale on one gizmo, for Unity's Transform tool <b><color=#D98E38>Y</color></b>.\n\n<size=9><b><color=#92929A>NESTED</color></b></size>\n<color=#92929A>•</color> <b>Arrows</b> outside - Move\n<color=#92929A>•</color> <b>Rings</b> in the middle - Rotate\n<color=#92929A>•</color> <b>Boxes</b> inside - Scale\n\n<size=9><color=#92929A>Grab keys, Surface Snap and Look At come from the three tools' own pages</color></size>",
@@ -1877,14 +1877,6 @@
    "i": "Tips/Move/PlaneHandles.png",
    "d": false,
    "k": "Boolean"
-  },
-  "TransformMoveSettings.GrabShortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>G</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
-   "i": "Tips/Move/Grab.png",
-   "src": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab} in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
-   "d": "G",
-   "k": "ShortcutBinding"
   },
   "TransformMoveSettings.ScreenRingEnabled": {
    "l": "Enable",
@@ -1974,12 +1966,12 @@
    "d": 0.166,
    "k": "Single"
   },
-  "TransformRotateSettings.GrabShortcut": {
+  "TransformMoveSettings.GrabShortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>R</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
-   "i": "Tips/Rotate/Grab.png",
-   "src": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Rotate} in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
-   "d": "R",
+   "t": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>G</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
+   "i": "Tips/Move/Grab.png",
+   "src": "<size=14><b>Grab</b></size>\nMove the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab} in the <b><color=#3DB892>Scene View</color></b> - the selection follows the cursor.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> locks one axis; digits type an exact distance.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. Every handle but the center dot hides while it runs</color></size>",
+   "d": "G",
    "k": "ShortcutBinding"
   },
   "TransformRotateSettings.ScreenRingEnabled": {
@@ -2105,12 +2097,12 @@
    "d": 1,
    "k": "Single"
   },
-  "TransformScaleSettings.GrabShortcut": {
+  "TransformRotateSettings.GrabShortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>S</color></b> in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. <b><color=#D98E38>Shift</color></b> + an axis key scales the other two axes</color></size>",
-   "i": "Tips/Scale/Grab.png",
-   "src": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Scale} in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. {setting:SharedGizmoSettings.AxisExcludeModifier} + an axis key scales the other two axes</color></size>",
-   "d": "S",
+   "t": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>R</color></b> in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
+   "i": "Tips/Rotate/Grab.png",
+   "src": "<size=14><b>Rotate Grab</b></size>\nSpin the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Rotate} in the <b><color=#3DB892>Scene View</color></b> - the selection turns with the cursor, around the axis you look along.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> picks the axis; digits type an exact angle.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only</color></size>",
+   "d": "R",
    "k": "ShortcutBinding"
   },
   "TransformScaleSettings.AxisHeadOpacity": {
@@ -2229,6 +2221,14 @@
    "d": 0.166,
    "k": "Single"
   },
+  "TransformScaleSettings.GrabShortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press <b><color=#D98E38>S</color></b> in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. <b><color=#D98E38>Shift</color></b> + an axis key scales the other two axes</color></size>",
+   "i": "Tips/Scale/Grab.png",
+   "src": "<size=14><b>Scale Grab</b></size>\nResize the selection without clicking a handle.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<b>1</b>  Press {key:Blendon/Grab Scale} in the <b><color=#3DB892>Scene View</color></b> - move the cursor away from the pivot to grow, toward it to shrink.\n<b>2</b>  <b><color=#D98E38>X</color></b>, <b><color=#D98E38>Y</color></b> or <b><color=#D98E38>Z</color></b> scales one axis; digits type an exact factor.\n<b>3</b>  Click or <b><color=#D98E38>Enter</color></b> to confirm, <b><color=#D98E38>Esc</color></b> or right-click to cancel.\n\n<size=9><color=#92929A>Works whichever tool is active, in the Game Object (Blendon) context only. {setting:SharedGizmoSettings.AxisExcludeModifier} + an axis key scales the other two axes</color></size>",
+   "d": "S",
+   "k": "ShortcutBinding"
+  },
   "SnapToFloorSettings.Enabled": {
    "l": "Enable",
    "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
@@ -2318,6 +2318,13 @@
    "d": 0.35,
    "k": "Single"
   },
+  "FrameSelectedSettings.SequenceText": {
+   "l": "Sequence",
+   "t": "Which framings the frame key steps through, and in what order",
+   "i": "",
+   "d": "SelectionCenter,ActivePivot,ZoomIn,BackToStart",
+   "k": "String"
+  },
   "FrameSelectedSettings.Shortcut": {
    "l": "Shortcut",
    "t": "<size=14><b>Frame Selected Shortcut</b></size>\nWhat you press to frame the selection.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Num .</color></b> - press again to step through the cycle.",
@@ -2326,13 +2333,6 @@
    "d": "Num .",
    "k": "ShortcutBinding"
   },
-  "FrameSelectedSettings.SequenceText": {
-   "l": "Sequence",
-   "t": "Which framings the frame key steps through, and in what order",
-   "i": "",
-   "d": "SelectionCenter,ActivePivot,ZoomIn,BackToStart",
-   "k": "String"
-  },
   "IsolateViewSettings.Enabled": {
    "l": "Enable",
    "t": "<size=14><b>Isolate View</b></size>\nHide everything except the selection.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>Num /</color></b> to isolate what you selected. Press it again to bring the scene back.\n\n<size=9><color=#92929A>Hides with Unity's Scene Visibility, so nothing in the scene is changed</color></size>",
@@ -2340,14 +2340,6 @@
    "src": "<size=14><b>Isolate View</b></size>\nHide everything except the selection.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Isolate View} to isolate what you selected. Press it again to bring the scene back.\n\n<size=9><color=#92929A>Hides with Unity's Scene Visibility, so nothing in the scene is changed</color></size>",
    "d": true,
    "k": "Boolean"
-  },
-  "IsolateViewSettings.Shortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Isolate Shortcut</b></size>\nWhat you press to isolate the selection, and again to restore the scene.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Num /</color></b>",
-   "i": "Tips/IsolateView/IsolateView.png",
-   "src": "<size=14><b>Isolate Shortcut</b></size>\nWhat you press to isolate the selection, and again to restore the scene.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Isolate View}",
-   "d": "Num /",
-   "k": "ShortcutBinding"
   },
   "IsolateViewSettings.IncludeChildren": {
    "l": "Include Children",
@@ -2362,6 +2354,14 @@
    "i": "Tips/IsolateView/FrameOnIsolate.png",
    "d": false,
    "k": "Boolean"
+  },
+  "IsolateViewSettings.Shortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Isolate Shortcut</b></size>\nWhat you press to isolate the selection, and again to restore the scene.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Num /</color></b>",
+   "i": "Tips/IsolateView/IsolateView.png",
+   "src": "<size=14><b>Isolate Shortcut</b></size>\nWhat you press to isolate the selection, and again to restore the scene.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Isolate View}",
+   "d": "Num /",
+   "k": "ShortcutBinding"
   },
   "BoxSelectSettings.Enabled": {
    "l": "Enable",
@@ -2416,22 +2416,6 @@
    "src": "<size=14><b>Visible Only</b></size>\nSelect only what you can see inside the box, like Blender with X-Ray off.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nObjects hidden behind others are left alone.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe box reaches through walls and selects hidden objects too.\n\n<size=9><color=#92929A>Press {key:Blendon/Box Select Visible Only} to switch it, even mid-drag. Sprites, lines and trails are always tested whole</color></size>",
    "d": true,
    "k": "Boolean"
-  },
-  "BoxSelectSettings.VisibleOnlyShortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Visible Only Shortcut</b></size>\nWhat you press to switch <b><color=#4FA8E8>Visible Only</color></b> on and off, even in the middle of a drag.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>C</color></b>. Blender's own X-Ray key is <b><color=#D98E38>Alt+Z</color></b>.",
-   "i": "Tips/BoxSelect/VisibleOnly.png",
-   "src": "<size=14><b>Visible Only Shortcut</b></size>\nWhat you press to switch <b><color=#4FA8E8>Visible Only</color></b> on and off, even in the middle of a drag.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Box Select Visible Only}. Blender's own X-Ray key is <b><color=#D98E38>Alt+Z</color></b>.",
-   "d": "C",
-   "k": "ShortcutBinding"
-  },
-  "BoxSelectSettings.MoveBoxShortcut": {
-   "l": "Move Box",
-   "t": "<size=14><b>Move Box</b></size>\nHold a key mid-drag to move the whole box instead of resizing it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nWhile dragging, hold <b><color=#D98E38>Space</color></b> and move the mouse. Let go to carry on resizing from the new spot.\n\n<size=9><color=#92929A>Only listened for during a drag, so the key keeps its usual job otherwise</color></size>",
-   "i": "Tips/BoxSelect/MoveBox.png",
-   "src": "<size=14><b>Move Box</b></size>\nHold a key mid-drag to move the whole box instead of resizing it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nWhile dragging, hold {key:Blendon/Box Select Move Box} and move the mouse. Let go to carry on resizing from the new spot.\n\n<size=9><color=#92929A>Only listened for during a drag, so the key keeps its usual job otherwise</color></size>",
-   "d": "Space",
-   "k": "ShortcutBinding"
   },
   "BoxSelectSettings.ClickSelectsParent": {
    "l": "Click Selects Parent",
@@ -2592,6 +2576,22 @@
    "d": "#000000C1",
    "k": "Color"
   },
+  "BoxSelectSettings.VisibleOnlyShortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Visible Only Shortcut</b></size>\nWhat you press to switch <b><color=#4FA8E8>Visible Only</color></b> on and off, even in the middle of a drag.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>C</color></b>. Blender's own X-Ray key is <b><color=#D98E38>Alt+Z</color></b>.",
+   "i": "Tips/BoxSelect/VisibleOnly.png",
+   "src": "<size=14><b>Visible Only Shortcut</b></size>\nWhat you press to switch <b><color=#4FA8E8>Visible Only</color></b> on and off, even in the middle of a drag.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Box Select Visible Only}. Blender's own X-Ray key is <b><color=#D98E38>Alt+Z</color></b>.",
+   "d": "C",
+   "k": "ShortcutBinding"
+  },
+  "BoxSelectSettings.MoveBoxShortcut": {
+   "l": "Move Box",
+   "t": "<size=14><b>Move Box</b></size>\nHold a key mid-drag to move the whole box instead of resizing it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nWhile dragging, hold <b><color=#D98E38>Space</color></b> and move the mouse. Let go to carry on resizing from the new spot.\n\n<size=9><color=#92929A>Only listened for during a drag, so the key keeps its usual job otherwise</color></size>",
+   "i": "Tips/BoxSelect/MoveBox.png",
+   "src": "<size=14><b>Move Box</b></size>\nHold a key mid-drag to move the whole box instead of resizing it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nWhile dragging, hold {key:Blendon/Box Select Move Box} and move the mouse. Let go to carry on resizing from the new spot.\n\n<size=9><color=#92929A>Only listened for during a drag, so the key keeps its usual job otherwise</color></size>",
+   "d": "Space",
+   "k": "ShortcutBinding"
+  },
   "HistorySettings.Enabled": {
    "l": "Enable",
    "t": "<size=14><b>Selection History</b></size>\nStep back and forward through what you selected, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n<b><color=#D98E38>Mouse 3</color></b> - back\n<b><color=#D98E38>Mouse 4</color></b> - forward, the side buttons of most mice\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>",
@@ -2624,6 +2624,20 @@
    "d": true,
    "k": "Boolean"
   },
+  "ViewHistorySettings.AnimationEnabled": {
+   "l": "Animate",
+   "t": "<size=14><b>Animate</b></size>\nFly to the recalled view instead of cutting to it.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nA short camera flight shows where you went.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe view jumps there at once.\n\n<size=9><color=#92929A>Follows Defaults on the Overview page until you tick Override</color></size>",
+   "i": "Tips/OrbitSelected/Animate.png",
+   "d": true,
+   "k": "Boolean"
+  },
+  "ViewHistorySettings.AnimationDuration": {
+   "l": "Duration",
+   "t": "<size=14><b>Duration</b></size>\nHow long the camera flight takes, in seconds.\n\n<size=9><b><color=#92929A>EXAMPLES</color></b></size>\n<b>0.2</b> - quick\n<b>1</b> - slow and easy to follow\n\n<size=9><color=#92929A>Follows Defaults on the Overview page until you tick Override</color></size>",
+   "i": "Tips/FrameSelected/Duration.png",
+   "d": 0.35,
+   "k": "Single"
+  },
   "ViewHistorySettings.BackShortcut": {
    "l": "Back",
    "t": "<size=14><b>Back</b></size>\nReturn to the previous camera view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 3</color></b>",
@@ -2639,20 +2653,6 @@
    "src": "<size=14><b>Forward</b></size>\nGo forward again after going back.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/History/Redo View}",
    "d": "Shift+Mouse 4",
    "k": "ShortcutBinding"
-  },
-  "ViewHistorySettings.AnimationEnabled": {
-   "l": "Animate",
-   "t": "<size=14><b>Animate</b></size>\nFly to the recalled view instead of cutting to it.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nA short camera flight shows where you went.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe view jumps there at once.\n\n<size=9><color=#92929A>Follows Defaults on the Overview page until you tick Override</color></size>",
-   "i": "Tips/OrbitSelected/Animate.png",
-   "d": true,
-   "k": "Boolean"
-  },
-  "ViewHistorySettings.AnimationDuration": {
-   "l": "Duration",
-   "t": "<size=14><b>Duration</b></size>\nHow long the camera flight takes, in seconds.\n\n<size=9><b><color=#92929A>EXAMPLES</color></b></size>\n<b>0.2</b> - quick\n<b>1</b> - slow and easy to follow\n\n<size=9><color=#92929A>Follows Defaults on the Overview page until you tick Override</color></size>",
-   "i": "Tips/FrameSelected/Duration.png",
-   "d": 0.35,
-   "k": "Single"
   },
   "PieMenuSettings.Enabled": {
    "l": "Enable",
@@ -2772,14 +2772,6 @@
    "i": "Tips/PieMenus/ToggleWireframe.png",
    "src": "<size=14><b>Toggle Wireframe Shortcut</b></size>\nWhat you press to go to Wireframe and back.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Toggle Wireframe}\n\n<size=9><color=#92929A>Returns to Shaded when there is no earlier mode</color></size>",
    "d": "Shift+Z",
-   "k": "ShortcutBinding"
-  },
-  "SceneMenuSettings.Shortcut": {
-   "l": "Shortcut",
-   "t": "<size=14><b>Context Menu Shortcut</b></size>\nThe button that opens the menu.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 1</color></b> - a click. Holding it to fly through the scene still works.\n\n<size=9><color=#92929A>Listed as Blendon/Context Menu in Unity's Shortcuts window</color></size>",
-   "i": "Tips/ContextMenu/ContextMenu.png",
-   "src": "<size=14><b>Context Menu Shortcut</b></size>\nThe button that opens the menu.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Context Menu} - a click. Holding it to fly through the scene still works.\n\n<size=9><color=#92929A>Listed as Blendon/Context Menu in Unity's Shortcuts window</color></size>",
-   "d": "Mouse 1",
    "k": "ShortcutBinding"
   },
   "SceneMenuSettings.Enabled": {
@@ -2925,6 +2917,14 @@
    "i": "",
    "d": "",
    "k": "String"
+  },
+  "SceneMenuSettings.Shortcut": {
+   "l": "Shortcut",
+   "t": "<size=14><b>Context Menu Shortcut</b></size>\nThe button that opens the menu.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 1</color></b> - a click. Holding it to fly through the scene still works.\n\n<size=9><color=#92929A>Listed as Blendon/Context Menu in Unity's Shortcuts window</color></size>",
+   "i": "Tips/ContextMenu/ContextMenu.png",
+   "src": "<size=14><b>Context Menu Shortcut</b></size>\nThe button that opens the menu.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Context Menu} - a click. Holding it to fly through the scene still works.\n\n<size=9><color=#92929A>Listed as Blendon/Context Menu in Unity's Shortcuts window</color></size>",
+   "d": "Mouse 1",
+   "k": "ShortcutBinding"
   },
   "SharedGizmoSettings.AllToolsEnabled": {
    "l": "Enable All Tools",
@@ -8997,6 +8997,8 @@
  },
  "consts": {
   "masterOffWarning": "<b>Blendon is switched off.</b>  Every feature is dormant and its keys belong to the Editor, so nothing on this page has any effect until it is switched back on from the Overview page.",
+  "resetTip": "Put every setting on this page back to its default. On a gizmo page that is the picked look preset's value",
+  "resetAllTip": "<b>Reset All Pages</b>\nRestores every Blendon setting on every page, shortcuts included, to what the plugin ships with, the Blender gizmo look included.",
   "masterOffNote": "<b>Blendon is off.</b>  Every feature below is dormant and its keys belong to the Editor, so the Editor behaves as if the plugin were not installed. Nothing has been lost - switch it back on and every setting is where you left it.",
   "layoutTooltip": "<b>Keyboard Presets</b>\nWho answers the keys Blendon and the Editor both want.\n\n<b><color=#4FA8E8>Blendon</color></b> - Blender's keys for grab, rotate, scale and orbit answer in the Scene View, the Editor's commands on them wait there.\n<b><color=#4FA8E8>Unity</color></b> - the Editor keeps its keys, Blendon's move one modifier aside.\n\n<size=9><color=#92929A>Works on any shortcut profile. Your other keys are left alone</color></size>",
   "tutorialStartOverTip": "<size=14><b>Start Over</b></size>\nUn-tick every task and start again from the first one.\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nPer machine, not per project, so a gesture learned once stays learned. <b><color=#4FA8E8>Reset All Pages</color></b> leaves it alone.",
@@ -9014,8 +9016,8 @@
   "keyboardIntro": "Every shortcut Blendon declares. Changing one here changes it on the feature's own page too - there is only ever one binding behind both rows.",
   "appearanceTip": "Sizes, colors and thicknesses. Nothing in here changes what the feature does.",
   "contestedLinkHint": "\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
-  "customPresetTip": "Doesn't match Blender or Unity+ - at least one value below has been tuned by hand.",
-  "gizmoPresetsNote": "Sets every transform tool's appearance - shapes, colors and the shared axis palette. Custom means at least one has been tuned by hand.",
+  "gizmoPresetMark": " •",
+  "gizmoPresetsNote": "Sets every transform tool's appearance - shapes, colors and the shared axis palette. A marked row differs from the picked preset.",
   "presetsOn": "Sets which features are on. Your tuning, your keys and your shortcut profile are left alone.",
   "presetsOff": "Applying any of these switches Blendon back on.",
   "restoreTip": "Restore the key the keyboard preset gives this shortcut"
@@ -10817,17 +10819,17 @@
     "TransformMoveSettings.PlaneOutlineThickness": 0.686,
     "TransformMoveSettings.ScreenRingEnabled": false,
     "TransformMoveSettings.ScreenRingRadius": 0.166,
-    "TransformRotateSettings.AxisLength": 0.98,
-    "TransformRotateSettings.AxisThickness": 3.4,
+    "TransformRotateSettings.AxisLength": 1.4,
+    "TransformRotateSettings.AxisThickness": 4.4,
     "TransformRotateSettings.TrackballEnabled": true,
-    "TransformRotateSettings.TrackballRadius": 1.01,
+    "TransformRotateSettings.TrackballRadius": 1.38,
     "TransformRotateSettings.TrackballOpacity": 0.1,
     "TransformRotateSettings.ScreenRingEnabled": true,
-    "TransformRotateSettings.ScreenRingRadius": 1.09,
+    "TransformRotateSettings.ScreenRingRadius": 1.51,
     "TransformRotateSettings.ScreenRingColor": "#FFFFFF57",
-    "TransformScaleSettings.AxisLength": 0,
-    "TransformScaleSettings.AxisThickness": 0.5,
-    "TransformScaleSettings.AxisOffset": 1,
+    "TransformScaleSettings.AxisLength": 1.7,
+    "TransformScaleSettings.AxisThickness": 4.1,
+    "TransformScaleSettings.AxisOffset": 0.88,
     "TransformScaleSettings.AxisHeadSize": 0.1,
     "TransformScaleSettings.AxisHeadOpacity": 1,
     "TransformScaleSettings.PlaneEnabled": false,
