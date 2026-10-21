@@ -137,7 +137,7 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
       pick: () => {
         if (i < D.gizmoPresets.length) app.applyGizmoPreset(i);
       },
-      tip: { t: `<size=14><b>${l}</b></size>\n${pr.tips[i] ?? ''}`, native: false },
+      tip: { t: `<size=14><b>${pr.names[i] ?? l}</b></size>\n${pr.tips[i] ?? ''}`, native: false },
     }));
   }
   // The card has a slot for the picture in either layout; only the one CSS shows gets it.
