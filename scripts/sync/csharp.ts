@@ -1,11 +1,13 @@
-// A minimal C# reader for the settings pages' DrawSettings-style methods: just enough structure to
-// turn their bodies into statement trees, without a real parser.
+// A minimal C# reader for the settings page views' Draw methods: just enough structure to turn their
+// bodies into statement trees, without a real parser.
 
 export type Stmt = ['block', Stmt[]] | ['using', string, Stmt] | ['if', string, Stmt, Stmt | null] | ['stmt', string];
 
 export interface MethodSource {
   className: string;
   name: string;
+  /** The parameter list as written, e.g. "SettingsControls s, MoveGizmoSettings m". */
+  params: string;
   body: string;
 }
 
@@ -107,7 +109,12 @@ export function drawMethods(source: string): MethodSource[] {
     const open = (m.index ?? 0) + m[0].length - 1;
     const close = matchClose(masked, open);
     const owner = classes.filter((c) => c.start < open && open < c.end).sort((a, b) => b.start - a.start)[0];
-    out.push({ className: owner?.name ?? '', name: m[1] ?? '', body: text.slice(open + 1, close - 1) });
+    out.push({
+      className: owner?.name ?? '',
+      name: m[1] ?? '',
+      params: m[2] ?? '',
+      body: text.slice(open + 1, close - 1),
+    });
   }
   return out;
 }

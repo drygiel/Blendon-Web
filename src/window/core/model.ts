@@ -42,6 +42,8 @@ const PAGE_SWITCHES: Record<string, string[]> = {
 
 export const pageInfo = (id: string) => D.catalog.find((p) => p.id === id) ?? D.catalog[0];
 
+const values = (n: number) => (n === 1 ? '1 value' : n + ' values');
+
 /** DOM handles and timers that outlive a render. */
 export interface Instance {
   host: HTMLElement | null;
@@ -174,7 +176,13 @@ export class WindowModel {
     // General overrides: a page that follows the Defaults card shows the Defaults value.
     const follows = D.followers[key];
     if (follows && !this.overriding(key)) return this.val(follows);
-    return p.d;
+    return this.def(key);
+  }
+
+  /** What a setting reads when nothing is stored: the picked look preset's value, else the shipped one. */
+  def(key: string): PropValue | undefined {
+    const look = D.gizmoPresets[this.st.look]?.values;
+    return look && key in look ? look[key] : D.props[key]?.d;
   }
 
   num(key: string): number {
@@ -186,10 +194,12 @@ export class WindowModel {
     key = DELEGATED[key] ?? key;
     if (!(key in this.st.vals)) return true;
     const v = this.st.vals[key];
-    const p = D.props[key];
     // Nothing declared: the stored value is the only evidence left.
-    if (!p) return false;
-    return typeof v === 'number' ? Math.abs(v - Number(p.d)) < 1e-6 : v === p.d;
+    if (!D.props[key]) return false;
+    const d = this.def(key);
+    if (typeof v === 'number') return Math.abs(v - Number(d)) < 1e-6;
+    // Colors are hex, a picked one may come back in another case.
+    return typeof v === 'string' && typeof d === 'string' ? v.toUpperCase() === d.toUpperCase() : v === d;
   }
 
   overriding(key: string): boolean {
@@ -393,28 +403,29 @@ export class WindowModel {
   }
 
   // ---- presets ----------------------------------------------------------------------------------
-  /** The gizmo appearance preset the current values match (Custom when none). */
+  /** How many settings the picked look preset covers differ from it (GizmoAppearancePresets.ChangedCount). */
+  lookChanges(): number {
+    const look = D.gizmoPresets[this.st.look]?.values ?? {};
+    return Object.keys(look).filter((k) => !this.isDefault(k)).length;
+  }
+
+  /** The picked look preset, marked while a value differs from it (GizmoAppearancePresets.Labels and Note). */
   gizmoPresets() {
-    let sel = D.gizmoPresets.length;
-    for (let i = 0; i < D.gizmoPresets.length; i++) {
-      const p = D.gizmoPresets[i];
-      const match = Object.keys(p.values).every((k) => {
-        const v = this.val(k);
-        const w = p.values[k];
-        return typeof w === 'number'
-          ? Math.abs(Number(v) - w) < 0.0005
-          : String(v).toUpperCase() === String(w).toUpperCase();
-      });
-      if (match) {
-        sel = i;
-        break;
-      }
-    }
+    const sel = this.st.look;
+    const changed = this.lookChanges();
+    const name = D.gizmoPresets[sel]?.name ?? '';
+    const marked = (i: number) => changed > 0 && i === sel;
     return {
       sel,
-      labels: [...D.gizmoPresets.map((p) => p.name), 'Custom'],
-      tips: [...D.gizmoPresets.map((p) => p.desc), D.consts.customPresetTip ?? ''],
-      note: D.consts.gizmoPresetsNote ?? '',
+      names: D.gizmoPresets.map((p) => p.name),
+      labels: D.gizmoPresets.map((p, i) => (marked(i) ? p.name + (D.consts.gizmoPresetMark ?? '') : p.name)),
+      tips: D.gizmoPresets.map((p, i) =>
+        marked(i) ? p.desc + ' Some values differ from it, click to put them back.' : p.desc,
+      ),
+      note: changed
+        ? `${values(changed)} ${changed === 1 ? 'differs' : 'differ'} from ${name}, each marked on its row. ` +
+          `Click ${name} to put them back.`
+        : (D.consts.gizmoPresetsNote ?? ''),
     };
   }
 
@@ -422,13 +433,36 @@ export class WindowModel {
     this.update({ dlg });
   }
 
+  /** Picking the preset again puts its values back; picking another makes it the default and drops the changes. */
   applyGizmoPreset(i: number) {
     const p = D.gizmoPresets[i];
+    if (!p) return;
+    const changed = this.lookChanges();
+    const pick = () =>
+      this.update((s) => {
+        const vals = { ...s.vals };
+        for (const k of Object.keys(p.values)) delete vals[k];
+        return { vals, look: i };
+      });
+    if (i === this.st.look) {
+      if (!changed) return;
+      this.confirm({
+        title: `Back to "${p.name}"`,
+        body: `Puts the ${values(changed)} changed from ${p.name} back to its values. Nothing else changes.`,
+        ok: 'Put Back',
+        run: pick,
+      });
+      return;
+    }
+    const from = D.gizmoPresets[this.st.look]?.name ?? '';
     this.confirm({
       title: `Apply "${p.name}"`,
-      body: `Sets every transform tool's appearance - shapes, colors and the shared axis palette - to ${p.name}'s values. Nothing about what the tools do changes.`,
+      body:
+        `Sets every transform tool's appearance - shapes, colors and the shared axis palette - to ${p.name}'s values. ` +
+        'Nothing about what the tools do changes.' +
+        (changed ? `\n\nThe ${values(changed)} changed from ${from} go to ${p.name}'s too.` : ''),
       ok: 'Apply',
-      run: () => this.update((s) => ({ vals: { ...s.vals, ...p.values } })),
+      run: pick,
     });
   }
 
@@ -489,10 +523,12 @@ export class WindowModel {
     Keymap.batch(() => {
       for (const ids of Object.values(D.pageShortcuts)) for (const id of ids) Keymap.restore(id, preset);
     });
+    // The gizmo look goes back to Blender's with the rest (SettingsPages.ResetAll).
     this.update({
       vals: {},
       ovr: {},
       pies: {},
+      look: 0,
     });
   }
 

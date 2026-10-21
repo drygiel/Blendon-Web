@@ -17,9 +17,9 @@ import type {
   WindowDataFile,
 } from '../../src/plugin/schema.ts';
 import type { AssetPlan } from './assets.ts';
-import { drawMethods, parse, stripComments, type Stmt } from './csharp.ts';
-import { type DumpCard, type DumpKeys, loadDump, type Problems, toTip } from './dump.ts';
-import { convert, Ctx, type Helper } from './ops.ts';
+import { drawMethods, parse, splitArgs, stripComments, type Stmt } from './csharp.ts';
+import { type DumpCard, type DumpKeys, loadDump, type Model1, type Problems, toTip } from './dump.ts';
+import { convert, Ctx, type Helper, type Helpers, PAGE_OWNER, type PropFacts } from './ops.ts';
 
 export interface PluginPaths {
   editor: string;
@@ -30,39 +30,44 @@ export interface PluginPaths {
 
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8')) as T;
 
-// ---- DrawSettings sources ------------------------------------------------------------------------
+// ---- page views ----------------------------------------------------------------------------------
 
-const FILE_OWNER: Record<string, string> = {
-  'SharedGizmoSettings.cs': 'SharedGizmoSettings',
-  'MoveGizmoSettings.cs': 'MoveGizmoSettings',
-  'RotateGizmoSettings.cs': 'RotateGizmoSettings',
-  'ScaleGizmoSettings.cs': 'ScaleGizmoSettings',
-  'OrbitSelectedSettings.cs': 'OrbitSelectedSettings',
-  'OrientationGizmoSettings.cs': 'OrientationGizmoSettings',
-  'PanSettings.cs': 'PanSettings',
-  'ViewportNavSettings.cs': 'ViewportNavSettings',
-  'ZoomSettings.cs': 'ZoomSettings',
-  'WireframeToggleSettings.cs': 'WireframeToggleSettings',
-  'PieMenuSettings.cs': 'PieMenuSettings',
-  'FrameSelectedSettings.cs': 'FrameSelectedSettings',
-  'SelectionHistorySettings.cs': 'HistorySettings',
-  'ViewHistorySettings.cs': 'ViewHistorySettings',
-  'IsolateViewSettings.cs': 'IsolateViewSettings',
-  'SceneMenuSettings.cs': 'SceneMenuSettings',
-  'BoxSelectSettings.cs': 'BoxSelectSettings',
-  'SnapToFloorSettings.cs': 'SnapToFloorSettings',
-  // The Overview's Defaults card (DrawSettings) and its rows drawn by OverviewPage.
-  'GeneralSettings.Defaults.cs': 'GeneralSettings',
-  'GeneralSettings.Overview.cs': 'GeneralSettings',
+// Each page view (a static class in <View>.cs) and the settings class it draws.
+const VIEW_OWNER: Record<string, string> = {
+  SharedGizmoPage: 'SharedGizmoSettings',
+  MoveGizmoPage: 'MoveGizmoSettings',
+  RotateGizmoPage: 'RotateGizmoSettings',
+  ScaleGizmoPage: 'ScaleGizmoSettings',
+  TransformGizmoPage: 'TransformGizmoSettings',
+  OrbitSelectedPage: 'OrbitSelectedSettings',
+  OrientationGizmoPage: 'OrientationGizmoSettings',
+  PanPage: 'PanSettings',
+  ViewportNavPage: 'ViewportNavSettings',
+  ZoomPage: 'ZoomSettings',
+  PieMenusPage: 'PieMenuSettings',
+  FrameSelectedPage: 'FrameSelectedSettings',
+  HistoryPage: 'HistorySettings',
+  IsolateViewPage: 'IsolateViewSettings',
+  SceneMenuPage: 'SceneMenuSettings',
+  BoxSelectPage: 'BoxSelectSettings',
+  SnapToFloorPage: 'SnapToFloorSettings',
+  // The Overview's Defaults card. The rest of the Overview is the site's own layout, see OVERVIEW_COPY.
+  OverviewDefaults: 'GeneralSettings',
 };
-// TransformGizmoSettings.cs declares the composite and its three nested part settings.
-const TRANSFORM_FILE = 'TransformGizmoSettings.cs';
 const TRANSFORM_PARTS = [
   'TransformGizmoSettings',
   'TransformMoveSettings',
   'TransformRotateSettings',
   'TransformScaleSettings',
 ];
+
+/** One Draw method of a view: its statements, its parameter list, and the view and class it belongs to. */
+export interface ViewBody {
+  stmts: Stmt[];
+  params: string;
+  view: string;
+  owner: string;
+}
 
 function walkFiles(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -73,20 +78,56 @@ function walkFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** Statement trees of every Draw* method, keyed "Owner#Method". */
-export function readDrawBodies(editorDir: string): Map<string, Stmt[]> {
-  const bodies = new Map<string, Stmt[]>();
+/** Adds every Draw* method of a view's source, keyed "View#Method". */
+export function addViewBodies(bodies: Map<string, ViewBody>, source: string, owner: string): void {
+  for (const m of drawMethods(source))
+    bodies.set(m.className + '#' + m.name, { stmts: parse(m.body), params: m.params, view: m.className, owner });
+}
+
+/** Statement trees of every page view's Draw* methods. */
+export function readDrawBodies(editorDir: string): Map<string, ViewBody> {
+  const bodies = new Map<string, ViewBody>();
   for (const file of walkFiles(editorDir).sort()) {
-    const name = basename(file);
-    const fileOwner = FILE_OWNER[name];
-    if (!fileOwner && name !== TRANSFORM_FILE) continue;
-    for (const m of drawMethods(readFileSync(file, 'utf8'))) {
-      const owner = fileOwner ?? m.className;
-      if (!fileOwner && !TRANSFORM_PARTS.includes(owner)) continue;
-      bodies.set(owner + '#' + m.name, parse(m.body));
-    }
+    const owner = VIEW_OWNER[basename(file, '.cs')];
+    if (owner) addViewBodies(bodies, readFileSync(file, 'utf8'), owner);
   }
   return bodies;
+}
+
+// Parts fall back to the standalone tool's setting where they store none (DelegateTarget in C#).
+const PART_BASE: Record<string, string> = {
+  TransformMoveSettings: 'MoveGizmoSettings',
+  TransformRotateSettings: 'RotateGizmoSettings',
+  TransformScaleSettings: 'ScaleGizmoSettings',
+};
+
+/** What the dump says about each setting beyond its card: slider bounds, key rows, the value it follows. */
+export function propFacts(m1: Model1 | undefined): PropFacts {
+  const range = new Map<string, [number, number]>();
+  const follows = new Map<string, string>();
+  const shortcut = new Map<string, string>();
+  const binding = new Map<string, string>();
+  for (const page of m1?.pages ?? [])
+    for (const p of page.props) {
+      const key = page.type + '.' + p.name;
+      if (p.min !== undefined && p.max !== undefined) range.set(key, [p.min, p.max]);
+      if (p.follows) follows.set(key, p.follows);
+      if (p.shortcut) {
+        shortcut.set(key, p.shortcut);
+        binding.set(page.type + '#' + p.shortcut, key);
+      }
+    }
+  const base = (key: string) => {
+    const [cls, name] = key.split('.');
+    const b = cls ? PART_BASE[cls] : undefined;
+    return b ? b + '.' + name : key;
+  };
+  return {
+    range: (key) => range.get(key) ?? range.get(base(key)),
+    follows: (key) => follows.get(key),
+    shortcut: (key) => shortcut.get(key),
+    binding: (owner, id) => binding.get(owner + '#' + id),
+  };
 }
 
 // ---- page metadata ------------------------------------------------------------------------------
@@ -318,23 +359,6 @@ const CATALOG: [string, string, string, string, string, string | null, boolean, 
   ],
 ];
 
-const PAGE_OWNER: Record<string, string> = {
-  OrbitSelected: 'OrbitSelectedSettings',
-  Pan: 'PanSettings',
-  Zoom: 'ZoomSettings',
-  ViewportNav: 'ViewportNavSettings',
-  OrientationGizmo: 'OrientationGizmoSettings',
-  MoveGizmo: 'MoveGizmoSettings',
-  RotateGizmo: 'RotateGizmoSettings',
-  ScaleGizmo: 'ScaleGizmoSettings',
-  TransformGizmo: 'TransformGizmoSettings',
-  FrameSelected: 'FrameSelectedSettings',
-  IsolateView: 'IsolateViewSettings',
-  SnapToFloor: 'SnapToFloorSettings',
-  BoxSelect: 'BoxSelectSettings',
-  SceneMenu: 'SceneMenuSettings',
-};
-
 // Icons the window draws itself, beyond the ones the pages name.
 const CHROME_ICONS = [
   'd_Search Icon',
@@ -393,70 +417,83 @@ const PRESET_NOTE = '\n\n<size=9><color=#92929A>Asks before applying. Switches B
 const LEFT_OFF = '\n\n<size=9><b><color=#92929A>LEFT OFF</color></b></size>\n';
 
 /**
- * Converts one Draw* method of a settings class to ops, following its calls into the other Draw* methods
- * (`bodies` from readDrawBodies). `shortcutTips`: the card each two-argument ShortcutField row shows.
+ * Converts one Draw method of a page view to ops, following its calls into the views' other Draw methods
+ * (`bodies` from readDrawBodies). `shortcutTips`: the card each two-argument ShortcutField row shows. `facts`:
+ * what the dump knows about the settings the rows draw.
  */
 export function pageConverter(
-  bodies: Map<string, Stmt[]>,
+  bodies: Map<string, ViewBody>,
   consts: Record<string, string>,
   shortcutTips: Record<string, Tip>,
-): (owner: string, name: string) => Op[] {
-  const run = (owner: string, name: string, ctx?: Ctx): Op[] => {
-    const body = bodies.get(owner + '#' + name);
-    if (!body) throw new Error('No ' + name + ' in ' + owner);
-    return convert(ctx ?? new Ctx(owner, consts, shortcutTips), body, HELPERS);
+  facts?: PropFacts,
+): (view: string, name: string) => Op[] {
+  const bodyOf = (key: string): ViewBody => {
+    const body = bodies.get(key);
+    if (!body) throw new Error('No ' + key.replace('#', '.'));
+    return body;
   };
-  const axisColors: Helper = () => run('SharedGizmoSettings', 'DrawAxisColorsGroup');
-  const part =
-    (owner: string): Helper =>
-    () =>
-      run(owner, 'DrawSettings');
-  const HELPERS: Record<string, Helper> = {
-    DrawAppearance: (ctx) => run(ctx.owner, 'DrawAppearance', ctx),
-    DrawAxisColorsGroup: axisColors,
-    'SharedGizmoSettings.DrawAxisColorsGroup': axisColors,
-    'Move.DrawSettings': part('TransformMoveSettings'),
-    'Rotate.DrawSettings': part('TransformRotateSettings'),
-    'Scale.DrawSettings': part('TransformScaleSettings'),
-    'Zoom.Settings.DrawKeyboardSettings': () => run('ZoomSettings', 'DrawKeyboardSettings'),
-    DrawKeyboardSettings: () => run('ZoomSettings', 'DrawKeyboardSettings'),
-    DrawShortcut: (ctx) => run(ctx.owner, 'DrawShortcut'),
-    // Another page's key row (DrawMirroredShortcut draws the owner's DrawShortcut), grayed with that page.
-    's.MirroredShortcut': (_ctx, args) => {
-      const page = (args[0] ?? '').split('.').pop() ?? '';
-      const owner = PAGE_OWNER[page];
-      if (!owner) throw new Error('No settings class for mirrored page ' + page);
-      return [['dis', ['!', ['f', 'pageEnabled', page]], run(owner, 'DrawShortcut')]];
-    },
-    // Drawn by a helper outside DrawSettings in C#, so its condition is spelled out here.
-    TrackballRingNote: (ctx) => {
-      const o = ctx.owner;
-      const c: Cond = [
-        '&&',
-        ['&&', ['v', o + '.TrackballEnabled'], ['v', o + '.ScreenRingEnabled']],
-        ['!', ['<', ['v', o + '.TrackballRadius'], ['v', o + '.ScreenRingRadius']]],
-      ];
-      return [
-        [
-          'if',
-          c,
-          [
-            [
-              'note',
-              "The ball reaches the screen ring, so the ring can't be grabbed.",
-              'The trackball hit-tests as a filled disc, so anything inside its radius belongs to it. ' +
-                "Keep this radius under the Screen Ring's, or switch the ring off if the ball is what you want out there.",
-            ],
-          ],
-          null,
-        ],
-      ];
-    },
-    'FrameSelectedSequenceTable.Draw': () => [['frameSeq']],
-    'SceneMenuExtrasTable.Draw': () => [['extras']],
+  // The first settings object among the parameters is what the body draws, else its view's class.
+  const ctxOf = (body: ViewBody, models: Record<string, string> = {}) =>
+    new Ctx(Object.values(models)[0] ?? body.owner, consts, shortcutTips, { view: body.view, facts, models });
+
+  // Each parameter holding settings takes the object the caller passes: the Transform tool hands its parts
+  // to methods declared for the standalone tools.
+  const call = (caller: Ctx, key: string, args: string[]): Op[] => {
+    const body = bodyOf(key);
+    const models: Record<string, string> = {};
+    splitArgs(body.params).forEach((param, i) => {
+      const [type = '', name = ''] = param.trim().split(/\s+/);
+      const passed = caller.modelOf(args[i] ?? '');
+      if (passed) models[name] = passed;
+      else if (type.endsWith('Settings')) models[name] = type;
+    });
+    return convert(ctxOf(body, models), body.stmts, helpers);
   };
 
-  return (owner, name) => run(owner, name);
+  // An early return in C#, so its condition is spelled out here.
+  const trackballNote: Helper = (ctx, args) => {
+    const o = ctx.modelOf(args[1] ?? '') ?? ctx.owner;
+    const c: Cond = [
+      '&&',
+      ['&&', ['v', o + '.TrackballEnabled'], ['v', o + '.ScreenRingEnabled']],
+      ['!', ['<', ['v', o + '.TrackballRadius'], ['v', o + '.ScreenRingRadius']]],
+    ];
+    return [
+      [
+        'if',
+        c,
+        [
+          [
+            'note',
+            "The ball reaches the screen ring, so the ring can't be grabbed.",
+            'The trackball hit-tests as a filled disc, so anything inside its radius belongs to it. ' +
+              "Keep this radius under the Screen Ring's, or switch the ring off if the ball is what you want out there.",
+          ],
+        ],
+        null,
+      ],
+    ];
+  };
+  const HELPERS: Record<string, Helper> = {
+    TrackballRingNote: trackballNote,
+    'RotateGizmoPage.TrackballRingNote': trackballNote,
+    'FrameSelectedSequenceTable.Draw': () => [['frameSeq']],
+    'SceneMenuExtrasTable.Draw': () => [['extras']],
+    'PieMenuListSettings.Instance.Draw': () => [['pieList']],
+  };
+  // Another Draw method of the same view, or of the view class named in front of it.
+  const helpers: Helpers = (fn, ctx) => {
+    const fixed = HELPERS[fn];
+    if (fixed) return fixed;
+    const dot = fn.lastIndexOf('.');
+    const key = (dot < 0 ? ctx.view : fn.slice(0, dot)) + '#' + fn.slice(dot + 1);
+    return bodies.has(key) ? (caller, args) => call(caller, key, args) : undefined;
+  };
+
+  return (view, name) => {
+    const body = bodyOf(view + '#' + name);
+    return convert(ctxOf(body), body.stmts, helpers);
+  };
 }
 
 /** Asset paths (relative to the site root) the data points at, and where each comes from. */
@@ -478,6 +515,7 @@ const tipOf = (t: string, i: string, src: string | undefined): Tip => (src === u
 export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: string[] = []): WindowDataResult | null {
   const { dump, consts: C, shortcutTips } = loadDump(paths.ref, out);
   const bodies = readDrawBodies(paths.editor);
+  const facts = propFacts(dump?.m1);
   const assets: AssetPlan[] = [];
   const asset = (plan: AssetPlan) => {
     assets.push(plan);
@@ -498,51 +536,48 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   const rowTips: Record<string, Tip> = {};
   for (const [id, tip] of Object.entries(shortcutTips))
     rowTips[id] = tipOf(cut(tip.t), tip.i, tip.src === undefined ? undefined : cut(tip.src));
-  const run = pageConverter(bodies, C, rowTips);
+  const run = pageConverter(bodies, C, rowTips, facts);
 
   // One page that fails to convert is filed, the rest still convert.
-  const page = (id: string, ...parts: [string, string][]): Op[] =>
-    out.guard('C# page ' + id, () => parts.flatMap(([owner, name]) => run(owner, name))) ?? [];
+  const page = (id: string, view: string): Op[] => out.guard('C# page ' + id, () => run(view, 'Draw')) ?? [];
   const pages: Record<string, Op[]> = {
-    OrbitSelected: page('OrbitSelected', ['OrbitSelectedSettings', 'DrawSettings']),
-    Pan: page('Pan', ['PanSettings', 'DrawSettings']),
-    Zoom: page('Zoom', ['ZoomSettings', 'DrawSettings']),
-    ViewportNav: page('ViewportNav', ['ViewportNavSettings', 'DrawSettings']),
-    OrientationGizmo: page('OrientationGizmo', ['OrientationGizmoSettings', 'DrawSettings']),
-    SharedGizmos: page('SharedGizmos', ['SharedGizmoSettings', 'DrawSettings']),
-    MoveGizmo: page('MoveGizmo', ['MoveGizmoSettings', 'DrawSettings']),
-    RotateGizmo: page('RotateGizmo', ['RotateGizmoSettings', 'DrawSettings']),
-    ScaleGizmo: page('ScaleGizmo', ['ScaleGizmoSettings', 'DrawSettings']),
-    TransformGizmo: page('TransformGizmo', ['TransformGizmoSettings', 'DrawSettings']),
-    FrameSelected: page('FrameSelected', ['FrameSelectedSettings', 'DrawSettings']),
-    IsolateView: page('IsolateView', ['IsolateViewSettings', 'DrawSettings']),
-    SnapToFloor: page('SnapToFloor', ['SnapToFloorSettings', 'DrawSettings']),
-    History: page('History', ['HistorySettings', 'DrawSettings'], ['ViewHistorySettings', 'DrawSettings']),
-    BoxSelect: page('BoxSelect', ['BoxSelectSettings', 'DrawSettings']),
-    PieMenus: [
-      ...page('PieMenus', ['PieMenuSettings', 'DrawSettings'], ['WireframeToggleSettings', 'DrawSettings']),
-      ['pieList'],
-    ],
-    SceneMenu: page('SceneMenu', ['SceneMenuSettings', 'DrawSettings']),
+    OrbitSelected: page('OrbitSelected', 'OrbitSelectedPage'),
+    Pan: page('Pan', 'PanPage'),
+    Zoom: page('Zoom', 'ZoomPage'),
+    ViewportNav: page('ViewportNav', 'ViewportNavPage'),
+    OrientationGizmo: page('OrientationGizmo', 'OrientationGizmoPage'),
+    SharedGizmos: page('SharedGizmos', 'SharedGizmoPage'),
+    MoveGizmo: page('MoveGizmo', 'MoveGizmoPage'),
+    RotateGizmo: page('RotateGizmo', 'RotateGizmoPage'),
+    ScaleGizmo: page('ScaleGizmo', 'ScaleGizmoPage'),
+    TransformGizmo: page('TransformGizmo', 'TransformGizmoPage'),
+    FrameSelected: page('FrameSelected', 'FrameSelectedPage'),
+    IsolateView: page('IsolateView', 'IsolateViewPage'),
+    SnapToFloor: page('SnapToFloor', 'SnapToFloorPage'),
+    History: page('History', 'HistoryPage'),
+    BoxSelect: page('BoxSelect', 'BoxSelectPage'),
+    PieMenus: page('PieMenus', 'PieMenusPage'),
+    SceneMenu: page('SceneMenu', 'SceneMenuPage'),
     Keyboard: [['keyboard']],
     Tutorial: [['tutorial']],
   };
 
   // OverviewPage draws the Tool Context section from GeneralSettings rows, copied here and checked below.
-  const toolContext: Op[] = [
-    ['sub', 'Tool Context', 'd_Transform Icon', 15, 0],
-    ...page(
-      'Overview',
-      ['GeneralSettings', 'DrawToggleContextShortcut'],
-      ['GeneralSettings', 'DrawEscapeKeepsContextToggle'],
-    ),
-  ];
+  const overviewCtx = new Ctx('GeneralSettings', C, rowTips, {
+    view: 'OverviewPage',
+    facts,
+    models: { general: 'GeneralSettings' },
+  });
+  const toolContext: Op[] =
+    out.guard('C# page Overview', () => convert(overviewCtx, parse(OVERVIEW_COPY.join('\n')), () => undefined)) ?? [];
   checkOverviewCopy(paths.editor, out);
-  pages.Overview = [['overview', page('Overview', ['GeneralSettings', 'DrawSettings']), toolContext]];
+  pages.Overview = [['overview', page('Overview', 'OverviewDefaults'), toolContext]];
 
   // ---- constants ----
   const consts: Record<string, string> = {
     masterOffWarning: need('SettingsEditorWindow.MasterOffWarning'),
+    resetTip: need('SettingsEditorWindow.ResetTooltip'),
+    resetAllTip: need('SettingsEditorWindow.ResetAllTooltip'),
     masterOffNote: need('OverviewPage.MasterOffNote'),
     layoutTooltip: need('OverviewPage.LayoutTooltip'),
     tutorialStartOverTip: need('TutorialPage.StartOverTooltip'),
@@ -560,7 +595,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     keyboardIntro: need('KeyboardPage.Intro'),
     appearanceTip: need('FoldBands.AppearanceTooltip'),
     contestedLinkHint: need('OverviewContestedTable.LinkHint'),
-    customPresetTip: need('GizmoAppearancePresets.CustomDescription'),
+    gizmoPresetMark: need('GizmoAppearancePresets.ChangedMark'),
     gizmoPresetsNote: need('GizmoAppearancePresets.PresetsNote'),
     presetsOn: need('OverviewMasterPanel.PresetsOn'),
     presetsOff: need('OverviewMasterPanel.PresetsOff'),
@@ -648,11 +683,6 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   }
 
   // The Transform parts' own props fall back to the standalone tools' where the dump has none.
-  const PART_BASE: Record<string, string> = {
-    TransformMoveSettings: 'MoveGizmoSettings',
-    TransformRotateSettings: 'RotateGizmoSettings',
-    TransformScaleSettings: 'ScaleGizmoSettings',
-  };
   const fillParts = (o: unknown): void => {
     if (!Array.isArray(o)) return;
     for (const x of o) {
@@ -988,8 +1018,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
 // OverviewPage's statements the sync copies by hand, in draw order.
 const OVERVIEW_COPY = [
   's.SubLabel("Tool Context", "d_Transform Icon");',
-  'general.DrawToggleContextShortcut(s);',
-  'general.DrawEscapeKeepsContextToggle(s);',
+  's.ShortcutField(general.ToggleContextShortcutSetting);',
+  's.Toggle(general.EscapeKeepsContextSetting);',
 ];
 
 /** The Overview's own layout isn't parsed, so a change to the part the sync copies must stop the sync. */
