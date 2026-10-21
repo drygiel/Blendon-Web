@@ -22,7 +22,8 @@ export function updateTitles(st: PlotState) {
     if (!run) continue;
     const p = clamp((st.pen.s - run.s0) / (run.s1 - run.s0 || 1));
     const maxP = Math.max(Number(s.el.dataset.penP ?? 0), p);
-    if (maxP > Number(s.el.dataset.penP ?? 0)) s.el.dataset.penP = maxP >= 1 ? '1' : maxP.toFixed(3);
+    // Rounded before it is stored, so a pen that stops within 0.0005 of the end reads 1, not 1.000.
+    if (maxP > Number(s.el.dataset.penP ?? 0)) s.el.dataset.penP = String(Number(maxP.toFixed(3)));
     const rv = maxP >= 1 ? s.blockW + 60 : Math.max(0, run.sx + maxP * (run.ex - run.sx) - s.blockLeft);
     if (Math.abs(rv - s.rv) > 0.4) {
       s.el.style.setProperty('--rv', `${rv.toFixed(1)}px`);

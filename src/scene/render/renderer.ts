@@ -72,6 +72,15 @@ const GRID_LIFT = 0.001;
 const SHADOW_CENTER = new Vector3(0, 0, -3);
 const SHADOW_REACH = 26;
 const SHADOW_OPACITY = 0.38;
+// A software rasterizer shades every pixel on the CPU (a frame takes about half a second at full size), so it
+// draws the view at this fraction of the display's resolution, without MSAA.
+const SOFTWARE_SCALE = 0.5;
+
+/** Chrome renders WebGL with SwiftShader when it has no usable GPU; llvmpipe and softpipe are Mesa's. */
+function isSoftware(gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  const info = gl.getExtension('WEBGL_debug_renderer_info');
+  return !!info && /swiftshader|llvmpipe|softpipe/i.test(String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)));
+}
 
 export interface OutlineSets {
   selected: GameObject[];
@@ -146,6 +155,8 @@ export class SceneRenderer {
     fragmentShader: 'uniform vec4 uId; void main(){ gl_FragColor = uId; }',
   });
   private dpr = 1;
+  /** The share of the display's resolution the view is drawn at. */
+  private readonly scale: number;
   private warm = false;
   private warming: Promise<void> | null = null;
   private readonly skyReady: Promise<void>;
@@ -167,6 +178,9 @@ export class SceneRenderer {
       alpha: false,
       powerPreference: 'high-performance',
     });
+    const software = isSoftware(this.renderer.getContext());
+    this.scale = software ? SOFTWARE_SCALE : 1;
+    const samples = software ? 0 : 4;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.autoClear = false;
     // The sun is fixed, so the shadow map is redrawn only when an object changes, never for the camera.
@@ -253,7 +267,7 @@ export class SceneRenderer {
     this.shadowCatcher.frustumCulled = false;
     this.three.add(this.shadowCatcher);
 
-    this.hdrTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    this.hdrTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples });
     this.postMat = new THREE.ShaderMaterial({
       vertexShader: QUAD_VERT,
       fragmentShader: POST_FRAG,
@@ -262,7 +276,7 @@ export class SceneRenderer {
       uniforms: { uColor: { value: this.hdrTarget.texture }, uVignette: { value: 0.2 }, uAspect: { value: 1 } },
     });
     this.postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.postMat));
-    this.maskTarget = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
+    this.maskTarget = new THREE.WebGLRenderTarget(1, 1, { samples });
     this.distTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false });
     const texel = new THREE.Vector2(1, 1);
     this.distMat = new THREE.ShaderMaterial({
@@ -292,7 +306,7 @@ export class SceneRenderer {
     });
     this.distScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.distMat));
 
-    this.hlMask = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
+    this.hlMask = new THREE.WebGLRenderTarget(1, 1, { samples });
     this.hlDist = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false });
     this.hlDistMat = new THREE.ShaderMaterial({
       vertexShader: QUAD_VERT,
@@ -327,6 +341,7 @@ export class SceneRenderer {
   }
 
   setSize(width: number, height: number, dpr: number) {
+    dpr *= this.scale;
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(width, height, false);
     const w = Math.max(1, Math.round(width * dpr)),
