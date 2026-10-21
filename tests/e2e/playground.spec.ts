@@ -159,6 +159,20 @@ test('edits values and resets them', async ({ page }) => {
   await expect(box).not.toHaveValue('0.5');
 });
 
+test("a press on a shortcut's key caps starts capture, and Esc gives the key back", async ({ page }) => {
+  const win = await openWindow(page);
+  await win.getByRole('button', { name: 'Move', exact: true }).click();
+  const plate = win.getByRole('button', { name: 'Shortcut for Shortcut', exact: true }).first();
+  const caps = plate.locator('.caps');
+  await expect(caps).toHaveText('G');
+  // The caps go as capture starts, so the press must not leave the focus behind with them.
+  await caps.click();
+  await expect(plate).toHaveText('Press a key…');
+  await expect(plate).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(caps).toHaveText('G');
+});
+
 test('answers window-only actions with the demo note', async ({ page }) => {
   const win = await openWindow(page);
   await win.getByText('Unity Preferences > Shortcuts').click();
