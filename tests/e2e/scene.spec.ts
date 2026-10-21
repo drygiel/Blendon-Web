@@ -43,6 +43,7 @@ interface HostElement {
     scene: { allObjects(): Iterable<{ name: string; transform: { position: Vec3 } }> };
     view: {
       rotation: Vec3 & { w: number };
+      orthographic: boolean;
       size: number;
       pixelsPerPoint: number;
       camera: { pixelWidth: number; pixelHeight: number; worldToScreenPoint(p: Vec3): Vec3 };
@@ -285,6 +286,105 @@ test('orbits with the middle mouse button', async ({ page }) => {
   for (let i = 1; i <= 10; i++) await page.mouse.move(x + i * 12, y + i * 3);
   await page.mouse.up({ button: 'middle' });
   await expect.poll(() => viewRotation(page)).not.toEqual(before);
+});
+
+test('the orbit shortcut takes a mouse button only, and on Alt + left the axis snap waits for a fresh Alt', async ({
+  page,
+}) => {
+  const view = await openScene(page);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.getByRole('button', { name: 'Orbit Selected', exact: true }).click();
+  const plate = win.getByRole('button', { name: 'Shortcut for Shortcut', exact: true }).first();
+  await plate.click();
+  await expect(plate).toHaveText('Press a mouse button…');
+  // A key, or a bare left click, leaves the field waiting.
+  await page.keyboard.press('k');
+  await plate.click();
+  await expect(plate).toHaveText('Press a mouse button…');
+  await plate.click({ modifiers: ['Alt'] });
+  await expect(plate).not.toHaveText('Press a mouse button…');
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+
+  const ortho = () =>
+    page.locator('#try [role=application]').evaluate((el: unknown) => (el as HostElement).sceneHost.view.orthographic);
+  // The front view, inside the snap angle of an axis, once its flight lands.
+  await page.keyboard.press('Numpad1');
+  await expect.poll(ortho).toBe(true);
+  await expect
+    .poll(async () => {
+      const a = await viewRotation(page);
+      await page.waitForTimeout(100);
+      return a.join() === (await viewRotation(page)).join();
+    })
+    .toBe(true);
+  const box = (await view.boundingBox())!;
+  const [x, y] = [box.x + box.width * 0.4, box.y + box.height * 0.35];
+  const before = await viewRotation(page);
+  await page.keyboard.down('Alt');
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  for (let i = 1; i <= 4; i++) await page.mouse.move(x + i * 5, y);
+  // The Alt of the binding orbits without snapping.
+  expect(await viewRotation(page)).not.toEqual(before);
+  expect(await ortho()).toBe(false);
+  await page.keyboard.up('Alt');
+  await page.keyboard.down('Alt');
+  await page.mouse.move(x + 25, y);
+  expect(await ortho()).toBe(true);
+  await page.mouse.up();
+  await page.keyboard.up('Alt');
+});
+
+test('a right click mid-orbit cancels it with Right Click Cancels on, and with it off the orbit goes on', async ({
+  page,
+}) => {
+  const view = await openScene(page);
+  const box = (await view.boundingBox())!;
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  const menu = view.getByLabel('Search the menu');
+  const drag = async (from: number, to: number) => {
+    for (let i = from; i <= to; i++) await page.mouse.move(x + i * 12, y + i * 3);
+  };
+
+  let before = await viewRotation(page);
+  await page.mouse.move(x, y);
+  await page.mouse.down({ button: 'middle' });
+  await drag(1, 5);
+  expect(await viewRotation(page)).not.toEqual(before);
+  // Pressed while the middle button is held, so the browser reports it only as a move.
+  await page.mouse.down({ button: 'right' });
+  await expect.poll(() => viewRotation(page)).toEqual(before);
+  await page.mouse.up({ button: 'right' });
+  await page.mouse.up({ button: 'middle' });
+  await expect(menu).toHaveCount(0);
+
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const win = page.locator('#try .uw');
+  await win.locator('.si[aria-label="Blendon"]').click();
+  const rmbCancel = win.getByRole('button', { name: 'RMB cancels drag', exact: true });
+  await rmbCancel.click();
+  await expect(rmbCancel).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+
+  before = await viewRotation(page);
+  await page.mouse.move(x, y);
+  await page.mouse.down({ button: 'middle' });
+  await drag(1, 5);
+  let last = await viewRotation(page);
+  expect(last).not.toEqual(before);
+  await page.mouse.down({ button: 'right' });
+  expect(await viewRotation(page)).toEqual(last);
+  // The drags now report the right button, and still orbit.
+  await drag(6, 8);
+  expect(await viewRotation(page)).not.toEqual(last);
+  last = await viewRotation(page);
+  await page.mouse.up({ button: 'right' });
+  await drag(9, 11);
+  expect(await viewRotation(page)).not.toEqual(last);
+  await page.mouse.up({ button: 'middle' });
+  await expect(menu).toHaveCount(0);
+  expect(await viewRotation(page)).not.toEqual(before);
 });
 
 test('Zoom To holds the point under the cursor, the selection or the middle of the view still', async ({ page }) => {

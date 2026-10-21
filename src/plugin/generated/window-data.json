@@ -668,7 +668,7 @@
   },
   "OrbitSelectedSettings.SnapModifier": {
    "l": "Modifier",
-   "t": "<size=14><b>Axis Snap Key</b></size>\nThe key you hold mid-orbit to snap the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt</color></b> by default. <b>None</b> switches the snap off.",
+   "t": "<size=14><b>Axis Snap Key</b></size>\nThe key you hold mid-orbit to snap the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt</color></b> by default. <b>None</b> switches the snap off.\nIf the orbit shortcut has it too (<b><color=#D98E38>Alt</color></b> + <b><color=#D98E38>Mouse 0</color></b>), let go of it and press it again to snap.",
    "i": "Tips/OrbitSelected/SnapToAxis.png",
    "d": "Alt",
    "k": "ModifierKey",
@@ -700,9 +700,9 @@
   },
   "OrbitSelectedSettings.Shortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
+   "t": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 2</color></b> - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
    "i": "Tips/OrbitSelected/Shortcut.png",
-   "src": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Orbit Selected} - hold, then drag.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
+   "src": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Orbit Selected} - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.",
    "d": "Mouse 2",
    "k": "ShortcutBinding"
   },
@@ -716,9 +716,9 @@
   },
   "OrbitSelectedSettings.RollShortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt+Mouse 2</color></b>, then flick.",
+   "t": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt+Mouse 2</color></b>, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
    "i": "Tips/OrbitSelected/QuickRoll.png",
-   "src": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Quick Roll}, then flick.",
+   "src": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Quick Roll}, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
    "d": "Alt+Mouse 2",
    "k": "ShortcutBinding"
   },
@@ -746,9 +746,9 @@
   },
   "PanSettings.Shortcut": {
    "l": "Shortcut",
-   "t": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press the combination you want.",
+   "t": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
    "i": "Tips/Pan/Shortcut.png",
-   "src": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Camera Pan} - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press the combination you want.",
+   "src": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Camera Pan} - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.",
    "d": "Shift+Mouse 2",
    "k": "ShortcutBinding"
   },
@@ -2988,23 +2988,23 @@
   "Blendon/Orbit Selected": {
    "d": "Mouse 2",
    "n": "Orbit Selected",
-   "t": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
+   "t": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 2</color></b> - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
    "i": "Tips/OrbitSelected/Shortcut.png",
-   "src": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Orbit Selected} - hold, then drag.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
+   "src": "<size=14><b>Orbit Shortcut</b></size>\nWhat you hold to orbit.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Orbit Selected} - hold, then drag.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><b><color=#92929A>CANCEL</color></b></size>\nRight-click or <b><color=#D98E38>Esc</color></b> mid-orbit puts the view back.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
   },
   "Blendon/Quick Roll": {
    "d": "Alt+Mouse 2",
    "n": "Quick Roll",
-   "t": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt+Mouse 2</color></b>, then flick.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
+   "t": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Alt+Mouse 2</color></b>, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
    "i": "Tips/OrbitSelected/QuickRoll.png",
-   "src": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Quick Roll}, then flick.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
+   "src": "<size=14><b>Quick Roll Shortcut</b></size>\nWhat you press to arm a roll flick.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Quick Roll}, then flick.\nMouse buttons only. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
   },
   "Blendon/Camera Pan": {
    "d": "Shift+Mouse 2",
    "n": "Camera Pan",
-   "t": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press the combination you want.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
+   "t": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Shift+Mouse 2</color></b> - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
    "i": "Tips/Pan/Shortcut.png",
-   "src": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Camera Pan} - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press the combination you want.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
+   "src": "<size=14><b>Pan Shortcut</b></size>\nWhat you hold to pan the view.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Camera Pan} - hold, then drag.\n\n<size=9><b><color=#92929A>CHANGE IT</color></b></size>\nClick the field, then press a mouse button. The left one (<b><color=#D98E38>Mouse 0</color></b>) needs <b><color=#D98E38>Shift</color></b>, <b><color=#D98E38>Ctrl</color></b> or <b><color=#D98E38>Alt</color></b> with it.\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
   },
   "Blendon/Zoom/Zoom In": {
    "d": "Num +",

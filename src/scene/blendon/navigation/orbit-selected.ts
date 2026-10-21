@@ -91,6 +91,10 @@ const st = {
   shortcutHeld: false,
   trackedButton: -1,
   snapModifierHeld: false,
+  // The snap key came with the binding (Alt+LMB), so it snaps only once pressed again.
+  snapKeyFromBinding: false,
+  // A right press ignored mid-drag (cancel off). Its drags may then carry the right button.
+  rightPressIgnored: false,
   isPanning: false,
   activeControlId: -1,
   initialPivot: Vector3.zero,
@@ -183,6 +187,18 @@ function orbitShortcut(args: ShortcutArguments) {
   st.lastView?.repaint();
 }
 
+function startsOn(button: number) {
+  return (
+    (st.shortcutHeld && button === dragButton(ShortcutId)) || (QuickRoll.armed && button === dragButton(RollShortcutId))
+  );
+}
+
+// A keyboard key has no button of its own, so the drag stays on the middle one.
+function dragButton(id: string) {
+  const keyCode = ShortcutManager.getShortcutBinding(id)?.keyCode ?? KeyCode.None;
+  return keyCode >= KeyCode.Mouse0 && keyCode <= KeyCode.Mouse6 ? keyCode - KeyCode.Mouse0 : MouseButton.MiddleMouse;
+}
+
 function forceReleaseStuckDrag() {
   st.shortcutHeld = false;
   QuickRoll.shortcutHeld = false;
@@ -197,6 +213,8 @@ function resetDragState(controlId: number) {
   st.activeControlId = -1;
   st.trackedButton = -1;
   st.snapModifierHeld = false;
+  st.snapKeyFromBinding = false;
+  st.rightPressIgnored = false;
   if (st.isPanning) Pan.endPanSession();
   st.isPanning = false;
   QuickRoll.reset();
@@ -223,7 +241,7 @@ function onSceneGUI(view: SceneView) {
   if (e.type === EventType.Layout && (clutchHeld || input.isActive)) HandleUtility.addDefaultControl(controlId);
 
   if (input.isActive && OrbitSelectedSettings.AltSnapEnabled && !st.isPanning && !QuickRoll.isRolling)
-    handleSnapModifierStateChange(view, ModifierKeys.isHeld(OrbitSelectedSettings.SnapModifier, e));
+    handleSnapModifierStateChange(view, snapKeyHeld(e));
 
   if (view.isRotationLocked) {
     if (clutchHeld) {
@@ -235,16 +253,24 @@ function onSceneGUI(view: SceneView) {
     }
   } else st.lockNoticeShown = false;
 
+  // rawType, so a right press another hook already used still counts.
+  const rightPress = e.rawType === EventType.MouseDown && e.button === MouseButton.RightMouse;
   const cancel =
-    (e.type === EventType.KeyDown && e.keyCode === KeyCode.Escape) ||
-    (e.type === EventType.MouseDown && e.button === 1);
+    (e.type === EventType.KeyDown && e.keyCode === KeyCode.Escape) || (rightPress && GeneralSettings.RmbCancelEnabled);
   if (input.isActive && cancel) {
     cancelOrbitDrag(view, controlId);
     e.use();
     return;
   }
 
-  const starting = (st.shortcutHeld || QuickRoll.armed) && !input.isActive && e.button === MouseButton.MiddleMouse;
+  // Cancel off: the orbit eats the whole right click, so no tool or fly-through below takes it.
+  if (input.isActive && isRightClickPart(e)) {
+    st.rightPressIgnored ||= rightPress;
+    e.use();
+    return;
+  }
+
+  const starting = !input.isActive && startsOn(e.button);
   switch (e.type) {
     case EventType.MouseDown:
     case EventType.MouseDrag:
@@ -255,7 +281,7 @@ function onSceneGUI(view: SceneView) {
         e.type === EventType.MouseDrag &&
         input.isActive &&
         GUIUtility.hotControl === controlId &&
-        e.button === st.trackedButton
+        isDragButton(e.button)
       ) {
         if (st.isPanning) {
           Pan.updatePanSession(view, e.delta);
@@ -278,7 +304,16 @@ function onSceneGUI(view: SceneView) {
 
   GizmoHud.drawError(view);
 
-  if (input.isActive && e.isMouse && e.button === st.trackedButton) e.use();
+  if (input.isActive && e.isMouse && isDragButton(e.button)) e.use();
+}
+
+// rawType, like the cancel. The site has no ContextClick: its menu opens on the release.
+function isRightClickPart(e: Event) {
+  return (e.rawType === EventType.MouseDown || e.rawType === EventType.MouseUp) && e.button === MouseButton.RightMouse;
+}
+
+function isDragButton(button: number) {
+  return button === st.trackedButton || (st.rightPressIgnored && button === MouseButton.RightMouse);
 }
 
 function startOrbitDrag(view: SceneView, e: Event, controlId: number) {
@@ -309,7 +344,8 @@ function startOrbitDrag(view: SceneView, e: Event, controlId: number) {
 
   ctx.capture(view, SelectionCache.transforms);
   input.begin();
-  st.snapModifierHeld = ModifierKeys.isHeld(OrbitSelectedSettings.SnapModifier, e);
+  st.snapKeyFromBinding = bindingHolds(OrbitSelectedSettings.SnapModifier);
+  st.snapModifierHeld = snapKeyHeld(e);
   // Orbiting always leaves orthographic, unless the axis snap is held to stay there.
   if (view.orthographic && (!OrbitSelectedSettings.AltSnapEnabled || !st.snapModifierHeld))
     exitOrthoToPerspective(view);
@@ -338,7 +374,7 @@ function executeOrbitDrag(view: SceneView, e: Event) {
     );
     let applied = target;
     let snapHandled = false;
-    if (OrbitSelectedSettings.AltSnapEnabled && ModifierKeys.isHeld(OrbitSelectedSettings.SnapModifier, e)) {
+    if (OrbitSelectedSettings.AltSnapEnabled && snapKeyHeld(e)) {
       if (!view.orthographic) {
         const r = tryEnterOrthoSnap(view, target);
         snapHandled = r.ok;
@@ -360,6 +396,18 @@ function executeOrbitDrag(view: SceneView, e: Event) {
   }
   view.repaint();
   e.use();
+}
+
+// A snap key held since the press that started the drag counts only after one release.
+function snapKeyHeld(e: Event) {
+  const held = ModifierKeys.isHeld(OrbitSelectedSettings.SnapModifier, e);
+  if (!held) st.snapKeyFromBinding = false;
+  return held && !st.snapKeyFromBinding;
+}
+
+function bindingHolds(modifier: ModifierKey) {
+  const combination = ShortcutManager.getShortcutBinding(ShortcutId);
+  return !!combination && (combination.modifiers & ModifierKeys.toShortcutModifiers(modifier)) !== 0;
 }
 
 function handleSnapModifierStateChange(view: SceneView, held: boolean) {

@@ -268,6 +268,13 @@ export function ColorField({ it }: { it: PropItem }) {
 
 const MODIFIER_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AltGraph'];
 
+// Held-and-dragged shortcuts. A keyboard key gives them no button to drag with.
+const MOUSE_ONLY_IDS = new Set(['Blendon/Orbit Selected', 'Blendon/Quick Roll', 'Blendon/Camera Pan']);
+
+const CAPTURE_TIP = 'Click, then press the key combination (or a non-left mouse button) to bind. Esc cancels.';
+const MOUSE_CAPTURE_TIP =
+  'Click, then press a mouse button to bind. The left one needs Shift, Ctrl or Alt. Esc cancels.';
+
 export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
   const app = useApp();
   const base = itemBase(app, it);
@@ -275,29 +282,32 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
   const id = it.sid;
   const binding = app.shortcut(id);
   const capturing = app.st.capturing === id;
+  const mouseOnly = MOUSE_ONLY_IDS.has(id);
   const canRestore = live && app.shortcutChanged(id);
   const canClear = live && !!binding;
   const tip = useTip(it.tip);
   const plateTip = useTip({
-    t:
-      (binding ? `<b>${binding}</b>\n\n` : '') +
-      'Click, then press the key combination (or a non-left mouse button) to bind. Esc cancels.',
+    t: (binding ? `<b>${binding}</b>\n\n` : '') + (mouseOnly ? MOUSE_CAPTURE_TIP : CAPTURE_TIP),
     native: true,
   });
   const restoreTip = useTip({ t: D.consts.restoreTip ?? '', native: true });
   const clearTip = useTip({ t: 'Clear this shortcut', native: true });
   const press = (e: MouseEvent<HTMLButtonElement>) => {
     if (!live) return;
-    if (e.button === 0) {
-      app.dismissTip();
-      app.update({ capturing: id });
-      e.currentTarget.focus();
-      return;
-    }
-    if (capturing && e.button > 0) {
+    // A bare left click selects in the Scene View, so it never binds. With a modifier it does, on a drag row only.
+    const modified = e.ctrlKey || e.metaKey || e.altKey || e.shiftKey;
+    if (capturing && (e.button > 0 || (mouseOnly && modified))) {
       e.preventDefault();
       const b = bindingFromEvent(e, e.button === 2 ? 1 : e.button === 1 ? 2 : e.button);
       if (b) app.setShortcut(id, b);
+      return;
+    }
+    if (e.button === 0) {
+      // The caps under the pointer go as capture starts; the default focus would land on nothing.
+      e.preventDefault();
+      app.dismissTip();
+      app.update({ capturing: id });
+      e.currentTarget.focus();
     }
   };
   const keyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -305,7 +315,8 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
     e.preventDefault();
     e.stopPropagation();
     if (e.key === 'Escape') return app.update({ capturing: null });
-    if (MODIFIER_KEYS.includes(e.key)) return;
+    // A drag row waits for a mouse button instead.
+    if (MODIFIER_KEYS.includes(e.key) || mouseOnly) return;
     const b = bindingFromEvent(e);
     if (b) app.setShortcut(id, b);
   };
@@ -326,7 +337,9 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
           {...plateTip}
           aria-label={'Shortcut for ' + it.label}
         >
-          <span className="pt">{capturing ? 'Press a key…' : binding ? '' : 'Not set'}</span>
+          <span className="pt">
+            {capturing ? (mouseOnly ? 'Press a mouse button…' : 'Press a key…') : binding ? '' : 'Not set'}
+          </span>
           <span className="caps">{!capturing && capTokens(binding).length > 0 && <Caps binding={binding} />}</span>
         </button>
         <button

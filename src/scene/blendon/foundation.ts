@@ -1,6 +1,6 @@
 // Editor/Foundation essentials the features share: modifier keys, the modal viewport claim, the
 // selection cache, cursor-wrap tracking (the browser can't warp the cursor) and renderer raycasts.
-import { EditorSnapSettings, Selection } from '../unity/editor.ts';
+import { EditorSnapSettings, Selection, ShortcutModifiers } from '../unity/editor.ts';
 import { HandleUtility } from '../unity/handles.ts';
 import { Event, IS_MAC } from '../unity/imgui.ts';
 import { Plane, Ray, Vector2, Vector3 } from '../unity/math.ts';
@@ -48,6 +48,21 @@ export const ModifierKeys = {
         return ev.control;
       default:
         return false;
+    }
+  },
+  /** The same key in a shortcut binding. None is no modifier. */
+  toShortcutModifiers(m: ModifierKey) {
+    switch (m) {
+      case ModifierKey.Shift:
+        return ShortcutModifiers.Shift;
+      case ModifierKey.Action:
+        return ShortcutModifiers.Action;
+      case ModifierKey.Alt:
+        return ShortcutModifiers.Alt;
+      case ModifierKey.Control:
+        return ShortcutModifiers.Control;
+      default:
+        return ShortcutModifiers.None;
     }
   },
 };
