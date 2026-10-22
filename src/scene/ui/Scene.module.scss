@@ -31,34 +31,64 @@
   }
 }
 
-.pic {
-  position: absolute;
-  display: block;
+// The Tools overlay: a dark panel, a grip, the tool context and one column of tools.
+.tools {
+  border-radius: 3px;
+  background: #0d0d0d;
 }
 
-%btn {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  padding: 0;
-  border: 0;
-  border-radius: 2px;
-  background: #585858;
-  cursor: default;
+.toolsGrip {
+  height: 4px;
+  background:
+    linear-gradient(#585858, #585858) 0 0 / 100% 1px no-repeat,
+    linear-gradient(#585858, #585858) 0 3px / 100% 1px no-repeat;
+}
 
-  &:hover {
-    background: #676767;
+// Rounded only at its ends; the gaps show the panel.
+.toolColumn {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 2px;
+
+  > * {
+    flex: 1;
   }
 }
 
 .toolBtn {
-  @extend %btn;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: #585858;
+  cursor: default;
+}
+
+button.toolBtn:hover {
+  background: #676767;
 }
 
 .toolOn,
-.toolOn:hover {
+button.toolOn:hover {
   background: #46607c;
+}
+
+.toolSolo {
+  border-radius: 2px;
+}
+
+// An inset outline, so the fold and the icon are placed from the box's own corner.
+.componentTools {
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px #585858;
+}
+
+// The fold arrow, pointing right while folded.
+.fold {
+  border-style: solid;
+  border-width: 3.7px 0 3.7px 4.3px;
+  border-color: transparent transparent transparent #c4c4c4;
 }
 
 .toolRow {
@@ -275,9 +305,8 @@
   pointer-events: none;
 }
 
-// A part of an overlay picture the demo has nothing behind.
+// A control drawn as in Unity that the demo has nothing behind.
 .demoOnly {
-  position: absolute;
   cursor: not-allowed;
 }
 
@@ -301,17 +330,6 @@
 .ctxOn,
 .ctxOn:hover {
   background: #46607c;
-}
-
-// The Tools overlay's tool context button, over the icon baked into the picture.
-.ctxPic {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  box-sizing: border-box;
-  padding-left: 3px;
-  background: #0d0d0d;
 }
 
 .viewport {
