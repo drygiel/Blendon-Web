@@ -405,6 +405,9 @@ export const HEADER_CLIP: Record<string, string> = {
   ContextMenu: 'ContextMenu',
 };
 
+// vidart writes the site's VP9 copy of each clip next to its master, as <Clip>_web.webm.
+export const SITE_CLIP = '_web.webm';
+
 const FRAME_INFO: Record<string, [string, string]> = {
   SelectionCenter: ['Selection Center', 'Turn the camera to the middle of the whole selection'],
   ActivePivot: ['Active Pivot', "Turn the camera to the active object's pivot"],
@@ -805,8 +808,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     }
     headerVideos[h.video] = asset({
       kind: 'copy',
-      src: join(paths.video, clip + '.mp4'),
-      out: 'plugin/video/' + clip + '.mp4',
+      src: join(paths.video, clip + SITE_CLIP),
+      out: 'plugin/video/' + clip + '.webm',
     });
     h.search = [...h.sections.map((s) => s[0] + ' ' + s[1]), ...h.keys.map((k) => k.action), h.footer].join(' ');
   }

@@ -9,7 +9,7 @@ import { PickButton } from '../../ui/PickButton.tsx';
 import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './Features.module.scss';
 
-const videoUrl = (clip: string) => publicUrl(`plugin/video/${clip}.mp4`);
+const videoUrl = (clip: string) => publicUrl(`plugin/video/${clip}.webm`);
 // The player's width: the page column beside the 380px list, or the whole column once they stack.
 const PLAYER_SIZES = '(max-width: 900px) calc(100vw - 56px), (max-width: 1240px) calc(100vw - 464px), 776px';
 
