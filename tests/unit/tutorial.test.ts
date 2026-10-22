@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Keymap } from '../../src/bridge/keymap.ts';
 import { SharedSettings } from '../../src/bridge/settings.ts';
@@ -94,6 +96,15 @@ describe('tutorial curriculum', () => {
           TUTORIAL_TASKS.findIndex((x) => x.id === e),
           t.id,
         ).toBeLessThan(at);
+    }
+  });
+
+  it('plays a clip over every picture: the feature clip, or the one named after the picture', () => {
+    for (const t of TUTORIAL_TASKS) {
+      expect(t.clip, t.id).not.toBe('');
+      expect(existsSync(resolve(import.meta.dirname, '../../public', t.clip)), t.clip).toBe(true);
+      if (t.clip.startsWith('plugin/video/tutorial/'))
+        expect(basename(t.clip, '.mp4'), t.id).toBe(basename(t.picture, '.webp').split('_').at(-1));
     }
   });
 

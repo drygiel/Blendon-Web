@@ -2,8 +2,8 @@
 // accent, every task's text, picture and clip, and the plain part of its rules - page, keys, the other ways
 // through it, the tasks it builds on, why a switch skips it. What those rules compute on the live scene (a
 // selection check, a setting test, a key sequence) is ported by hand in the Playground's curriculum.ts.
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
 import { fillTokens, presetSource } from '../../src/plugin/keys.ts';
 import type { WindowDataFile } from '../../src/plugin/schema.ts';
 import type { TutorialChapter, TutorialData, TutorialTask, TutorialWay } from '../../src/plugin/tutorial.ts';
@@ -26,6 +26,11 @@ const CALL = /^(\w+)\(([\s\S]*)\)$/;
 const ACCENT_PAGE: Record<string, string> = { Shared: 'SharedGizmos' };
 
 const unescape = (s: string) => s.replace(/\\(.)/g, (_, c: string) => (c === 'n' ? '\n' : c));
+
+// A task that shows a still of its own gets the clip of the same name in Metadata~/Video/Tutorial, which only the
+// site plays: the package leaves those clips out and the plugin shows the still. The 360p copy is the picture's size.
+const TUTORIAL_CLIPS = 'Tutorial';
+const ownClipOut = (name: string) => 'plugin/video/tutorial/' + name + '.mp4';
 
 // Same public names the settings window's data uses, so both share one copy of each file.
 const tipOut = (image: string) =>
@@ -254,6 +259,13 @@ export function buildTutorialData(paths: { editor: string; icons: string; video:
             if (!clip) throw new Error('No clip for tutorial video ' + clipPath);
             task.clip = 'plugin/video/' + clip + '.mp4';
             assets.push({ kind: 'copy', src: join(paths.video, clip + '.mp4'), out: task.clip });
+          } else {
+            const name = basename(literal(a[0]), '.png');
+            const src = join(paths.video, TUTORIAL_CLIPS, name + '_360p.mp4');
+            if (existsSync(src)) {
+              task.clip = ownClipOut(name);
+              assets.push({ kind: 'copy', src, out: task.clip });
+            }
           }
           break;
         }
@@ -298,6 +310,15 @@ export function buildTutorialData(paths: { editor: string; icons: string; video:
   const all = chapters.flatMap((c) => c.tasks);
   const bare = all.filter((t) => !t.picture);
   if (bare.length) throw new Error('Tutorial tasks without a picture: ' + bare.map((t) => t.id).join(', '));
+  // A clip left behind by a renamed or dropped picture would silently stop playing.
+  const ownDir = join(paths.video, TUTORIAL_CLIPS);
+  const used = new Set(all.map((t) => t.clip));
+  const orphans = existsSync(ownDir)
+    ? readdirSync(ownDir)
+        .filter((n) => n.endsWith('_360p.mp4'))
+        .filter((n) => !used.has(ownClipOut(n.slice(0, -'_360p.mp4'.length))))
+    : [];
+  if (orphans.length) throw new Error('Tutorial clips no task shows: ' + orphans.join(', '));
   const ids = new Set<string>();
   for (const t of all) {
     if (ids.has(t.id)) throw new Error('Tutorial task id used twice: ' + t.id);

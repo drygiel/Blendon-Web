@@ -36,7 +36,8 @@ project.
 - **The real settings window.** The window is rebuilt from the plugin's own `DrawSettings` code and a dump of the Unity
   Editor, so every page, label, tooltip and default matches the asset. Changing a setting changes the Scene view next
   to it.
-- **A clip for every feature.** Eighteen short loops in the tooltip style, the same ones the plugin's tooltip cards use.
+- **A clip for every feature.** Eighteen short loops in the tooltip style, the same ones the plugin's tooltip cards use,
+  and one for each tutorial task that shows a still in the plugin.
 - **The tour.** Promo video, what changes against stock Unity, features, precision tools, pie menus, the in-editor
   tutorial, setup, keyboard and feature presets, the Try it dock, shortcuts, under the hood, FAQ.
 - **Static and fast.** Prerendered landing with JSON-LD, the Scene view and the window load as their own chunks when
@@ -255,7 +256,8 @@ is mounted in (`../`, or `BLENDON_DIR`):
 - `Metadata~/PlaygroundRef` - labels, tooltips, defaults and constants, the keys of both keyboard presets, the
   contested keys and the Editor's built-in icons, dumped from the Unity Editor (`meta.json`, `model*.json`, `ui/`).
   `BLENDON_REF` points the sync at another dump folder, e.g. a trial dump that is not committed
-- `Metadata~/Video` - the feature clips
+- `Metadata~/Video` - the feature clips, and in `Tutorial/` the tutorial's own: a task whose picture has a clip of the same
+  name there plays its 360p copy over the picture. The plugin doesn't ship those, it shows the still
 - `Documentation/Blendon_Manual.pdf` - the manual the page links to
 
 It writes `src/plugin/generated/` (`window-data.json`, `tutorial.json`), `public/plugin/` and `public/docs/`. Both are
