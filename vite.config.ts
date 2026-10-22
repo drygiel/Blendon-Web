@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { imagetools } from 'vite-imagetools';
 import { defineConfig } from 'vitest/config';
+import { iconSprite, SPRITE_DIRS } from './scripts/icon-sprite.ts';
 
 // Served from the root of its custom domain (public/CNAME); BASE_PATH overrides it (e.g. "/Blendon-Web/").
 const base = process.env.BASE_PATH ?? '/';
@@ -44,6 +45,8 @@ export default defineConfig(({ isSsrBuild }) => ({
   base,
   plugins: [
     react(),
+    // Ahead of imagetools, which would take a `?sprite` import for one of its own.
+    iconSprite(SPRITE_DIRS),
     imagetools(),
     preloadFonts(),
     { name: 'site-url', transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl) },

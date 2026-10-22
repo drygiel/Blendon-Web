@@ -1,0 +1,6 @@
+// Behaves like the <img> it replaces: an inline box that keeps its size in a flex row. :where keeps the
+// specificity at zero, so a caller's class can change either.
+:where(.sprite) {
+  display: inline-block;
+  flex-shrink: 0;
+}

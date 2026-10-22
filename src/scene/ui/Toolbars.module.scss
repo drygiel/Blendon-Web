@@ -57,11 +57,10 @@ $text: #c4c4c4;
   &:hover {
     background: $btn-hover;
   }
+}
 
-  img {
-    display: block;
-    pointer-events: none;
-  }
+.icon {
+  pointer-events: none;
 }
 
 .on,

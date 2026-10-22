@@ -399,7 +399,6 @@ function Overlays() {
 interface WindowProps {
   app: WindowModel;
   L: WindowLayout;
-  iconVars: CSSProperties;
 }
 
 export function SettingsWindow(props: WindowProps) {
@@ -410,13 +409,12 @@ export function SettingsWindow(props: WindowProps) {
   );
 }
 
-function WindowFrame({ app, L, iconVars }: WindowProps) {
+function WindowFrame({ app, L }: WindowProps) {
   const st = app.st;
   const inst = app.inst;
   // Thumb geometry follows every render (and every scroll, below).
   useLayoutEffect(() => app.syncScrollbars());
   const winStyle = {
-    ...iconVars,
     width: L.winW,
     height: L.winH,
     '--li': (st.li ?? 24.3) + 'px',
@@ -532,7 +530,7 @@ function WindowFrame({ app, L, iconVars }: WindowProps) {
         </div>
       </div>
       <Overlays />
-      {st.pieEdit && <PieEditor key={st.pieEdit} app={app} iconVars={iconVars} />}
+      {st.pieEdit && <PieEditor key={st.pieEdit} app={app} />}
       {!st.docked && <div className="grip" onPointerDown={(e) => app.gripDrag(e)} aria-hidden="true" />}
       {st.resizing && (
         <div className="sizetag">

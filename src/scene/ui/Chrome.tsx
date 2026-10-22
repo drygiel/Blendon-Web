@@ -1,24 +1,25 @@
 // The Scene view's overlays as they sit in the reference capture. Only what Blendon changes or reads
 // is interactive (tool buttons, pivot point, handle orientation); the rest is a picture of Unity.
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
-import tools from '../../assets/scene/overlay-tools.png';
-import dropdown from '../../assets/scene/icons/d_dropdown.png';
-import handleCenter from '../../assets/scene/icons/d_ToolHandleCenter.png';
-import handleGlobal from '../../assets/scene/icons/d_ToolHandleGlobal.png';
-import handleLocal from '../../assets/scene/icons/d_ToolHandleLocal.png';
-import handlePivot from '../../assets/scene/icons/d_ToolHandlePivot.png';
-import moveOff from '../../assets/scene/icons/d_MoveTool.png';
-import moveOn from '../../assets/scene/icons/d_MoveTool_On.png';
-import rotateOff from '../../assets/scene/icons/d_RotateTool.png';
-import rotateOn from '../../assets/scene/icons/d_RotateTool_On.png';
-import scaleOff from '../../assets/scene/icons/d_ScaleTool.png';
-import scaleOn from '../../assets/scene/icons/d_ScaleTool_On.png';
-import transformOff from '../../assets/scene/icons/d_TransformTool.png';
-import transformOn from '../../assets/scene/icons/d_TransformTool_On.png';
+import tools from '../../assets/scene/overlay-tools.png?sprite';
+import dropdown from '../../assets/scene/icons/d_dropdown.png?sprite';
+import handleCenter from '../../assets/scene/icons/d_ToolHandleCenter.png?sprite';
+import handleGlobal from '../../assets/scene/icons/d_ToolHandleGlobal.png?sprite';
+import handleLocal from '../../assets/scene/icons/d_ToolHandleLocal.png?sprite';
+import handlePivot from '../../assets/scene/icons/d_ToolHandlePivot.png?sprite';
+import moveOff from '../../assets/scene/icons/d_MoveTool.png?sprite';
+import moveOn from '../../assets/scene/icons/d_MoveTool_On.png?sprite';
+import rotateOff from '../../assets/scene/icons/d_RotateTool.png?sprite';
+import rotateOn from '../../assets/scene/icons/d_RotateTool_On.png?sprite';
+import scaleOff from '../../assets/scene/icons/d_ScaleTool.png?sprite';
+import scaleOn from '../../assets/scene/icons/d_ScaleTool_On.png?sprite';
+import transformOff from '../../assets/scene/icons/d_TransformTool.png?sprite';
+import transformOn from '../../assets/scene/icons/d_TransformTool_On.png?sprite';
+import { Sprite } from '../../lib/Sprite.tsx';
 import { BlendonContext, blendonContextActive } from '../blendon/tool-context.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { PivotMode, PivotRotation, Tool, ToolContext, ToolManager, Tools } from '../unity/editor.ts';
-import { iconUrl } from '../unity/icons.ts';
+import { editorIconSprite } from '../unity/icons.ts';
 import { pivotPointNames, type PivotPointApi } from './pivot.ts';
 import { contextIcon, TopStripHeight, useOverlays } from './overlays.ts';
 import styles from './Scene.module.scss';
@@ -31,7 +32,7 @@ const pt = (px: number) => px * PX;
 const HANDLE_ROTATIONS = [
   { label: 'Global', value: PivotRotation.Global, icon: handleGlobal },
   { label: 'Local', value: PivotRotation.Local, icon: handleLocal },
-  { label: 'Grid', value: PivotRotation.Grid, icon: iconUrl('d_GridAndSnap') },
+  { label: 'Grid', value: PivotRotation.Grid, icon: editorIconSprite('d_GridAndSnap') },
 ];
 
 // Parts of the tools overlay picture with nothing behind them in the demo: the tool context, the Rect
@@ -47,7 +48,13 @@ const DEMO_ONLY = [
 ];
 
 const TOOL_BUTTONS = [
-  { tool: Tool.View, top: 92, off: iconUrl('d_ViewToolMove'), on: iconUrl('d_ViewToolMove'), label: 'View Tool' },
+  {
+    tool: Tool.View,
+    top: 92,
+    off: editorIconSprite('d_ViewToolMove'),
+    on: editorIconSprite('d_ViewToolMove'),
+    label: 'View Tool',
+  },
   { tool: Tool.Move, top: 129, off: moveOff, on: moveOn, label: 'Move Tool' },
   { tool: Tool.Rotate, top: 166, off: rotateOff, on: rotateOn, label: 'Rotate Tool' },
   { tool: Tool.Scale, top: 203, off: scaleOff, on: scaleOn, label: 'Scale Tool' },
@@ -88,9 +95,9 @@ function Dropdown({ icon, label, title, items }: { icon: string; label: string; 
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <img src={icon} alt="" width={16} height={16} />
-        <span>{label}</span>
-        <img className={styles.caret} src={dropdown} alt="" width={12} height={12} />
+        <Sprite name={icon} size={16} />
+        <span className={styles.dropLabel}>{label}</span>
+        <Sprite className={styles.caret} name={dropdown} size={12} />
       </button>
       {open && (
         <div className={styles.menu} role="menu">
@@ -144,19 +151,13 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
       <TopToolbar host={host} />
       <OverlayMenu host={host} />
       {overlays.isShown('tools') && (
-        <img
-          className={styles.pic}
-          src={tools}
-          alt=""
-          style={{ ...pos(0, 0, 76, 412), top: below(4) }}
-          draggable={false}
-        />
+        <Sprite className={styles.pic} name={tools} style={{ ...pos(0, 0, 76, 412), top: below(4) }} />
       )}
       {overlays.isShown('tools') && (
         // The tool context button shows the active context, over the cube in the picture.
         <span className={styles.ctxPic} style={{ ...pos(8, 0, 58, 38), top: below(4 + 42) }}>
-          <img src={contextIcon(inBlendon)} alt="" width={16} height={16} />
-          <img src={dropdown} alt="" width={12} height={12} />
+          <Sprite name={contextIcon(inBlendon)} size={16} />
+          <Sprite name={dropdown} size={12} />
         </span>
       )}
       {overlays.isShown('tools') &&
@@ -185,7 +186,7 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
               host.requestFrame();
             }}
           >
-            <img src={current === b.tool ? b.on : b.off} alt="" width={16} height={16} />
+            <Sprite name={current === b.tool ? b.on : b.off} size={16} />
           </button>
         ))}
 
@@ -210,7 +211,7 @@ export function Chrome({ host, pivot }: { host: SceneHost; pivot: PivotPointApi 
                     host.requestFrame();
                   }}
                 >
-                  <img src={contextIcon(c.context === ToolContext.Blendon)} alt="" width={16} height={16} />
+                  <Sprite name={contextIcon(c.context === ToolContext.Blendon)} size={16} />
                 </button>
               );
             })}

@@ -1,26 +1,19 @@
 // EditorGUIUtility.IconContent for the browser: Unity's built-in icons exported to public/scene/icons
-// (32 px, the @2x art where Unity has it). Images load lazily and repaint the view when they arrive.
+// (32 px, the @2x art where Unity has it), drawn from the icon sprite. A canvas gets its icon once the sheet has
+// loaded, and the view repaints then.
 import { publicUrl } from '../../lib/links.ts';
+import { spriteBitmap } from '../../lib/sprite-sheet.ts';
 import { SceneView } from './sceneview.ts';
 
-const cache = new Map<string, HTMLImageElement | null>();
+const file = (name: string) => `scene/icons/${name.replace(/@2x$/, '').replace(/ /g, '_')}.png`;
 
-export const iconUrl = (name: string) => publicUrl(`scene/icons/${name.replace(/@2x$/, '').replace(/ /g, '_')}.png`);
+/** The icon's name on the icon sprite. */
+export const editorIconSprite = (name: string) => 'public/' + file(name);
 
-/** The icon if it has loaded (null until then, and for names that were not exported). */
-export function editorIcon(name: string | null | undefined): HTMLImageElement | null {
-  if (!name) return null;
-  const key = name.replace(/@2x$/, '');
-  if (cache.has(key)) {
-    const img = cache.get(key)!;
-    return img && img.complete && img.naturalWidth ? img : null;
-  }
-  if (typeof Image === 'undefined') return null;
-  const img = new Image();
-  img.decoding = 'async';
-  img.onload = () => SceneView.repaintAll();
-  img.onerror = () => cache.set(key, null);
-  img.src = iconUrl(key);
-  cache.set(key, img);
-  return null;
+/** The icon's own file, for a CSS cursor, which can't show part of the sprite. */
+export const editorIconFile = (name: string) => publicUrl(file(name));
+
+/** The icon for a canvas, if it is ready (null until then, and for names that were not exported). */
+export function editorIcon(name: string | null | undefined): ImageBitmap | null {
+  return name ? spriteBitmap(editorIconSprite(name), () => SceneView.repaintAll()) : null;
 }

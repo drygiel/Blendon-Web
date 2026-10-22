@@ -1,7 +1,6 @@
 // Which of the Scene view's overlays are shown, as the Overlay Menu toolbar toggles them.
 import { useSyncExternalStore } from 'react';
-import { publicUrl } from '../../lib/links.ts';
-import { iconUrl } from '../unity/icons.ts';
+import { editorIconSprite } from '../unity/icons.ts';
 
 /** The top toolbar strip's height in points (44 px of the 175 % reference capture). */
 export const TopStripHeight = 44 / 1.75;
@@ -67,8 +66,8 @@ export function useOverlays() {
   return SceneOverlays;
 }
 
-const GameObjectIcon = iconUrl('d_GameObject_Icon');
-const BlendonContextIcon = publicUrl('plugin/icons/Overlays_d_BlendonContext@2x.png');
+const GameObjectIcon = editorIconSprite('d_GameObject_Icon');
+const BlendonContextIcon = 'public/plugin/icons/Overlays_d_BlendonContext@2x.png';
 
-/** A tool context's icon: Unity's cube for Game Object, the B logo for Blendon's. */
+/** A tool context's icon on the icon sprite: Unity's cube for Game Object, the B logo for Blendon's. */
 export const contextIcon = (blendon: boolean) => (blendon ? BlendonContextIcon : GameObjectIcon);

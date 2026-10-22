@@ -12,7 +12,7 @@ import {
   type PointerEvent,
 } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
-import { publicUrl } from '../../lib/links.ts';
+import { Sprite } from '../../lib/Sprite.tsx';
 import { D } from '../../plugin/window-data.ts';
 import { findTask, type TutorialTask } from '../blendon/tutorial/curriculum.ts';
 import { TutorialProgress } from '../blendon/tutorial/progress.ts';
@@ -61,7 +61,7 @@ const FlashSeconds = FlashInSeconds + FlashHoldSeconds + FlashOutSeconds;
 // Its own key, not the progress one: Start Over clears progress, not where the badge sits.
 const OffsetKey = 'blendon.tutorialBadge';
 
-const Logo = publicUrl('plugin/icons/B@2x.png');
+const Logo = 'public/plugin/icons/B@2x.png';
 
 const SwitchText = 'Switch to Blendon';
 
@@ -328,7 +328,7 @@ export function TutorialBadge({ host }: { host: SceneHost }) {
           onPointerCancel={endDrag}
           title="Drag to move the badge"
         >
-          <img src={Logo} alt="" />
+          <Sprite className={styles.logo} name={Logo} />
         </span>
         <div
           className={styles.text}

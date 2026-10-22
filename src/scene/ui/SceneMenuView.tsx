@@ -1,6 +1,7 @@
 // Draws Blendon's Scene View context menu from its session: panels at the rects the model placed,
 // rows as SceneMenuPaint draws them. Pointer input is handed back to the model in view points.
 import { useSyncExternalStore, type KeyboardEvent, type PointerEvent, type ReactNode, type WheelEvent } from 'react';
+import { Sprite } from '../../lib/Sprite.tsx';
 import { MenuField, SceneMenu } from '../blendon/scenetools/scene-menu/scene-menu.ts';
 import { SceneMenuSettings } from '../blendon/scenetools/settings.ts';
 import {
@@ -13,7 +14,7 @@ import {
 } from '../blendon/scenetools/scene-menu/model.ts';
 import type { MenuPanel } from '../blendon/scenetools/scene-menu/session.ts';
 import type { SceneHost } from '../engine/host.ts';
-import { iconUrl } from '../unity/icons.ts';
+import { editorIconSprite } from '../unity/icons.ts';
 import { Rect, Vector2 } from '../unity/math.ts';
 import styles from './SceneMenu.module.scss';
 
@@ -124,7 +125,7 @@ function GlyphIcon({ glyph, size = 16 }: { glyph: Glyph; size?: number }) {
 
 function NodeIcon({ node }: { node: MenuNode }) {
   if (node.glyph) return <GlyphIcon glyph={node.glyph} />;
-  if (node.iconName) return <img className={styles.icon} src={iconUrl(node.iconName)} alt="" />;
+  if (node.iconName) return <Sprite className={styles.icon} name={editorIconSprite(node.iconName)} />;
   return null;
 }
 
@@ -156,7 +157,7 @@ function ItemRow({ panel, index, row, area }: { panel: MenuPanel; index: number;
       {panel.textOffset > 0 && (
         <span className={styles.gutter}>
           {classic ? (
-            <img className={styles.icon} src={iconUrl('d__Menu')} alt="" />
+            <Sprite className={styles.icon} name={editorIconSprite('d__Menu')} />
           ) : checked ? (
             <GlyphIcon glyph="Check" />
           ) : (
@@ -336,7 +337,7 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
           >
             {panel.hasHeader && (
               <div className={styles.header} style={{ height: Theme.HeaderHeight }}>
-                <img className={styles.titleIcon} src={iconUrl(SceneMenu.titleIcon)} alt="" />
+                <Sprite className={styles.titleIcon} name={editorIconSprite(SceneMenu.titleIcon)} />
                 {MenuField.renaming ? (
                   <input
                     className={styles.rename}
@@ -367,7 +368,7 @@ export function SceneMenuView({ host }: { host: SceneHost }) {
                       className={styles.search + (searchOn ? '' : ' ' + styles.searchHidden)}
                       style={{ width: Theme.SearchWidth, height: Theme.SearchHeight }}
                     >
-                      <img src={iconUrl('d_Search Icon')} alt="" />
+                      <Sprite className={styles.searchIcon} name={editorIconSprite('d_Search Icon')} />
                       <input
                         value={searchOn ? MenuField.search : ''}
                         placeholder="Search"

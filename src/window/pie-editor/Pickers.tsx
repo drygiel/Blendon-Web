@@ -1,7 +1,8 @@
 // The slot pop-ups: the action tree, the icon grid, the rename field and the right-click menu. Each is
 // placed by the editor; these only draw and report the pick.
 import { useMemo, useState, type ReactNode } from 'react';
-import { iconUrl } from '../../scene/unity/icons.ts';
+import { Sprite } from '../../lib/Sprite.tsx';
+import { editorIconSprite } from '../../scene/unity/icons.ts';
 import {
   actionLeaves,
   actionTree,
@@ -50,11 +51,7 @@ function Search({ value, set, label, onEnter }: SearchProps) {
 }
 
 const Icon = ({ name }: { name: string }) =>
-  hasIcon(name) ? (
-    <img className="pe-ricon" src={iconUrl(name)} alt="" width={16} height={16} draggable={false} />
-  ) : (
-    <span className="pe-ricon" />
-  );
+  hasIcon(name) ? <Sprite className="pe-ricon" name={editorIconSprite(name)} /> : <span className="pe-ricon" />;
 
 const matches = (text: string, query: string) =>
   query
@@ -172,7 +169,7 @@ export function IconPicker({ current, onPick, onClose }: IconPickerProps) {
             onMouseEnter={() => setHovered(n)}
             aria-label={iconTitle(n)}
           >
-            <img src={iconUrl(n)} alt="" width={20} height={20} draggable={false} />
+            <Sprite name={editorIconSprite(n)} size={20} />
           </button>
         ))}
         {!icons.length && <div className="pe-pnone">Nothing matches</div>}

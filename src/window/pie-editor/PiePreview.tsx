@@ -6,7 +6,8 @@ import { GizmoColors } from '../../scene/blendon/gizmos/colors.ts';
 import { PieMenuData, RadialDirections } from '../../scene/blendon/piemenus/model.ts';
 import { PieMenuStyles as S } from '../../scene/blendon/piemenus/renderer.ts';
 import { PieMenuSettings } from '../../scene/blendon/piemenus/settings.ts';
-import { iconUrl } from '../../scene/unity/icons.ts';
+import { Sprite } from '../../lib/Sprite.tsx';
+import { editorIconSprite } from '../../scene/unity/icons.ts';
 import { hasIcon, slotLabel, type PieDraft } from './draft.ts';
 
 export const EmptySlotLabel = 'Empty';
@@ -125,7 +126,7 @@ export function PiePreview({ draft, width, onPick, onMenu }: Props) {
                   onPick(i, 'icon', e.currentTarget);
                 }}
               >
-                <img src={iconUrl(s.icon)} alt="" width={S.IconSize} height={S.IconSize} draggable={false} />
+                <Sprite name={editorIconSprite(s.icon)} size={S.IconSize} />
               </span>
             )}
             <span className="pe-lb">{s.label}</span>
