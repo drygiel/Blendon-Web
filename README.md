@@ -202,7 +202,7 @@ Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align a
 </tr>
 </table>
 
-The clips above are animated WebP copies of `public/plugin/video/*.mp4` (see [README clips](#readme-clips)). The stills
+The clips above are animated WebP copies of `public/plugin/video/*.webm` (see [README clips](#readme-clips)). The stills
 come straight from `public/plugin/`, so this page needs nothing outside the repository.
 
 ---
@@ -257,7 +257,8 @@ is mounted in (`../`, or `BLENDON_DIR`):
   contested keys and the Editor's built-in icons, dumped from the Unity Editor (`meta.json`, `model*.json`, `ui/`).
   `BLENDON_REF` points the sync at another dump folder, e.g. a trial dump that is not committed
 - `Metadata~/Video` - the feature clips, and in `Tutorial/` the tutorial's own: a task whose picture has a clip of the same
-  name there plays its 360p copy over the picture. The plugin doesn't ship those, it shows the still
+  name there plays it over the picture. The plugin doesn't ship those, it shows the still. The site takes each clip's
+  VP9 copy, `<Clip>_web.webm` (1080p, 360p for the tutorial's own), which vidart renders with the master
 - `Documentation/Blendon_Manual.pdf` - the manual the page links to
 
 It writes `src/plugin/generated/` (`window-data.json`, `tutorial.json`), `public/plugin/` and `public/docs/`. Both are
@@ -313,12 +314,13 @@ batch mode the first-run keyboard question never shows, and the shortcut profile
 
 ### README clips
 
-GitHub does not play an `.mp4` linked by a relative path, so the animations on this page are animated WebP files in
-`.github/readme/`, outside `public/` so they never ship with the site. After `pnpm sync` brings new clips, rebuild them
-with ffmpeg:
+GitHub does not play a video linked by a relative path, so the animations on this page are animated WebP files in
+`.github/readme/`, outside `public/` so they never ship with the site. A re-rendered clip reaches the site with
+`python video/vidart.py --site` (from Blendon's `Documentation/Source~/tooltips`), which copies every changed clip into
+`public/plugin/video/` and rebuilds its WebP here. After `pnpm sync` brings new clips, rebuild them with ffmpeg:
 
 ```bash
-for f in public/plugin/video/*.mp4; do ffmpeg -v error -y -i "$f" -vf "fps=25,scale=640:-1:flags=lanczos" -c:v libwebp_anim -quality 70 -compression_level 6 -loop 0 ".github/readme/$(basename "$f" .mp4).webp"; done
+for f in public/plugin/video/*.webm; do ffmpeg -v error -y -i "$f" -vf "fps=25,scale=640:-1:flags=lanczos" -c:v libwebp_anim -quality 70 -compression_level 6 -loop 0 ".github/readme/$(basename "$f" .webm).webp"; done
 ```
 
 ## Layout

@@ -104,7 +104,7 @@ describe('tutorial curriculum', () => {
       expect(t.clip, t.id).not.toBe('');
       expect(existsSync(resolve(import.meta.dirname, '../../public', t.clip)), t.clip).toBe(true);
       if (t.clip.startsWith('plugin/video/tutorial/'))
-        expect(basename(t.clip, '.mp4'), t.id).toBe(basename(t.picture, '.webp').split('_').at(-1));
+        expect(basename(t.clip, '.webm'), t.id).toBe(basename(t.picture, '.webp').split('_').at(-1));
     }
   });
 

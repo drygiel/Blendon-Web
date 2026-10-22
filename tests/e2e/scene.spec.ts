@@ -152,7 +152,7 @@ test("the badge opens the checklist, then names the next task with the task's ow
   const tip = view.getByRole('tooltip');
   await expect(tip).toBeVisible();
   const clip = tip.locator('video');
-  await expect(clip).toHaveAttribute('src', /video\/tutorial\/OrbitView\.mp4$/);
+  await expect(clip).toHaveAttribute('src', /video\/tutorial\/OrbitView\.webm$/);
   await expect(clip).toHaveAttribute('poster', /Tutorial_OrbitView\.webp$/);
   await page.mouse.move(0, 0);
   await expect(tip).toHaveCount(0);

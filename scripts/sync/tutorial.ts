@@ -10,7 +10,7 @@ import type { TutorialChapter, TutorialData, TutorialTask, TutorialWay } from '.
 import type { AssetPlan } from './assets.ts';
 import { splitArgs, stripComments } from './csharp.ts';
 import type { Problems } from './dump.ts';
-import { ACCENTS, HEADER_CLIP } from './window-data.ts';
+import { ACCENTS, HEADER_CLIP, SITE_CLIP } from './window-data.ts';
 
 const STR = String.raw`"((?:[^"\\]|\\.)*)"`;
 const CHAPTER = new RegExp(
@@ -28,9 +28,9 @@ const ACCENT_PAGE: Record<string, string> = { Shared: 'SharedGizmos' };
 const unescape = (s: string) => s.replace(/\\(.)/g, (_, c: string) => (c === 'n' ? '\n' : c));
 
 // A task that shows a still of its own gets the clip of the same name in Metadata~/Video/Tutorial, which only the
-// site plays: the package leaves those clips out and the plugin shows the still. The 360p copy is the picture's size.
+// site plays: the package leaves those clips out and the plugin shows the still. Its site copy is the picture's size.
 const TUTORIAL_CLIPS = 'Tutorial';
-const ownClipOut = (name: string) => 'plugin/video/tutorial/' + name + '.mp4';
+const ownClipOut = (name: string) => 'plugin/video/tutorial/' + name + '.webm';
 
 // Same public names the settings window's data uses, so both share one copy of each file.
 const tipOut = (image: string) =>
@@ -257,11 +257,11 @@ export function buildTutorialData(paths: { editor: string; icons: string; video:
             const key = clipPath.slice(5).replace('/Header.webm', '').replace('.webm', '');
             const clip = HEADER_CLIP[key];
             if (!clip) throw new Error('No clip for tutorial video ' + clipPath);
-            task.clip = 'plugin/video/' + clip + '.mp4';
-            assets.push({ kind: 'copy', src: join(paths.video, clip + '.mp4'), out: task.clip });
+            task.clip = 'plugin/video/' + clip + '.webm';
+            assets.push({ kind: 'copy', src: join(paths.video, clip + SITE_CLIP), out: task.clip });
           } else {
             const name = basename(literal(a[0]), '.png');
-            const src = join(paths.video, TUTORIAL_CLIPS, name + '_360p.mp4');
+            const src = join(paths.video, TUTORIAL_CLIPS, name + SITE_CLIP);
             if (existsSync(src)) {
               task.clip = ownClipOut(name);
               assets.push({ kind: 'copy', src, out: task.clip });
@@ -315,8 +315,8 @@ export function buildTutorialData(paths: { editor: string; icons: string; video:
   const used = new Set(all.map((t) => t.clip));
   const orphans = existsSync(ownDir)
     ? readdirSync(ownDir)
-        .filter((n) => n.endsWith('_360p.mp4'))
-        .filter((n) => !used.has(ownClipOut(n.slice(0, -'_360p.mp4'.length))))
+        .filter((n) => n.endsWith(SITE_CLIP))
+        .filter((n) => !used.has(ownClipOut(n.slice(0, -SITE_CLIP.length))))
     : [];
   if (orphans.length) throw new Error('Tutorial clips no task shows: ' + orphans.join(', '));
   const ids = new Set<string>();
