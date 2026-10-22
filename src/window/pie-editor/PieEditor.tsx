@@ -6,13 +6,13 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { iconUrl } from '../../scene/unity/icons.ts';
+import { Sprite } from '../../lib/Sprite.tsx';
+import { editorIconSprite } from '../../scene/unity/icons.ts';
 import { iconStyle } from '../core/icons.ts';
 import { pageInfo, type WindowModel } from '../core/model.ts';
 import { NEW_PIE } from '../core/state.ts';
@@ -97,7 +97,7 @@ const PopSize: Record<PopKind, { w: number; h: number }> = {
   menu: { w: 170, h: 6 * 22 + 2 * 9 + 8 },
 };
 
-export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSProperties }) {
+export function PieEditor({ app }: { app: WindowModel }) {
   const id = app.st.pieEdit ?? NEW_PIE;
   const pie = D.pies.find((p) => p.id === id) ?? null;
   const sid = pie?.sid ?? null;
@@ -308,7 +308,7 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
   const popItem = pop ? draft.items[pop.slot] : null;
 
   return createPortal(
-    <div className="uw pe-layer" ref={layerRef} style={iconVars}>
+    <div className="uw pe-layer" ref={layerRef}>
       {shown && (
         <div
           className="pe-win"
@@ -320,7 +320,7 @@ export function PieEditor({ app, iconVars }: { app: WindowModel; iconVars: CSSPr
           tabIndex={-1}
         >
           <div className="pe-bar" onPointerDown={drag}>
-            <img src={iconUrl('UnityLogo')} alt="" width={14} height={14} draggable={false} />
+            <Sprite className="pe-logo" name={editorIconSprite('UnityLogo')} size={14} />
             <span className="pe-bt">{isNew ? 'New Pie Menu' : 'Edit Pie Menu'}</span>
             <button className="pe-close" onClick={close} title="Close" aria-label="Close">
               ×

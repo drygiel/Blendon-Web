@@ -2,11 +2,12 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
 import { SharedSettings } from '../../bridge/settings.ts';
+import { spriteBackground, spriteMask } from '../../lib/sprite-sheet.ts';
 import { OrientationGizmoElement } from '../blendon/navigation/orientation/drag-controller.ts';
 import { OrientationGizmoSettings } from '../blendon/navigation/orientation/gizmo.ts';
 import { ViewAlignment, ViewSnap, WorldAxes } from '../blendon/navigation/view-snap.ts';
 import type { SceneHost } from '../engine/host.ts';
-import { iconUrl } from '../unity/icons.ts';
+import { editorIconSprite } from '../unity/icons.ts';
 import { Vector2 } from '../unity/math.ts';
 import { TopStripHeight, useOverlays } from './overlays.ts';
 import styles from './Scene.module.scss';
@@ -101,7 +102,7 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
   const current = ViewAlignment.currentDirection(host.view);
   const background = OrientationGizmoSettings.ShowBackground;
   const locked = host.view.isRotationLocked;
-  const lockIcon = `url(${iconUrl(locked ? 'LockIcon-On' : 'LockIcon')})`;
+  const lockIcon = editorIconSprite(locked ? 'LockIcon-On' : 'LockIcon');
   const items: MenuItem[] = [
     { label: 'Free', checked: current < 0, run: () => ViewSnap.toNiceAngle(host.view, animated) },
     ...WorldAxes.Directions.map((d, i) => ({
@@ -206,9 +207,8 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
         {/* GizmoColors.NavLockIconLocked: red while locked, a state worth noticing. */}
         <span
           style={{
-            backgroundImage: lockIcon,
-            maskImage: lockIcon,
-            WebkitMaskImage: lockIcon,
+            ...spriteBackground(lockIcon),
+            ...spriteMask(lockIcon),
             backgroundColor: locked ? '#FF0000' : '#FFFFFF',
           }}
         />

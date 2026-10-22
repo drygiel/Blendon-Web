@@ -1,6 +1,7 @@
 // The Scene view's top toolbar (Grid and Snap, Draw Modes, View Options) and the Overlay Menu at the
 // bottom, as Unity 6 lays them out. What the demo can do works; the rest shows a forbidden cursor.
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { Sprite } from '../../lib/Sprite.tsx';
 import { ShadingMode, ShadingModes } from '../blendon/piemenus/shading-modes.ts';
 import { OrientationGizmoSettings } from '../blendon/navigation/orientation/gizmo.ts';
 import type { SceneHost } from '../engine/host.ts';
@@ -9,7 +10,11 @@ import { Vector3 } from '../unity/math.ts';
 import { TopStripHeight, useOverlays, type OverlayId } from './overlays.ts';
 import styles from './Toolbars.module.scss';
 
-const icons = import.meta.glob<string>('../../assets/scene/toolbar/*.png', { eager: true, import: 'default' });
+const icons = import.meta.glob<string>('../../assets/scene/toolbar/*.png', {
+  eager: true,
+  import: 'default',
+  query: '?sprite',
+});
 const icon = (name: string) => icons[`../../assets/scene/toolbar/${name}.png`] ?? '';
 
 // The capture these were measured on was taken at 175 % display scaling.
@@ -74,9 +79,9 @@ function Button({ img, title, on, onClick, width = 55, caret, children, classNam
       aria-disabled={off}
       onClick={onClick}
     >
-      {img && <img src={img} alt="" width={16} height={16} />}
+      {img && <Sprite className={styles.icon} name={img} size={16} />}
       {children}
-      {caret && <img className={styles.caret} src={icon('d_dropdown')} alt="" width={12} height={12} />}
+      {caret && <Sprite className={styles.icon + ' ' + styles.caret} name={icon('d_dropdown')} size={12} />}
     </button>
   );
 }

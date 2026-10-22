@@ -12,7 +12,7 @@ import {
 } from '../../unity/editor.ts';
 import { EditorGUIUtility } from '../../unity/handles.ts';
 import { Event, EventType, GUIUtility, KeyCode } from '../../unity/imgui.ts';
-import { iconUrl } from '../../unity/icons.ts';
+import { editorIconFile } from '../../unity/icons.ts';
 import { Mathf, Quaternion, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import type { SceneView } from '../../unity/sceneview.ts';
 
@@ -42,7 +42,7 @@ const imageSet =
   typeof CSS === 'undefined' || CSS.supports('cursor', 'image-set(url(x.png) 2x) 8 8, default')
     ? 'image-set'
     : '-webkit-image-set';
-const cursor = (icon: string) => `${imageSet}(url(${iconUrl(icon)}) 2x) 8 8, default`;
+const cursor = (icon: string) => `${imageSet}(url(${editorIconFile(icon)}) 2x) 8 8, default`;
 const Cursors: Record<Mode, string> = {
   orbit: cursor('d_ViewToolOrbit'),
   pan: cursor('d_ViewToolMove'),

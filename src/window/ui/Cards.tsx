@@ -2,6 +2,7 @@
 import { Fragment, type CSSProperties } from 'react';
 import { Keymap } from '../../bridge/keymap.ts';
 import { useReducedMotion } from '../../lib/hooks.ts';
+import { Sprite } from '../../lib/Sprite.tsx';
 import type { ItemOf } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { capsWidth, rich } from '../core/text.ts';
@@ -232,7 +233,7 @@ export function OverviewMaster({ it }: { it: ItemOf<'ovMaster'> }) {
     <div className={'ovm' + (app.pageW < 620 ? ' stacked' : '')}>
       <div className="ovl" {...switchTip}>
         <div className="ovlogo">
-          <img src={D.logo} alt="Blendon" />
+          <Sprite className="ovwm" name={D.logo} label="Blendon" />
           <div className="ovsub">Blender-Style Scene View, Gizmos &amp; Pie Menus for Unity</div>
         </div>
         <Switch on={on} toggle={() => app.setMaster(!on)} label="Blendon" />

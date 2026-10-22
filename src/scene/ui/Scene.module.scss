@@ -34,8 +34,6 @@
 .pic {
   position: absolute;
   display: block;
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 %btn {
@@ -51,11 +49,6 @@
 
   &:hover {
     background: #676767;
-  }
-
-  img {
-    display: block;
-    image-rendering: auto;
   }
 }
 
@@ -123,10 +116,10 @@
   &:hover {
     background: #676767;
   }
+}
 
-  span {
-    padding: 0 1px 1px 2px;
-  }
+.dropLabel {
+  padding: 0 1px 1px 2px;
 }
 
 .dropOpen {
@@ -246,9 +239,7 @@
     display: block;
     width: 10px;
     height: 10px;
-    background-size: 100% 100%;
     background-blend-mode: multiply;
-    mask-size: 100% 100%;
   }
 }
 
@@ -304,10 +295,6 @@
 
   &:hover {
     background: #676767;
-  }
-
-  img {
-    display: block;
   }
 }
 

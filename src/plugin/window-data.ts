@@ -8,7 +8,7 @@ export const assetUrl = (path: string) => (path ? publicUrl(path) : '');
 
 let pending: Promise<WindowData> | null = null;
 
-/** Loads the generated data (a chunk of its own) and points its asset paths at the deployed site. */
+/** Loads the generated data (a chunk of its own): asset paths point at the deployed site, icons at the sprite. */
 export function loadWindowData(): Promise<WindowData> {
   pending ??= import('./generated/window-data.json').then((m) => {
     const file = m.default as unknown as WindowDataFile;
@@ -18,8 +18,8 @@ export function loadWindowData(): Promise<WindowData> {
     urls(file.tips);
     urls(file.headerImages);
     urls(file.headerVideos);
-    for (const ic of Object.values(file.icons)) ic.u = assetUrl(ic.u);
-    file.logo = assetUrl(file.logo);
+    for (const k of Object.keys(file.icons)) file.icons[k] = 'public/' + file.icons[k];
+    file.logo = 'public/' + file.logo;
     D = { ...file, known: Object.fromEntries(file.contested.map((r) => [r.bid, r])) };
     return D;
   });

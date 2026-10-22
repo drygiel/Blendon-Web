@@ -118,13 +118,6 @@ export interface CatalogPage {
   feature: boolean;
 }
 
-export interface IconInfo {
-  /** Asset path. */
-  u: string;
-  /** CSS custom property name the icon is exposed under. */
-  v: string;
-}
-
 export interface PageHeader {
   image: string;
   video: string;
@@ -200,7 +193,8 @@ export interface GizmoPreset {
 /** The file `pnpm sync` writes. */
 export interface WindowDataFile {
   catalog: CatalogPage[];
-  icons: Record<string, IconInfo>;
+  /** Icon name -> its file under public/, a picture on the icon sprite. */
+  icons: Record<string, string>;
   props: Record<string, PropInfo>;
   shortcuts: Record<string, ShortcutInfo>;
   /** Default bindings per preset: every Blendon id, the contested Editor commands, every id a card names. */

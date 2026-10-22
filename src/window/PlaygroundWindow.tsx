@@ -9,7 +9,6 @@ import { Keymap } from '../bridge/keymap.ts';
 import { SharedSettings } from '../bridge/settings.ts';
 import { TipsSeen } from '../bridge/tips.ts';
 import { useReducedMotion } from '../lib/hooks.ts';
-import { iconVars } from './core/icons.ts';
 import { layoutWindow } from './core/layout.ts';
 import { newInstance, WindowModel } from './core/model.ts';
 import { initialState, reduce } from './core/state.ts';
@@ -70,7 +69,6 @@ export default function PlaygroundWindow() {
   // The Overview's Show Again row waits for a shortcut tip the Scene view has shown.
   useSyncExternalStore(TipsSeen.subscribe, () => TipsSeen.version);
   const L = layoutWindow(app);
-  const vars = useMemo(() => iconVars(), []);
   const reduced = useReducedMotion();
 
   // The Scene view reads the window's values; every change is published to it.
@@ -168,7 +166,7 @@ export default function PlaygroundWindow() {
 
   return (
     <div className={DEV_SIZE ? styles.host : styles.docked} ref={app.attach('host')}>
-      <SettingsWindow app={app} L={L} iconVars={vars} />
+      <SettingsWindow app={app} L={L} />
     </div>
   );
 }

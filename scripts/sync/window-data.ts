@@ -6,7 +6,6 @@ import type {
   CatalogPage,
   ContestedRow,
   Cond,
-  IconInfo,
   Keys,
   Op,
   PageHeader,
@@ -720,7 +719,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   for (const p of M3.pies) used.add(p.icon);
 
   const uiManifest = readUiManifest(join(paths.ref, 'ui', 'ui.json'));
-  const icons: Record<string, IconInfo> = {};
+  const icons: Record<string, string> = {};
   const missing: string[] = [];
   for (const name of [...used].sort()) {
     const file = uiManifest[name];
@@ -728,14 +727,11 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
       missing.push(name);
       continue;
     }
-    icons[name] = { u: asset({ kind: 'copy', src: join(paths.ref, 'ui', file), out: 'plugin/icons/' + file }), v: '' };
+    icons[name] = asset({ kind: 'copy', src: join(paths.ref, 'ui', file), out: 'plugin/icons/' + file });
   }
   if (missing.length) console.warn('  icons missing from the UI dump:', missing.join(', '));
   const pluginIcon = (key: string, rel: string) => {
-    icons[key] = {
-      u: asset({ kind: 'copy', src: join(paths.icons, rel), out: 'plugin/icons/' + rel.replace(/\//g, '_') }),
-      v: '',
-    };
+    icons[key] = asset({ kind: 'copy', src: join(paths.icons, rel), out: 'plugin/icons/' + rel.replace(/\//g, '_') });
   };
   pluginIcon('B', 'B@2x.png');
   pluginIcon('OrientationGizmoOverlay', 'Overlays/OrientationGizmo@2x.png');
@@ -744,13 +740,6 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   pluginIcon('TipBulb', 'Notice/TipBulb@2x.png');
   pluginIcon('MouseBack', 'Shortcuts/MouseBack@2x.png');
   pluginIcon('MouseForward', 'Shortcuts/MouseForward@2x.png');
-  // Icons are drawn through CSS (mask/background), each exposed as a custom property.
-  Object.keys(icons)
-    .sort()
-    .forEach((k, i) => {
-      const icon = icons[k];
-      if (icon) icon.v = 'i' + i;
-    });
 
   const catalog: CatalogPage[] = CATALOG.map(([id, label, group, summary, iconName, iconPath, indent, feature]) => ({
     id,

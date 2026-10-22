@@ -3,11 +3,11 @@
 // right corner, or just above the tutorial badge when the badge sits there.
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
-import { publicUrl } from '../../lib/links.ts';
+import { Sprite } from '../../lib/Sprite.tsx';
 import { ShortcutTipCard as Tips, type TipSide } from '../blendon/shortcut-tips.ts';
 import { TutorialBadgeSpot, type BadgeRect } from '../blendon/tutorial/badge-spot.ts';
 import type { SceneHost } from '../engine/host.ts';
-import { iconUrl } from '../unity/icons.ts';
+import { editorIconSprite } from '../unity/icons.ts';
 import { useViewSize } from './view-size.ts';
 import styles from './ShortcutTipCard.module.scss';
 import { KeyCaps } from './KeyCaps.tsx';
@@ -26,7 +26,7 @@ const TopMargin = 6;
 const RingRadius = 10.75;
 const RingLength = 2 * Math.PI * RingRadius;
 
-const BlendonLogo = publicUrl('plugin/icons/B@2x.png');
+const BlendonLogo = 'public/plugin/icons/B@2x.png';
 
 const openKeyboard = (id?: string) => PlaygroundEvents.emit('openKeyboard', { id });
 
@@ -46,7 +46,7 @@ function Line({ side, aside, was }: { side: TipSide; aside: string; was?: string
   return (
     <>
       <KeyCaps binding={side.binding} color="#fff" dim={false} joined className={styles.keys} />
-      <img className={styles.logo} src={side.blendon ? BlendonLogo : iconUrl('UnityLogo')} alt="" />
+      <Sprite className={styles.logo} name={side.blendon ? BlendonLogo : editorIconSprite('UnityLogo')} />
       <span className={styles.text}>
         {side.blendon ? (
           <button
