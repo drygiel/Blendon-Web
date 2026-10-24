@@ -5,6 +5,7 @@ import { Event, EventType, FocusType, GUIUtility, MouseButton } from '../../unit
 import { Plane, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import { SceneView, type SceneCamera } from '../../unity/sceneview.ts';
 import { CursorWrapTracker, EditorRaycastUtility, ModalViewportGate, SceneTutorial } from '../foundation.ts';
+import { ShortcutGates } from '../shortcut-gates.ts';
 import { GeneralSettings, sBool } from '../settings.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
@@ -13,6 +14,9 @@ const K = 'PanSettings.';
 export const PanSettings = {
   get Enabled() {
     return GeneralSettings.Enabled && sBool(K + 'Enabled', true);
+  },
+  get ContextOnly() {
+    return sBool(K + 'ContextOnly', false);
   },
   get InvertDrag() {
     return sBool(K + 'InvertDrag', false);
@@ -96,7 +100,8 @@ function onSceneGUI(view: SceneView) {
 
   if (e.type === EventType.MouseMove && (st.shortcutHeld || st.panning)) forceRelease();
 
-  if (!PanSettings.Enabled || ModalViewportGate.isBlocked) {
+  // A context change mid-drag may never end the clutch.
+  if (!PanSettings.Enabled || !ShortcutGates.allows(PanSettings.ContextOnly) || ModalViewportGate.isBlocked) {
     if (st.panning) endPan();
     return;
   }

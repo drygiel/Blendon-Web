@@ -3,6 +3,7 @@ import { Keymap } from '../../src/bridge/keymap.ts';
 import { loadWindowData } from '../../src/plugin/window-data.ts';
 import { GizmoActions, PivotPointActions } from '../../src/scene/blendon/piemenus/actions.ts';
 import { SharedGizmoSettings } from '../../src/scene/blendon/gizmos/shared-settings.ts';
+import { OrientationGizmoSettings } from '../../src/scene/blendon/navigation/orientation/gizmo.ts';
 import { ShortcutGates } from '../../src/scene/blendon/shortcut-gates.ts';
 import {
   BlendonContext,
@@ -68,6 +69,35 @@ describe("Blendon's tool context", () => {
     ContextSwitch.toggle();
     expect(ShortcutGates.isOpen('Blendon/Move/Grab')).toBe(true);
     Keymap.reset();
+  });
+
+  it('lets a tool set to Blendon Context Only answer in the context only', () => {
+    ShortcutGates.inBlendonContext = blendonContextActive;
+    Prefs.local.set('PanSettings.ContextOnly', true);
+    Prefs.changed();
+    expect(ShortcutGates.isOpen('Blendon/Pan')).toBe(true);
+    ContextSwitch.toggle();
+    expect(ShortcutGates.isOpen('Blendon/Pan')).toBe(false);
+    expect(ShortcutGates.isOpen('Blendon/Orbit Selected')).toBe(true);
+    expect(ShortcutGates.allows(true)).toBe(false);
+    expect(ShortcutGates.allows(false)).toBe(true);
+    ContextSwitch.toggle();
+    expect(ShortcutGates.isOpen('Blendon/Pan')).toBe(true);
+    expect(ShortcutGates.allows(true)).toBe(true);
+  });
+
+  it("hands the corner to Unity's own orientation gizmo outside the context with Blendon Context Only on", () => {
+    ShortcutGates.inBlendonContext = blendonContextActive;
+    ContextSwitch.toggle();
+    expect(OrientationGizmoSettings.Shown).toBe(true);
+    expect(OrientationGizmoSettings.NativeGizmoShown).toBe(false);
+    Prefs.local.set('OrientationGizmoSettings.ContextOnly', true);
+    Prefs.changed();
+    expect(OrientationGizmoSettings.Shown).toBe(false);
+    expect(OrientationGizmoSettings.NativeGizmoShown).toBe(true);
+    ContextSwitch.toggle();
+    expect(OrientationGizmoSettings.Shown).toBe(true);
+    expect(OrientationGizmoSettings.NativeGizmoShown).toBe(false);
   });
 
   it("resolves a slot to Blendon's tool only in its context and with the gizmo on", () => {

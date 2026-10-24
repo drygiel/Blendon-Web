@@ -1,5 +1,5 @@
 // The browser Scene view: an engine host on a canvas, Blendon installed into it, Unity's chrome on top.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { PlaygroundEvents } from '../bridge/events.ts';
 import { Keymap } from '../bridge/keymap.ts';
 import { SharedSettings } from '../bridge/settings.ts';
@@ -8,6 +8,7 @@ import { SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import { installBlendon } from './blendon/install.ts';
 import { OrientationGizmoSettings } from './blendon/navigation/orientation/gizmo.ts';
 import { GeneralSettings } from './blendon/settings.ts';
+import { BlendonContext, blendonContextActive } from './blendon/tool-context.ts';
 import { startAttractOrbit } from './attract.ts';
 import { buildDemoScene, resetDemoScene } from './demo.ts';
 import { SceneHost } from './engine/host.ts';
@@ -93,6 +94,9 @@ export default function ScenePlayground() {
     [host],
   );
 
+  // Unity's orientation gizmo stands in for Blendon's outside its context, with Blendon Context Only on.
+  useSyncExternalStore(BlendonContext.subscribe, blendonContextActive, () => true);
+
   // The dock's reset button: the scene as first built, every overlay back.
   useEffect(() => {
     if (!host) return;
@@ -118,7 +122,7 @@ export default function ScenePlayground() {
       {host && <Chrome host={host} pivot={pivotPoint} />}
       {host && <OrientationOverlay host={host} />}
       {host && OrientationGizmoSettings.NativeGizmoShown && (
-        <NativeSceneGizmo host={host} besideBlendon={OrientationGizmoSettings.Enabled} />
+        <NativeSceneGizmo host={host} besideBlendon={OrientationGizmoSettings.Shown} />
       )}
     </div>
   );

@@ -188,6 +188,23 @@ describe('gates', () => {
     Keymap.applyPreset('Unity');
     expect(Keymap.needsContext(shading.bid)).toBe(false);
   });
+
+  it("keep a page's keys to Blendon's context while its Blendon Context Only is on", () => {
+    const orbitOnly = settings({ 'OrbitSelectedSettings.ContextOnly': true });
+    expect(Keymap.needsContext('Blendon/Orbit Selected', orbitOnly)).toBe(true);
+    expect(Keymap.needsContext('Blendon/Orbit Selected/Quick Roll', orbitOnly)).toBe(true);
+    expect(Keymap.needsContext('Blendon/Pan', orbitOnly)).toBe(false);
+    // Toggle Wireframe follows the pies, the hierarchy keys a row of their own.
+    const piesOnly = settings({ 'PieMenuSettings.ContextOnly': true });
+    expect(Keymap.needsContext('Blendon/Pie Menus/Toggle Wireframe', piesOnly)).toBe(true);
+    const hierarchyOnly = settings({ 'BoxSelectSettings.HierarchyContextOnly': true });
+    expect(Keymap.needsContext('Blendon/Box Select/Select Parent', hierarchyOnly)).toBe(true);
+    // Off the Editor's key the Draw Mode pie answers everywhere, unless its page keeps it to the context.
+    const shading = row('Blendon/Pie Menus/Draw Mode');
+    Keymap.move(shading);
+    expect(Keymap.needsContext(shading.bid)).toBe(false);
+    expect(Keymap.needsContext(shading.bid, piesOnly)).toBe(true);
+  });
 });
 
 describe('live cards', () => {

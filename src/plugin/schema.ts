@@ -201,6 +201,8 @@ export interface WindowDataFile {
   keymap: Record<string, Keys>;
   /** Keys outside the Blendon tool context are Unity's; ids that answer everywhere are left out. */
   contextNeed: Record<string, ContextNeed>;
+  /** A page's Blendon Context Only switch ("Type.Prop") per id it keeps to the tool context while on. */
+  contextOnly: Record<string, string>;
   pages: Record<string, Op[]>;
   headers: Record<string, PageHeader>;
   switchTips: Record<string, Tip>;

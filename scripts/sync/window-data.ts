@@ -624,6 +624,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   };
 
   for (const id of Object.keys(M2.contextNeed)) keyed(id, 'model2.json contextNeed');
+  for (const id of Object.keys(M2.contextOnly)) keyed(id, 'model2.json contextOnly');
 
   // ---- props ----
   const enumLabels: Record<string, Record<string, string>> = {};
@@ -670,6 +671,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     d: true,
     k: 'Boolean',
   };
+  for (const [id, path] of Object.entries(M2.contextOnly))
+    if (props[path]?.k !== 'Boolean') out.add(`model2.json contextOnly: ${id} follows ${path}, which is no switch`);
   // The master switch's card is the Enabled row's.
   const master = props['GeneralSettings.Enabled'];
   if (!master) out.add('model.json: no GeneralSettings.Enabled');
@@ -972,6 +975,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     shortcuts,
     keymap,
     contextNeed: M2.contextNeed,
+    contextOnly: M2.contextOnly,
     pages,
     headers,
     switchTips,

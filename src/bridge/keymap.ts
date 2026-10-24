@@ -257,6 +257,9 @@ export const Keymap = {
 
   /** ShortcutGates.NeedsContext: shut outside Blendon's tool context right now. */
   needsContext(id: string, r: GateReader = sharedSettings): boolean {
+    // A page's Blendon Context Only keeps every key it covers to the context.
+    const only = D.contextOnly[id];
+    if (only && flag(r, only)) return true;
     const need = D.contextNeed[id];
     return need === 'Always' || (need === 'WhenCovering' && Keymap.covers(id, r));
   },

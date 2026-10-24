@@ -399,6 +399,16 @@ function callOps(ctx: Ctx, fn: string, args: string[], text: string, helpers: He
     case 's.ColorField':
     case 's.LayerMaskField':
       return row(ctx, fn, a(0));
+    case 's.ContextOnlyToggle': {
+      // SettingsControls.ContextOnlyToggle: the row, noted while Blendon never enters its context by itself.
+      const prop = ctx.prop(a(0));
+      const note = ctx.constant('SettingsControls.NoContextNote');
+      const tip = ctx.constant('SettingsControls.NoContextTip');
+      return [
+        ['tog', prop],
+        ['if', ['&&', ['v', prop], ['!', ['f', 'anyTool']]], [['note', note, tip]], null],
+      ];
+    }
     case 's.ShortcutField':
       if (args.length === 1) {
         // A key row declared on the page: its label and card are the setting's, its shortcut the dump's.

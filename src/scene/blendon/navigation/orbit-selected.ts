@@ -29,6 +29,7 @@ import { SelectionPivot } from '../gizmos/selection-pivot.ts';
 import { SharedGizmoSettings } from '../gizmos/shared-settings.ts';
 import { VertexSnappingUtility } from '../gizmos/vertex-snapping.ts';
 import { GeneralSettings, sBool, sModifier, sNum } from '../settings.ts';
+import { ShortcutGates } from '../shortcut-gates.ts';
 import { TurntableOrbit, ViewOrbitTween, ViewProjection } from './camera.ts';
 import { Pan } from './pan.ts';
 import { QuickRoll } from './quick-roll.ts';
@@ -37,6 +38,9 @@ const K = 'OrbitSelectedSettings.';
 export const OrbitSelectedSettings = {
   get Enabled() {
     return GeneralSettings.Enabled && sBool(K + 'Enabled', true);
+  },
+  get ContextOnly() {
+    return sBool(K + 'ContextOnly', false);
   },
   get ShowPivotDot() {
     return sBool(K + 'ShowPivotDot', true);
@@ -291,7 +295,12 @@ function onSceneGUI(view: SceneView) {
   // MouseMove only fires with no button held: a drag we think is running missed its release.
   if (e.type === EventType.MouseMove && (clutchHeld || input.isActive)) forceReleaseStuckDrag();
 
-  if (!OrbitSelectedSettings.Enabled || ModalViewportGate.isBlocked) {
+  // Outside Blendon's context the middle click may be the Editor's Focus.
+  if (
+    !OrbitSelectedSettings.Enabled ||
+    !ShortcutGates.allows(OrbitSelectedSettings.ContextOnly) ||
+    ModalViewportGate.isBlocked
+  ) {
     if (input.isActive) stopOrbitDrag(view, controlId);
     return;
   }

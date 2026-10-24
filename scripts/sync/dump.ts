@@ -71,6 +71,8 @@ export interface Model2 {
   keymap: Record<string, DumpKeys>;
   /** ContextNeedOf of each gated Blendon id, None left out. */
   contextNeed: Record<string, ContextNeed>;
+  /** The Blendon Context Only switch ("Type.Prop") that keeps each id to the tool context when on. */
+  contextOnly: Record<string, string>;
   known: {
     row: DumpRow;
     editorKey: string;
@@ -275,6 +277,7 @@ const MODEL2 = obj({
   ),
   keymap: rec(keys),
   contextNeed: rec(contextNeed),
+  contextOnly: rec(str),
   known: arr(
     obj({
       row,

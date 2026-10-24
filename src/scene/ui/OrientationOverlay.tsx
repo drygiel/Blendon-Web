@@ -1,11 +1,19 @@
 // Blendon's orientation gizmo as the Scene view overlay it is in Unity, docked top right.
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { PlaygroundEvents } from '../../bridge/events.ts';
 import { SharedSettings } from '../../bridge/settings.ts';
 import { spriteBackground, spriteMask } from '../../lib/sprite-sheet.ts';
 import { OrientationGizmoElement } from '../blendon/navigation/orientation/drag-controller.ts';
 import { OrientationGizmoSettings } from '../blendon/navigation/orientation/gizmo.ts';
 import { ViewAlignment, ViewSnap, WorldAxes } from '../blendon/navigation/view-snap.ts';
+import { BlendonContext, blendonContextActive } from '../blendon/tool-context.ts';
 import type { SceneHost } from '../engine/host.ts';
 import { editorIconSprite } from '../unity/icons.ts';
 import { Vector2 } from '../unity/math.ts';
@@ -95,8 +103,11 @@ export function OrientationOverlay({ host }: { host: SceneHost }) {
   };
   const focusView = () => host.focusRoot.focus({ preventScroll: true });
   const overlays = useOverlays();
+  // Hidden outside Blendon's context with Blendon Context Only on, so a context change re-reads it.
+  useSyncExternalStore(BlendonContext.subscribe, blendonContextActive, () => true);
+  const shownHere = OrientationGizmoSettings.Shown;
 
-  if (!OrientationGizmoSettings.Enabled || !overlays.isShown('orientation')) return null;
+  if (!shownHere || !overlays.isShown('orientation')) return null;
   const label = OrientationGizmoSettings.DirectionLabelEnabled ? element.directionLabel : '';
   const animated = OrientationGizmoSettings.AnimationEnabled;
   const current = ViewAlignment.currentDirection(host.view);

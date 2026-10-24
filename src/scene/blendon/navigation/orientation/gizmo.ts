@@ -3,6 +3,7 @@ import { Color, Quaternion, Vector2 } from '../../../unity/math.ts';
 import { withAlpha, withFade } from '../../color.ts';
 import { GizmoColors } from '../../gizmos/colors.ts';
 import { GeneralSettings, sBool, sColor, sNum } from '../../settings.ts';
+import { ShortcutGates } from '../../shortcut-gates.ts';
 import { WorldAxes } from '../view-snap.ts';
 
 const K = 'OrientationGizmoSettings.';
@@ -11,13 +12,20 @@ export const OrientationGizmoSettings = {
   get Enabled() {
     return GeneralSettings.Enabled && sBool(K + 'Enabled', true);
   },
+  get ContextOnly() {
+    return sBool(K + 'ContextOnly', false);
+  },
+  /** On and allowed in the current tool context. Unity's own gizmo stands in otherwise. */
+  get Shown() {
+    return this.Enabled && ShortcutGates.allows(this.ContextOnly);
+  },
   /** Unity's own scene gizmo leaves the view while Blendon's is shown. */
   get HideNativeGizmo() {
     return sBool(K + 'HideNativeGizmo', true);
   },
   /** Unity's gizmo, and its Overlay Menu toggle, are there unless Blendon's takes their place. */
   get NativeGizmoShown() {
-    return !(this.Enabled && this.HideNativeGizmo);
+    return !(this.Shown && this.HideNativeGizmo);
   },
   get Radius() {
     return sNum(K + 'Radius', 45);

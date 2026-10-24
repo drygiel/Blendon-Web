@@ -1040,6 +1040,37 @@ test.describe("Blendon's tool context", () => {
     await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test("with Blendon Context Only, the orientation gizmo and the right-click are Unity's outside", async ({ page }) => {
+    const view = await openScene(page);
+    for (const button of ['Orientation Gizmo', 'Context Menu']) {
+      const win = await openWindowPage(page, button);
+      const row = win.getByRole('button', { name: 'Blendon Context Only', exact: true });
+      await expect(row).toHaveAttribute('aria-pressed', 'false');
+      await row.click();
+      await expect(row).toHaveAttribute('aria-pressed', 'true');
+    }
+    await backToScene(page);
+    await expect(view.getByLabel('Orientation gizmo')).toBeVisible();
+    await expect(view.getByLabel('Scene gizmo')).toHaveCount(0);
+
+    await page.keyboard.press('b');
+    await expect(gameObject(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(view.getByLabel('Orientation gizmo')).toHaveCount(0);
+    await expect(view.getByLabel('Scene gizmo')).toBeVisible();
+    // The Editor's own menu: none of Blendon's rows, the Classic Unity Menu row among them.
+    const at = await pagePointOf(page, 'Cube');
+    await page.mouse.click(at.x, at.y, { button: 'right' });
+    await expect(view.getByText('Cut', { exact: true }).first()).toBeVisible();
+    await expect(view.getByText('Classic Unity Menu', { exact: true })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    await page.keyboard.press('b');
+    await expect(blendonContext(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(view.getByLabel('Orientation gizmo')).toBeVisible();
+    await page.mouse.click(at.x, at.y, { button: 'right' });
+    await expect(view.getByText('Classic Unity Menu', { exact: true })).toBeVisible();
+  });
+
   test("in Game Object the gizmo keys and the selection drag are Unity's", async ({ page }) => {
     const view = await openScene(page);
     await view.focus();

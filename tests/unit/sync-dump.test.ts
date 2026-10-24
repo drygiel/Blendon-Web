@@ -59,6 +59,7 @@ const FIXTURE = {
       'Tools/Cycle Tool Modes': { blendon: 'G', unity: 'G' },
     },
     contextNeed: { 'Blendon/Move/Grab': 'Always' },
+    contextOnly: { 'Blendon/Pan': 'PanSettings.ContextOnly' },
     known: [
       {
         row: {

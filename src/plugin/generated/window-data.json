@@ -424,9 +424,9 @@
   },
   "GeneralSettings.ToggleContextShortcut": {
    "l": "Toggle Blendon",
-   "t": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>B</color></b>\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
+   "t": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>B</color></b>\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay, unless their page has <b><color=#4FA8E8>Blendon Context Only</color></b> on.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
    "i": "Tips/Overview/ToggleContext.png",
-   "src": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Toggle Blendon}\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
+   "src": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Toggle Blendon}\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay, unless their page has <b><color=#4FA8E8>Blendon Context Only</color></b> on.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>",
    "d": "B",
    "k": "ShortcutBinding"
   },
@@ -436,6 +436,14 @@
    "i": "Tips/OrbitSelected/OrbitSelected.png",
    "src": "<size=14><b>Orbit Selected</b></size>\nTurn the view around what you are working on.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nHold {key:Blendon/Orbit Selected} and drag. The camera circles the selection, which stays in the middle of the view.\n\n<size=9><color=#92929A>Off frees both shortcuts for the Editor</color></size>",
    "d": true,
+   "k": "Boolean"
+  },
+  "OrbitSelectedSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nOrbit Selected and Quick Roll only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Mouse 2</color></b> and <b><color=#D98E38>Alt+Mouse 2</color></b> do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBoth work in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nOrbit Selected and Quick Roll only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Orbit Selected} and {key:Blendon/Orbit Selected/Quick Roll} do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBoth work in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "OrbitSelectedSettings.ShowPivotDot": {
@@ -552,6 +560,14 @@
    "d": true,
    "k": "Boolean"
   },
+  "PanSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nPan only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Shift+Mouse 2</color></b> does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nPan works in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nPan only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Pan} does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nPan works in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "PanSettings.InvertDrag": {
    "l": "Invert Drag",
    "t": "<size=14><b>Invert Drag</b></size>\nReverse the pan direction.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nDrag right and the scene follows the cursor, like pulling a sheet of paper.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nDrag right and the camera moves right, so the scene slides left.",
@@ -630,6 +646,14 @@
    "d": true,
    "k": "Boolean"
   },
+  "ZoomSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nBlendon's zoom only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, the wheel zooms the way Unity does, and <b><color=#D98E38>Num +</color></b> <b><color=#D98E38>Num -</color></b> do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBlendon zooms in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nBlendon's zoom only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, the wheel zooms the way Unity does, and {key:Blendon/Zoom/Zoom In} {key:Blendon/Zoom/Zoom Out} do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBlendon zooms in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "ZoomSettings.ZoomTo": {
    "l": "Zoom To",
    "t": "<size=14><b>Zoom To</b></size>\nWhat stays put on screen while everything grows around it.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Cursor</b> - whatever is under the cursor. The default\n<color=#92929A>•</color> <b>Selection</b> - the selected object. Several: the <b><color=#4FA8E8>Pivot Point</color></b> set in the toolbar\n<color=#92929A>•</color> <b>Center</b> - the middle of the view\n\n<size=9><color=#92929A>With nothing selected in view, Selection zooms to the middle</color></size>",
@@ -706,6 +730,14 @@
    "t": "<size=14><b>Orientation Gizmo</b></size>\nA Blender-style axis ball in the corner of the Scene View.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\n<color=#92929A>•</color> <b>Click a handle</b> - look down that axis\n<color=#92929A>•</color> <b>Drag inside</b> - orbit the view\n<color=#92929A>•</color> <b>Click the center</b> - perspective or orthographic\n\n<size=9><color=#92929A>Replaces Unity's own scene gizmo</color></size>",
    "i": "Tips/OrientationGizmo/OrientationGizmo.png",
    "d": true,
+   "k": "Boolean"
+  },
+  "OrientationGizmoSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nBlendon's gizmo only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, Blendon's gizmo leaves the <b><color=#3DB892>Scene View</color></b> and Unity's own takes its corner.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBlendon's gizmo shows in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nBlendon's gizmo only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, Blendon's gizmo leaves the <b><color=#3DB892>Scene View</color></b> and Unity's own takes its corner.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBlendon's gizmo shows in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "OrientationGizmoSettings.HideNativeGizmo": {
@@ -812,6 +844,14 @@
    "i": "Tips/NumpadViews/NumpadViews.png",
    "src": "<size=14><b>Numpad Views</b></size>\nBlender's keypad navigation for the Scene View.\n\n<size=9><b><color=#92929A>KEYS</color></b></size>\n<color=#92929A>•</color> {key:Blendon/Numpad Views/Front} {key:Blendon/Numpad Views/Right} {key:Blendon/Numpad Views/Top} - front, right, top views\n<color=#92929A>•</color> {key:Blendon/Numpad Views/Toggle Perspective} - perspective or orthographic\n<color=#92929A>•</color> {key:Blendon/Numpad Views/Orbit Down} {key:Blendon/Numpad Views/Orbit Left} {key:Blendon/Numpad Views/Orbit Right} {key:Blendon/Numpad Views/Orbit Up} - orbit in steps\n<color=#92929A>•</color> {key:Blendon/Numpad Views/Reverse View} - reverse view, {key:Blendon/Numpad Views/Align To Camera} - camera view\n\n<size=9><color=#92929A>NumLock must be on. Off frees every key for the Editor</color></size>",
    "d": true,
+   "k": "Boolean"
+  },
+  "ViewportNavSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nThe numpad views only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Num 1</color></b> and the other numpad keys do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe numpad keys work in every tool context.\n\n<size=9><color=#92929A>Zoom, Frame Selected and Isolate View follow their own pages\n<b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nThe numpad views only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Numpad Views/Front} and the other numpad keys do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe numpad keys work in every tool context.\n\n<size=9><color=#92929A>Zoom, Frame Selected and Isolate View follow their own pages\n{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "ViewportNavSettings.AnimationEnabled": {
@@ -2045,6 +2085,14 @@
    "d": true,
    "k": "Boolean"
   },
+  "SnapToFloorSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nSnap to Floor only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>End</color></b> does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nSnap to Floor works in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nSnap to Floor only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Snap to Floor} does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nSnap to Floor works in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "SnapToFloorSettings.Direction": {
    "l": "Direction",
    "t": "<size=14><b>Direction</b></size>\nWhich way to look for a surface.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Down</b> - onto floors\n<color=#92929A>•</color> <b>Up</b> - onto ceilings",
@@ -2112,6 +2160,14 @@
    "d": true,
    "k": "Boolean"
   },
+  "FrameSelectedSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nFrame Selected only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Num .</color></b> does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nFrame Selected works in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nFrame Selected only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Frame Selected} does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nFrame Selected works in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "FrameSelectedSettings.AnimationEnabled": {
    "l": "Enable",
    "t": "<size=14><b>Animate</b></size>\nFly to the framed view instead of cutting to it.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nA short camera flight shows where you went.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe view jumps there at once.\n\n<size=9><color=#92929A>Follows Defaults on the Overview page until you tick Override</color></size>",
@@ -2147,6 +2203,14 @@
    "i": "Tips/IsolateView/IsolateView.png",
    "src": "<size=14><b>Isolate View</b></size>\nHide everything except the selection.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Isolate View} to isolate what you selected. Press it again to bring the scene back.\n\n<size=9><color=#92929A>Hides with Unity's Scene Visibility, so nothing in the scene is changed</color></size>",
    "d": true,
+   "k": "Boolean"
+  },
+  "IsolateViewSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nIsolate View only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Num /</color></b> does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nIsolate View works in every tool context.\n\n<size=9><color=#92929A>An isolation started in Blendon's context stays. Unity's own isolation bar in the Scene View ends it\n<b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nIsolate View only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Isolate View} does what it does in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nIsolate View works in every tool context.\n\n<size=9><color=#92929A>An isolation started in Blendon's context stays. Unity's own isolation bar in the Scene View ends it\n{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "IsolateViewSettings.IncludeChildren": {
@@ -2286,6 +2350,14 @@
    "d": true,
    "k": "Boolean"
   },
+  "BoxSelectSettings.HierarchyContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nThe hierarchy keys only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>[</color></b>, <b><color=#D98E38>]</color></b> and their Add keys do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe hierarchy keys work in every tool context.\n\n<size=9><color=#92929A>The box itself is Blendon's only in its own context, whatever this says\n<b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nThe hierarchy keys only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Box Select/Select Parent}, {key:Blendon/Box Select/Select Children} and their Add keys do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe hierarchy keys work in every tool context.\n\n<size=9><color=#92929A>The box itself is Blendon's only in its own context, whatever this says\n{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "BoxSelectSettings.OutlineStyle": {
    "l": "Outline Style",
    "t": "<size=14><b>Outline Style</b></size>\nHow the box's border is drawn.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Solid</b> - a plain line\n<color=#92929A>•</color> <b>Dashed</b> - marching ants\n<color=#92929A>•</color> <b>Dashed Dense</b> - the same, twice as dense",
@@ -2408,6 +2480,14 @@
    "d": true,
    "k": "Boolean"
   },
+  "HistorySettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nStep through selections only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Mouse 3</color></b> and <b><color=#D98E38>Mouse 4</color></b> do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBoth keys work in every tool context.\n\n<size=9><color=#92929A>The history keeps recording everywhere, so nothing is missing when you come back\n<b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nStep through selections only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Navigation History/Selection Back} and {key:Blendon/Navigation History/Selection Forward} do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBoth keys work in every tool context.\n\n<size=9><color=#92929A>The history keeps recording everywhere, so nothing is missing when you come back\n{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
+   "k": "Boolean"
+  },
   "HistorySettings.BackShortcut": {
    "l": "Back",
    "t": "<size=14><b>Back</b></size>\nJump to the previous selection.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>Mouse 3</color></b>, the rear side button by default.",
@@ -2430,6 +2510,14 @@
    "i": "Tips/NavigationHistory/ViewHistory.png",
    "src": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/View Back} - back\n{key:Blendon/Navigation History/View Forward} - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>",
    "d": true,
+   "k": "Boolean"
+  },
+  "ViewHistorySettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nStep through camera views only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Shift+Mouse 3</color></b> and <b><color=#D98E38>Shift+Mouse 4</color></b> do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBoth keys work in every tool context.\n\n<size=9><color=#92929A>The history keeps recording everywhere, so nothing is missing when you come back\n<b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nStep through camera views only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Navigation History/View Back} and {key:Blendon/Navigation History/View Forward} do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBoth keys work in every tool context.\n\n<size=9><color=#92929A>The history keeps recording everywhere, so nothing is missing when you come back\n{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "ViewHistorySettings.AnimationEnabled": {
@@ -2467,6 +2555,14 @@
    "t": "<size=14><b>Pie Menus</b></size>\nBlender's radial menus: hold a key, flick toward an item, let go.\n\n<size=9><b><color=#92929A>TWO WAYS</color></b></size>\n<b>Flick</b>  hold the key, move toward an item, release\n<b>Tap</b>  press and release quickly: the menu stays open for a click\n\n<size=9><color=#92929A>Off frees every menu's key, built-in and custom. The menus are listed at the bottom of this page</color></size>",
    "i": "Tips/PieMenus/PieMenus.png",
    "d": true,
+   "k": "Boolean"
+  },
+  "PieMenuSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nPie menus only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, every pie key and <b><color=#D98E38>Shift+Z</color></b> do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nPies work in every tool context. A pie on the key of a Unity command still hands that key back there.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nPie menus only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, every pie key and {key:Blendon/Pie Menus/Toggle Wireframe} do what they do in plain Unity.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nPies work in every tool context. A pie on the key of a Unity command still hands that key back there.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "PieMenuSettings.Radius": {
@@ -2587,6 +2683,14 @@
    "t": "<size=14><b>Context Menu</b></size>\nRight-click the <b><color=#3DB892>Scene View</color></b> for Blendon's menu: the Editor's entries, grouped and searchable.\n\n<size=9><b><color=#92929A>INSIDE</color></b></size>\n<color=#92929A>•</color> every entry of the Editor's own menu\n<color=#92929A>•</color> Cut, Copy, Paste and the rest as a row of icons\n<color=#92929A>•</color> a search field: type, then <b><color=#D98E38>Enter</color></b>\n\n<size=9><color=#92929A>Shift + right-click opens the Editor's own menu. Off hands the right-click back</color></size>",
    "i": "Tips/ContextMenu/ContextMenu.png",
    "d": true,
+   "k": "Boolean"
+  },
+  "SceneMenuSettings.ContextOnly": {
+   "l": "Blendon Context Only",
+   "t": "<size=14><b>Blendon Context Only</b></size>\nBlendon's menu only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, <b><color=#D98E38>Mouse 1</color></b> opens Unity's own menu instead.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBlendon's menu opens in every tool context.\n\n<size=9><color=#92929A><b><color=#D98E38>B</color></b> switches between the contexts</color></size>",
+   "i": "Tips/Overview/ContextOnly.png",
+   "src": "<size=14><b>Blendon Context Only</b></size>\nBlendon's menu only while the tool context is <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nIn any other tool context, such as <b>Game Object</b> or ProBuilder's, {key:Blendon/Context Menu} opens Unity's own menu instead.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nBlendon's menu opens in every tool context.\n\n<size=9><color=#92929A>{key:Blendon/Toggle Blendon} switches between the contexts</color></size>",
+   "d": false,
    "k": "Boolean"
   },
   "SceneMenuSettings.EditActions": {
@@ -2789,9 +2893,9 @@
   "Blendon/Toggle Blendon": {
    "d": "B",
    "n": "Toggle Blendon",
-   "t": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>B</color></b>\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
+   "t": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n<b><color=#D98E38>B</color></b>\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay, unless their page has <b><color=#4FA8E8>Blendon Context Only</color></b> on.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>",
    "i": "Tips/Overview/ToggleContext.png",
-   "src": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Toggle Blendon}\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
+   "src": "<size=14><b>Toggle Blendon</b></size>\nSwitch between Blendon's tools and the tool context you were in before, such as <b>Game Object</b> or ProBuilder's.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Toggle Blendon}\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nFrom any other context it goes to <b>Game Object (Blendon)</b>. From there it goes back where you came from, or to <b>Game Object</b> when that context is gone or not known yet.\n\n<size=9><b><color=#92929A>OUTSIDE IT</color></b></size>\nUnity's own feel: Grab, Vertex Snapping, Box Select and Click Selects Parent step aside and their keys do what they do in plain Unity. Navigation, the pies and the context menu stay, unless their page has <b><color=#4FA8E8>Blendon Context Only</color></b> on.\n\n<size=9><color=#92929A>Works in every window, not only the Scene View</color></size>\n\n<size=9><color=#92929A>Click to open this shortcut on the Keyboard page</color></size>"
   },
   "Blendon/Orbit Selected": {
    "d": "Mouse 2",
@@ -3472,6 +3576,54 @@
   "Blendon/Rotate/Grab": "Always",
   "Blendon/Scale/Grab": "Always"
  },
+ "contextOnly": {
+  "Blendon/Box Select/Add Children": "BoxSelectSettings.HierarchyContextOnly",
+  "Blendon/Box Select/Add Parent": "BoxSelectSettings.HierarchyContextOnly",
+  "Blendon/Box Select/Select Children": "BoxSelectSettings.HierarchyContextOnly",
+  "Blendon/Box Select/Select Parent": "BoxSelectSettings.HierarchyContextOnly",
+  "Blendon/Frame Selected": "FrameSelectedSettings.ContextOnly",
+  "Blendon/Isolate View": "IsolateViewSettings.ContextOnly",
+  "Blendon/Navigation History/Selection Back": "HistorySettings.ContextOnly",
+  "Blendon/Navigation History/Selection Forward": "HistorySettings.ContextOnly",
+  "Blendon/Navigation History/View Back": "ViewHistorySettings.ContextOnly",
+  "Blendon/Navigation History/View Forward": "ViewHistorySettings.ContextOnly",
+  "Blendon/Numpad Views/Align To Camera": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Back": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Bottom": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Front": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Left": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Orbit Down": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Orbit Left": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Orbit Right": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Orbit Up": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Reverse View": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Right": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Toggle Perspective": "ViewportNavSettings.ContextOnly",
+  "Blendon/Numpad Views/Top": "ViewportNavSettings.ContextOnly",
+  "Blendon/Orbit Selected": "OrbitSelectedSettings.ContextOnly",
+  "Blendon/Orbit Selected/Quick Roll": "OrbitSelectedSettings.ContextOnly",
+  "Blendon/Pan": "PanSettings.ContextOnly",
+  "Blendon/Pie Menus/Add Object": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 1": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 2": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 3": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 4": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 5": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 6": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 7": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Custom 8": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Draw Mode": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Orientation": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Pivot Point": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Reset": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Snapping": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Toggle Wireframe": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/Tools": "PieMenuSettings.ContextOnly",
+  "Blendon/Pie Menus/View": "PieMenuSettings.ContextOnly",
+  "Blendon/Snap to Floor": "SnapToFloorSettings.ContextOnly",
+  "Blendon/Zoom/Zoom In": "ZoomSettings.ContextOnly",
+  "Blendon/Zoom/Zoom Out": "ZoomSettings.ContextOnly"
+ },
  "pages": {
   "OrbitSelected": [
    [
@@ -3490,6 +3642,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "OrbitSelectedSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "OrbitSelectedSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Orbit",
@@ -3660,6 +3848,42 @@
     [
      [
       "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "PanSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "PanSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
+     [
+      "sub",
       "Pan",
       "d_ViewToolMove",
       15,
@@ -3750,6 +3974,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "ZoomSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "ZoomSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Zoom",
@@ -3873,6 +4133,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "ViewportNavSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "ViewportNavSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Axis Views",
@@ -4180,6 +4476,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "OrientationGizmoSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "OrientationGizmoSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Unity's Gizmo",
@@ -6306,6 +6638,42 @@
     [
      [
       "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "FrameSelectedSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "FrameSelectedSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
+     [
+      "sub",
       "Shortcut",
       "d_Keyboard",
       15,
@@ -6379,6 +6747,42 @@
     [
      [
       "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "IsolateViewSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "IsolateViewSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
+     [
+      "sub",
       "Isolate",
       "animationvisibilitytoggleon",
       15,
@@ -6417,6 +6821,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "SnapToFloorSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "SnapToFloorSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Shortcut",
@@ -6567,6 +7007,42 @@
     [
      [
       "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "HistorySettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "HistorySettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
+     [
+      "sub",
       "Shortcuts",
       "d_Keyboard",
       15,
@@ -6602,6 +7078,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "ViewHistorySettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "ViewHistorySettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Shortcuts",
@@ -6755,6 +7267,35 @@
        ]
       ],
       [
+       [
+        "tog",
+        "BoxSelectSettings.HierarchyContextOnly"
+       ],
+       [
+        "if",
+        [
+         "&&",
+         [
+          "v",
+          "BoxSelectSettings.HierarchyContextOnly"
+         ],
+         [
+          "!",
+          [
+           "f",
+           "anyTool"
+          ]
+         ]
+        ],
+        [
+         [
+          "note",
+          "Every transform tool is off, so Blendon's context only comes on with its key.",
+          "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+         ]
+        ],
+        null
+       ],
        [
         "sc",
         "Blendon/Box Select/Select Parent",
@@ -6942,9 +7483,45 @@
     [
      [
       "sub",
+      "Context",
+      "d_Transform Icon",
+      2,
+      0
+     ],
+     [
+      "tog",
+      "PieMenuSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "PieMenuSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
+     [
+      "sub",
       "Pointing",
       "d_PreMatSphere",
-      2,
+      15,
       0
      ],
      [
@@ -7088,6 +7665,21 @@
      [
       "nat",
       "Blendon/Pie Menus/Toggle Wireframe"
+     ],
+     [
+      "if",
+      [
+       "v",
+       "PieMenuSettings.ContextOnly"
+      ],
+      [
+       [
+        "note",
+        "Only in Blendon's context, like the pies.",
+        "This key is the Draw Mode pie's other half, so it follows the pies' Blendon Context Only above. In any other tool context it does what it does in plain Unity."
+       ]
+      ],
+      null
      ]
     ]
    ],
@@ -7112,6 +7704,42 @@
      ]
     ],
     [
+     [
+      "sub",
+      "Context",
+      "d_Transform Icon",
+      15,
+      0
+     ],
+     [
+      "tog",
+      "SceneMenuSettings.ContextOnly"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "SceneMenuSettings.ContextOnly"
+       ],
+       [
+        "!",
+        [
+         "f",
+         "anyTool"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Every transform tool is off, so Blendon's context only comes on with its key.",
+        "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+       ]
+      ],
+      null
+     ],
      [
       "sub",
       "Shortcut",
@@ -10096,6 +10724,7 @@
   "Tips/Overview/AxisColorY.png": "plugin/tips/Overview_AxisColorY.webp",
   "Tips/Overview/AxisColorZ.png": "plugin/tips/Overview_AxisColorZ.webp",
   "Tips/Overview/ContestedKey.png": "plugin/tips/Overview_ContestedKey.webp",
+  "Tips/Overview/ContextOnly.png": "plugin/tips/Overview_ContextOnly.webp",
   "Tips/Overview/EscKeepsContext.png": "plugin/tips/Overview_EscKeepsContext.webp",
   "Tips/Overview/ExportSettings.png": "plugin/tips/Overview_ExportSettings.webp",
   "Tips/Overview/ImportSettings.png": "plugin/tips/Overview_ImportSettings.webp",
@@ -10321,6 +10950,7 @@
   "Tips/Overview/AxisColorY.png": "640 / 360",
   "Tips/Overview/AxisColorZ.png": "640 / 360",
   "Tips/Overview/ContestedKey.png": "640 / 360",
+  "Tips/Overview/ContextOnly.png": "640 / 360",
   "Tips/Overview/EscKeepsContext.png": "640 / 360",
   "Tips/Overview/ExportSettings.png": "640 / 360",
   "Tips/Overview/ImportSettings.png": "640 / 360",

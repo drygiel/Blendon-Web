@@ -330,7 +330,7 @@ const MENU: MenuEntry[] = [
     title: 'Orientation',
     img: 'OrientationGizmo',
     overlay: 'orientation',
-    listed: () => OrientationGizmoSettings.Enabled,
+    listed: () => OrientationGizmoSettings.Shown,
   },
   { title: 'Cameras', img: 'd_CameraPreview' },
 ];

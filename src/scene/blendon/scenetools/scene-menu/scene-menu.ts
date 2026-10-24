@@ -21,6 +21,7 @@ import { VertexSnappingUtility } from '../../gizmos/vertex-snapping.ts';
 import { ViewportGesture } from '../../gizmos/viewport-gesture.ts';
 import { ResetActions, SpawnPlacement } from '../../piemenus/actions.ts';
 import { GeneralSettings } from '../../settings.ts';
+import { ShortcutGates } from '../../shortcut-gates.ts';
 import { FrameSelected, unityFrameSelected } from '../frame-selected.ts';
 import { HierarchyWalk } from '../selection-tools.ts';
 import { FrameSelectedSettings, SceneMenuEditActions, SceneMenuSettings, SnapToFloorSettings } from '../settings.ts';
@@ -753,6 +754,12 @@ const gestureRunning = () => heldButtons !== 0 || ViewportGesture.busy;
 /** Vertex pick mode keeps Blendon's menu shut, and the Editor's own while the pick's right-click cancel takes it. */
 const pickHolds = (ours: boolean) => VertexSnappingUtility.isPickMode && (ours || GeneralSettings.RmbCancelEnabled);
 
+/**
+ * SceneMenuTrigger.OpensClassic: outside Blendon's context with Blendon Context Only on. The Editor's menu keeps no
+ * key while ours is on, so ours shows the Editor's entries instead of handing the button back.
+ */
+const opensClassic = () => !ShortcutGates.allows(SceneMenuSettings.ContextOnly);
+
 /** The menu's binding when it is a right-click one; null when it has no key or sits on another button. */
 function rightClickBinding(): KeyCombination | null {
   const b = ShortcutManager.getShortcutBinding(ShortcutId);
@@ -812,7 +819,7 @@ function onBeforeSceneGui(view: SceneView) {
     pointerAt = e.mousePosition;
   }
   if (opensAtOnce(e)) {
-    SceneMenu.open(view, pointerView === view ? pointerAt : view.cameraViewport.size.mul(0.5));
+    SceneMenu.open(view, pointerView === view ? pointerAt : view.cameraViewport.size.mul(0.5), opensClassic());
     e.use();
     return;
   }
@@ -825,7 +832,7 @@ function onBeforeSceneGui(view: SceneView) {
         // plain right-click is the Editor's own. Shift+right-click is the classic menu unless the binding takes Shift.
         const binding = rightClickBinding();
         const ours = SceneMenuSettings.Enabled && binding !== null && modifiersFit(e, binding);
-        classic = ours ? e.shift && !(binding.modifiers & ShortcutModifiers.Shift) : true;
+        classic = ours ? opensClassic() || (e.shift && !(binding.modifiers & ShortcutModifiers.Shift)) : true;
         pressOurs = ours;
         armed = !gestureRunning() && !pickHolds(ours) && (ours || (!e.control && !e.alt && !e.command));
       } else heldButtons |= 1 << e.button;

@@ -21,6 +21,9 @@ export const ShortcutGates = {
   /** Set by the tool contexts: whether Blendon's own is active. Without them it always is. */
   inBlendonContext: () => true,
 
+  /** BlendonContext.Allows: a tool set to Blendon Context Only answers now, else it is plain Unity's. */
+  allows: (contextOnly: boolean) => !contextOnly || ShortcutGates.inBlendonContext(),
+
   /** Heard now. The Editor's own ids (Undo, Box Select's modifiers) have no gate. */
   isOpen(id: string): boolean {
     if (!id.startsWith('Blendon/')) return true;

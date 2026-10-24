@@ -5,6 +5,7 @@ import { Mathf, Rect, type Vector3 } from '../../unity/math.ts';
 import { SceneView } from '../../unity/sceneview.ts';
 import { EditorRaycastUtility, ModalViewportGate, SceneTutorial, SelectionCache } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
+import { ShortcutGates } from '../shortcut-gates.ts';
 import { GeneralSettings, sBool, sEnum, sNum } from '../settings.ts';
 import { ViewProjection } from './camera.ts';
 import { OrbitSelected } from './orbit-selected.ts';
@@ -16,6 +17,9 @@ const K = 'ZoomSettings.';
 export const ZoomSettings = {
   get Enabled() {
     return GeneralSettings.Enabled && sBool(K + 'Enabled', true);
+  },
+  get ContextOnly() {
+    return sBool(K + 'ContextOnly', false);
   },
   get ZoomTo() {
     return sEnum(K + 'ZoomTo', ['Cursor', 'Selection', 'Center'], ZoomTarget.Cursor);
@@ -59,7 +63,8 @@ export const Zoom = {
 };
 
 function onSceneGUI(view: SceneView) {
-  if (!ZoomSettings.Enabled || ModalViewportGate.isBlocked) {
+  // Outside Blendon's context the wheel may be Unity's.
+  if (!ZoomSettings.Enabled || !ShortcutGates.allows(ZoomSettings.ContextOnly) || ModalViewportGate.isBlocked) {
     pendingSteps = 0;
     pendingView = null;
     return;

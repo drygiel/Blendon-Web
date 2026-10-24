@@ -174,6 +174,9 @@ export const SceneMenuSettings = {
   get Enabled() {
     return GeneralSettings.Enabled && sBool(M + 'Enabled', true);
   },
+  get ContextOnly() {
+    return sBool(M + 'ContextOnly', false);
+  },
   get EditActions() {
     return sEnum(M + 'EditActions', ['IconRow', 'List'], SceneMenuEditActions.IconRow);
   },
