@@ -23,15 +23,15 @@ export const ViewportNavSettings = {
   },
 };
 
-const P = 'Blendon/Viewport Nav/';
+const P = 'Blendon/Numpad Views/';
 export const ViewportNavIds = {
-  Front: P + 'View Front',
-  Back: P + 'View Back',
-  Right: P + 'View Right',
-  Left: P + 'View Left',
-  Top: P + 'View Top',
-  Bottom: P + 'View Bottom',
-  Projection: P + 'Toggle Projection',
+  Front: P + 'Front',
+  Back: P + 'Back',
+  Right: P + 'Right',
+  Left: P + 'Left',
+  Top: P + 'Top',
+  Bottom: P + 'Bottom',
+  Projection: P + 'Toggle Perspective',
   OrbitUp: P + 'Orbit Up',
   OrbitDown: P + 'Orbit Down',
   OrbitLeft: P + 'Orbit Left',

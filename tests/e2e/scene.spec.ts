@@ -248,6 +248,46 @@ test('the click that confirms a grab selects nothing', async ({ page }) => {
   expect(await positionOf(page, 'Cube')).toEqual(placed);
 });
 
+test('the R grab aims with Alt about its axis, and Y with Alt held aims about Y at once', async ({ page }) => {
+  const view = await openScene(page);
+  const rotation = () =>
+    view.evaluate((el: unknown) => {
+      const objects = (
+        el as {
+          sceneHost: {
+            scene: { allObjects(): Iterable<{ name: string; transform: { rotation: Vec3 & { w: number } } }> };
+          };
+        }
+      ).sceneHost.scene.allObjects();
+      const q = [...objects].find((o) => o.name === 'Cube')!.transform.rotation;
+      return { x: q.x, y: q.y, z: q.z, w: q.w };
+    });
+  const start = await rotation();
+  const from = await pagePointOf(page, 'Cube');
+  const to = await pagePointOf(page, 'Tilted Cube');
+  await page.mouse.move(from.x + 40, from.y);
+  await page.keyboard.press('r');
+  await page.mouse.move(to.x, to.y, { steps: 6 });
+  const swept = await rotation();
+  expect(swept).not.toEqual(start);
+  // The aim key over the other cube turns the view axis toward it.
+  await page.keyboard.down('Alt');
+  await page.mouse.move(to.x + 1, to.y);
+  await expect.poll(rotation).not.toEqual(swept);
+  // Y with Alt still held aims about Y on the key press, with no mouse move.
+  await page.keyboard.press('y');
+  await expect.poll(async () => Math.abs((await rotation()).x) + Math.abs((await rotation()).z)).toBeLessThan(1e-4);
+  await page.keyboard.up('Alt');
+  await page.keyboard.press('Enter');
+  // +Z faces the other cube across the floor.
+  const q = await rotation();
+  const facing = Math.atan2(2 * (q.x * q.z + q.w * q.y), 1 - 2 * (q.x * q.x + q.y * q.y));
+  const a = (await positionOf(page, 'Cube'))!;
+  const b = (await positionOf(page, 'Tilted Cube'))!;
+  const toward = Math.atan2(b.x - a.x, b.z - a.z);
+  expect(Math.abs(Math.atan2(Math.sin(facing - toward), Math.cos(facing - toward)))).toBeLessThan(0.26);
+});
+
 test('opens the context menu on a right click and closes it with Escape', async ({ page }) => {
   const view = await openScene(page);
   const box = (await view.boundingBox())!;
@@ -289,6 +329,38 @@ test('orbits with the middle mouse button', async ({ page }) => {
   for (let i = 1; i <= 10; i++) await page.mouse.move(x + i * 12, y + i * 3);
   await page.mouse.up({ button: 'middle' });
   await expect.poll(() => viewRotation(page)).not.toEqual(before);
+});
+
+test("a middle click without a drag focuses on the clicked surface like the Editor's Focus", async ({ page }) => {
+  const view = await openScene(page);
+  const camera = () =>
+    view.evaluate((el: unknown) => {
+      const v = (el as { sceneHost: { view: { pivot: Vec3; camera: { position: Vec3 } } } }).sceneHost.view;
+      return { pivot: { ...v.pivot }, camera: { ...v.camera.position } };
+    });
+  const before = await camera();
+  const rotation = await viewRotation(page);
+  const at = await pagePointOf(page, 'Tilted Cube');
+  // A nudge inside Unity's 6 px click distance is still a click: no orbit.
+  await page.mouse.move(at.x, at.y);
+  await page.mouse.down({ button: 'middle' });
+  await page.mouse.move(at.x + 3, at.y + 2);
+  await page.mouse.up({ button: 'middle' });
+  const target = (await positionOf(page, 'Tilted Cube'))!;
+  const [x, y, z, w] = rotation;
+  const forward = { x: 2 * (x * z + w * y), y: 2 * (y * z - w * x), z: 1 - 2 * (x * x + y * y) };
+  // Once the flight lands, the pivot sits on the cube's front face and the camera only slid across: same
+  // depth along the view, so nothing zoomed, and the same rotation.
+  await expect
+    .poll(async () => {
+      const { pivot: p, camera: c } = await camera();
+      const depth =
+        (c.x - before.camera.x) * forward.x + (c.y - before.camera.y) * forward.y + (c.z - before.camera.z) * forward.z;
+      return Math.hypot(p.x - target.x, p.y - target.y, p.z - target.z) < 1 && Math.abs(depth) < 0.01;
+    })
+    .toBe(true);
+  // The flight lands on a renormalized rotation, equal but for rounding.
+  (await viewRotation(page)).forEach((c, i) => expect(c).toBeCloseTo(rotation[i], 9));
 });
 
 test('the orbit shortcut takes a mouse button only, and on Alt + left the axis snap waits for a fresh Alt', async ({
@@ -687,9 +759,9 @@ async function openOverview(page: Page) {
   return win;
 }
 
-/** One row of the Overview's covered-commands table, found by Blendon's side. */
-const contestedRow = (page: Page, name: string) =>
-  page.locator('#try .uw .ct').filter({ has: page.locator('.ctn', { hasText: new RegExp(`^${name}$`) }) });
+/** A row of the Overview's covered-commands table, by its Editor command (Blendon's three grabs all read Grab). */
+const contestedRow = (page: Page, command: string) =>
+  page.locator('#try .uw .ct').filter({ has: page.locator('.ctu', { hasText: new RegExp(`^${command}$`) }) });
 
 async function toScene(page: Page) {
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
@@ -701,7 +773,7 @@ test('the first press of a key that covers an Editor command explains it once', 
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   // The page starts with the command moved aside; Reset gives it G back, so G covers it.
   await openOverview(page);
-  await contestedRow(page, 'Grab').getByRole('button', { name: 'Reset', exact: true }).click();
+  await contestedRow(page, 'Cycle Tool Modes').getByRole('button', { name: 'Reset', exact: true }).click();
   await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   const card = view.getByRole('status');
@@ -726,7 +798,7 @@ test('with the tutorial on, the tip card sits just above the badge and makes way
   // Started, so the badge's line names a task and has a hover card.
   await view.getByRole('button', { name: 'Blendon Tutorial' }).click();
   await openOverview(page);
-  await contestedRow(page, 'Grab').getByRole('button', { name: 'Reset', exact: true }).click();
+  await contestedRow(page, 'Cycle Tool Modes').getByRole('button', { name: 'Reset', exact: true }).click();
   await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   const card = view.getByRole('status').filter({ hasText: 'Cycle Tool Modes' });
@@ -751,14 +823,14 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   const win = await openOverview(page);
-  const grab = contestedRow(page, 'Grab');
+  const grab = contestedRow(page, 'Cycle Tool Modes');
   await grab.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(grab.getByRole('button', { name: 'Move aside', exact: true })).toBeVisible();
   await win.locator('.si[aria-label="Move"]').click();
   await win.getByRole('button', { name: 'Enable Move' }).click();
   await win.locator('.si[aria-label="Blendon"]').click();
   // Free: nothing is covered, so there is nothing to move and the row goes.
-  await expect(contestedRow(page, 'Grab Rotate')).toBeVisible();
+  await expect(contestedRow(page, 'Scale Tool')).toBeVisible();
   await expect(grab).toHaveCount(0);
 
   const before = (await positionOf(page, 'Cube'))!.x;
@@ -777,7 +849,7 @@ test('the page starts with Cycle Tool Modes on Shift+G, Reset gives it G back an
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   await openOverview(page);
-  const grab = contestedRow(page, 'Grab');
+  const grab = contestedRow(page, 'Cycle Tool Modes');
   const editorKey = grab.locator('.ctk').nth(1);
   await expect(editorKey).toHaveText('ShiftG');
   await expect(grab.getByRole('button', { name: 'Reset', exact: true })).toBeVisible();

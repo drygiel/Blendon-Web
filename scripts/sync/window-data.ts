@@ -594,6 +594,9 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     ioTooltip: need('OverviewPage.SettingsIoTooltip'),
     exportTip: need('OverviewPage.ExportSettingsTooltip'),
     importTip: need('OverviewPage.ImportSettingsTooltip'),
+    supportLead: need('OverviewPage.SupportLead'),
+    supportLinkText: need('OverviewPage.SupportLinkText'),
+    supportTipKey: need('SupportInfo.TipKey'),
     keyboardIntro: need('KeyboardPage.Intro'),
     appearanceTip: need('FoldBands.AppearanceTooltip'),
     contestedLinkHint: need('OverviewContestedTable.LinkHint'),
@@ -857,6 +860,8 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   }));
   const featureTips: Record<string, Tip> = {};
   for (const [k, v] of Object.entries(M2.featureTips)) if (v) featureTips[k] = toTip(v);
+  const linkTips: Record<string, Tip> = {};
+  for (const [k, v] of Object.entries(M2.linkTips)) linkTips[k] = toTip(v);
 
   const labelToProp: Record<string, string> = {};
   for (const k of Object.keys(props)) if (k.startsWith('SceneMenuSettings.')) labelToProp[props[k]?.l ?? ''] = k;
@@ -980,6 +985,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     pageShortcuts,
     primaryShortcut,
     featureTips,
+    linkTips,
     frameSteps: M3.frameSteps.map(([id, on]) => ({ id, on })),
     frameStepInfo: Object.fromEntries(Object.entries(FRAME_INFO).map(([k, [label, tip]]) => [k, { label, tip }])),
     extras,

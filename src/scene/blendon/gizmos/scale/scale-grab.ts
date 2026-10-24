@@ -25,7 +25,7 @@ import { ScaleDragOverlays, ScaleDragSession, ScaleMath } from './scale-parts.ts
 import { ScaleGizmo } from './scale-gizmo.ts';
 
 export class ScaleGrab extends GrabSession {
-  static readonly ShortcutId = 'Blendon/Grab Scale';
+  static readonly ShortcutId = 'Blendon/Scale/Grab';
   private readonly session: ScaleDragSession;
 
   private static _instance: ScaleGrab | null = null;

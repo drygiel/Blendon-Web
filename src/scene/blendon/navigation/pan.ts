@@ -8,7 +8,7 @@ import { CursorWrapTracker, EditorRaycastUtility, ModalViewportGate, SceneTutori
 import { GeneralSettings, sBool } from '../settings.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
-const ShortcutId = 'Blendon/Camera Pan';
+const ShortcutId = 'Blendon/Pan';
 const K = 'PanSettings.';
 export const PanSettings = {
   get Enabled() {

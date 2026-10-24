@@ -80,6 +80,8 @@ export interface Model2 {
   }[];
   resolutions: (DumpRow & { known: boolean })[];
   featureTips: Record<string, DumpCard | null>;
+  /** The Overview text links that carry a card, by tip key. */
+  linkTips: Record<string, DumpCard>;
 }
 export interface DumpPie {
   id: string;
@@ -287,6 +289,7 @@ const MODEL2 = obj({
     if (isObj(v)) bool(v.known, at + '.known', like + '.known', out);
   }),
   featureTips: rec(nullable(card)),
+  linkTips: rec(card),
 });
 const MODEL3 = obj({
   pies: arr(

@@ -33,7 +33,7 @@ export type ItemData =
   | { k: 'note'; runs: Run[]; tip: TipSource }
   | { k: 'banner'; warn: boolean; runs: Run[]; indent: boolean; lead: boolean; link?: BannerLink }
   | { k: 'plink'; page: string; text: string; icon: string; accent: string; tip: TipSource }
-  | { k: 'link'; lead: string; text: string; tip: TipSource; url: string }
+  | { k: 'link'; lead: string; text: string; tip: TipSource; url?: string; demo?: string }
   | { k: 'space'; h: number }
   | { k: 'prev'; owner: string }
   | { k: 'action'; label: string; btn: string; tip: TipSource }
@@ -733,23 +733,11 @@ export class Builder {
         this.action('Tips Shown', C.tipsShownTip ?? '', '↺  Show Again', 'Tips/Overview/TipsShown.png');
         if (d) this.dis--;
       }
-      this.flush();
-      this.add({
-        k: 'link',
-        lead: 'The full guide to every feature: ',
-        text: 'Blendon manual (PDF)',
-        tip: { t: "Open the PDF manual from the package's Documentation folder", i: '', native: true },
-        url: MANUAL_URL,
-      });
-      this.flush();
-      this.add({
-        k: 'link',
-        lead: 'The latest manual and the interactive Playground: ',
-        text: 'blendon.drygiel.com',
-        tip: { t: 'Open the Blendon website in your browser', i: '', native: true },
-        url: HOME_URL,
-      });
     }
+    // Outside the switch's scope: with Blendon off, the manual and the support info are what is left to reach for.
+    if (off) this.dis--;
+    this.links();
+    if (off) this.dis++;
     // Toggle Blendon and Esc Keeps Context, above Export as on the plugin's page.
     this.run(toolContext);
     this.sub('Export', 'd_Refresh', 15, 0);
@@ -767,6 +755,36 @@ export class Builder {
     this.pendingCard = null;
     if (this.wrap?.group) this.endWrap();
     if (off) this.dis--;
+  }
+
+  // OverviewPage.DrawLinks.
+  links() {
+    if (this.searching) return;
+    const C = D.consts;
+    this.flush();
+    this.add({
+      k: 'link',
+      lead: 'The full guide to every feature: ',
+      text: 'Blendon manual (PDF)',
+      tip: { t: "Open the PDF manual from the package's Documentation folder", i: '', native: true },
+      url: MANUAL_URL,
+    });
+    this.flush();
+    this.add({
+      k: 'link',
+      lead: 'The latest manual and the interactive Playground: ',
+      text: 'blendon.drygiel.com',
+      tip: { t: 'Open the Blendon website in your browser', i: '', native: true },
+      url: HOME_URL,
+    });
+    this.flush();
+    this.add({
+      k: 'link',
+      lead: C.supportLead ?? '',
+      text: C.supportLinkText ?? '',
+      tip: D.linkTips[C.supportTipKey ?? ''] ?? tipOf(''),
+      demo: 'In Unity this puts your Blendon, Unity and OS versions and your setup on the clipboard, ready to paste into a bug report.',
+    });
   }
 
   action(label: string, tip: string, btn: string, img: string) {

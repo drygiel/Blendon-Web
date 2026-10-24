@@ -30,7 +30,7 @@ const binding = (tokens: KeyTokens) => tokens.filter((t) => !t.startsWith('~')).
 
 describe('landing keys', () => {
   it('leaves the Scale tool on its own key on the Blendon preset', () => {
-    const k = known('Blendon/Grab Rotate');
+    const k = known('Blendon/Rotate/Grab');
     expect(k?.editorKey).toBeTruthy();
     expect(binding(FEATURES.find((f) => f.id === 'scale')?.keys ?? [])).toBe(k?.editorKey);
     // Grab Rotate only covers it in the Scene view, so both presets show the same key.
@@ -40,7 +40,7 @@ describe('landing keys', () => {
   });
 
   it('shows the Toggle Blendon key, the same on both presets', () => {
-    const keys = data.keymap['Blendon/Tool Context/Toggle Blendon'];
+    const keys = data.keymap['Blendon/Toggle Blendon'];
     const row = SHORTCUTS.find(([action]) => action.startsWith('Toggle Blendon'));
     expect(keys?.b).toBeTruthy();
     expect(keys?.u).toBe(keys?.b);
@@ -51,10 +51,10 @@ describe('landing keys', () => {
   it('shows where the Unity preset moves each single-key gesture', () => {
     const rows: [string, string][] = [
       ['Orbit', 'Blendon/Orbit Selected'],
-      ['Quick Roll', 'Blendon/Quick Roll'],
-      ['Pan', 'Blendon/Camera Pan'],
-      ['Vertex snap', 'Blendon/Vertex Snap'],
-      ['Virtual pivot', 'Blendon/Pick Virtual Pivot'],
+      ['Quick Roll', 'Blendon/Orbit Selected/Quick Roll'],
+      ['Pan', 'Blendon/Pan'],
+      ['Vertex snap', 'Blendon/All Tools/Vertex Snap'],
+      ['Virtual pivot', 'Blendon/All Tools/Pick Virtual Pivot'],
       ['Context menu', 'Blendon/Context Menu'],
     ];
     for (const [action, id] of rows) {

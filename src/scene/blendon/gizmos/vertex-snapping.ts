@@ -16,8 +16,8 @@ import { EditorRaycastUtility, SceneTutorial, SelectionCache } from '../foundati
 import { GizmoRegistry } from './viewport-gesture.ts';
 
 export const VertexSnapping = {
-  ShortcutId: 'Blendon/Vertex Snap',
-  PickShortcutId: 'Blendon/Pick Virtual Pivot',
+  ShortcutId: 'Blendon/All Tools/Vertex Snap',
+  PickShortcutId: 'Blendon/All Tools/Pick Virtual Pivot',
 };
 
 // A press that turned the pull on and is held past this reads as a clutch.

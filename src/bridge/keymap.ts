@@ -20,13 +20,15 @@ export interface LiveSettings extends GateReader {
 
 const MENU = 'Scene View/Menu';
 const OUR_MENU = 'Blendon/Context Menu';
+// Selection and View History share this folder, the View half's leaves start with "View ".
+const HISTORY = 'Blendon/Navigation History/';
 const TOOLS = ['MoveGizmoSettings', 'RotateGizmoSettings', 'ScaleGizmoSettings', 'TransformGizmoSettings'];
 // HierarchyWalk's keys, which Box Select's Hierarchy Keys switch can shut on their own.
 const HIERARCHY = new Set([
-  'Blendon/Select Parent',
-  'Blendon/Select Children',
-  'Blendon/Add Parent To Selection',
-  'Blendon/Add Children To Selection',
+  'Blendon/Box Select/Select Parent',
+  'Blendon/Box Select/Select Children',
+  'Blendon/Box Select/Add Parent',
+  'Blendon/Box Select/Add Children',
 ]);
 
 let overrides: Record<string, string> = {};
@@ -83,8 +85,8 @@ export function switchedOn(id: string, r: GateReader = sharedSettings): boolean 
   if (!id.startsWith('Blendon/') || !flag(r, 'GeneralSettings.Enabled')) return false;
   const on = (cls: string) => flag(r, cls + '.Enabled');
   if (id === OUR_MENU) return on('SceneMenuSettings');
-  if (id === 'Blendon/Toggle Wireframe') return on('WireframeToggleSettings');
-  if (id.startsWith('Blendon/History/')) return on(id.endsWith('View') ? 'ViewHistorySettings' : 'HistorySettings');
+  if (id === 'Blendon/Pie Menus/Toggle Wireframe') return on('WireframeToggleSettings');
+  if (id.startsWith(HISTORY)) return on(id.startsWith(HISTORY + 'View ') ? 'ViewHistorySettings' : 'HistorySettings');
   if (id.startsWith('Blendon/Pie Menus/')) {
     pieOf ??= new Map(D.pies.map((p) => [p.sid, p.id]));
     const pie = pieOf.get(id);

@@ -1,9 +1,16 @@
-// OrbitSelected: middle-mouse orbit around the selection, with the Alt axis snap into ortho.
-import { EditorApplication, ShortcutManager, ShortcutStage, type ShortcutArguments } from '../../unity/editor.ts';
+// OrbitSelected: middle-mouse orbit around the selection, with the Alt axis snap into ortho. A middle click
+// without a drag stands in for the Editor's Focus.
+import {
+  EditorApplication,
+  ShortcutManager,
+  ShortcutStage,
+  parseBinding,
+  type ShortcutArguments,
+} from '../../unity/editor.ts';
 import { EditorGUIUtility, HandleUtility, Handles, MouseCursor } from '../../unity/handles.ts';
 import { Event, EventType, FocusType, GUIUtility, KeyCode, MouseButton } from '../../unity/imgui.ts';
-import { Quaternion, Rect, Vector3 } from '../../unity/math.ts';
-import type { Transform } from '../../unity/scene.ts';
+import { Quaternion, Rect, Vector2, Vector3 } from '../../unity/math.ts';
+import type { GameObject, Transform } from '../../unity/scene.ts';
 import { Camera, SceneView } from '../../unity/sceneview.ts';
 import { withFade } from '../color.ts';
 import {
@@ -64,9 +71,13 @@ export const OrbitSelectedSettings = {
 };
 
 const ShortcutId = 'Blendon/Orbit Selected';
-const RollShortcutId = 'Blendon/Quick Roll';
+const RollShortcutId = 'Blendon/Orbit Selected/Quick Roll';
 const MaxPivotDepthShare = 0.75;
 const RotationLockNoticeSeconds = 2;
+// Unity's own click-vs-drag distance for a mouse shortcut. Shorter is a click, not an orbit.
+const ClickSlop = 6;
+// Scene View/Focus on its Editor default. The orbit's live binding on that key covers the command.
+const EditorFocusKey = 'Mouse 2';
 
 const input = new CursorWrapTracker();
 
@@ -95,6 +106,11 @@ const st = {
   snapKeyFromBinding: false,
   // A right press ignored mid-drag (cancel off). Its drags may then carry the right button.
   rightPressIgnored: false,
+  // Press of the orbit button that has not moved past ClickSlop yet. Null once it is a drag or let go.
+  pressedAt: null as Vector2 | null,
+  pressedIn: null as SceneView | null,
+  // Whether the orbit's clutch began for that press. The site's Shortcut Manager ends it before the release's pass.
+  pressHeld: false,
   isPanning: false,
   activeControlId: -1,
   initialPivot: Vector3.zero,
@@ -215,10 +231,55 @@ function resetDragState(controlId: number) {
   st.snapModifierHeld = false;
   st.snapKeyFromBinding = false;
   st.rightPressIgnored = false;
+  st.pressedAt = null;
   if (st.isPanning) Pan.endPanSession();
   st.isPanning = false;
   QuickRoll.reset();
   input.end();
+}
+
+// The plain orbit waits out the slop, so a click stays a click. A roll flick is judged from the press.
+function stillAClick(view: SceneView, e: Event) {
+  if (QuickRoll.armed) return false;
+  // Pressed outside this view: the drag counts from where it is first seen.
+  if (!st.pressedAt || st.pressedIn !== view) {
+    st.pressedAt = e.mousePosition;
+    st.pressedIn = view;
+  }
+  return e.mousePosition.sub(st.pressedAt).magnitude <= ClickSlop;
+}
+
+// Let go inside the slop with the clutch held: the click the orbit's binding took from the Editor's Focus.
+function handleRelease(view: SceneView, e: Event) {
+  const pressedAt = st.pressedAt;
+  if (e.button !== dragButton(ShortcutId) || st.pressedIn !== view || !pressedAt) return;
+  st.pressedAt = null;
+  if (!st.pressHeld || e.mousePosition.sub(pressedAt).magnitude > ClickSlop) return;
+  if (coversEditorFocus()) focusOn(view, pressedAt);
+}
+
+// On any other key the Editor's Focus is still there and answers the click itself.
+function coversEditorFocus() {
+  const ours = ShortcutManager.getShortcutBinding(ShortcutId);
+  const focus = parseBinding(EditorFocusKey);
+  return !!ours && !!focus && ours.keyCode === focus.keyCode && ours.modifiers === focus.modifiers;
+}
+
+// What the Editor's Focus does: the pivot goes to the clicked surface, the camera keeps its depth and rotation.
+function focusOn(view: SceneView, guiPoint: Vector2) {
+  const picked = HandleUtility.pickGameObject(guiPoint, false) as GameObject | null;
+  if (!picked) return;
+  const ray = HandleUtility.guiPointToWorldRay(guiPoint);
+  const hit = EditorRaycastUtility.raycast(ray, null, Infinity, [picked.transform]);
+  if (!hit) return;
+  const forward = view.rotation.mulV(Vector3.forward);
+  let size = view.size;
+  // A nearer pivot needs a smaller size for the same camera distance.
+  if (!view.orthographic) {
+    const camera = view.pivot.sub(forward.mul(view.cameraDistance));
+    size *= Vector3.dot(hit.point.sub(camera), forward) / view.cameraDistance;
+  }
+  view.lookAt(hit.point, view.rotation, size, view.orthographic, false);
 }
 
 function onSceneGUI(view: SceneView) {
@@ -237,6 +298,15 @@ function onSceneGUI(view: SceneView) {
 
   const shouldRelease = e.rawType === EventType.MouseUp && e.button === st.trackedButton;
   if (shouldRelease && input.isActive) stopOrbitDrag(view, controlId);
+
+  // The site's Shortcut Manager begins the clutch before this pass, so the press also says whether it did.
+  if (e.type === EventType.MouseDown && !input.isActive && e.button === dragButton(ShortcutId)) {
+    st.pressedAt = e.mousePosition;
+    st.pressedIn = view;
+    st.pressHeld = st.shortcutHeld;
+  }
+
+  if (e.type === EventType.MouseUp && !input.isActive) handleRelease(view, e);
 
   if (e.type === EventType.Layout && (clutchHeld || input.isActive)) HandleUtility.addDefaultControl(controlId);
 
@@ -275,7 +345,12 @@ function onSceneGUI(view: SceneView) {
     case EventType.MouseDown:
     case EventType.MouseDrag:
       if (starting) {
+        if (stillAClick(view, e)) {
+          e.use();
+          break;
+        }
         st.trackedButton = e.button;
+        st.pressedAt = null;
         startOrbitDrag(view, e, controlId);
       } else if (
         e.type === EventType.MouseDrag &&

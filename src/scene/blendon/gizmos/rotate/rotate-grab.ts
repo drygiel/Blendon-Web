@@ -1,4 +1,5 @@
-// RotateGrab: R spins the selection about the view axis with the cursor, X/Y/Z pick a world/local axis.
+// RotateGrab: R spins the selection about the view axis with the cursor, X/Y/Z pick a world/local axis, and the
+// Look At key aims that axis at a surface like a ring drag.
 import { ShortcutManager, Tool, Tools, type ShortcutArguments } from '../../../unity/editor.ts';
 import { HandleUtility, MouseCursor } from '../../../unity/handles.ts';
 import { Event, EventType } from '../../../unity/imgui.ts';
@@ -16,12 +17,16 @@ import { GizmoHud } from '../hud.ts';
 import { DrawOverlays } from '../overlays.ts';
 import { GizmoRenderer } from '../rendering.ts';
 import { SharedGizmoSettings } from '../shared-settings.ts';
-import { RotateDragOverlays, RotateMath } from './rotate-parts.ts';
+import { RotateDragOverlays, RotateLookAt, RotateMath } from './rotate-parts.ts';
 import { RotateGizmo } from './rotate-gizmo.ts';
 
 export class RotateGrab extends GrabSession {
-  static readonly ShortcutId = 'Blendon/Grab Rotate';
+  static readonly ShortcutId = 'Blendon/Rotate/Grab';
+  private readonly lookAt: RotateLookAt;
+  // Cursor-driven, typed or aimed.
   private appliedAngle = 0;
+  // An axis key while aiming, see onConstraintChanged.
+  private reaimPending = false;
   // Accumulated from blended per-frame deltas, so a sweep past 180 keeps counting instead of wrapping.
   private axisDir = Vector3.forward;
   private refDir = Vector3.right;
@@ -35,6 +40,7 @@ export class RotateGrab extends GrabSession {
 
   private constructor() {
     super(new GizmoDragCoordinator());
+    this.lookAt = new RotateLookAt(this.coordinator, () => this.resumeFromAim());
     this.subscribeSceneGui();
   }
 
@@ -67,6 +73,9 @@ export class RotateGrab extends GrabSession {
   }
   protected get dragCursor() {
     return MouseCursor.Orbit;
+  }
+  protected override get altArmed() {
+    return this.lookAt.held;
   }
   // The free sweep turns about the view axis, which has no local meaning - the screen ring's identity.
   protected override get grabAxis() {
@@ -112,7 +121,47 @@ export class RotateGrab extends GrabSession {
     this.tracker.anchor(pivot, axisDir, this.refDir, mouse);
   }
 
+  // First, so the Look At key takes effect on the event that carries it. Typed digits beat the cursor.
+  protected override onInputPass(sceneView: SceneView, ev: Event) {
+    const s = RotateGrab.settings;
+    this.lookAt.update(
+      sceneView,
+      ev,
+      s.LookAtEnabled,
+      s.LookAtModifier,
+      this.numeric.state !== ModalNumericState.NumericInput,
+      () => this.applyLookAt(),
+    );
+    if (!this.reaimPending) return;
+    this.reaimPending = false;
+    if (this.lookAt.driving) this.applyLookAt();
+  }
+
+  // Turns the sweep's axis, the view's or X/Y/Z, as far as it goes toward the surface under the cursor.
+  private applyLookAt() {
+    const c = this.coordinator;
+    const pivot = c.pivotAtDragStart;
+    if (!this.lookAt.probeAndCollect(pivot)) return;
+    this.appliedAngle = this.lookAt.aimAxis(pivot, this.localSpaceRotation(), this.axisDir);
+    GizmoHud.setAbsoluteDelta(this.appliedAngle);
+    RotateMath.applyRotation(c, this.lookAt.rotation, pivot);
+  }
+
+  // Key let go: the sweep goes on from the aimed angle, anchored on the cursor so nothing jumps.
+  private resumeFromAim() {
+    if (this.lookAt.hasTarget) this.totalAngle = this.lookAt.angle;
+    this.seedTracking(this.axisDir, this.coordinator.pivotAtDragStart);
+  }
+
+  protected override endSession() {
+    this.lookAt.reset();
+    this.reaimPending = false;
+    super.endSession();
+  }
+
   protected followCursor() {
+    // Look At owns the angle while its key is held.
+    if (this.lookAt.driving) return;
     const pivot = this.coordinator.pivotAtDragStart;
     const viewDir = GizmoRenderer.computeViewDir(pivot, GizmoRenderer.currentCamera());
     const frameDelta = this.tracker.frameDelta(
@@ -165,14 +214,28 @@ export class RotateGrab extends GrabSession {
     this.seedTracking(dir, pivot);
     // Re-applied at once so the switch shows on the key press; typed digits stay authoritative.
     if (this.numeric.state === ModalNumericState.NumericInput) this.applyNumeric();
-    else this.apply(RotateSnap.snap(this.totalAngle));
+    else if (this.lookAt.driving) {
+      // The sweep's angle would undo the aim. A relayed key has no GUI pass to probe in, so aim on the next.
+      this.reaimPending = true;
+      c.activeSceneView?.repaint();
+    } else this.apply(RotateSnap.snap(this.totalAngle));
   }
 
   protected drawSessionOverlays(sceneView: SceneView) {
     if (Event.current.type !== EventType.Repaint) return;
     const c = this.coordinator;
     const pivot = c.pivotAtDragStart;
-    DrawOverlays.drawCursorLineToGui(pivot, sceneView.camera, c.wrap.virtualMousePosition);
+    // Look At draws to the surface it aims at. The sweep draws to the unwrapped cursor, so the line matches the
+    // angle across wraps.
+    if (this.lookAt.driving && this.lookAt.hasTarget)
+      DrawOverlays.drawLookAtLine(
+        pivot,
+        this.lookAt.target,
+        this.lookAt.normal,
+        this.lookAt.contacts,
+        this.lookAt.targetStale,
+      );
+    else DrawOverlays.drawCursorLineToGui(pivot, sceneView.camera, c.wrap.virtualMousePosition);
     if (c.activeAxis === GizmoAxis.Screen) return;
     const size = HandleUtility.getHandleSize(pivot) * SharedGizmoSettings.Size;
     RotateDragOverlays.drawConstrainedRing(

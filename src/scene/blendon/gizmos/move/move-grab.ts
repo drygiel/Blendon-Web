@@ -28,7 +28,7 @@ import {
 } from './move-parts.ts';
 
 export class MoveGrab extends GrabSession {
-  static readonly ShortcutId = 'Blendon/Grab';
+  static readonly ShortcutId = 'Blendon/Move/Grab';
   private readonly manual: MoveManualConstraint;
   private readonly surface: MoveSurfaceSnap;
   private readonly target = new MoveDragTarget();

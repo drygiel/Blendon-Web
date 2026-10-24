@@ -36,8 +36,8 @@ import {
 export const BoxSelectMode = { Replace: 0, Add: 1, Subtract: 2, Intersect: 3, Difference: 4 } as const;
 type BoxSelectMode = (typeof BoxSelectMode)[keyof typeof BoxSelectMode];
 
-const VisibleOnlyShortcutId = 'Blendon/Box Select Visible Only';
-const MoveBoxShortcutId = 'Blendon/Box Select Move Box';
+const VisibleOnlyShortcutId = 'Blendon/Box Select/Toggle Visible Only';
+const MoveBoxShortcutId = 'Blendon/Box Select/Move Box';
 
 // Unity's own box outside Blendon's context, like the gizmos.
 const live = () => BoxSelectSettings.Enabled && blendonContextActive();

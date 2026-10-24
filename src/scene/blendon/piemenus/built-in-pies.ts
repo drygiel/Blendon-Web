@@ -24,7 +24,7 @@ const P = 'Blendon/Pie Menus/';
 
 export const BuiltInPies: PieDef[] = [
   {
-    shortcutId: P + 'Shading',
+    shortcutId: P + 'Draw Mode',
     key: 'Z',
     title: 'Draw Mode',
     items: [
@@ -61,7 +61,7 @@ export const BuiltInPies: PieDef[] = [
     ],
   },
   {
-    shortcutId: P + 'Tools Handle',
+    shortcutId: P + 'Orientation',
     key: ',',
     title: 'Orientation',
     items: [
@@ -108,7 +108,7 @@ export const BuiltInPies: PieDef[] = [
     ],
   },
   {
-    shortcutId: P + 'Unity Tools',
+    shortcutId: P + 'Tools',
     key: 'Q',
     title: 'Tools',
     items: [
@@ -147,7 +147,7 @@ function handle(def: PieDef, args: ShortcutArguments) {
 
 // ---- Shift+Z: into Wireframe and back out to whatever was showing ----
 
-const WireframeShortcutId = 'Blendon/Toggle Wireframe';
+const WireframeShortcutId = 'Blendon/Pie Menus/Toggle Wireframe';
 const previous = new WeakMap<SceneView, ShadingMode>();
 
 function toggleWireframe(args: ShortcutArguments) {

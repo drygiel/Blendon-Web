@@ -24,10 +24,10 @@ function commit(next: GameObject[], lead: GameObject | null, undoName: string) {
 }
 
 export const HierarchyWalk = {
-  ParentShortcutId: 'Blendon/Select Parent',
-  ChildrenShortcutId: 'Blendon/Select Children',
-  AddParentShortcutId: 'Blendon/Add Parent To Selection',
-  AddChildrenShortcutId: 'Blendon/Add Children To Selection',
+  ParentShortcutId: 'Blendon/Box Select/Select Parent',
+  ChildrenShortcutId: 'Blendon/Box Select/Select Children',
+  AddParentShortcutId: 'Blendon/Box Select/Add Parent',
+  AddChildrenShortcutId: 'Blendon/Box Select/Add Children',
 
   install() {
     const H = HierarchyWalk;

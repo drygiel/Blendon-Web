@@ -62,8 +62,8 @@ function applySelection(objects: GameObject[]) {
 }
 
 export const SelectionHistory = {
-  BackShortcutId: 'Blendon/History/Undo Selection',
-  ForwardShortcutId: 'Blendon/History/Redo Selection',
+  BackShortcutId: 'Blendon/Navigation History/Selection Back',
+  ForwardShortcutId: 'Blendon/Navigation History/Selection Forward',
 
   install() {
     Selection.selectionChanged.add(() => {
@@ -190,8 +190,8 @@ function applyView(state: ViewState) {
 }
 
 export const ViewHistory = {
-  BackShortcutId: 'Blendon/History/Undo View',
-  ForwardShortcutId: 'Blendon/History/Redo View',
+  BackShortcutId: 'Blendon/Navigation History/View Back',
+  ForwardShortcutId: 'Blendon/Navigation History/View Forward',
 
   install() {
     SceneView.duringSceneGui.add(watchView);

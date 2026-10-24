@@ -14,21 +14,21 @@ import type { KeyboardPreset, Keys, PropInfo } from '../../src/plugin/schema.ts'
 // ---- entries copied from the plugin's tooltip files (Editor/Content/Tips/*.md, remediation/2026-10) ----
 
 // NumpadViews.md
-const VIEW_FRONT = `## shortcut:Blendon/Viewport Nav/View Front
+const VIEW_FRONT = `## shortcut:Blendon/Numpad Views/Front
 image: Tips/NumpadViews/AxisViews.png
 
 ### Front View
 Look straight at the front of the scene.
 
 #### KEY
-{key:Blendon/Viewport Nav/View Front}
+{key:Blendon/Numpad Views/Front}
 
 > The same poses as clicking the Orientation Gizmo's handles
 `;
 
 // The same entry as the dump's `source`: TipMarkup's rich text, the token left for display time.
 const VIEW_FRONT_SOURCE =
-  "<size=14><b>Front View</b></size>\nLook straight at the front of the scene.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Viewport Nav/View Front}\n\n<size=9><color=#92929A>The same poses as clicking the Orientation Gizmo's handles</color></size>";
+  "<size=14><b>Front View</b></size>\nLook straight at the front of the scene.\n\n<size=9><b><color=#92929A>KEY</color></b></size>\n{key:Blendon/Numpad Views/Front}\n\n<size=9><color=#92929A>The same poses as clicking the Orientation Gizmo's handles</color></size>";
 
 // AllTools.md
 const ALL_TOOLS_SWITCH = `## switch:SharedGizmoSettings
@@ -47,14 +47,14 @@ Turns Blendon's four transform gizmos on or off in one click.
 `;
 
 // AllTools.md
-const VERTEX_SNAP = `## shortcut:Blendon/Vertex Snap
+const VERTEX_SNAP = `## shortcut:Blendon/All Tools/Vertex Snap
 image: Tips/AllTools/VertexSnapping.png
 
 ### Vertex Snapping
 Place an object exactly on another object's vertex.
 
 #### HOW
-**1**  Hold {key:Blendon/Vertex Snap} - the gizmo jumps to the vertex nearest the cursor.
+**1**  Hold {key:Blendon/All Tools/Vertex Snap} - the gizmo jumps to the vertex nearest the cursor.
 **2**  Drag onto another object - that vertex lands on its nearest vertex.
 **3**  Release the mouse to drop.
 
@@ -76,7 +76,7 @@ Hold {setting:SharedGizmoSettings.PrecisionModifier} while dragging any handle. 
 
 // App/SettingsWindow/Overview/OverviewTips.cs HistoryText, built from Tip.KeyRef in code.
 const HISTORY =
-  '<size=14><b>Navigation History</b></size>\nStep back and forward like a browser: through what you selected, and through camera views.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/History/Undo Selection} / {key:Blendon/History/Redo Selection} - selections\n{key:Blendon/History/Undo View} / {key:Blendon/History/Redo View} - views';
+  '<size=14><b>Navigation History</b></size>\nStep back and forward like a browser: through what you selected, and through camera views.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/Selection Back} / {key:Blendon/Navigation History/Selection Forward} - selections\n{key:Blendon/Navigation History/View Back} / {key:Blendon/Navigation History/View Forward} - views';
 
 /** An entry's body as TipStore keeps it: everything after the key line and its field lines. */
 function body(entry: string): string {
@@ -88,16 +88,16 @@ function body(entry: string): string {
 const key = (k: string) => KEY_OPEN + k + KEY_END;
 
 const KEYMAP: Record<string, Keys> = {
-  'Blendon/Viewport Nav/View Front': { b: 'Num 1', u: 'Num 1' },
-  'Blendon/Vertex Snap': { b: 'V', u: 'Alt+V' },
+  'Blendon/Numpad Views/Front': { b: 'Num 1', u: 'Num 1' },
+  'Blendon/All Tools/Vertex Snap': { b: 'V', u: 'Alt+V' },
   'Tools/Move': { b: 'W', u: 'W' },
   'Tools/Rotate': { b: 'E', u: 'E' },
   'Tools/Scale': { b: 'R', u: 'R' },
   'Tools/Transform': { b: 'Y', u: 'Y' },
-  'Blendon/History/Undo Selection': { b: 'Mouse 3', u: 'Mouse 3' },
-  'Blendon/History/Redo Selection': { b: 'Mouse 4', u: 'Mouse 4' },
-  'Blendon/History/Undo View': { b: 'Shift+Mouse 3', u: 'Shift+Mouse 3' },
-  'Blendon/History/Redo View': { b: '', u: '' },
+  'Blendon/Navigation History/Selection Back': { b: 'Mouse 3', u: 'Mouse 3' },
+  'Blendon/Navigation History/Selection Forward': { b: 'Mouse 4', u: 'Mouse 4' },
+  'Blendon/Navigation History/View Back': { b: 'Shift+Mouse 3', u: 'Shift+Mouse 3' },
+  'Blendon/Navigation History/View Forward': { b: '', u: '' },
 };
 
 const MODIFIER_OPTIONS: [string, string][] = [
@@ -152,7 +152,7 @@ describe('tooltip tokens', () => {
     const r = new TipResolver(live().source);
     expect(r.resolve(body(VIEW_FRONT))).toContain('#### KEY\n' + key('Num 1') + '\n');
     expect(r.resolve(VIEW_FRONT_SOURCE)).toBe(
-      VIEW_FRONT_SOURCE.replace('{key:Blendon/Viewport Nav/View Front}', key('Num 1')),
+      VIEW_FRONT_SOURCE.replace('{key:Blendon/Numpad Views/Front}', key('Num 1')),
     );
   });
 
@@ -175,7 +175,7 @@ describe('tooltip tokens', () => {
     const before = r.version;
     expect(r.resolve(VIEW_FRONT_SOURCE)).toContain(key('Num 1'));
     expect(r.version).toBe(before);
-    l.rebind('Blendon/Viewport Nav/View Front', 'Ctrl+F');
+    l.rebind('Blendon/Numpad Views/Front', 'Ctrl+F');
     expect(r.resolve(VIEW_FRONT_SOURCE)).toContain(key('Ctrl+F'));
     expect(r.version).toBe(before + 1);
   });
@@ -227,12 +227,12 @@ describe('tooltip tokens', () => {
   it('leaves other braces alone', () => {
     const r = new TipResolver(live().source);
     expect(r.resolve('"{0}" profile {mod:Alt} {unclosed')).toBe('"{0}" profile {mod:Alt} {unclosed');
-    expect(r.resolve('{a {key:Blendon/Vertex Snap}}')).toBe('{a {key:Blendon/Vertex Snap}}');
+    expect(r.resolve('{a {key:Blendon/All Tools/Vertex Snap}}')).toBe('{a {key:Blendon/All Tools/Vertex Snap}}');
   });
 
   it('shows a card from its source, or its text when it has no tokens', () => {
     const r = new TipResolver(live('Unity').source);
-    expect(r.tip({ t: 'Hold V', i: 'x.png', src: 'Hold {key:Blendon/Vertex Snap}' })).toEqual({
+    expect(r.tip({ t: 'Hold V', i: 'x.png', src: 'Hold {key:Blendon/All Tools/Vertex Snap}' })).toEqual({
       t: 'Hold ' + key('Alt+V'),
       i: 'x.png',
     });

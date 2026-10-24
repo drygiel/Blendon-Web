@@ -20,7 +20,7 @@ import { SceneView } from '../unity/sceneview.ts';
 import { GizmoTools } from './gizmos/shared-settings.ts';
 import { GeneralSettings, sBool } from './settings.ts';
 
-export const ToggleContextId = 'Blendon/Tool Context/Toggle Blendon';
+export const ToggleContextId = 'Blendon/Toggle Blendon';
 
 const SlotPages: Partial<Record<Tool, string>> = {
   [Tool.Move]: 'MoveGizmoSettings',

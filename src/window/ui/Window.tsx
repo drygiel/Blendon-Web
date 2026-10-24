@@ -5,6 +5,7 @@ import { iconStyle } from '../core/icons.ts';
 import { type SideEntry, type WindowLayout } from '../core/layout.ts';
 import { type WindowModel, pageInfo } from '../core/model.ts';
 import { D } from '../../plugin/window-data.ts';
+import { IS_MAC } from '../../scene/unity/imgui.ts';
 import { M, PAL, badgeFill, brighten, rgba, tinted } from '../core/util.ts';
 import { Runs } from './common.tsx';
 import { AppContext, useApp, useTip } from './context.ts';
@@ -238,6 +239,9 @@ function Header({ L }: { L: WindowLayout }) {
   );
 }
 
+// The window sits under Edit, or under the Unity app menu on macOS.
+const SHORTCUTS_MENU = IS_MAC ? 'Unity > Shortcuts' : 'Edit > Shortcuts';
+
 function Footer({ L }: { L: WindowLayout }) {
   const app = useApp();
   const info = pageInfo(L.page);
@@ -257,7 +261,7 @@ function Footer({ L }: { L: WindowLayout }) {
             onClick={() => app.demo("In Unity this opens the Editor's Shortcuts window, filtered to Blendon's keys.")}
             {...linkTip}
           >
-            Unity Preferences &gt; Shortcuts
+            {SHORTCUTS_MENU}
           </span>
         </div>
       )}
