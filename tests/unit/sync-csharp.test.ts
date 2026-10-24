@@ -306,8 +306,8 @@ const CONSTS: Record<string, string> = {
   'Zoom.ZoomInShortcutId': 'Blendon/Zoom/Zoom In',
   'Zoom.ZoomOutShortcutId': 'Blendon/Zoom/Zoom Out',
   'ShortcutIds.FrameSelectedId': 'Blendon/Frame Selected',
-  'VertexSnapping.ShortcutId': 'Blendon/Vertex Snap',
-  'VertexSnapping.PickShortcutId': 'Blendon/Pick Virtual Pivot',
+  'VertexSnapping.ShortcutId': 'Blendon/All Tools/Vertex Snap',
+  'VertexSnapping.PickShortcutId': 'Blendon/All Tools/Pick Virtual Pivot',
   'SharedGizmoPage.TitleIcon': 'd_Transform Icon',
   'SharedGizmoPage.Subtitle': 'Enable all four transform tools at once',
   'MoveGizmoPage.SurfaceSnapNoKeyNote': "No key set, so Surface Snap won't engage.",
@@ -323,8 +323,12 @@ const TIPS: Record<string, Tip> = {
     src: 'Zoom in: {key:Blendon/Zoom/Zoom In}',
   },
   'Blendon/Zoom/Zoom Out': { t: 'Zoom out', i: '' },
-  'Blendon/Vertex Snap': { t: 'Snap', i: 'Tips/AllTools/VertexSnapping.png', src: 'Hold {key:Blendon/Vertex Snap}' },
-  'Blendon/Pick Virtual Pivot': { t: 'Pick', i: 'Tips/AllTools/PickVirtualPivot.png' },
+  'Blendon/All Tools/Vertex Snap': {
+    t: 'Snap',
+    i: 'Tips/AllTools/VertexSnapping.png',
+    src: 'Hold {key:Blendon/All Tools/Vertex Snap}',
+  },
+  'Blendon/All Tools/Pick Virtual Pivot': { t: 'Pick', i: 'Tips/AllTools/PickVirtualPivot.png' },
 };
 
 // What the dump adds to a setting: bounds, a key row's shortcut, the value an Override row follows.
@@ -354,7 +358,7 @@ const FACTS = propFacts(
     'GeneralSettings.AnimationDuration': { min: 0.0001, max: 2 },
     'RotateGizmoSettings.TrackballRadius': { min: 0.01, max: 2 },
     'FrameSelectedSettings.Shortcut': { shortcut: 'Blendon/Frame Selected' },
-    'PanSettings.Shortcut': { shortcut: 'Blendon/Camera Pan' },
+    'PanSettings.Shortcut': { shortcut: 'Blendon/Pan' },
     'PanSettings.CursorWrapEnabled': { follows: 'GeneralSettings.CursorWrapEnabled' },
     'PanSettings.CursorWrap': { follows: 'GeneralSettings.CursorWrap' },
     'PanSettings.WrapBounds': { follows: 'GeneralSettings.WrapBounds' },
@@ -422,7 +426,7 @@ describe('ops from the plugin pages', () => {
         'dis',
         ['!', ['v', 'PanSettings.Enabled']],
         [
-          ['sc', 'Blendon/Camera Pan', 'PanSettings.Shortcut'],
+          ['sc', 'Blendon/Pan', 'PanSettings.Shortcut'],
           ['gtog', 'PanSettings.CursorWrapEnabled', 'GeneralSettings.CursorWrapEnabled'],
           [
             'dis',
@@ -517,13 +521,20 @@ describe('ops from the plugin pages', () => {
       [
         [
           'sc',
-          'Blendon/Vertex Snap',
+          'Blendon/All Tools/Vertex Snap',
           null,
           'Hold',
-          'Hold {key:Blendon/Vertex Snap}',
+          'Hold {key:Blendon/All Tools/Vertex Snap}',
           'Tips/AllTools/VertexSnapping.png',
         ],
-        ['sc', 'Blendon/Pick Virtual Pivot', null, 'Pick Virtual Pivot', 'Pick', 'Tips/AllTools/PickVirtualPivot.png'],
+        [
+          'sc',
+          'Blendon/All Tools/Pick Virtual Pivot',
+          null,
+          'Pick Virtual Pivot',
+          'Pick',
+          'Tips/AllTools/PickVirtualPivot.png',
+        ],
       ],
     ]);
   });

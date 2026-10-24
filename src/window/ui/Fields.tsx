@@ -269,7 +269,7 @@ export function ColorField({ it }: { it: PropItem }) {
 const MODIFIER_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AltGraph'];
 
 // Held-and-dragged shortcuts. A keyboard key gives them no button to drag with.
-const MOUSE_ONLY_IDS = new Set(['Blendon/Orbit Selected', 'Blendon/Quick Roll', 'Blendon/Camera Pan']);
+const MOUSE_ONLY_IDS = new Set(['Blendon/Orbit Selected', 'Blendon/Orbit Selected/Quick Roll', 'Blendon/Pan']);
 
 const CAPTURE_TIP = 'Click, then press the key combination (or a non-left mouse button) to bind. Esc cancels.';
 const MOUSE_CAPTURE_TIP =

@@ -1,4 +1,5 @@
 // The FAQ, repeated in the page's structured data.
+import { SUPPORT_URL } from '../../lib/links.ts';
 
 export interface FaqEntry {
   q: string;
@@ -32,7 +33,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Does it touch my project, my builds or version control?',
-    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs and pie menus to a file in your user settings folder. Your active Shortcut Manager profile holds only keys you change, the Unity preset's keys if you pick it, and the Editor's right-click menu, set aside while Blendon's holds the button. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
+    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs and pie menus to a file in your user settings folder. Your active Shortcut Manager profile holds only keys you change, the Unity preset's keys if you pick it, and the Editor's right-click menu, set aside while Blendon's holds the button. Profiles are shared by your projects, so one without Blendon on the same profile has no Scene view right-click menu until you reset Scene View/Menu there; Prepare Uninstall gives it back everywhere. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
   },
   {
     q: 'Can I undo what it does?',
@@ -51,6 +52,11 @@ export const FAQ: FaqEntry[] = [
     a: 'Yes. Blendon is updated often, and updates arrive through the Package Manager like any other Asset Store package.',
   },
   {
+    q: 'How do I report a bug?',
+    a: 'Click Copy support info on the Overview page, or pick Tools → Blendon → Copy Support Info, and paste it into your email with what you did and what happened. It holds versions and settings only: no project path, user name or machine name.',
+    link: [SUPPORT_URL, 'Email support.'],
+  },
+  {
     q: 'Can I get a refund?',
     a: "Yes. If Blendon doesn't suit the way you work, request a refund through the Unity Asset Store.",
   },
@@ -60,6 +66,6 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'How do I remove it completely?',
-    a: 'While Blendon is still installed, click Reset All Pages on the Overview page of Tools → Blendon, pick the Blendon keyboard preset if you are on the Unity one, and switch Blendon off with the master switch last. Then delete the Blendon folder; a later install starts switched off until you turn it back on. Your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that Blendon folder too.',
+    a: "While Blendon is still installed, pick Tools → Blendon → Prepare Uninstall... and confirm. It gives the Editor's Scene View menu and every command Blendon moved their keys back, takes Blendon's own keys out of your shortcut profiles and switches Blendon off until you restart the Editor. Then delete the Blendon folder. Your settings stay for your other projects and a reinstall, and your own pie menus stay in Blendon/PieMenus.json in your user settings folder until you delete that Blendon folder too.",
   },
 ];

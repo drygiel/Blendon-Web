@@ -37,7 +37,7 @@ export function Features() {
             Everything your hands <em>already expect.</em>
           </>
         }
-        lead="Navigation, gizmos, scene tools and menus, each tuned from one settings window: Tools → Blendon. Pick a feature to watch it run."
+        lead="Navigation, gizmos, scene tools and menus, each tuned from one settings window: Tools → Blendon → Settings. Pick a feature to watch it run."
       />
 
       <div

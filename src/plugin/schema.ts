@@ -213,6 +213,8 @@ export interface WindowDataFile {
   pageShortcuts: Record<string, string[]>;
   primaryShortcut: Record<string, string | null>;
   featureTips: Record<string, Tip>;
+  /** The Overview text links with a card of their own, by tip key (SupportInfo.TipKey). */
+  linkTips: Record<string, Tip>;
   frameSteps: { id: string; on: boolean }[];
   frameStepInfo: Record<string, { label: string; tip: string }>;
   extras: SceneMenuExtra[];

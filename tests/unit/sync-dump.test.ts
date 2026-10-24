@@ -8,7 +8,7 @@ import { checkTokens } from '../../scripts/sync/window-data.ts';
 
 // A dump of one page, one shortcut and one contested key, shaped like schema 2 (Web-Update-Plan section 5).
 const card = (text: string, source = text, image = '') => ({ text, image, source });
-const grab = card('Grab: <b><color=#D98E38>G</color></b>', 'Grab: {key:Blendon/Grab}', 'Tips/Move/Grab.png');
+const grab = card('Grab: <b><color=#D98E38>G</color></b>', 'Grab: {key:Blendon/Move/Grab}', 'Tips/Move/Grab.png');
 const FIXTURE = {
   meta: {
     schema: 2,
@@ -48,21 +48,23 @@ const FIXTURE = {
       MoveGizmo: {
         enabled: true,
         full: true,
-        primary: 'Blendon/Grab',
-        ids: [{ id: 'Blendon/Grab', name: 'Grab', keys: { blendon: 'G', unity: 'Shift+G' }, text: 'G', tip: grab }],
+        primary: 'Blendon/Move/Grab',
+        ids: [
+          { id: 'Blendon/Move/Grab', name: 'Grab', keys: { blendon: 'G', unity: 'Shift+G' }, text: 'G', tip: grab },
+        ],
       },
     },
     keymap: {
-      'Blendon/Grab': { blendon: 'G', unity: 'Shift+G' },
+      'Blendon/Move/Grab': { blendon: 'G', unity: 'Shift+G' },
       'Tools/Cycle Tool Modes': { blendon: 'G', unity: 'G' },
     },
-    contextNeed: { 'Blendon/Grab': 'Always' },
+    contextNeed: { 'Blendon/Move/Grab': 'Always' },
     known: [
       {
         row: {
           UnityId: 'Tools/Cycle Tool Modes',
           UnityLabel: 'Cycle Tool Modes',
-          BlendonId: 'Blendon/Grab',
+          BlendonId: 'Blendon/Move/Grab',
           BlendonLabel: 'Grab',
           Key: 'G',
           Replaces: false,
@@ -77,7 +79,7 @@ const FIXTURE = {
       {
         UnityId: 'Tools/Cycle Tool Modes',
         UnityLabel: 'Cycle Tool Modes',
-        BlendonId: 'Blendon/Grab',
+        BlendonId: 'Blendon/Move/Grab',
         BlendonLabel: 'Grab',
         Key: 'G',
         Replaces: false,
@@ -85,6 +87,7 @@ const FIXTURE = {
       },
     ],
     featureTips: { Move: card('Move'), Keyboard: null },
+    linkTips: { 'link:SupportInfo': card('Support') },
   },
   model3: {
     pies: [],
@@ -142,7 +145,7 @@ describe('dump contract', () => {
     const loaded = loadDump(dir, out);
     expect(out.lines()).toEqual([]);
     expect(loaded.dump?.m2.known[0]?.blendonAlt).toBe('Shift+G');
-    expect(loaded.shortcutTips['Blendon/Grab']).toEqual({
+    expect(loaded.shortcutTips['Blendon/Move/Grab']).toEqual({
       t: grab.text,
       i: grab.image,
       src: grab.source,
@@ -166,14 +169,14 @@ describe('dump contract', () => {
     const out = new Problems();
     const props = { 'SharedGizmoSettings.AimModifier': { l: '', t: '', i: '', d: 'Alt', k: 'ModifierKey' } };
     const data = {
-      keymap: { 'Blendon/Grab': { b: 'G', u: 'Shift+G' } },
+      keymap: { 'Blendon/Move/Grab': { b: 'G', u: 'Shift+G' } },
       props: {
         ...props,
         'A.B': {
           l: '',
           t: 'x',
           i: '',
-          src: '{key:Blendon/Grab} {key:Tools/Gone} {setting:A.Gone}',
+          src: '{key:Blendon/Move/Grab} {key:Tools/Gone} {setting:A.Gone}',
           d: true,
           k: 'Boolean',
         },

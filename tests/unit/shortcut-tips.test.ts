@@ -10,7 +10,7 @@ import { TutorialProgress } from '../../src/scene/blendon/tutorial/progress.ts';
 import { SceneTutorial } from '../../src/scene/blendon/tutorial/scene-tutorial.ts';
 import { Prefs } from '../../src/scene/unity/editor.ts';
 
-const GRAB = 'Blendon/Grab';
+const GRAB = 'Blendon/Move/Grab';
 
 // The card runs on its own rAF clock, driven here one frame at a time.
 let clockMs = 0;

@@ -204,7 +204,7 @@ test("a press on a shortcut's key caps starts capture, and Esc gives the key bac
 
 test('answers window-only actions with the demo note', async ({ page }) => {
   const win = await openWindow(page);
-  await win.getByText('Unity Preferences > Shortcuts').click();
+  await win.getByText('Edit > Shortcuts').click();
   await expect(win.locator('.dlg .dtt')).toHaveText('Demo only');
 });
 

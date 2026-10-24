@@ -9,7 +9,7 @@ import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { reducedMotion } from '../navigation/camera.ts';
 import { SnapDirection, SnapToFloorSettings } from './settings.ts';
 
-const ShortcutId = 'Blendon/Snap To Floor';
+const ShortcutId = 'Blendon/Snap to Floor';
 
 interface Bounce {
   target: Transform;

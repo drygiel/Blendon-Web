@@ -57,16 +57,16 @@ describe("Blendon's tool context", () => {
   it('shuts the keys that follow the context, the pies only on the Editor key they cover', () => {
     ShortcutGates.inBlendonContext = blendonContextActive;
     // The Tools pie as the Unity preset has it, off the View tool's Q.
-    Keymap.rebind('Blendon/Pie Menus/Unity Tools', 'Alt+Q');
+    Keymap.rebind('Blendon/Pie Menus/Tools', 'Alt+Q');
     ContextSwitch.toggle();
-    expect(ShortcutGates.isOpen('Blendon/Grab')).toBe(false);
-    expect(ShortcutGates.isOpen('Blendon/Vertex Snap')).toBe(false);
-    expect(ShortcutGates.isOpen('Blendon/Pie Menus/Shading')).toBe(false);
-    expect(ShortcutGates.isOpen('Blendon/Pie Menus/Unity Tools')).toBe(true);
+    expect(ShortcutGates.isOpen('Blendon/Move/Grab')).toBe(false);
+    expect(ShortcutGates.isOpen('Blendon/All Tools/Vertex Snap')).toBe(false);
+    expect(ShortcutGates.isOpen('Blendon/Pie Menus/Draw Mode')).toBe(false);
+    expect(ShortcutGates.isOpen('Blendon/Pie Menus/Tools')).toBe(true);
     expect(ShortcutGates.isOpen('Blendon/Orbit Selected')).toBe(true);
-    expect(ShortcutGates.isOpen('Blendon/Tool Context/Toggle Blendon')).toBe(true);
+    expect(ShortcutGates.isOpen('Blendon/Toggle Blendon')).toBe(true);
     ContextSwitch.toggle();
-    expect(ShortcutGates.isOpen('Blendon/Grab')).toBe(true);
+    expect(ShortcutGates.isOpen('Blendon/Move/Grab')).toBe(true);
     Keymap.reset();
   });
 

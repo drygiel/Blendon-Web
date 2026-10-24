@@ -31,7 +31,7 @@
      "kind": "shortcut",
      "page": "Pan",
      "ids": [
-      "Blendon/Camera Pan"
+      "Blendon/Pan"
      ]
     },
     {
@@ -152,7 +152,7 @@
       "Move",
       "Grab"
      ],
-     "keysShortcut": "Blendon/Grab"
+     "keysShortcut": "Blendon/Move/Grab"
     },
     {
      "id": "grab.cancel",
@@ -166,7 +166,7 @@
      "page": "MoveGizmo",
      "signal": "TransformCancelled",
      "pressing": true,
-     "keysShortcut": "Blendon/Grab"
+     "keysShortcut": "Blendon/Move/Grab"
     },
     {
      "id": "grab.axis",
@@ -184,7 +184,7 @@
       "Axis"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab"
+     "keysShortcut": "Blendon/Move/Grab"
     },
     {
      "id": "grab.exact",
@@ -203,7 +203,7 @@
       "Numeric"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab"
+     "keysShortcut": "Blendon/Move/Grab"
     },
     {
      "id": "snap.floor",
@@ -216,7 +216,7 @@
      "kind": "shortcut",
      "page": "SnapToFloor",
      "ids": [
-      "Blendon/Snap To Floor"
+      "Blendon/Snap to Floor"
      ]
     },
     {
@@ -235,7 +235,7 @@
       "Plane"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab",
+     "keysShortcut": "Blendon/Move/Grab",
      "availableWhen": {
       "reason": "the Plane Lock key is None on the All Tools page"
      }
@@ -256,7 +256,7 @@
       "Snapped"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab"
+     "keysShortcut": "Blendon/Move/Grab"
     },
     {
      "id": "grab.slow",
@@ -274,7 +274,7 @@
       "Precision"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab",
+     "keysShortcut": "Blendon/Move/Grab",
      "availableWhen": {
       "reason": "Precision Mode is off, or its key is None, on the All Tools page"
      }
@@ -301,7 +301,7 @@
       "Rotate",
       "Grab"
      ],
-     "keysShortcut": "Blendon/Grab Rotate"
+     "keysShortcut": "Blendon/Rotate/Grab"
     },
     {
      "id": "grab.rotate-exact",
@@ -320,7 +320,7 @@
       "Numeric"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab Rotate"
+     "keysShortcut": "Blendon/Rotate/Grab"
     },
     {
      "id": "grab.local-axis",
@@ -338,7 +338,7 @@
       "LocalAxis"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Grab"
+     "keysShortcut": "Blendon/Move/Grab"
     },
     {
      "id": "grab.scale",
@@ -354,7 +354,7 @@
       "Scale",
       "Grab"
      ],
-     "keysShortcut": "Blendon/Grab Scale"
+     "keysShortcut": "Blendon/Scale/Grab"
     },
     {
      "id": "grab.reset-scale",
@@ -428,7 +428,7 @@
       "OnVertex"
      ],
      "pressing": true,
-     "keysShortcut": "Blendon/Vertex Snap"
+     "keysShortcut": "Blendon/All Tools/Vertex Snap"
     },
     {
      "id": "snap.surface",
@@ -471,7 +471,7 @@
      "commands": [
       "Blendon/Tools/Move"
      ],
-     "keysShortcut": "Blendon/Pie Menus/Unity Tools",
+     "keysShortcut": "Blendon/Pie Menus/Tools",
      "otherwise": [
       {
        "gate": "Always",
@@ -525,7 +525,7 @@
      "commands": [
       "Blendon/Tools Handle/Local"
      ],
-     "keysShortcut": "Blendon/Pie Menus/Tools Handle"
+     "keysShortcut": "Blendon/Pie Menus/Orientation"
     },
     {
      "id": "handles.rotate-tool",
@@ -540,7 +540,7 @@
      "commands": [
       "Blendon/Tools/Rotate"
      ],
-     "keysShortcut": "Blendon/Pie Menus/Unity Tools",
+     "keysShortcut": "Blendon/Pie Menus/Tools",
      "otherwise": [
       {
        "gate": "Always",
@@ -600,7 +600,7 @@
       "Rotate",
       "VirtualPivot"
      ],
-     "keysShortcut": "Blendon/Pick Virtual Pivot"
+     "keysShortcut": "Blendon/All Tools/Pick Virtual Pivot"
     },
     {
      "id": "snap.keep-pivot",
@@ -683,7 +683,7 @@
      "kind": "shortcut",
      "page": "BoxSelect",
      "ids": [
-      "Blendon/Select Parent"
+      "Blendon/Box Select/Select Parent"
      ],
      "after": [
       "select.group",
@@ -701,7 +701,7 @@
      "kind": "shortcut",
      "page": "BoxSelect",
      "ids": [
-      "Blendon/Select Children"
+      "Blendon/Box Select/Select Children"
      ],
      "after": [
       "select.group",
@@ -731,7 +731,7 @@
      "id": "tools.selection-history",
      "title": "Step back through selections",
      "hint": "Browser-style back and forward for what you had selected: Mouse 3 goes back, Mouse 4 goes forward.",
-     "hintSrc": "Browser-style back and forward for what you had selected: {key:Blendon/History/Undo Selection} goes back, {key:Blendon/History/Redo Selection} goes forward.",
+     "hintSrc": "Browser-style back and forward for what you had selected: {key:Blendon/Navigation History/Selection Back} goes back, {key:Blendon/Navigation History/Selection Forward} goes forward.",
      "picture": "plugin/headers/NavigationHistory_SelectionHeader.webp",
      "clip": "plugin/video/SelectionHistory.webm",
      "aspect": "640 / 360",
@@ -739,8 +739,8 @@
      "kind": "shortcut",
      "page": "History",
      "ids": [
-      "Blendon/History/Undo Selection",
-      "Blendon/History/Redo Selection"
+      "Blendon/Navigation History/Selection Back",
+      "Blendon/Navigation History/Selection Forward"
      ]
     },
     {
@@ -790,7 +790,7 @@
      "id": "nav.axis-view",
      "title": "Look from the front, the side and the top",
      "hint": "The axis views: front on Num 1, right on Num 3 and top on Num 7. Back, left and bottom look from the opposite side, on Ctrl+Num 1, Ctrl+Num 3 and Ctrl+Num 7. NumLock has to be on for the keypad.",
-     "hintSrc": "The axis views: front on {key:Blendon/Viewport Nav/View Front}, right on {key:Blendon/Viewport Nav/View Right} and top on {key:Blendon/Viewport Nav/View Top}. Back, left and bottom look from the opposite side, on {key:Blendon/Viewport Nav/View Back}, {key:Blendon/Viewport Nav/View Left} and {key:Blendon/Viewport Nav/View Bottom}. NumLock has to be on for the keypad.",
+     "hintSrc": "The axis views: front on {key:Blendon/Numpad Views/Front}, right on {key:Blendon/Numpad Views/Right} and top on {key:Blendon/Numpad Views/Top}. Back, left and bottom look from the opposite side, on {key:Blendon/Numpad Views/Back}, {key:Blendon/Numpad Views/Left} and {key:Blendon/Numpad Views/Bottom}. NumLock has to be on for the keypad.",
      "picture": "plugin/headers/NumpadViews_Header.webp",
      "clip": "plugin/video/NumpadViews.webm",
      "aspect": "640 / 360",
@@ -798,7 +798,7 @@
      "kind": "gesture",
      "page": "ViewportNav",
      "signal": "AxisView",
-     "keysShortcut": "Blendon/Viewport Nav/View Front"
+     "keysShortcut": "Blendon/Numpad Views/Front"
     },
     {
      "id": "nav.projection",
@@ -811,14 +811,14 @@
      "kind": "shortcut",
      "page": "ViewportNav",
      "ids": [
-      "Blendon/Viewport Nav/Toggle Projection"
+      "Blendon/Numpad Views/Toggle Perspective"
      ]
     },
     {
      "id": "nav.orbit-step",
      "title": "Orbit in steps",
      "hint": "Each press turns the view by a fixed step around the pivot: Num 4 left, Num 6 right, Num 8 up, Num 2 down.",
-     "hintSrc": "Each press turns the view by a fixed step around the pivot: {key:Blendon/Viewport Nav/Orbit Left} left, {key:Blendon/Viewport Nav/Orbit Right} right, {key:Blendon/Viewport Nav/Orbit Up} up, {key:Blendon/Viewport Nav/Orbit Down} down.",
+     "hintSrc": "Each press turns the view by a fixed step around the pivot: {key:Blendon/Numpad Views/Orbit Left} left, {key:Blendon/Numpad Views/Orbit Right} right, {key:Blendon/Numpad Views/Orbit Up} up, {key:Blendon/Numpad Views/Orbit Down} down.",
      "picture": "plugin/tips/NumpadViews_OrbitSteps.webp",
      "clip": "plugin/video/tutorial/OrbitSteps.webm",
      "aspect": "640 / 360",
@@ -826,10 +826,10 @@
      "kind": "shortcut",
      "page": "ViewportNav",
      "ids": [
-      "Blendon/Viewport Nav/Orbit Left",
-      "Blendon/Viewport Nav/Orbit Right",
-      "Blendon/Viewport Nav/Orbit Up",
-      "Blendon/Viewport Nav/Orbit Down"
+      "Blendon/Numpad Views/Orbit Left",
+      "Blendon/Numpad Views/Orbit Right",
+      "Blendon/Numpad Views/Orbit Up",
+      "Blendon/Numpad Views/Orbit Down"
      ]
     },
     {
@@ -860,7 +860,7 @@
      "kind": "shortcut",
      "page": "OrbitSelected",
      "ids": [
-      "Blendon/Quick Roll"
+      "Blendon/Orbit Selected/Quick Roll"
      ]
     },
     {
@@ -901,7 +901,7 @@
      "kind": "shortcut",
      "page": "ViewportNav",
      "ids": [
-      "Blendon/Viewport Nav/Align To Camera"
+      "Blendon/Numpad Views/Align To Camera"
      ]
     },
     {
@@ -915,8 +915,8 @@
      "kind": "shortcut",
      "page": "History",
      "ids": [
-      "Blendon/History/Undo View",
-      "Blendon/History/Redo View"
+      "Blendon/Navigation History/View Back",
+      "Blendon/Navigation History/View Forward"
      ]
     },
     {
@@ -954,7 +954,7 @@
      "commands": [
       "Blendon/Shading/"
      ],
-     "keysShortcut": "Blendon/Pie Menus/Shading"
+     "keysShortcut": "Blendon/Pie Menus/Draw Mode"
     },
     {
      "id": "pie.tap",
@@ -967,7 +967,7 @@
      "kind": "gesture",
      "page": "PieMenus",
      "signal": "PieTap",
-     "keysShortcut": "Blendon/Pie Menus/Shading"
+     "keysShortcut": "Blendon/Pie Menus/Draw Mode"
     },
     {
      "id": "pie.wireframe",
@@ -980,7 +980,7 @@
      "kind": "shortcut",
      "page": "PieMenus",
      "ids": [
-      "Blendon/Toggle Wireframe"
+      "Blendon/Pie Menus/Toggle Wireframe"
      ]
     },
     {
@@ -995,7 +995,7 @@
      "page": "PieMenus",
      "signal": "PieNumber",
      "pressing": true,
-     "keysShortcut": "Blendon/Pie Menus/Unity Tools",
+     "keysShortcut": "Blendon/Pie Menus/Tools",
      "availableWhen": {
       "reason": "Show Numbers is off on the Pie Menus page"
      }

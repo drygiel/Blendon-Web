@@ -33,9 +33,9 @@ project.
 
 - **A working Scene view in the browser.** The Playground runs Blendon's navigation, gizmos and pie menus on a real 3D
   scene, so you can try the keys before buying. The landing page embeds the same dock in its _Try it_ section.
-- **The real settings window.** The window is rebuilt from the plugin's own `DrawSettings` code and a dump of the Unity
-  Editor, so every page, label, tooltip and default matches the asset. Changing a setting changes the Scene view next
-  to it.
+- **The real settings window.** The window is rebuilt from the plugin's own page views (`<Page>Page.Draw`) and a
+  dump of the Unity Editor, so every page, label, tooltip and default matches the asset. Changing a setting changes
+  the Scene view next to it.
 - **A clip for every feature.** Eighteen short loops in the tooltip style, the same ones the plugin's tooltip cards use,
   and one for each tutorial task that shows a still in the plugin.
 - **The tour.** Promo video, what changes against stock Unity, features, precision tools, pie menus, the in-editor
@@ -249,7 +249,8 @@ React 19, TypeScript (strict), Vite, SCSS (CSS Modules), Vitest, Playwright, ESL
 The site shows Blendon's settings window, rebuilt from the plugin itself. `pnpm sync` reads the plugin this repository
 is mounted in (`../`, or `BLENDON_DIR`):
 
-- `Editor/**/*Settings.cs` - each page's `DrawSettings` code, turned into the window's layout
+- `Editor/**/*Page.cs` - each page view's `Draw` methods, turned into the window's layout (the views listed in
+  `VIEW_OWNER` in `scripts/sync/window-data.ts`)
 - `Editor/Tutorial/TutorialCurriculum.cs` - the tutorial's chapters, task text and pictures. How each task is ticked
   is ported by hand in `src/scene/blendon/tutorial/curriculum.ts`, and a unit test fails when the two lists drift
 - `Editor/Icons` - tooltip images, page header images and Blendon's own icons

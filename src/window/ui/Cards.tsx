@@ -263,7 +263,7 @@ const UNITY_END = '</color></b>';
 const keyText = (key: string) => KEY_OPEN + key + KEY_END;
 
 // The rows each preset card names, keys read off the table so the card can't promise other keys.
-const CARD_ROWS = ['Blendon/Grab', 'Blendon/Grab Rotate', 'Blendon/Orbit Selected', 'Blendon/Camera Pan'];
+const CARD_ROWS = ['Blendon/Move/Grab', 'Blendon/Rotate/Grab', 'Blendon/Orbit Selected', 'Blendon/Pan'];
 
 function rowKeys(key: (row: Row) => string) {
   const parts: string[] = [];
@@ -275,7 +275,7 @@ function rowKeys(key: (row: Row) => string) {
 }
 
 function blenderCard() {
-  const grab = D.known['Blendon/Grab'];
+  const grab = D.known['Blendon/Move/Grab'];
   const covered = grab ? ', like ' + UNITY_OPEN + grab.ul + UNITY_END + ' on ' + keyText(grab.key) : '';
   return (
     TITLE_OPEN +

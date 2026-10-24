@@ -88,12 +88,12 @@ const actionKey = () => (IS_MAC ? 'Cmd' : 'Ctrl');
 
 const Id = {
   Orbit: 'Blendon/Orbit Selected',
-  Grab: 'Blendon/Grab',
-  Rotate: 'Blendon/Grab Rotate',
-  VertexSnap: 'Blendon/Vertex Snap',
+  Grab: 'Blendon/Move/Grab',
+  Rotate: 'Blendon/Rotate/Grab',
+  VertexSnap: 'Blendon/All Tools/Vertex Snap',
   ContextMenu: 'Blendon/Context Menu',
   AddBoxSelect: 'Scene View/Add Box Select',
-  ToolsPie: 'Blendon/Pie Menus/Unity Tools',
+  ToolsPie: 'Blendon/Pie Menus/Tools',
 };
 
 // The scene menu answers to its own binding, there is no read-only profile to wait on here.

@@ -115,11 +115,12 @@ function PageLink({ it }: { it: ItemOf<'plink'> }) {
   );
 }
 
-// The Overview's text links: the manual, which the site carries too, and the site itself.
+// The Overview's text links: the manual, which the site carries too, the site itself, and the support info.
 function TextLink({ it }: { it: ItemOf<'link'> }) {
   const app = useApp();
   const tip = useTip(it.tip);
   const open = () => {
+    if (!it.url) return app.demo(it.demo ?? '');
     app.dismissTip();
     window.open(it.url, '_blank', 'noopener');
   };

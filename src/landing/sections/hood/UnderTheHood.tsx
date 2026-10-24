@@ -20,7 +20,7 @@ const COLUMNS: [string, ReactNode[]][] = [
       'Unity 6000.0 or newer',
       'Built-in Render Pipeline, URP or HDRP',
       'Windows, macOS or Linux',
-      'A middle mouse button for orbit and pan. On a trackpad, rebind both in Tools → Blendon',
+      'A middle mouse button for orbit and pan. On a trackpad, rebind both in Tools → Blendon → Settings',
       'A numeric keypad, only for the keypad defaults (Numpad Views, Frame Selected, Isolate View, keyboard zoom), all rebindable',
     ],
   ],

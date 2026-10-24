@@ -115,7 +115,7 @@ describe('tutorial curriculum', () => {
   });
 
   it('cancels a grab on Esc once the right mouse button no longer does', () => {
-    const grab = D.shortcuts['Blendon/Grab'].d;
+    const grab = D.shortcuts['Blendon/Move/Grab'].d;
     expect(task('grab.cancel').keys()).toBe(grab + Then + 'Mouse 1');
     set('GeneralSettings.RmbCancelEnabled', false);
     expect(task('grab.cancel').keys()).toBe(grab + Then + 'Esc');
@@ -200,7 +200,7 @@ describe('tutorial rules', () => {
     set('WireframeToggleSettings.Enabled', false);
     expect(task('pie.draw-mode').skippedBy()).toBe('page');
     Prefs.local.clear();
-    piesOff.add(pieId('Blendon/Pie Menus/Shading'));
+    piesOff.add(pieId('Blendon/Pie Menus/Draw Mode'));
     expect(task('pie.draw-mode').skippedBy()).toBe('key');
   });
 });

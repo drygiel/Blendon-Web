@@ -10,7 +10,7 @@ import { ShortcutManager, parseBinding } from '../../src/scene/unity/editor.ts';
 import { newInstance, WindowModel } from '../../src/window/core/model.ts';
 import { initialState, reduce, type StatePatch, type WindowState } from '../../src/window/core/state.ts';
 
-const GRAB = 'Blendon/Grab';
+const GRAB = 'Blendon/Move/Grab';
 const CYCLE = 'Tools/Cycle Tool Modes';
 const MENU = 'Scene View/Menu';
 const key = (k: string) => KEY_OPEN + k + KEY_END;
@@ -49,11 +49,11 @@ describe('keyboard presets', () => {
     expect(Keymap.binding(GRAB)).toBe('Shift+G');
     expect(Keymap.binding('Blendon/Context Menu')).toBe('Alt+Mouse 1');
     // One key tuned by hand doesn't flip the preset.
-    Keymap.rebind('Blendon/Grab Rotate', 'R');
+    Keymap.rebind('Blendon/Rotate/Grab', 'R');
     expect(Keymap.preset()).toBe('Unity');
     Keymap.applyPreset('Blendon');
     expect(Keymap.binding(GRAB)).toBe('G');
-    expect(Keymap.isModified('Blendon/Grab Rotate')).toBe(false);
+    expect(Keymap.isModified('Blendon/Rotate/Grab')).toBe(false);
   });
 
   it('judge "modified" against the active preset', () => {
@@ -90,7 +90,7 @@ describe('contested rows', () => {
   });
 
   it("replace where Blendon does the Editor command's job", () => {
-    expect(Keymap.contestState(row('Blendon/Vertex Snap'), settings())).toBe('Replaced');
+    expect(Keymap.contestState(row('Blendon/All Tools/Vertex Snap'), settings())).toBe('Replaced');
   });
 
   it("hand the Editor's scene menu over while Blendon's answers the same button", () => {
@@ -106,7 +106,7 @@ describe('contested rows', () => {
     expect(Keymap.listed(row(GRAB), on)).toBe(true);
     Keymap.move(row(GRAB));
     expect(Keymap.listed(row(GRAB), on)).toBe(true);
-    expect(Keymap.listed(row('Blendon/Vertex Snap'), on)).toBe(false);
+    expect(Keymap.listed(row('Blendon/All Tools/Vertex Snap'), on)).toBe(false);
     expect(Keymap.listed(row('Blendon/Context Menu'), on)).toBe(false);
     // A key given to the Editor's menu by hand still has no button, the handover would fight it.
     Keymap.rebind(MENU, 'Alt+M');
@@ -125,16 +125,16 @@ describe('contested rows', () => {
 
   it("start moved on the page, so each row offers Reset, and the dock's reset moves them again", () => {
     Keymap.start();
-    const moved = D.contested.filter((r) => Keymap.contestState(r, settings()) === 'Moved').map((r) => r.bl);
+    const moved = D.contested.filter((r) => Keymap.contestState(r, settings()) === 'Moved').map((r) => r.bid);
     expect(moved).toEqual([
-      'Grab',
-      'Grab Rotate',
-      'Grab Scale',
-      'View Back',
-      'View Left',
-      'View Pie',
-      'Draw Mode Pie',
-      'Tools Pie',
+      'Blendon/Move/Grab',
+      'Blendon/Rotate/Grab',
+      'Blendon/Scale/Grab',
+      'Blendon/Numpad Views/Back',
+      'Blendon/Numpad Views/Left',
+      'Blendon/Pie Menus/View',
+      'Blendon/Pie Menus/Draw Mode',
+      'Blendon/Pie Menus/Tools',
     ]);
     expect(D.contested.some((r) => Keymap.contestState(r, settings()) === 'Covered')).toBe(false);
     expect(Keymap.binding(CYCLE)).toBe('Shift+G');
@@ -165,20 +165,22 @@ describe('gates', () => {
     expect(switchedOn(GRAB, settings({ 'MoveGizmoSettings.Enabled': false }))).toBe(false);
     expect(switchedOn('Blendon/Orbit Selected', settings({ 'GeneralSettings.Enabled': false }))).toBe(false);
     expect(switchedOn('Blendon/Zoom/Zoom In', settings({ 'ZoomSettings.KeyboardEnabled': false }))).toBe(false);
-    expect(switchedOn('Blendon/Select Parent', settings({ 'BoxSelectSettings.HierarchyKeys': false }))).toBe(false);
-    expect(switchedOn('Blendon/Box Select Move Box', settings({ 'BoxSelectSettings.HierarchyKeys': false }))).toBe(
+    expect(switchedOn('Blendon/Box Select/Select Parent', settings({ 'BoxSelectSettings.HierarchyKeys': false }))).toBe(
+      false,
+    );
+    expect(switchedOn('Blendon/Box Select/Move Box', settings({ 'BoxSelectSettings.HierarchyKeys': false }))).toBe(
       true,
     );
-    const shading = D.pies.find((p) => p.sid === 'Blendon/Pie Menus/Shading')!;
+    const shading = D.pies.find((p) => p.sid === 'Blendon/Pie Menus/Draw Mode')!;
     expect(switchedOn(shading.sid, settings({}, { [shading.id]: false }))).toBe(false);
-    expect(switchedOn('Blendon/Vertex Snap', settings({ 'MoveGizmoSettings.Enabled': false }))).toBe(true);
+    expect(switchedOn('Blendon/All Tools/Vertex Snap', settings({ 'MoveGizmoSettings.Enabled': false }))).toBe(true);
     expect(switchedOn(CYCLE, settings())).toBe(false);
   });
 
   it("need Blendon's context always, or only while the key covers a command", () => {
     expect(Keymap.needsContext(GRAB)).toBe(true);
     expect(Keymap.needsContext('Blendon/Orbit Selected')).toBe(false);
-    const shading = row('Blendon/Pie Menus/Shading');
+    const shading = row('Blendon/Pie Menus/Draw Mode');
     expect(Keymap.needsContext(shading.bid)).toBe(true);
     Keymap.move(shading);
     expect(Keymap.needsContext(shading.bid)).toBe(false);
@@ -196,7 +198,7 @@ describe('live cards', () => {
     Keymap.applyPreset('Unity');
     expect(tips.resolve(src)).toContain(key('Shift+G'));
     // Vertex snap keeps V on both presets.
-    expect(tips.resolve(D.shortcuts['Blendon/Vertex Snap'].src!)).toContain(key('V'));
+    expect(tips.resolve(D.shortcuts['Blendon/All Tools/Vertex Snap'].src!)).toContain(key('V'));
   });
 
   it("follow the Editor's command in a moved row's card", () => {
@@ -267,7 +269,7 @@ describe('the window', () => {
     expect(m.nativeNote('Blendon/Orbit Selected')?.lead).toBe(
       `Replaces the Editor's "Scene View Pan" in the Scene View. Open in`,
     );
-    expect(m.nativeNote('Blendon/Viewport Nav/View Back')?.lead).toContain(
+    expect(m.nativeNote('Blendon/Numpad Views/Back')?.lead).toContain(
       'Covers the Editor\'s "Decal: Stretch UV" in the Scene View',
     );
     Keymap.applyPreset('Unity');
@@ -286,11 +288,11 @@ describe('the window', () => {
 
   it('keeps the preset and the moved commands through Reset All Pages', () => {
     Keymap.applyPreset('Unity');
-    Keymap.move(row('Blendon/Viewport Nav/View Back'));
+    Keymap.move(row('Blendon/Numpad Views/Back'));
     Keymap.rebind(GRAB, 'H');
     harness().model().resetAll();
     expect(Keymap.binding(GRAB)).toBe('Shift+G');
     expect(Keymap.preset()).toBe('Unity');
-    expect(Keymap.binding(row('Blendon/Viewport Nav/View Back').uid)).toBe('Ctrl+Num 5');
+    expect(Keymap.binding(row('Blendon/Numpad Views/Back').uid)).toBe('Ctrl+Num 5');
   });
 });

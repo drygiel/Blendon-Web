@@ -56,8 +56,8 @@ export function Setup() {
         }
       />
       <p className={styles.lead} data-reveal="rise" {...plotPart('above')}>
-        Every feature gets its own page in Tools → Blendon: an illustrated card with how it works and its keys, then the
-        settings. Flip through a few.
+        Every feature gets its own page in Tools → Blendon → Settings: an illustrated card with how it works and its
+        keys, then the settings. Flip through a few.
       </p>
 
       <div className={styles.split}>
