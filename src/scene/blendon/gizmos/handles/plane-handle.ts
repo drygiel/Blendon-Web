@@ -7,7 +7,6 @@ import { SelectionCache, TutorialTransform } from '../../foundation.ts';
 import type { GizmoAxis } from '../axis.ts';
 import { MinVisibleFade } from '../colors.ts';
 import type { GizmoSettings } from '../common/gizmo-settings.ts';
-import { AxisBasis } from '../common/layout.ts';
 import { Signal } from '../common/signal.ts';
 import { DragKind, type GizmoDragCoordinator } from '../core/drag.ts';
 import { MoveSnap } from '../core/move-snap.ts';
@@ -52,6 +51,7 @@ export class PlaneHandle {
   private target = Vector3.zero;
 
   readonly dragStarted = new Signal<[Vector3, Vector3]>();
+  /** A move drag's whole travel from the press, zero without a lattice (a scale drag). */
   readonly dragged = new Signal<[Vector3]>();
   readonly dragEnded = new Signal();
 
@@ -139,18 +139,14 @@ export class PlaneHandle {
               this.coordinator.wrap.projectionMousePosition,
               this.coordinator.vertexSnapAtDragStart,
             );
-            const [axis1, axis2] = AxisBasis.planeAxes(this.axis);
             [this.freeA, this.freeB] = VertexGrab.distancesAcrossPlane(
               vertex.sub(carried).sub(this.dragPivot),
               this.dragDir1,
               this.dragDir2,
-              axis1,
-              axis2,
             );
             const r = this.tryPlaneTranslation();
             if (r) [this.readA, this.readB] = r;
             this.target = this.dragPivot.add(this.dragDir1.mul(this.freeA)).add(this.dragDir2.mul(this.freeB));
-            snapshot.rebaseRaw(position);
           } else {
             this.hasSnapVertex = false;
             const r = this.tryPlaneTranslation();
@@ -195,8 +191,17 @@ export class PlaneHandle {
       this.dragEnded.invoke();
       this.coordinator.clickGate.endHandleDrag(() => snapshot.cancel());
     }
-    if (GUIUtility.hotControl === id && moved) this.dragged.invoke(delta);
+    if (GUIUtility.hotControl === id && moved) this.dragged.invoke(moveSnap.valid ? this.offset : Vector3.zero);
     return delta;
+  }
+
+  /** Where the tracker puts the pivot now, from the drag start. */
+  get offset() {
+    return this.target.sub(this.dragPivot);
+  }
+
+  get isDragged() {
+    return this.coordinator.activeKind === this.kind && this.coordinator.activeAxis === this.axis;
   }
 
   private tryPlaneTranslation(): [number, number] | null {

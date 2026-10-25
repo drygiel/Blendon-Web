@@ -653,26 +653,6 @@
      "pressing": true
     },
     {
-     "id": "select.group",
-     "title": "Group the two cubes",
-     "hint": "With both selected, press Mouse 1 and pick Group: an empty is made with both cubes under it.",
-     "hintSrc": "With both selected, press {key:Blendon/Context Menu} and pick Group: an empty is made with both cubes under it.",
-     "picture": "plugin/tips/ContextMenu_Grouping.webp",
-     "clip": "plugin/video/tutorial/Grouping.webm",
-     "aspect": "640 / 360",
-     "needs": "Select both cubes first",
-     "kind": "command",
-     "page": "SceneMenu",
-     "commands": [
-      "Blendon/Group"
-     ],
-     "pressing": true,
-     "keysPage": "SceneMenu",
-     "availableWhen": {
-      "reason": "Group & Unparent is off, or the menu has no key, on the Context Menu page"
-     }
-    },
-    {
      "id": "select.parent",
      "title": "Step up to the parent",
      "hint": "Select a cube in the group, or the one under the pivot you kept, then step up: what holds it is selected instead.",
@@ -686,7 +666,6 @@
       "Blendon/Box Select/Select Parent"
      ],
      "after": [
-      "select.group",
       "snap.keep-pivot"
      ]
     },
@@ -704,7 +683,6 @@
       "Blendon/Box Select/Select Children"
      ],
      "after": [
-      "select.group",
       "snap.keep-pivot"
      ]
     },
@@ -723,7 +701,6 @@
       "reason": "Click Selects Parent is off on the Box Select page"
      },
      "after": [
-      "select.group",
       "snap.keep-pivot"
      ]
     },

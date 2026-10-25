@@ -8,6 +8,9 @@ import { ViewNavigationState } from '../navigation/state.ts';
 import { GizmoColors } from './colors.ts';
 import { SharedGizmoSettings } from './shared-settings.ts';
 
+// Disc radius, as a share of the handle size, from which a disc gets every segment the quality allows.
+const FullDiscHandleShare = 0.05;
+
 export const GizmoRenderer = {
   /** 1 broadside, 0 within thresholdDegrees of edge-on. */
   axisFade(axisDirection: Vector3, viewDir: Vector3, thresholdDegrees: number) {
@@ -251,7 +254,10 @@ export const DrawPrimitives = {
 
   drawAASolidDisc(center: Vector3, normal: Vector3, radius: number) {
     let segments = Math.trunc(SharedGizmoSettings.qualityLerp(8, 48));
-    segments = Math.trunc(Mathf.Lerp(8, segments, radius / 0.05));
+    // Screen size, not world size: a dot keeps its pixels up close, counted in world units it turns octagonal.
+    segments = Math.trunc(
+      Mathf.Lerp(8, segments, radius / (FullDiscHandleShare * HandleUtility.getHandleSize(center))),
+    );
     Handles.drawAAConvexPolygon(...circlePoints(segments, center, normal, radius));
   },
 

@@ -4,8 +4,9 @@
 import { Keymap } from '../../../bridge/keymap.ts';
 import { TUTORIAL, type TutorialTask as TaskData, type TutorialWay } from '../../../plugin/tutorial.ts';
 import { Selection, type PrefValue } from '../../unity/editor.ts';
+import type { Transform } from '../../unity/scene.ts';
 import { IS_MAC } from '../../unity/imgui.ts';
-import { ModifierKey, ModifierKeys, TransformTraits as T } from '../foundation.ts';
+import { ModifierKey, ModifierKeys, SelectionCache, TransformTraits as T } from '../foundation.ts';
 import { ShortcutGates } from '../shortcut-gates.ts';
 import { resolveHint } from './hint.ts';
 
@@ -100,8 +101,10 @@ const Id = {
 const contextMenuKey = () => binding(Id.ContextMenu);
 const grab = () => binding(Id.Grab);
 
-const hasSelection = () => Selection.activeTransform != null;
-const twoSelected = () => Selection.count >= 2;
+// The scene's empties (a group) aren't a cube.
+const isCube = (t: Transform | null) => !!t?.gameObject.mesh;
+const cubeSelected = () => isCube(Selection.activeTransform);
+const twoSelected = () => SelectionCache.transforms.filter(isCube).length >= 2;
 // One cube, so a click on it walks up instead of reselecting.
 const inGroup = () => Selection.count === 1 && !!Selection.activeTransform?.parent;
 const hasChildren = () => (Selection.activeTransform?.children.length ?? 0) > 0;
@@ -129,67 +132,62 @@ const Code: Record<string, Code> = {
     available: () => on('SceneMenuSettings.AddObject') && !!contextMenuKey(),
   },
   'nav.zoom': { keys: () => 'Wheel' },
-  'nav.frame': { needs: hasSelection },
-  'nav.orbit-selection': { needs: hasSelection },
+  'nav.frame': { needs: cubeSelected },
+  'nav.orbit-selection': { needs: cubeSelected },
 
   // Grab and Move
-  'grab.move': { needs: hasSelection },
+  'grab.move': { needs: cubeSelected },
   'grab.cancel': {
     keys: () => keys(grab(), on('GeneralSettings.RmbCancelEnabled') ? 'Mouse 1' : 'Esc'),
-    needs: hasSelection,
+    needs: cubeSelected,
   },
-  'grab.axis': { keys: () => keys(grab(), 'X'), needs: hasSelection },
-  'grab.exact': { keys: () => keys(grab(), 'Y', '2', 'Enter'), needs: hasSelection },
-  'snap.floor': { needs: hasSelection },
+  'grab.axis': { keys: () => keys(grab(), 'X'), needs: cubeSelected },
+  'grab.exact': { keys: () => keys(grab(), 'Y', '2', 'Enter'), needs: cubeSelected },
+  'snap.floor': { needs: cubeSelected },
   'grab.floor-plane': {
     keys: () => keys(grab(), modifier('SharedGizmoSettings.AxisExcludeModifier', 'Shift') + '+Y'),
     available: () => hasModifier('SharedGizmoSettings.AxisExcludeModifier', 'Shift'),
-    needs: hasSelection,
+    needs: cubeSelected,
   },
-  'grab.grid': { keys: () => keys(grab(), actionKey()), needs: hasSelection },
+  'grab.grid': { keys: () => keys(grab(), actionKey()), needs: cubeSelected },
   'grab.slow': {
     keys: () => keys(grab(), modifier('SharedGizmoSettings.PrecisionModifier', 'Shift')),
     available: () =>
       on('SharedGizmoSettings.PrecisionModeEnabled') && hasModifier('SharedGizmoSettings.PrecisionModifier', 'Shift'),
-    needs: hasSelection,
+    needs: cubeSelected,
   },
 
   // Rotate and Scale
-  'grab.rotate': { needs: hasSelection },
-  'grab.rotate-exact': { keys: () => keys(binding(Id.Rotate), 'Y', '45', 'Enter'), needs: hasSelection },
-  'grab.local-axis': { keys: () => keys(grab(), 'X', 'X'), needs: hasSelection },
-  'grab.scale': { needs: hasSelection },
-  'grab.reset-scale': { needs: hasSelection },
+  'grab.rotate': { needs: cubeSelected },
+  'grab.rotate-exact': { keys: () => keys(binding(Id.Rotate), 'Y', '45', 'Enter'), needs: cubeSelected },
+  'grab.local-axis': { keys: () => keys(grab(), 'X', 'X'), needs: cubeSelected },
+  'grab.scale': { needs: cubeSelected },
+  'grab.reset-scale': { needs: cubeSelected },
 
   // A Second Cube
-  'snap.vertex': { keys: () => keys(grab(), binding(Id.VertexSnap)), needs: hasSelection },
+  'snap.vertex': { keys: () => keys(grab(), binding(Id.VertexSnap)), needs: cubeSelected },
   'snap.surface': {
     keys: () => keys(grab(), modifier('MoveGizmoSettings.SurfaceSnapModifier', 'Alt')),
     available: () =>
       on('MoveGizmoSettings.SurfaceSnapEnabled') && hasModifier('MoveGizmoSettings.SurfaceSnapModifier', 'Alt'),
-    needs: hasSelection,
+    needs: cubeSelected,
   },
 
   // Tools and Handles
-  'handles.axis': { needs: hasSelection },
-  'handles.plane': { needs: hasSelection },
-  'handles.ring': { needs: hasSelection },
+  'handles.axis': { needs: cubeSelected },
+  'handles.plane': { needs: cubeSelected },
+  'handles.ring': { needs: cubeSelected },
   'snap.lookat': {
     keys: () => modifier('RotateGizmoSettings.LookAtModifier', 'Alt'),
     available: () =>
       on('RotateGizmoSettings.LookAtEnabled') && hasModifier('RotateGizmoSettings.LookAtModifier', 'Alt'),
-    needs: hasSelection,
+    needs: cubeSelected,
   },
-  'snap.virtual-pivot': { needs: hasSelection },
+  'snap.virtual-pivot': { needs: cubeSelected },
   'snap.keep-pivot': { keys: () => 'Enter' },
 
   // Selecting
   'select.box-modes': { keys: () => binding(Id.AddBoxSelect) },
-  'select.group': {
-    keys: contextMenuKey,
-    available: () => on('SceneMenuSettings.Grouping', false) && !!contextMenuKey(),
-    needs: twoSelected,
-  },
   'select.parent': { needs: inGroup },
   'select.children': { needs: hasChildren },
   'select.click-parent': { available: () => on('BoxSelectSettings.ClickSelectsParent'), needs: inGroup },
@@ -207,7 +205,7 @@ const Code: Record<string, Code> = {
       on('OrbitSelectedSettings.AltSnapEnabled') && hasModifier('OrbitSelectedSettings.SnapModifier', 'Alt'),
   },
   'nav.camera': { notInDemo: 'the demo scene has no camera to look through' },
-  'tools.isolate': { needs: hasSelection },
+  'tools.isolate': { needs: cubeSelected },
 
   // Pie Menus and You
   'pie.number': {

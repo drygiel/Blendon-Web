@@ -197,7 +197,7 @@ Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align a
 <td width="50%" valign="top">
 <img src="public/plugin/tips/Overview_KeyboardBlendon.webp" alt="Keyboard presets" width="100%">
 <br><b>Keyboard presets</b><br>
-<b>Blendon</b> answers the Blender keys in the Scene view and writes nothing but the right-click menu's handover; Unity's commands on them keep working everywhere else, and one click moves most of them aside. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead.
+<b>Blendon</b> answers the Blender keys in the Scene view and writes nothing but the right-click menu's handover, which it gives back when the Editor closes; Unity's commands on them keep working everywhere else, and one click moves most of them aside. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead.
 </td>
 </tr>
 </table>

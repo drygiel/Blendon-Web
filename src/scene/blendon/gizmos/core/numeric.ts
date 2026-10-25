@@ -110,7 +110,6 @@ let typing: ModalNumericParser | null = null;
 const setTyping = (p: ModalNumericParser | null) => void (typing = p);
 
 export class ModalNumericParser {
-  private backspaceArmed = false;
   private readonly buffer = new AxisBuffer();
   private defaultAxis = GizmoAxis.X;
   private lastAxisKeyIndex = -1;
@@ -195,10 +194,16 @@ export class ModalNumericParser {
     this.isSpaceExplicit = false;
     this.lastAxisKeyIndex = constrainedAxis?.index ?? -1;
     this.step = constrainedAxis && constrainedAxis.index >= 0 ? SpaceStep.Scene : SpaceStep.Unconstrained;
-    this.backspaceArmed = false;
     this.buffer.clear();
     this.defaultAxis = constrainedAxis ?? defaultAxis ?? GizmoAxis.X;
     this.activeMask = AxisConstraintMask.single(this.defaultAxis);
+  }
+
+  /** A plane handle's drag: a typed value lands on both of the plane's axes, as Shift+axis does. */
+  beginPlaneTransform(normal: GizmoAxis) {
+    // YZ has no X, so the default stays on an axis the plane spans.
+    this.beginMouseTransform(null, normal === GizmoAxis.X ? GizmoAxis.Z : GizmoAxis.X);
+    this.activeMask = AxisConstraintMask.plane(normal);
   }
 
   endMouseTransform() {
@@ -213,7 +218,6 @@ export class ModalNumericParser {
     this.defaultAxis = GizmoAxis.X;
     this.lastAxisKeyIndex = -1;
     this.step = SpaceStep.Unconstrained;
-    this.backspaceArmed = false;
     this.buffer.clear();
   }
 
@@ -261,12 +265,10 @@ export class ModalNumericParser {
         return true;
       case KeyCode.Minus:
       case KeyCode.KeypadMinus:
-        this.backspaceArmed = false;
         this.buffer.isNegative = !this.buffer.isNegative;
         return true;
       case KeyCode.Slash:
       case KeyCode.KeypadDivide:
-        this.backspaceArmed = false;
         this.buffer.isReciprocal = !this.buffer.isReciprocal;
         return true;
       default: {
@@ -286,7 +288,6 @@ export class ModalNumericParser {
 
   /** Repeated presses of one axis key step scene orientation -> alternate -> (releasable) none. */
   private handleAxisKey(axis: GizmoAxis, shift: boolean) {
-    this.backspaceArmed = false;
     const repeat = this.step !== SpaceStep.Unconstrained && axis.index === this.lastAxisKeyIndex;
     if (repeat)
       this.step =
@@ -327,34 +328,18 @@ export class ModalNumericParser {
   private appendChar(c: string) {
     if (!this.buffer.tryAppend(c)) return;
     if (this.state === ModalNumericState.MouseTransforming) this.state = ModalNumericState.NumericInput;
-    this.backspaceArmed = false;
     TutorialTransform.note(TransformTraits.Numeric);
   }
 
+  /** Digits first, then the reciprocal, then the sign. The press that leaves nothing typed hands the drag back. */
   private handleBackspace() {
     const b = this.buffer;
-    if (b.text) {
-      b.text = b.text.slice(0, -1);
-      this.backspaceArmed = false;
-      return;
-    }
-    if (b.isReciprocal) {
-      b.isReciprocal = false;
-      this.backspaceArmed = false;
-      return;
-    }
-    if (b.isNegative) {
-      b.isNegative = false;
-      this.backspaceArmed = false;
-      return;
-    }
-    if (!this.backspaceArmed) {
-      this.backspaceArmed = true;
-      this.onRevertToMouseTransform?.();
-      return;
-    }
+    if (b.text) b.text = b.text.slice(0, -1);
+    else if (b.isReciprocal) b.isReciprocal = false;
+    else b.isNegative = false;
+    if (!b.isEmpty || this.state !== ModalNumericState.NumericInput) return;
     this.state = ModalNumericState.MouseTransforming;
-    this.backspaceArmed = false;
+    this.onRevertToMouseTransform?.();
   }
 
   private confirm() {

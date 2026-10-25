@@ -30,7 +30,7 @@ const COLUMNS: [string, ReactNode[]][] = [
       <>
         <Code>EditorPrefs</Code> for settings
       </>,
-      'Your active Shortcut Manager profile, only for keys you change and the right-click menu',
+      'Your active Shortcut Manager profile, only for keys you change and, while Blendon runs, the right-click menu',
       <>
         <Code>Blendon/PieMenus.json</Code> in your user settings folder
       </>,

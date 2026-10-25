@@ -375,7 +375,7 @@
   },
   "GeneralSettings.WrapBounds": {
    "l": "Wrap On",
-   "t": "<size=14><b>Wrap On</b></size>\nThe border where the cursor wraps around.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scene View Viewport</b> - the drawn 3D area\n<color=#92929A>•</color> <b>Unity Window</b> - the whole Editor, so a drag crosses the <b><color=#3DB892>Hierarchy</color></b> and <b><color=#3DB892>Inspector</color></b> first\n<color=#92929A>•</color> <b>Screen Boundary</b> - the display the cursor is on\n\n<size=9><color=#92929A>OS Native only. The other methods always wrap at the view's own edge</color></size>",
+   "t": "<size=14><b>Wrap On</b></size>\nThe border where the cursor wraps around.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scene View Viewport</b> - the drawn 3D area\n<color=#92929A>•</color> <b>Unity Window</b> - the whole Editor, so a drag crosses the <b><color=#3DB892>Hierarchy</color></b> and <b><color=#3DB892>Inspector</color></b> first\n<color=#92929A>•</color> <b>Screen Boundary</b> - the display the cursor is on\n\n<size=9><color=#92929A>OS Native only. The other methods always wrap at the view's own edge\nOn macOS and Linux with more than one display, <b>Screen Boundary</b> wraps like <b>Scene View Viewport</b></color></size>",
    "i": "Tips/Overview/WrapBounds.png",
    "d": "Viewport",
    "k": "CursorWrapBounds",
@@ -612,7 +612,7 @@
   },
   "PanSettings.WrapBounds": {
    "l": "Wrap On",
-   "t": "<size=14><b>Wrap On</b></size>\nThe border where the cursor wraps around.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scene View Viewport</b> - the drawn 3D area\n<color=#92929A>•</color> <b>Unity Window</b> - the whole Editor, so a drag crosses the <b><color=#3DB892>Hierarchy</color></b> and <b><color=#3DB892>Inspector</color></b> first\n<color=#92929A>•</color> <b>Screen Boundary</b> - the display the cursor is on\n\n<size=9><color=#92929A>OS Native only. The other methods always wrap at the view's own edge</color></size>",
+   "t": "<size=14><b>Wrap On</b></size>\nThe border where the cursor wraps around.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scene View Viewport</b> - the drawn 3D area\n<color=#92929A>•</color> <b>Unity Window</b> - the whole Editor, so a drag crosses the <b><color=#3DB892>Hierarchy</color></b> and <b><color=#3DB892>Inspector</color></b> first\n<color=#92929A>•</color> <b>Screen Boundary</b> - the display the cursor is on\n\n<size=9><color=#92929A>OS Native only. The other methods always wrap at the view's own edge\nOn macOS and Linux with more than one display, <b>Screen Boundary</b> wraps like <b>Scene View Viewport</b></color></size>",
    "i": "Tips/Overview/WrapBounds.png",
    "d": "Viewport",
    "k": "CursorWrapBounds",
@@ -1074,7 +1074,7 @@
   },
   "SharedGizmoSettings.WrapBounds": {
    "l": "Wrap On",
-   "t": "<size=14><b>Wrap On</b></size>\nThe border where the cursor wraps around.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scene View Viewport</b> - the drawn 3D area\n<color=#92929A>•</color> <b>Unity Window</b> - the whole Editor, so a drag crosses the <b><color=#3DB892>Hierarchy</color></b> and <b><color=#3DB892>Inspector</color></b> first\n<color=#92929A>•</color> <b>Screen Boundary</b> - the display the cursor is on\n\n<size=9><color=#92929A>OS Native only. The other methods always wrap at the view's own edge</color></size>",
+   "t": "<size=14><b>Wrap On</b></size>\nThe border where the cursor wraps around.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scene View Viewport</b> - the drawn 3D area\n<color=#92929A>•</color> <b>Unity Window</b> - the whole Editor, so a drag crosses the <b><color=#3DB892>Hierarchy</color></b> and <b><color=#3DB892>Inspector</color></b> first\n<color=#92929A>•</color> <b>Screen Boundary</b> - the display the cursor is on\n\n<size=9><color=#92929A>OS Native only. The other methods always wrap at the view's own edge\nOn macOS and Linux with more than one display, <b>Screen Boundary</b> wraps like <b>Scene View Viewport</b></color></size>",
    "i": "Tips/Overview/WrapBounds.png",
    "d": "Viewport",
    "k": "CursorWrapBounds",
@@ -1095,7 +1095,7 @@
   },
   "SharedGizmoSettings.ClickSelectEnabled": {
    "l": "Click-select",
-   "t": "<size=14><b>Click-select</b></size>\nClick through a gizmo to select the object behind it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nA click on a handle, with no drag, selects whatever is under the cursor. Dragging the handle works as usual.\n\n<size=9><color=#92929A>Shared by every gizmo</color></size>",
+   "t": "<size=14><b>Click-select</b></size>\nClick through a gizmo to select the object behind it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nA click on a handle, with no drag, selects what is under the cursor the way the Editor's own click does: a prefab root or <b><color=#3DB892>[SelectionBase]</color></b> stands for its parts, <b><color=#D98E38>Shift</color></b> adds, <b><color=#D98E38>Ctrl</color></b> toggles. Dragging the handle works as usual.\n\n<size=9><color=#92929A>Shared by every gizmo</color></size>",
    "i": "Tips/AllTools/ClickSelect.png",
    "d": true,
    "k": "Boolean"
@@ -2079,9 +2079,9 @@
   },
   "SnapToFloorSettings.Enabled": {
    "l": "Enable",
-   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
+   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down until its base, even one corner of it, meets something.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
    "i": "Tips/SnapToFloor/SnapToFloor.png",
-   "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap to Floor}: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
+   "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap to Floor}: each object falls straight down until its base, even one corner of it, meets something.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
    "d": true,
    "k": "Boolean"
   },
@@ -8915,7 +8915,7 @@
    "sections": [
     [
      "HOW IT WORKS",
-     "Press the snap key. Each selected object falls straight down and rests its base on whatever it hits first: the floor, a ramp, another object."
+     "Press the snap key. Each selected object falls straight down until its base meets the first thing below, even under one corner: the floor, a ramp, a table edge, another object."
     ],
     [
      "OPTIONS",
@@ -8934,7 +8934,7 @@
      ]
     }
    ],
-   "search": "HOW IT WORKS Press the snap key. Each selected object falls straight down and rests its base on whatever it hits first: the floor, a ramp, another object. OPTIONS <b><color=#4FA8E8>Direction</color></b> drops onto ceilings instead. <b><color=#4FA8E8>Surface Layers</color></b> picks what it can land on. <b><color=#4FA8E8>Align to Surface</color></b> tilts it to the slope. drop the selection Ignores the object's own colliders and is fully undoable. Off frees the key."
+   "search": "HOW IT WORKS Press the snap key. Each selected object falls straight down until its base meets the first thing below, even under one corner: the floor, a ramp, a table edge, another object. OPTIONS <b><color=#4FA8E8>Direction</color></b> drops onto ceilings instead. <b><color=#4FA8E8>Surface Layers</color></b> picks what it can land on. <b><color=#4FA8E8>Align to Surface</color></b> tilts it to the slope. drop the selection Ignores the object's own colliders and is fully undoable. Off frees the key."
   },
   "FrameSelectedSettings": {
    "image": "Tips/FrameSelected/Header.png",
@@ -9390,9 +9390,9 @@
    "src": "<size=14><b>Scale Tool</b></size>\nBlendon's Blender-style gizmo for Unity's Scale tool, on {key:Tools/Scale}.\n\n<size=9><b><color=#92929A>HANDLES</color></b></size>\n<color=#92929A>•</color> <b>Boxes</b> - scale along one axis\n<color=#92929A>•</color> <b>Squares</b> - scale along two axes\n<color=#92929A>•</color> <b>Rings</b> - scale evenly on every axis\n\n<size=9><color=#92929A>Off gives the tool back to Unity's own gizmo and frees the Scale Grab key</color></size>"
   },
   "SnapToFloorSettings": {
-   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
+   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down until its base, even one corner of it, meets something.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>",
    "i": "Tips/SnapToFloor/SnapToFloor.png",
-   "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap to Floor}: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>"
+   "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap to Floor}: each object falls straight down until its base, even one corner of it, meets something.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>"
   },
   "FrameSelectedSettings": {
    "t": "<size=14><b>Frame Selected</b></size>\nBring the selection into view. Press again to cycle closer.\n\n<size=9><b><color=#92929A>EACH PRESS</color></b></size>\n<b>1</b>  <b>Selection Center</b> - turn to the middle of the selection\n<b>2</b>  <b>Active Pivot</b> - turn to the active object's pivot\n<b>3</b>  <b>Zoom In</b> - close in with Unity's own frame\n<b>4</b>  <b>Back to Start</b> - the view you started from\n\n<size=9><color=#92929A>The Sequence table changes the steps and their order. Off frees the key for the Editor</color></size>",
@@ -9453,6 +9453,7 @@
   "supportLinkText": "Copy support info",
   "supportTipKey": "link:SupportInfo",
   "keyboardIntro": "Every shortcut Blendon declares. Changing one here changes it on the feature's own page too - there is only ever one binding behind both rows.",
+  "keyboardOffNote": "{0} is off, so its keys don't answer and the Editor's own commands on them work as usual. They keep their bindings and can still be changed here.",
   "appearanceTip": "Sizes, colors and thicknesses. Nothing in here changes what the feature does.",
   "contestedLinkHint": "\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
   "gizmoPresetMark": " •",
@@ -10249,9 +10250,9 @@
    "src": "<size=14><b>Isolate View</b></size>\nHide everything except the selection.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Isolate View} to isolate what you selected. Press it again to bring the scene back.\n\n<size=9><color=#92929A>Hides with Unity's Scene Visibility, so nothing in the scene is changed</color></size>\n\n<size=9><color=#92929A>Click to open the Isolate View page</color></size>"
   },
   "Snap to Floor": {
-   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>\n\n<size=9><color=#92929A>Click to open the Snap to Floor page</color></size>",
+   "t": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress <b><color=#D98E38>End</color></b>: each object falls straight down until its base, even one corner of it, meets something.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>\n\n<size=9><color=#92929A>Click to open the Snap to Floor page</color></size>",
    "i": "Tips/SnapToFloor/SnapToFloor.png",
-   "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap to Floor}: each object falls straight down and rests on whatever it hits.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>\n\n<size=9><color=#92929A>Click to open the Snap to Floor page</color></size>"
+   "src": "<size=14><b>Snap To Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPress {key:Blendon/Snap to Floor}: each object falls straight down until its base, even one corner of it, meets something.\n\n<size=9><b><color=#92929A>NOTHING BELOW</color></b></size>\nIt rests on the <b><color=#3DB892>Terrain</color></b> under it, or on the ground plane at <b>Y = 0</b> without one. An object buried in terrain comes back up onto it.\n\n<size=9><color=#92929A>Ignores the object's own colliders. Fully undoable</color></size>\n\n<size=9><color=#92929A>Click to open the Snap to Floor page</color></size>"
   },
   "Navigation History": {
    "t": "<size=14><b>Navigation History</b></size>\nStep back and forward like a browser: through what you selected, and through camera views.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n<b><color=#D98E38>Mouse 3</color></b> / <b><color=#D98E38>Mouse 4</color></b> - selections\n<b><color=#D98E38>Shift+Mouse 3</color></b> / <b><color=#D98E38>Shift+Mouse 4</color></b> - views\n\n<size=9><color=#92929A>Click to open the Navigation History page</color></size>",

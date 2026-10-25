@@ -137,6 +137,16 @@ export const TutorialProgress = {
   /** False if already done. */
   complete(id: string) {
     if (done.has(id)) return false;
+    // Other tabs share the storage, so the tick joins what is stored now, not what was read at load.
+    const stored = read(StorageKey)?.done;
+    if (stored) {
+      done.clear();
+      for (const other of stored) done.add(other);
+    }
+    if (done.has(id)) {
+      changed();
+      return false;
+    }
     done.add(id);
     // Done with the detour, back to the task asked for before it.
     if (id === state.chosen) state.chosen = '';

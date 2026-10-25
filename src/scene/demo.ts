@@ -3,6 +3,7 @@
 import { PivotMode, SharedGizmoSettings } from './blendon/gizmos/shared-settings.ts';
 import type { SceneHost } from './engine/host.ts';
 import { BoxSelect } from './blendon/scenetools/box-select.ts';
+import { SelectionHistory } from './blendon/scenetools/history.ts';
 import {
   EditorSnapSettings,
   PivotRotation,
@@ -221,6 +222,8 @@ export function resetDemoScene(host: SceneHost) {
   view.showGrid = true;
   view.isRotationLocked = false;
   view.orthographic = false;
+  // Like a scene opened in Single mode, the selection history starts over.
+  SelectionHistory.clear();
   buildDemoScene(host);
   ShortcutManager.invalidate();
   Prefs.changed();

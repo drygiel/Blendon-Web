@@ -13,6 +13,10 @@ const BacktrackSteps = 16;
 const ResidualPixels = 0.05;
 const MaxForeshortening = 30;
 const MinFrontDepth = 1e-3;
+// Screen rates are read over a probe this share of the point's depth, capped at a unit, so a near eye keeps both
+// ends in front of the camera.
+const SampleDepthFraction = 0.1;
+const MaxSampleLength = 1;
 
 export const ScreenDragSolver = {
   /** The plane point under targetScreen, with the target pulled back from the plane's vanishing line. */
@@ -76,9 +80,12 @@ export const ScreenDragSolver = {
 };
 
 function measure(camera: SceneCamera, point: Vector3, direction: Vector3, target: Vector2) {
-  if (!isProjectable(camera, point) || !isProjectable(camera, point.add(direction))) return null;
+  if (!isProjectable(camera, point)) return null;
+  const sample = sampleLength(camera, point, direction.magnitude);
+  const end = point.add(direction.mul(sample));
+  if (!isProjectable(camera, end)) return null;
   const screen = HandleUtility.worldToGUIPoint(point);
-  const screenDir = HandleUtility.worldToGUIPoint(point.add(direction)).sub(screen);
+  const screenDir = HandleUtility.worldToGUIPoint(end).sub(screen).div(sample);
   const sigma = screenDir.magnitude;
   if (sigma < 1e-9) return null;
   const errorLen = Math.abs(Vector2.dot(target.sub(screen), screenDir) / sigma);
@@ -120,9 +127,17 @@ function reachableHalfRange(perpSq: number) {
 const clamp = (v: number, c: number, half: number) => (half === Infinity ? v : Mathf.Clamp(v, c - half, c + half));
 
 function screenRateFloor(camera: SceneCamera, point: Vector3, screen: Vector2) {
-  const r = point.add(camera.right);
+  const sample = sampleLength(camera, point, 1);
+  const r = point.add(camera.right.mul(sample));
   if (!isProjectable(camera, r)) return 0;
-  return HandleUtility.worldToGUIPoint(r).sub(screen).magnitude / MaxForeshortening;
+  return HandleUtility.worldToGUIPoint(r).sub(screen).magnitude / sample / MaxForeshortening;
+}
+
+// In steps of the direction. Ortho is linear, any length reads the same rate.
+function sampleLength(camera: SceneCamera, point: Vector3, directionLength: number) {
+  if (camera.orthographic || directionLength < 1e-9) return MaxSampleLength;
+  const depth = Vector3.dot(point.sub(camera.position), camera.forward);
+  return Math.min(MaxSampleLength, (SampleDepthFraction * depth) / directionLength);
 }
 
 function isProjectable(camera: SceneCamera, point: Vector3) {

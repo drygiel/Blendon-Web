@@ -103,14 +103,9 @@ test("on the Unity preset a task's hint names the menu's Unity key", async ({ pa
   await expect(row.locator('.tuthint')).not.toContainText('{key:');
 });
 
-test('stepping up to the parent builds on the group or the kept pivot, and is skipped once both are', async ({
-  page,
-}) => {
+test('stepping up to the parent builds on the kept pivot, and is skipped once that is', async ({ page }) => {
   const win = await openWindow(page);
-  await openPage(win, 'Context Menu');
-  await win.getByRole('button', { name: 'Show Group & Unparent' }).click();
   await openPage(win, 'Tutorial');
-  await expect(taskRow(win, 'select.group').locator('.tuttag')).toHaveText('OFF');
   await expect(taskRow(win, 'select.parent').locator('.tuttag')).toHaveCount(0);
 
   await openPage(win, 'Rotate');
@@ -118,8 +113,8 @@ test('stepping up to the parent builds on the group or the kept pivot, and is sk
   await openPage(win, 'Tutorial');
   const parent = taskRow(win, 'select.parent');
   await expect(parent.locator('.tuttag')).toHaveText('OFF');
-  const titles = taskData('select.parent').after!.map((id) => `"${taskData(id).title}"`);
-  await expectCard(win, parent, `Skipped while ${titles.join(' and ')} are skipped. This task builds on one of them`);
+  const [title] = taskData('select.parent').after!.map((id) => `"${taskData(id).title}"`);
+  await expectCard(win, parent, `Skipped while ${title} is skipped. This task builds on it`);
 });
 
 test('with Precision Mode off, fine-tuning is skipped for the reason the plugin gives', async ({ page }) => {

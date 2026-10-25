@@ -45,7 +45,7 @@ export function Pace() {
             Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
           </>
         }
-        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys, or just Esc, writes nothing, and Keep Unity keys moves Blendon's contested keys one modifier aside. Pick a preset any time on the Overview page of Tools → Blendon."
+        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys, or just Esc, only moves the right-click from Unity's menu to Blendon's while Blendon runs, and back when the Editor closes. Keep Unity keys moves Blendon's contested keys one modifier aside. Pick a preset any time on the Overview page of Tools → Blendon."
       />
 
       <div className={table.panel} {...plotPart('above')}>

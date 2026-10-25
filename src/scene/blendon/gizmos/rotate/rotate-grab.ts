@@ -1,9 +1,9 @@
 // RotateGrab: R spins the selection about the view axis with the cursor, X/Y/Z pick a world/local axis, and the
 // Look At key aims that axis at a surface like a ring drag.
-import { ShortcutManager, Tool, Tools, type ShortcutArguments } from '../../../unity/editor.ts';
+import { ShortcutManager, Tool, type ShortcutArguments } from '../../../unity/editor.ts';
 import { HandleUtility, MouseCursor } from '../../../unity/handles.ts';
 import { Event, EventType } from '../../../unity/imgui.ts';
-import { Plane, Vector3 } from '../../../unity/math.ts';
+import { Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import type { SceneCamera, SceneView } from '../../../unity/sceneview.ts';
 import { ShortcutTips } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
@@ -17,12 +17,14 @@ import { GizmoHud } from '../hud.ts';
 import { DrawOverlays } from '../overlays.ts';
 import { GizmoRenderer } from '../rendering.ts';
 import { SharedGizmoSettings } from '../shared-settings.ts';
-import { RotateDragOverlays, RotateLookAt, RotateMath } from './rotate-parts.ts';
+import { RotateDragOverlays, RotateLookAt, RotateManualTracking, RotateMath } from './rotate-parts.ts';
 import { RotateGizmo } from './rotate-gizmo.ts';
 
 export class RotateGrab extends GrabSession {
   static readonly ShortcutId = 'Blendon/Rotate/Grab';
   private readonly lookAt: RotateLookAt;
+  // See RotateMath.frozenLocalSpace.
+  private activeAtStart: Quaternion | null = null;
   // Cursor-driven, typed or aimed.
   private appliedAngle = 0;
   // An axis key while aiming, see onConstraintChanged.
@@ -30,6 +32,8 @@ export class RotateGrab extends GrabSession {
   // Accumulated from blended per-frame deltas, so a sweep past 180 keeps counting instead of wrapping.
   private axisDir = Vector3.forward;
   private refDir = Vector3.right;
+  // Unwrapped, angle zero points there on every axis.
+  private startMouse = Vector2.zero;
   private totalAngle = 0;
   private readonly tracker = new RingAngleTracker();
 
@@ -91,34 +95,29 @@ export class RotateGrab extends GrabSession {
   }
 
   protected override localSpaceRotation() {
-    return RotateMath.activeSnapshotRotation(this.coordinator) ?? Tools.handleRotation;
+    return RotateMath.frozenLocalSpace(this.activeAtStart);
   }
 
   // A deferred Global under a Local pivot toggle would read the rotation this session is spinning.
   protected override defaultSpaceRotation() {
-    return this.numeric.resolveDeferredIsLocal() ? this.localSpaceRotation() : Tools.handleRotation;
+    return RotateMath.frozenDefaultSpace(this.coordinator, this.numeric, this.activeAtStart);
   }
 
   protected onSessionBegan(_sceneView: SceneView, camera: SceneCamera, pivot: Vector3) {
+    this.activeAtStart = RotateMath.activeRotation();
     this.totalAngle = 0;
     this.appliedAngle = 0;
+    this.startMouse = this.coordinator.wrap.virtualMousePosition;
     this.seedTracking(camera.forward, pivot);
     GizmoHud.startRotateDrag(GizmoAxis.Screen, this.axisDir);
   }
 
   private seedTracking(axisDir: Vector3, pivot: Vector3) {
     this.axisDir = axisDir;
-    const mouse = this.coordinator.wrap.virtualMousePosition;
-    const ray = HandleUtility.guiPointToWorldRay(mouse);
-    const [hit, dist] = new Plane(axisDir, pivot).raycast(ray);
-    let anchor: Vector3 | null = null;
-    if (hit) {
-      const dir = ray.getPoint(dist).sub(pivot);
-      if (dir.sqrMagnitude > 1e-8) anchor = dir.normalized;
-    }
-    // Pivot to cursor is angle zero; a grazing ray falls back to the ring basis.
-    this.refDir = anchor ?? RingGeometry.referenceDir(axisDir);
-    this.tracker.anchor(pivot, axisDir, this.refDir, mouse);
+    // Angle zero points at the start's cursor, as on a gizmo ring; a grazing ray falls back to the ring basis.
+    this.refDir =
+      RotateManualTracking.anchorDir(pivot, axisDir, this.startMouse)?.normalized ?? RingGeometry.referenceDir(axisDir);
+    this.tracker.anchor(pivot, axisDir, this.refDir, this.coordinator.wrap.virtualMousePosition);
   }
 
   // First, so the Look At key takes effect on the event that carries it. Typed digits beat the cursor.
@@ -142,12 +141,15 @@ export class RotateGrab extends GrabSession {
     const c = this.coordinator;
     const pivot = c.pivotAtDragStart;
     if (!this.lookAt.probeAndCollect(pivot)) return;
+    // The active object's aim, for the readout and the sweep after the key. Each object may aim on its own.
     this.appliedAngle = this.lookAt.aimAxis(pivot, this.localSpaceRotation(), this.axisDir);
     GizmoHud.setAbsoluteDelta(this.appliedAngle);
-    RotateMath.applyRotation(c, this.lookAt.rotation, pivot);
+    if (!RotateMath.applyPerObjectLookAt(c, this.numeric, this.lookAt, this.axisDir, pivot))
+      RotateMath.applyRotation(c, this.lookAt.rotation, pivot);
   }
 
-  // Key let go: the sweep goes on from the aimed angle, anchored on the cursor so nothing jumps.
+  // Key let go: the sweep goes on from the aimed angle, anchored on the cursor so nothing jumps. Each object aimed
+  // on its own goes on from its own aim.
   private resumeFromAim() {
     if (this.lookAt.hasTarget) this.totalAngle = this.lookAt.angle;
     this.seedTracking(this.axisDir, this.coordinator.pivotAtDragStart);
@@ -156,6 +158,7 @@ export class RotateGrab extends GrabSession {
   protected override endSession() {
     this.lookAt.reset();
     this.reaimPending = false;
+    this.activeAtStart = null;
     super.endSession();
   }
 
@@ -176,16 +179,12 @@ export class RotateGrab extends GrabSession {
     this.apply(RotateSnap.snap(this.totalAngle));
   }
 
-  private apply(angle: number) {
+  // Typed degrees turn every object alike from the snapshot. The cursor's angle goes on from each one's aim.
+  private apply(angle: number, typed = false) {
     this.appliedAngle = angle;
     GizmoHud.setAbsoluteDelta(angle);
-    RotateMath.applyAxisRotation(
-      this.coordinator,
-      this.numeric,
-      angle,
-      this.axisDir,
-      this.coordinator.pivotAtDragStart,
-    );
+    const c = this.coordinator;
+    RotateMath.applyAxisRotation(c, this.numeric, angle, this.axisDir, c.pivotAtDragStart, typed ? null : this.lookAt);
   }
 
   private ringRadius() {
@@ -197,7 +196,7 @@ export class RotateGrab extends GrabSession {
   }
 
   protected applyNumeric() {
-    this.apply(this.numeric.currentParsedValue);
+    this.apply(this.numeric.currentParsedValue, true);
   }
 
   protected onConstraintChanged() {

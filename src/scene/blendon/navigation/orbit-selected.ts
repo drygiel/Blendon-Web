@@ -170,7 +170,14 @@ export const OrbitSelected = {
   resolveOrbitCenter(view: SceneView) {
     if (VertexSnappingUtility.hasPick) return VertexSnappingUtility.pickedPoint;
     const t = SelectionCache.transforms;
-    return t.length === 0 ? view.pivot : selectionCenter(t);
+    // Mid-flight the pivot is one frame of it, a key press swings about where it is heading.
+    return t.length === 0 ? ViewOrbitTween.pendingPivot(view) : selectionCenter(t);
+  },
+
+  /** From the drag start, never the previous frame. Ortho gets the center's depth, else the near clip cuts through. */
+  orbitPivot(center: Vector3, startOffset: Vector3, startRotation: Quaternion, rotation: Quaternion, ortho: boolean) {
+    const pivot = TurntableOrbit.pivotAround(center, startOffset, startRotation, rotation);
+    return ortho ? ViewProjection.pivotAtCenterDepth(pivot, center, rotation) : pivot;
   },
 
   repaintLastSceneView() {
@@ -403,7 +410,8 @@ function isDragButton(button: number) {
 function startOrbitDrag(view: SceneView, e: Event, controlId: number) {
   GUIUtility.hotControl = controlId;
   st.activeControlId = controlId;
-  ViewOrbitTween.stop();
+  // A running flight lands, and the orbit starts from there. The page's camera follows at once.
+  ViewOrbitTween.land(view);
   st.initialPivot = view.pivot;
   st.initialRotation = view.rotation;
   st.initialOrthographic = view.orthographic;

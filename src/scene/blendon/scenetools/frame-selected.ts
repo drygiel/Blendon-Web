@@ -133,7 +133,27 @@ export const FrameSelected = {
     );
   },
 
-  /** The shortcut's body, also how Isolate View frames. */
+  /** Frames the whole selection like Unity's F, on this tool's animation, outside the press cycle. Isolate View's. */
+  frameSelection(v: SceneView) {
+    const fit = FrameSelected.tryFitBounds(selectionBounds());
+    if (!fit) return;
+    // Pending values, a flight in progress would hand back a half-way frame.
+    const f = FrameSelectedSettings;
+    const rotation = ViewOrbitTween.pendingRotation(v);
+    const orthographic = ViewOrbitTween.pendingOrthographic(v);
+    ViewOrbitTween.to(v, fit.pivot, rotation, fit.size, orthographic, f.AnimationEnabled, f.AnimationDuration);
+  },
+
+  /** Unity's fit: the bounding sphere, a unit box for a point. */
+  tryFitBounds(bounds: Bounds | null): { pivot: Vector3; size: number } | null {
+    if (!bounds) return null;
+    if (bounds.size.sqrMagnitude < 1e-8) bounds = new Bounds(bounds.center, Vector3.one);
+    const size = bounds.extents.magnitude;
+    const pivot = bounds.center;
+    return Number.isFinite(size) && Number.isFinite(pivot.sqrMagnitude) ? { pivot, size } : null;
+  },
+
+  /** The shortcut's body. */
   run() {
     if (!FrameSelectedSettings.Enabled) return;
     const v = SceneView.lastActiveSceneView;

@@ -108,10 +108,12 @@ export class ScaleGrab extends GrabSession {
     );
   }
 
+  // Typed digits are re-applied by whoever passed the key on, the GUI pass or the relay.
   protected onConstraintChanged() {
     const c = this.coordinator;
-    const live = () =>
-      this.numeric.state === ModalNumericState.NumericInput ? this.applyNumeric() : this.session.apply();
+    const live = () => {
+      if (this.numeric.state !== ModalNumericState.NumericInput) this.session.apply();
+    };
     if (this.numeric.isUnconstrained) {
       c.retarget(this.grabKind, GizmoAxis.X);
       this.session.retarget(Vector3.zero);

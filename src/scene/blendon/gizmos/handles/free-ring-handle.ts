@@ -26,9 +26,11 @@ export class FreeRingHandle {
   // Unsnapped world position, advanced by precision-scaled increments of the projection.
   private free = Vector3.zero;
   private reading = Vector3.zero;
+  private start = Vector3.zero;
   private target = Vector3.zero;
 
   readonly dragStarted = new Signal();
+  /** A move drag's whole travel from the press, zero without a lattice (a scale drag). */
   readonly dragged = new Signal<[Vector3]>();
   readonly dragEnded = new Signal();
 
@@ -74,7 +76,6 @@ export class FreeRingHandle {
           this.free = vertex.sub(carried);
           this.target = this.free;
           if (hit) this.reading = hit;
-          c.snapshot.rebaseRaw(position);
         } else if (hit) {
           this.free = this.free.add(hit.sub(this.reading).mul(precision));
           this.reading = hit;
@@ -88,6 +89,7 @@ export class FreeRingHandle {
     const delta = c.snapshot.preciseDelta(id, target, changed, moveSnap.valid ? 1 : precision);
     if (!wasActive && c.snapshot.activeDragId === id) {
       c.begin(this.kind, position);
+      this.start = position;
       this.free = position;
       this.target = position;
       this.vertexGrab.release();
@@ -105,8 +107,17 @@ export class FreeRingHandle {
       this.dragEnded.invoke();
       c.clickGate.endHandleDrag(() => c.snapshot.cancel());
     }
-    if (GUIUtility.hotControl === id && changed) this.dragged.invoke(delta);
+    if (GUIUtility.hotControl === id && changed) this.dragged.invoke(moveSnap.valid ? this.offset : Vector3.zero);
     return delta;
+  }
+
+  /** Where the tracker puts the pivot now, from the drag start. */
+  get offset() {
+    return this.target.sub(this.start);
+  }
+
+  get isDragged() {
+    return this.coordinator.activeKind === this.kind;
   }
 
   private tryCursorHit() {

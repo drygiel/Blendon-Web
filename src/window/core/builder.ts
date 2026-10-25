@@ -914,22 +914,16 @@ export class Builder {
 
   keyboard() {
     if (!this.searching) this.banner(false, D.consts.keyboardIntro ?? '');
+    const masterOn = !!this.app.val('GeneralSettings.Enabled');
     for (const info of D.catalog) {
       const ids = D.pageShortcuts[info.id] ?? [];
       if (!ids.length) continue;
       this.sub(info.label, info.iconName || '', 15, 0);
-      const enabled = this.app.pageEnabled(info.id);
-      if (!enabled && !this.searching) {
-        this.banner(
-          false,
-          `${info.label} is off, so its keys belong to the rest of the Editor again. Switch it back on to edit them.`,
-        );
-        this.pageLink(info.id, 'Open');
-        continue;
-      }
-      if (!enabled) this.dis++;
+      // Gates shut an off feature's keys without touching the profile, so its rows stay editable. With the master
+      // switch off the window's own warning says it once.
+      if (!this.searching && masterOn && !this.app.pageEnabled(info.id))
+        this.banner(false, (D.consts.keyboardOffNote ?? '').replace('{0}', info.label));
       for (const id of ids) this.shortcut(['sc', id, null, D.shortcuts[id]?.n ?? '', id, '']);
-      if (!enabled) this.dis--;
       if (!this.searching) this.pageLink(info.id, 'Open');
     }
   }

@@ -16,7 +16,7 @@ const WHILE_DRAGGING: [KeyTokens, string][] = [
   [['Shift', '~+', 'X'], 'Lock the plane of the other two axes.'],
   [['0–9', '.'], 'Type the value. The mouse stops driving the transform.'],
   [['-'], 'Toggle the sign.'],
-  [['Backspace'], 'Delete a digit. On an empty field, hand control back to the mouse.'],
+  [['Backspace'], 'Delete a digit. Deleting the last one hands control back to the mouse.'],
   [['Enter', 'Mouse 0'], 'Confirm.'],
   [['Esc', 'Mouse 1'], 'Cancel and restore the pre-drag transform.'],
 ];

@@ -202,22 +202,22 @@ export class MoveGrab extends GrabSession {
     );
   }
 
+  // Typed digits are re-applied by whoever passed the key on, the GUI pass or the relay.
   protected onConstraintChanged() {
+    // An axis key before any mouse move would read the last grab's lattice.
+    this.manual.snap = this.currentSnap();
     if (this.numeric.isUnconstrained) {
       // Back to the screen-plane follow, measured from the grab start as before.
       this.manual.deactivate();
       this.coordinator.retarget(this.grabKind, GizmoAxis.X);
       GizmoHud.startFreeDrag();
-      if (this.numeric.state === ModalNumericState.NumericInput) this.applyNumeric();
-      else this.followCursor();
+      if (this.numeric.state !== ModalNumericState.NumericInput) this.followCursor();
       return;
     }
     this.manual.handleConstraintChanged(
       this.numeric,
       new AxisBasis(this.spaceRotation(this.numeric.currentActiveSpace, this.numeric.isSpaceExplicit)),
     );
-    // Relayed keys skip the parser's applyNumeric, so the typed value is carried over to the new axis here.
-    if (this.numeric.state === ModalNumericState.NumericInput) this.applyNumeric();
   }
 
   protected drawSessionOverlays() {

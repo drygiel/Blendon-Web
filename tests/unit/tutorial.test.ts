@@ -18,6 +18,7 @@ import {
 import { TutorialProgress } from '../../src/scene/blendon/tutorial/progress.ts';
 import { SceneTutorial } from '../../src/scene/blendon/tutorial/scene-tutorial.ts';
 import { Prefs, Selection } from '../../src/scene/unity/editor.ts';
+import { primitiveMesh } from '../../src/scene/unity/primitives.ts';
 import { GameObject, Scene } from '../../src/scene/unity/scene.ts';
 import { layoutWindow } from '../../src/window/core/layout.ts';
 import { newInstance, WindowModel } from '../../src/window/core/model.ts';
@@ -25,6 +26,11 @@ import { initialState, reduce, type StatePatch, type WindowState } from '../../s
 
 const scene = new Scene();
 const cube = new GameObject(scene, 'Cube');
+cube.mesh = primitiveMesh('Cube');
+const second = new GameObject(scene, 'Cube (1)');
+second.mesh = primitiveMesh('Cube');
+// An empty is selectable too, and isn't a cube.
+const group = new GameObject(scene, 'Group');
 
 const ids = () => TutorialTasks.filter((t) => TutorialProgress.isDone(t.id)).map((t) => t.id);
 const task = (id: string) => findTask(id)!;
@@ -170,9 +176,8 @@ describe('tutorial rules', () => {
   });
 
   it('skips a task once every task it builds on is skipped and none is done', () => {
-    set('SceneMenuSettings.Grouping', false);
-    expect(task('select.group').skippedBy()).toBe('switch');
-    // The pivot kept in the chapter before is still a parent to walk.
+    // The pivot kept in the chapter before is the parent to walk.
+    expect(task('select.parent').earlierIds).toEqual(['snap.keep-pivot']);
     expect(task('select.parent').isSkipped()).toBe(false);
     set('RotateGizmoSettings.Enabled', false);
     expect(task('snap.virtual-pivot').skippedBy()).toBe('page');
@@ -219,6 +224,10 @@ describe('tutorial progress', () => {
     // Orbit around the cube needs a selection, so the same gesture waits for one.
     Reports.reportShortcut('Blendon/Orbit Selected');
     expect(ids()).toEqual(['nav.orbit']);
+    // Only an object with a mesh counts as the cube.
+    Selection.set([group], group, false);
+    Reports.reportShortcut('Blendon/Orbit Selected');
+    expect(ids()).toEqual(['nav.orbit']);
     Selection.set([cube], cube, false);
     Reports.reportShortcut('Blendon/Orbit Selected');
     expect(ids()).toEqual(['nav.orbit', 'nav.orbit-selection']);
@@ -240,6 +249,14 @@ describe('tutorial progress', () => {
     expect(ids()).toEqual(['grab.move', 'grab.axis', 'grab.exact']);
     Reports.reportTransform(T.Move | T.Arrow);
     expect(ids()).toContain('handles.axis');
+  });
+
+  it('counts only selected objects with a mesh as both cubes', () => {
+    const both = task('select.pivot-point');
+    Selection.set([cube, group], cube, false);
+    expect(both.needsMet()).toBe(false);
+    Selection.set([cube, second], cube, false);
+    expect(both.needsMet()).toBe(true);
   });
 
   it('asks for a chosen task first, then picks the order up again', () => {

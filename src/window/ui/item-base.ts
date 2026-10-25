@@ -29,10 +29,8 @@ export function itemBase(app: WindowModel, it: Item) {
             disabled: !mark || it.dis,
           },
         ],
-        () => {
-          if (ovrRow) app.update((s) => ({ ovr: { ...s.ovr, [pkey]: false } }));
-          else app.revert(pkey);
-        },
+        // Following the page again is a revert: the flag and the value go, as ClearOverride does.
+        () => app.revert(pkey),
       );
   }
   return { cls, mark, markStyle, hl, onContextMenu, live: !it.dis && (!ovrRow || ovr) };

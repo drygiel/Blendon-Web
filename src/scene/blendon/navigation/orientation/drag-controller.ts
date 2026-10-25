@@ -4,7 +4,7 @@ import { Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import type { SceneView } from '../../../unity/sceneview.ts';
 import { SceneTutorial } from '../../foundation.ts';
 import { GeneralSettings } from '../../settings.ts';
-import { TurntableOrbit } from '../camera.ts';
+import { TurntableOrbit, ViewOrbitTween } from '../camera.ts';
 import { OrbitSelected, OrbitSelectedSettings } from '../orbit-selected.ts';
 import { ViewAlignment, ViewSnap, WorldAxes } from '../view-snap.ts';
 import {
@@ -163,6 +163,8 @@ export class OrientationGizmoElement {
     if (!this.isDragging) {
       if (delta.magnitude <= DragThresholdPixels) return;
       if (!this.settings.OrbitEnabled || v.isRotationLocked) return;
+      // Like the orbit drag: a running flight lands, and the turn starts from there.
+      ViewOrbitTween.land(v);
       this.isDragging = true;
       anyDragging = true;
       this.dragStartRotation = v.rotation;
@@ -176,11 +178,12 @@ export class OrientationGizmoElement {
       o.HorizontalOrbitDegreesPerPixel,
       o.VerticalTiltDegreesPerPixel,
     );
-    v.pivot = TurntableOrbit.pivotAround(
+    v.pivot = OrbitSelected.orbitPivot(
       this.orbitCenter,
       this.dragStartPivot.sub(this.orbitCenter),
       this.dragStartRotation,
       rotation,
+      v.orthographic,
     );
     v.rotation = rotation;
     v.repaint();

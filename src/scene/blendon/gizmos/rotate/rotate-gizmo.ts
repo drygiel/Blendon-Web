@@ -1,5 +1,5 @@
 // RotateGizmo: Blendon's Rotate tool (axis rings, screen ring, trackball).
-import { Tool, Tools } from '../../../unity/editor.ts';
+import { Tool } from '../../../unity/editor.ts';
 import { HandleUtility, MouseCursor } from '../../../unity/handles.ts';
 import { Event, EventType, GUIUtility } from '../../../unity/imgui.ts';
 import { Quaternion, Vector3 } from '../../../unity/math.ts';
@@ -27,6 +27,10 @@ export class RotateGizmo extends GizmoController {
   private readonly screenRing: RotationRingHandle;
   private readonly trackball: TrackballHandle;
   private readonly rings: RotationRingHandle[];
+  // The trackball keeps turning under typed digits, a Backspace puts its latest turn back on.
+  private trackballTurn = Quaternion.identity;
+  // A selected child isn't snapshotted, yet its parent turns it. So its start is kept here.
+  private activeAtStart: Quaternion | null = null;
 
   private static _instance: RotateGizmo | null = null;
   static get instance() {
@@ -54,14 +58,17 @@ export class RotateGizmo extends GizmoController {
     this.lookAt = new RotateLookAt(coordinator, () => this.resumeNativeDrag());
     for (const r of [...this.rings, this.screenRing]) this.wireRing(r);
     this.trackball.dragStarted.add(() => {
+      this.activeAtStart = RotateMath.activeRotation();
       GizmoHud.startRotateFreeDrag();
       this.numeric.beginMouseTransform(null);
       this.manual.onDragStart();
+      this.trackballTurn = Quaternion.identity;
     });
     this.trackball.dragged.add((rot) => {
+      this.trackballTurn = rot;
       if (this.angleDriven) return;
       GizmoHud.setAbsoluteDelta(TrackballHandle.rotationVector(rot));
-      RotateMath.applyRotation(this.coordinator, rot, this.coordinator.pivotAtDragStart);
+      this.applyRotation(rot);
     });
     this.trackball.dragEnded.add(() => this.endDragSession());
     coordinator.onCancelled(() => this.endDragSession());
@@ -97,6 +104,7 @@ export class RotateGizmo extends GizmoController {
 
   private wireRing(ring: RotationRingHandle) {
     ring.dragStarted.add((axis) => {
+      this.activeAtStart = RotateMath.activeRotation();
       GizmoHud.startRotateDrag(ring.axisId, axis);
       // The screen ring has no fixed world axis, so typed digits treat it as free.
       this.numeric.beginMouseTransform(ring.isScreenRing ? null : ring.axisId);
@@ -104,6 +112,7 @@ export class RotateGizmo extends GizmoController {
     });
     ring.dragged.add((axis, angle) => {
       if (this.angleDriven) return;
+      this.manual.noteRingAngle(angle);
       GizmoHud.setAbsoluteDelta(angle);
       this.applyAxisRotation(angle, axis);
     });
@@ -115,6 +124,18 @@ export class RotateGizmo extends GizmoController {
     this.numeric.reset();
     this.manual.clearSession();
     this.lookAt.reset();
+    this.activeAtStart = null;
+  }
+
+  // Rings go on from the angle the cursor had turned, anchored where it is. The trackball kept turning.
+  protected override resumeMouse() {
+    if (this.coordinator.activeKind !== DragKind.Trackball) {
+      this.manual.resumeMouse();
+      return;
+    }
+    if (this.lookAt.driving) return;
+    GizmoHud.setAbsoluteDelta(TrackballHandle.rotationVector(this.trackballTurn));
+    this.applyRotation(this.trackballTurn);
   }
 
   // Pinned to the drag-start pivot: a live one would feed a moving centre back into the angle.
@@ -126,13 +147,11 @@ export class RotateGizmo extends GizmoController {
 
   // Local space stays on the drag-start rotation, not the one this drag is already changing.
   protected override localSpaceRotation() {
-    return RotateMath.activeSnapshotRotation(this.coordinator) ?? Tools.handleRotation;
+    return RotateMath.frozenLocalSpace(this.activeAtStart);
   }
 
   protected override defaultSpaceRotation() {
-    return this.coordinator.activeKind !== DragKind.None && this.numeric.resolveDeferredIsLocal()
-      ? this.localSpaceRotation()
-      : Tools.handleRotation;
+    return RotateMath.frozenDefaultSpace(this.coordinator, this.numeric, this.activeAtStart);
   }
 
   drawHandles(sceneView: SceneView, isOwner: boolean) {
@@ -196,16 +215,17 @@ export class RotateGizmo extends GizmoController {
     for (const i of this.ringOrder) this.rings[i].draw(position, axisDirs[i], size * s.AxisLength, s, viewDir);
   }
 
+  // Typed values turn every object alike, absolute from the snapshot.
   private applyNumericRotation() {
     const c = this.coordinator;
-    if (c.activeKind === DragKind.Ring && c.activeAxis !== GizmoAxis.Screen) {
-      // The frozen axis: a fresh Local read would follow the rotation this drag already applied.
+    if (c.activeKind === DragKind.Ring) {
+      // The frozen axis, the view's on the screen ring: a fresh Local read would follow this drag's own turn.
       const axisDir = this.manual.axisDir;
       const angle = this.numeric.currentParsedValue;
-      const ring = this.ringForAxis(c.activeAxis);
+      const ring = this.activeRing();
       const refDir = this.manual.computeAnchorDir(axisDir)?.normalized ?? ring.refDir;
       ring.seedManualOverlay(axisDir, refDir, angle);
-      this.applyAxisRotation(angle, axisDir);
+      RotateMath.applyAxisRotation(c, this.numeric, angle, axisDir, c.pivotAtDragStart);
       return;
     }
     const reference = this.spaceRotation(this.numeric.currentActiveSpace, this.numeric.isSpaceExplicit);
@@ -216,8 +236,14 @@ export class RotateGizmo extends GizmoController {
     RotateMath.applyRotation(c, rot, c.pivotAtDragStart);
   }
 
+  // From the cursor: each object goes on from its own released aim.
   private applyAxisRotation(angle: number, axisDir: Vector3) {
-    RotateMath.applyAxisRotation(this.coordinator, this.numeric, angle, axisDir, this.coordinator.pivotAtDragStart);
+    const c = this.coordinator;
+    RotateMath.applyAxisRotation(c, this.numeric, angle, axisDir, c.pivotAtDragStart, this.lookAt);
+  }
+
+  private applyRotation(rot: Quaternion) {
+    RotateMath.applyRotation(this.coordinator, rot, this.coordinator.pivotAtDragStart, this.lookAt);
   }
 
   private ringRadius() {
@@ -229,13 +255,11 @@ export class RotateGizmo extends GizmoController {
   }
 
   private ringForAxis(axis: GizmoAxis) {
-    return this.rings[Math.max(0, axis.index)];
+    return axis === GizmoAxis.Screen ? this.screenRing : this.rings[Math.max(0, axis.index)];
   }
 
   private activeRing() {
-    return this.coordinator.activeAxis === GizmoAxis.Screen
-      ? this.screenRing
-      : this.ringForAxis(this.coordinator.activeAxis);
+    return this.ringForAxis(this.coordinator.activeAxis);
   }
 
   private updateLookAt(sceneView: SceneView, ev: Event) {
@@ -252,7 +276,7 @@ export class RotateGizmo extends GizmoController {
     const c = this.coordinator;
     const pivot = c.pivotAtDragStart;
     if (!this.lookAt.probeAndCollect(pivot)) return;
-    const from = RotateMath.activeSnapshotRotation(c) ?? Tools.handleRotation;
+    const from = this.localSpaceRotation();
     if (c.activeKind === DragKind.Trackball)
       GizmoHud.setAbsoluteDelta(TrackballHandle.rotationVector(this.lookAt.aimFree(pivot, from)));
     else {
@@ -263,17 +287,23 @@ export class RotateGizmo extends GizmoController {
       const ring = this.activeRing();
       ring.seedManualOverlay(axis, ring.refDir, angle);
     }
-    RotateMath.applyRotation(c, this.lookAt.rotation, pivot);
+    // The active object's aim above is what the readout shows and the hand-back carries on from.
+    if (!RotateMath.applyPerObjectLookAt(c, this.numeric, this.lookAt, this.manual.axisDir, pivot))
+      RotateMath.applyRotation(c, this.lookAt.rotation, pivot);
   }
 
   // Re-anchors the handle that owns the drag to the cursor, seeded with look-at's last result.
   private resumeNativeDrag() {
     const c = this.coordinator;
     if (c.activeKind === DragKind.Trackball) {
-      if (this.lookAt.hasTarget) this.trackball.resumeNativeDrag(this.lookAt.rotation);
+      if (!this.lookAt.hasTarget) return;
+      this.trackball.resumeNativeDrag(this.lookAt.rotation);
+      this.trackballTurn = this.lookAt.rotation;
     } else if (c.activeKind === DragKind.Ring) {
       const ring = this.activeRing();
-      ring.resumeNativeDrag(this.lookAt.hasTarget ? this.lookAt.angle : ring.appliedAngle);
+      const angle = this.lookAt.hasTarget ? this.lookAt.angle : ring.appliedAngle;
+      ring.resumeNativeDrag(angle);
+      this.manual.noteRingAngle(angle);
       this.manual.forgetTrackedAxis();
     }
   }

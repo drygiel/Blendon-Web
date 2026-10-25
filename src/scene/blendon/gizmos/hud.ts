@@ -138,10 +138,7 @@ export const GizmoHud = {
     Object.assign(st, { mode: DragMode.RotateFree, total: Vector3.zero, isScale: false });
   },
 
-  accumulateDelta(d: Vector3) {
-    st.total = st.total.add(d);
-  },
-
+  /** The whole drag so far, never a per-frame step, so the readout can't drift. */
   setAbsoluteDelta(d: Vector3 | number) {
     st.total = typeof d === 'number' ? new Vector3(d, 0, 0) : d;
   },

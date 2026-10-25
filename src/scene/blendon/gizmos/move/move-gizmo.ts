@@ -73,7 +73,7 @@ export class MoveGizmo extends GizmoController {
       this.numeric.beginMouseTransform(null);
       this.manual.onDragStart();
     });
-    this.screenRing.dragged.add((d) => this.onHandleDragged(d));
+    this.screenRing.dragged.add((offset) => this.followHandle(offset));
     this.screenRing.dragEnded.add(() => this.endDragSession());
     coordinator.onCancelled(() => this.endDragSession());
     this.numeric.onConfirm = () => {
@@ -101,9 +101,21 @@ export class MoveGizmo extends GizmoController {
     return this.surface.held;
   }
 
-  private onHandleDragged(delta: Vector3) {
+  // Digits, X/Y/Z and surface snap place the selection themselves, the handle only tracks under them.
+  private followHandle(offset: Vector3) {
     if (this.numeric.state === ModalNumericState.NumericInput || this.manual.active || this.surface.driving) return;
-    this.applyDelta(delta);
+    this.applyOffset(offset);
+  }
+
+  // The handle kept tracking under the digits, so the selection goes where it says.
+  protected override resumeMouse() {
+    if (this.surface.driving) return;
+    if (this.manual.active) {
+      this.manual.applyManualDrag();
+      return;
+    }
+    const drag = [this.screenRing, ...this.axisHandles, ...this.planeHandles].find((h) => h.isDragged);
+    if (drag) this.applyOffset(drag.offset);
   }
 
   private wireAxis(axis: AxisHandle) {
@@ -115,7 +127,7 @@ export class MoveGizmo extends GizmoController {
       this.numeric.beginMouseTransform(axis.axis);
       this.manual.onDragStart();
     });
-    axis.dragged.add((d) => this.onHandleDragged(d));
+    axis.dragged.add((offset) => this.followHandle(offset));
     axis.dragEnded.add(() => this.endDragSession());
   }
 
@@ -128,11 +140,11 @@ export class MoveGizmo extends GizmoController {
       t.planeAxis2 = axis2;
       this.vertexDrag = VertexSnappingUtility.isActive;
       GizmoHud.startPlaneDrag(axis1, dir1, axis2, dir2);
-      // X is excluded from the YZ plane, so typed digits default to an axis the plane spans.
-      this.numeric.beginMouseTransform(null, plane.axis === GizmoAxis.X ? GizmoAxis.Z : GizmoAxis.X);
+      // A typed distance moves along both plane axes, as Shift+axis does.
+      this.numeric.beginPlaneTransform(plane.axis);
       this.manual.onDragStart();
     });
-    plane.dragged.add((d) => this.onHandleDragged(d));
+    plane.dragged.add((offset) => this.followHandle(offset));
     plane.dragEnded.add(() => this.endDragSession());
   }
 
@@ -230,28 +242,28 @@ export class MoveGizmo extends GizmoController {
     }
   }
 
-  private applyDelta(delta: Vector3) {
-    if (delta.equals(Vector3.zero)) return;
-    GizmoHud.accumulateDelta(delta);
+  /** Every selected object at its snapshot plus the handle's whole travel, so nothing adds up per frame. */
+  private applyOffset(offset: Vector3) {
     const { transforms, snapshots } = this.coordinator.snapshot;
     if (!transforms.length) return;
-    this.coordinator.snapshot.record('Move');
     const k = this.coordinator.activeKind;
-    if (IndividualOrigins.localAxes(this.coordinator, this.numeric) && (k === DragKind.Axis || k === DragKind.Plane)) {
-      const local = this.localDeltaComponents(delta);
-      transforms.forEach((t, i) => (t.position = t.position.add(snapshots[i].rotation.mulV(local))));
-      return;
-    }
-    for (const t of transforms) t.position = t.position.add(delta);
+    const local =
+      IndividualOrigins.localAxes(this.coordinator, this.numeric) && (k === DragKind.Axis || k === DragKind.Plane);
+    const components = local ? this.localOffsetComponents(offset) : offset;
+    this.coordinator.snapshot.record('Move');
+    transforms.forEach(
+      (t, i) => (t.position = snapshots[i].position.add(local ? snapshots[i].rotation.mulV(components) : offset)),
+    );
+    GizmoHud.setAbsoluteDelta(offset);
   }
 
-  // The shared world delta in the drag's own constraint axes, rebuilt in identity-local space.
-  private localDeltaComponents(delta: Vector3) {
+  // The shared world offset in the drag's own constraint axes, rebuilt in identity-local space.
+  private localOffsetComponents(offset: Vector3) {
     const t = this.target;
-    if (this.coordinator.activeKind === DragKind.Axis) return t.axisId.unit.mul(Vector3.dot(delta, t.axisDir));
+    if (this.coordinator.activeKind === DragKind.Axis) return t.axisId.unit.mul(Vector3.dot(offset, t.axisDir));
     return t.planeAxis1.unit
-      .mul(Vector3.dot(delta, t.planeDir1))
-      .add(t.planeAxis2.unit.mul(Vector3.dot(delta, t.planeDir2)));
+      .mul(Vector3.dot(offset, t.planeDir1))
+      .add(t.planeAxis2.unit.mul(Vector3.dot(offset, t.planeDir2)));
   }
 
   private applyNumericDelta() {

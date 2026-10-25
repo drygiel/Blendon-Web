@@ -181,12 +181,19 @@ function readout(mode: BoxSelectMode, hits: GameObject[], change: Change, count:
   return lines.length ? lines : null;
 }
 
-function sameSelection(next: GameObject[]) {
-  const cur = Selection.objects;
-  if (cur.length !== next.length) return false;
-  if (next.length > 0 && next[0] !== Selection.activeGameObject) return false;
-  const set = new Set(cur);
+function sameAs(current: GameObject[], active: GameObject | null, next: GameObject[]) {
+  if (current.length !== next.length) return false;
+  if (next.length > 0 && next[0] !== active) return false;
+  const set = new Set(current);
   return next.every((o) => set.has(o));
+}
+
+const sameSelection = (next: GameObject[]) => sameAs(Selection.objects, Selection.activeGameObject, next);
+
+/** A box over nothing never counts. A Replace box does once it picked anything, the others when they changed it. */
+function countsAsGesture(d: Drag, change: Change, hits: GameObject[]) {
+  if (!hits.length) return false;
+  return d.mode === BoxSelectMode.Replace || !sameAs(d.baseline, d.baselineActive, change.next);
 }
 
 /** Writes the change as one undo step, or nothing when it already is the selection. */
@@ -392,6 +399,8 @@ function commit(d: Drag) {
   // Live pushes one undo step per move; folded into the one the user asks to undo.
   Undo.collapseUndoOperations(d.undoGroup + 1);
   repaint(d.view);
+  // The tutorial counts a box as done, so a drag over bare space mustn't.
+  if (!countsAsGesture(d, change, hits)) return;
   SceneTutorial.report(d.mode === BoxSelectMode.Replace ? 'BoxSelected' : 'BoxSelectModified');
 }
 

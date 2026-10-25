@@ -1,5 +1,5 @@
 // What Rotate's gizmo and grab share: applying a rotation, X/Y/Z re-constrained tracking, look-at and overlays.
-import { Selection } from '../../../unity/editor.ts';
+import { Selection, Tools } from '../../../unity/editor.ts';
 import { HandleUtility, Handles } from '../../../unity/handles.ts';
 import { Event } from '../../../unity/imgui.ts';
 import { Plane, Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
@@ -22,51 +22,115 @@ import { SharedGizmoSettings } from '../shared-settings.ts';
 import type { RotateGizmoSettings } from './settings.ts';
 
 export const RotateMath = {
-  /** The active object's rotation as the drag found it. */
-  activeSnapshotRotation(coordinator: GizmoDragCoordinator): Quaternion | null {
-    const active = Selection.activeTransform;
-    if (!active) return null;
-    const { transforms, snapshots } = coordinator.snapshot;
-    const i = transforms.indexOf(active);
-    return i >= 0 ? snapshots[i].rotation : active.rotation;
+  /** The active object's rotation now, null with nothing active. Taken as a drag begins. */
+  activeRotation(): Quaternion | null {
+    return Selection.activeTransform?.rotation ?? null;
   },
 
-  applyRotation(coordinator: GizmoDragCoordinator, rot: Quaternion, pivot: Vector3) {
+  /** Local space at the active object's drag-start rotation, for the whole drag. Shared with RotateGrab. */
+  frozenLocalSpace(activeAtStart: Quaternion | null) {
+    return activeAtStart ?? RotateMath.activeRotation() ?? Tools.handleRotation;
+  },
+
+  /** A deferred Global under a Local pivot toggle freezes like Local, the live one is being turned. */
+  frozenDefaultSpace(coordinator: GizmoDragCoordinator, numeric: ModalNumericParser, activeAtStart: Quaternion | null) {
+    return coordinator.activeKind !== DragKind.None && numeric.resolveDeferredIsLocal()
+      ? RotateMath.frozenLocalSpace(activeAtStart)
+      : Tools.handleRotation;
+  },
+
+  /** With carried, each object's own released free aim is composed after rot, which goes on from the active one's. */
+  applyRotation(
+    coordinator: GizmoDragCoordinator,
+    rot: Quaternion,
+    pivot: Vector3,
+    carried: RotateLookAt | null = null,
+  ) {
     const { transforms, snapshots } = coordinator.snapshot;
     if (!transforms.length) return;
+    if (!carried?.carries) carried = null;
     const ownOrigins = IndividualOrigins.ownOrigins(coordinator);
     coordinator.snapshot.record('Rotate');
     transforms.forEach((t, i) => {
-      t.rotation = rot.mul(snapshots[i].rotation);
-      t.position = ownOrigins ? snapshots[i].position : pivot.add(rot.mulV(snapshots[i].position.sub(pivot)));
+      const turn = carried ? rot.mul(carried.carriedTurn(i)) : rot;
+      t.rotation = turn.mul(snapshots[i].rotation);
+      t.position = ownOrigins ? snapshots[i].position : pivot.add(turn.mulV(snapshots[i].position.sub(pivot)));
     });
   },
 
+  /** With carried, each object turns on from its own released aim, by the angle the active one turns past its aim. */
   applyAxisRotation(
     coordinator: GizmoDragCoordinator,
     numeric: ModalNumericParser,
     angle: number,
     worldAxisDir: Vector3,
     pivot: Vector3,
+    carried: RotateLookAt | null = null,
   ) {
-    if (
+    const ownAxes = RotateMath.ownAxes(coordinator, numeric);
+    if (!carried?.carries) carried = null;
+    if (!ownAxes && !carried) {
+      RotateMath.applyRotation(coordinator, Quaternion.angleAxis(angle, worldAxisDir), pivot);
+      return;
+    }
+    const unit = coordinator.activeAxis.unit;
+    const { transforms, snapshots } = coordinator.snapshot;
+    const ownOrigins = IndividualOrigins.ownOrigins(coordinator);
+    coordinator.snapshot.record('Rotate');
+    transforms.forEach((t, i) => {
+      const axis = ownAxes ? snapshots[i].rotation.mulV(unit) : worldAxisDir;
+      const rot = Quaternion.angleAxis(carried ? angle + carried.carriedAngle(i) : angle, axis);
+      t.rotation = rot.mul(snapshots[i].rotation);
+      // A shared pivot is orbited by each object's own turn, as Blender does.
+      t.position = ownOrigins ? snapshots[i].position : pivot.add(rot.mulV(snapshots[i].position.sub(pivot)));
+    });
+  },
+
+  // Only a ring has one axis to localize, and the view axis has no local counterpart.
+  ownAxes(coordinator: GizmoDragCoordinator, numeric: ModalNumericParser) {
+    return (
       IndividualOrigins.localAxes(coordinator, numeric) &&
       coordinator.activeKind === DragKind.Ring &&
       coordinator.activeAxis !== GizmoAxis.Screen
-    ) {
-      const unit = coordinator.activeAxis.unit;
-      const { transforms, snapshots } = coordinator.snapshot;
-      const ownOrigins = IndividualOrigins.ownOrigins(coordinator);
-      coordinator.snapshot.record('Rotate');
-      transforms.forEach((t, i) => {
-        const rot = Quaternion.angleAxis(angle, snapshots[i].rotation.mulV(unit));
-        t.rotation = rot.mul(snapshots[i].rotation);
-        // A shared pivot is orbited about each object's own axis, as Blender does.
-        t.position = ownOrigins ? snapshots[i].position : pivot.add(rot.mulV(snapshots[i].position.sub(pivot)));
-      });
-      return;
-    }
-    RotateMath.applyRotation(coordinator, Quaternion.angleAxis(angle, worldAxisDir), pivot);
+    );
+  },
+
+  /**
+   * Look-at that aims each object on its own: from its own origin under Individual Origins, about its own axis with
+   * per-object axes. False when the selection turns as one. Each aim is noted for the hand-back on release.
+   */
+  applyPerObjectLookAt(
+    coordinator: GizmoDragCoordinator,
+    numeric: ModalNumericParser,
+    lookAt: RotateLookAt,
+    sharedAxisDir: Vector3,
+    pivot: Vector3,
+  ) {
+    lookAt.forgetOwnAims();
+    const ownOrigins = IndividualOrigins.ownOrigins(coordinator);
+    const ownAxes = RotateMath.ownAxes(coordinator, numeric);
+    if (!ownOrigins && !ownAxes) return false;
+    const free = coordinator.activeKind === DragKind.Trackball;
+    const unit = coordinator.activeAxis.unit;
+    const { transforms, snapshots } = coordinator.snapshot;
+    coordinator.snapshot.record('Rotate');
+    transforms.forEach((t, i) => {
+      // Each aims its own +Z from where it turns about.
+      const from = snapshots[i].rotation;
+      const eye = ownOrigins ? snapshots[i].position : pivot;
+      let angle = 0;
+      let rot: Quaternion;
+      if (free) rot = lookAt.freeFrom(eye, from);
+      else {
+        const axis = ownAxes ? from.mulV(unit) : sharedAxisDir;
+        angle = lookAt.axisAngleFrom(eye, from, axis);
+        rot = Quaternion.angleAxis(angle, axis);
+      }
+      lookAt.noteOwnAim(angle, rot);
+      t.rotation = rot.mul(from);
+      t.position = ownOrigins ? snapshots[i].position : pivot.add(rot.mulV(snapshots[i].position.sub(pivot)));
+    });
+    return true;
   },
 
   drawPerObjectAxisLines(coordinator: GizmoDragCoordinator, localAxes: boolean, sharedAxisDir: Vector3) {
@@ -106,7 +170,7 @@ export const LookAtRotation = {
 };
 
 /**
- * An X/Y/Z press re-pointed the drag: total travel since the true start is re-measured on the new axis.
+ * An X/Y/Z press re-pointed the drag: the angle so far carries over to the new axis, as in the R grab and Blender.
  * Precision and rotate snap work as in a ring drag.
  */
 export class RotateManualTracking {
@@ -116,6 +180,8 @@ export class RotateManualTracking {
   private readonly lookAtDriving: () => boolean;
   private readonly applyAngle: (a: number) => void;
   private readonly applyNumeric: () => void;
+  // Angle so far at the last axis key, for the next re-seed. Null re-seeds from the ring, after look-at.
+  private carried: number | null = null;
   private dragOriginMouse = Vector2.zero;
   private refDir = Vector3.right;
   private totalAngle = 0;
@@ -124,6 +190,8 @@ export class RotateManualTracking {
   private readonly tracker = new RingAngleTracker();
   active = false;
   axisDir = Vector3.up;
+  /** What the cursor last turned the drag by, through the ring or here. A hand-back to the mouse reads it. */
+  mouseAngle = 0;
 
   constructor(
     coordinator: GizmoDragCoordinator,
@@ -139,9 +207,13 @@ export class RotateManualTracking {
     this.lookAtDriving = lookAtDriving;
     this.applyAngle = applyAngle;
     this.applyNumeric = applyNumeric;
+    // Every end path, so a lock from this drag can't freeze the rings of the next one.
+    coordinator.onEnded(() => this.clearSession());
   }
 
   onDragStart(axisDir?: Vector3) {
+    this.clearSession();
+    this.mouseAngle = 0;
     this.dragOriginMouse = this.coordinator.wrap.virtualMousePosition;
     // The ring's own frozen axis, in case digits come before any X/Y/Z.
     if (axisDir) this.axisDir = axisDir;
@@ -154,15 +226,42 @@ export class RotateManualTracking {
   clearSession() {
     this.active = false;
     this.trackedAxis = null;
+    this.carried = null;
   }
 
   forgetTrackedAxis() {
     this.trackedAxis = null;
+    this.carried = null;
+  }
+
+  /** The ring drove the drag itself, or was re-anchored on this angle. */
+  noteRingAngle(angle: number) {
+    this.mouseAngle = angle;
+  }
+
+  /** Backspace emptied the typed value: the cursor turns on from mouseAngle, anchored where it is now. */
+  resumeMouse() {
+    const c = this.coordinator;
+    if (c.activeKind !== DragKind.Ring || this.lookAtDriving()) return;
+    if (this.active) {
+      this.carried = this.mouseAngle;
+      this.trackedAxis = null;
+      this.apply();
+      return;
+    }
+    const angle = this.mouseAngle;
+    this.ringForAxis(c.activeAxis).resumeNativeDrag(angle);
+    GizmoHud.setAbsoluteDelta(angle);
+    this.applyAngle(angle);
   }
 
   computeAnchorDir(axisDir: Vector3): Vector3 | null {
-    const pivot = this.coordinator.pivotAtDragStart;
-    const ray = HandleUtility.guiPointToWorldRay(this.dragOriginMouse);
+    return RotateManualTracking.anchorDir(this.coordinator.pivotAtDragStart, axisDir, this.dragOriginMouse);
+  }
+
+  /** Pivot to startMouse in the axis plane, angle 0 on any axis of one drag. Null when grazing. */
+  static anchorDir(pivot: Vector3, axisDir: Vector3, startMouse: Vector2): Vector3 | null {
+    const ray = HandleUtility.guiPointToWorldRay(startMouse);
     const [hit, d] = new Plane(axisDir, pivot).raycast(ray);
     if (!hit) return null;
     const dir = ray.getPoint(d).sub(pivot);
@@ -172,16 +271,20 @@ export class RotateManualTracking {
   handleConstraintChanged(numeric: ModalNumericParser, spaceRotation: Quaternion) {
     // A plane's identity axis is its excluded one, so both kinds resolve to the rotation axis.
     const [, axis] = numeric.resolveDragTarget();
-    this.coordinator.retarget(DragKind.Ring, axis);
+    const c = this.coordinator;
+    // Read before the retarget: the active ring shows what the drag turns by now. A trackball turn starts at 0.
+    const angleSoFar = c.activeKind === DragKind.Ring ? this.ringForAxis(c.activeAxis).appliedAngle : 0;
+    c.retarget(DragKind.Ring, axis);
     const dir = new AxisBasis(spaceRotation).dir(axis);
     this.axisDir = dir;
     GizmoHud.startRotateDrag(axis, dir);
+    // The pressed ring still holds hotControl on its old axis, so it stays locked under the digits too.
+    this.active = true;
     if (numeric.state === ModalNumericState.NumericInput) {
-      this.active = false;
       this.applyNumeric();
       return;
     }
-    this.active = true;
+    this.carried = angleSoFar;
     this.apply();
   }
 
@@ -196,7 +299,8 @@ export class RotateManualTracking {
       const anchor = this.computeAnchorDir(axisDir);
       const ring = this.ringForAxis(c.activeAxis);
       this.refDir = anchor?.normalized ?? ring.refDir;
-      this.totalAngle = ring.appliedAngle;
+      this.totalAngle = this.carried ?? ring.appliedAngle;
+      this.carried = null;
       this.trackedAxis = c.activeAxis;
       this.trackedAxisDir = axisDir;
       this.tracker.anchor(pivot, axisDir, this.refDir, current);
@@ -206,6 +310,7 @@ export class RotateManualTracking {
       this.tracker.frameDelta(pivot, axisDir, this.refDir, this.ringRadius(), viewDir, current) *
       RotateSnap.precisionScale;
     const angle = RotateSnap.snap(this.totalAngle);
+    this.mouseAngle = angle;
     GizmoHud.setAbsoluteDelta(angle);
     this.ringForAxis(c.activeAxis).seedManualOverlay(axisDir, this.refDir, angle);
     this.applyAngle(angle);
@@ -215,16 +320,23 @@ export class RotateManualTracking {
 // Recollecting contacts costs two more scene raycasts; only worth it once the line visibly moved.
 const ContactRecollectFraction = 0.002;
 
-/** Alt while rotating: turns the selection to face the surface point (or cursor) under the cursor. */
+/**
+ * Alt while rotating: turns the selection to face the surface point (or cursor) under the cursor. Keeps the aim
+ * for the hand-back on release, and each object's own aim past it.
+ */
 export class RotateLookAt {
   private readonly aim = new AimMode();
   private readonly coordinator: GizmoDragCoordinator;
   private readonly onRelease: () => void;
+  // Each object's own aim past the active one's, kept from a release to the drag's end.
+  private carried: { angle: number; turn: Quaternion }[] = [];
+  // Each object's own aim in the last apply, in snapshot order. Empty when all aimed as one.
+  private ownAims: { angle: number; turn: Quaternion }[] = [];
   private contactsFrom = Vector3.zero;
   private contactsTo = Vector3.zero;
   private hasContacts = false;
-  // Off every surface the aim falls back to the cursor ray; the drawn end needs a finite point.
-  private cursorAim = Vector3.zero;
+  // Off every surface the aim falls back to the cursor ray's direction (null in ortho); the drawn end is finite.
+  private cursorAimDir: Vector3 | null = null;
   private cursorTarget = Vector3.zero;
   contacts: { point: Vector3; normal: Vector3 }[] = [];
   targetStale = false;
@@ -235,6 +347,7 @@ export class RotateLookAt {
     this.coordinator = coordinator;
     this.onRelease = () => {
       this.coordinator.wrap.resume();
+      this.carryOwnAims();
       resumeNativeDrag();
       this.clear();
     };
@@ -255,8 +368,25 @@ export class RotateLookAt {
   get normal() {
     return this.targetStale ? GizmoRenderer.cameraNormal() : this.aim.normal;
   }
-  private get aimTarget() {
-    return this.targetStale ? this.cursorAim : this.aim.target;
+  /** A released aim turned each object on its own, so the sweep goes on from each one's aim. */
+  get carries() {
+    return this.carried.length > 0;
+  }
+
+  /** How far object index's own aim turned past the active one's, about the same axis. */
+  carriedAngle(index: number) {
+    return this.carried[index]?.angle ?? 0;
+  }
+
+  /** The same for a free aim, composed after the trackball's turn. */
+  carriedTurn(index: number) {
+    return this.carried[index]?.turn ?? Quaternion.identity;
+  }
+
+  // What an object turning about eye turns to. The drawn target only when it's real.
+  private aimTarget(eye: Vector3) {
+    if (!this.targetStale) return this.aim.target;
+    return this.cursorAimDir ? eye.add(this.cursorAimDir) : this.cursorTarget;
   }
 
   update(
@@ -279,7 +409,7 @@ export class RotateLookAt {
     if (!hit) {
       const t = this.tryCursorTarget(pivot);
       if (t) {
-        [this.cursorAim, this.cursorTarget] = t;
+        [this.cursorAimDir, this.cursorTarget] = t;
         this.targetStale = true;
       }
     }
@@ -293,7 +423,8 @@ export class RotateLookAt {
     return true;
   }
 
-  private tryCursorTarget(pivot: Vector3): [Vector3, Vector3] | null {
+  // A finite plane point would collapse onto the pivot and spin, except in ortho where it's the only aim that responds.
+  private tryCursorTarget(pivot: Vector3): [Vector3 | null, Vector3] | null {
     const camera = GizmoRenderer.currentCamera();
     if (!camera) return null;
     const mouse = Event.current.mousePosition;
@@ -304,7 +435,7 @@ export class RotateLookAt {
       mouse,
     );
     if (!drawn) return null;
-    return [camera.orthographic ? drawn : pivot.add(ray.direction), drawn];
+    return [camera.orthographic ? null : ray.direction, drawn];
   }
 
   private contactsStale(from: Vector3, to: Vector3) {
@@ -314,24 +445,52 @@ export class RotateLookAt {
   }
 
   aimFree(pivot: Vector3, fromRotation: Quaternion) {
-    this.rotation = LookAtRotation.free(pivot, fromRotation, this.aimTarget);
+    this.rotation = this.freeFrom(pivot, fromRotation);
     return this.rotation;
   }
 
   aimAxis(pivot: Vector3, fromRotation: Quaternion, axis: Vector3) {
-    this.angle = LookAtRotation.axisAngle(pivot, fromRotation, axis, this.aimTarget);
+    this.angle = this.axisAngleFrom(pivot, fromRotation, axis);
     this.rotation = Quaternion.angleAxis(this.angle, axis);
     return this.angle;
+  }
+
+  /** One object's own free aim from eye. Leaves the hand-back alone. */
+  freeFrom(eye: Vector3, fromRotation: Quaternion) {
+    return LookAtRotation.free(eye, fromRotation, this.aimTarget(eye));
+  }
+
+  /** One object's own turn about axis. Leaves the hand-back alone. */
+  axisAngleFrom(eye: Vector3, fromRotation: Quaternion, axis: Vector3) {
+    return LookAtRotation.axisAngle(eye, fromRotation, axis, this.aimTarget(eye));
+  }
+
+  /** Starts an apply. One that aims each object on its own notes every one in snapshot order. */
+  forgetOwnAims() {
+    this.ownAims = [];
+  }
+
+  noteOwnAim(angle: number, turn: Quaternion) {
+    this.ownAims.push({ angle, turn });
+  }
+
+  // Relative to the active object's aim, which the sweep goes on from. No target: this hold aimed nothing.
+  private carryOwnAims() {
+    if (!this.hasTarget) return;
+    const inverse = Quaternion.inverse(this.rotation);
+    this.carried = this.ownAims.map(({ angle, turn }) => ({ angle: angle - this.angle, turn: inverse.mul(turn) }));
   }
 
   reset() {
     this.aim.reset();
     this.clear();
+    this.carried = [];
   }
 
   private clear() {
     this.rotation = Quaternion.identity;
     this.angle = 0;
+    this.ownAims = [];
     this.contacts = [];
     this.hasContacts = false;
     this.targetStale = false;

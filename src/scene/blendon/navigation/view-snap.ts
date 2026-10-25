@@ -1,7 +1,7 @@
 // WorldAxes, ViewAlignment and ViewSnap: the six named views, shared by the numpad and the gizmo.
 import { Quaternion, Vector3 } from '../../unity/math.ts';
 import type { SceneView } from '../../unity/sceneview.ts';
-import { TurntableOrbit, ViewOrbitTween, ViewProjection } from './camera.ts';
+import { ViewOrbitTween, ViewProjection } from './camera.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
 const AXES = [Vector3.right, Vector3.up, Vector3.forward];
@@ -31,11 +31,17 @@ export const WorldAxes = {
 
 const AlignedDot = 0.9;
 const ExactlyAlignedDot = 0.9999;
-const dot = (v: SceneView, axis: Vector3) => Vector3.dot(v.rotation.mulV(Vector3.forward), axis.neg());
+const dotOf = (rotation: Quaternion, axis: Vector3) => Vector3.dot(rotation.mulV(Vector3.forward), axis.neg());
+const dot = (v: SceneView, axis: Vector3) => dotOf(v.rotation, axis);
 
 export const ViewAlignment = {
   isExactlyAligned(v: SceneView | null, axisIndex: number, isPositive: boolean) {
-    return !!v && dot(v, WorldAxes.signed(axisIndex, isPositive)) > ExactlyAlignedDot;
+    return !!v && ViewAlignment.isRotationExactlyAligned(v.rotation, axisIndex, isPositive);
+  },
+
+  /** For a pose the view is still flying to. */
+  isRotationExactlyAligned(rotation: Quaternion, axisIndex: number, isPositive: boolean) {
+    return dotOf(rotation, WorldAxes.signed(axisIndex, isPositive)) > ExactlyAlignedDot;
   },
 
   exactDirection(v: SceneView | null) {
@@ -71,8 +77,9 @@ export const ViewSnap = {
     const axis = WorldAxes.signed(axisIndex, isPositive);
     const rotation = Quaternion.lookRotation(axis.neg(), upHint(axisIndex, isPositive));
     const center = OrbitSelected.resolveOrbitCenter(v);
-    let pivot = TurntableOrbit.pivotAround(center, v.pivot.sub(center), v.rotation, rotation);
-    pivot = ViewProjection.pivotAtCenterDepth(pivot, center, rotation);
+    // Lands ortho, so the pivot takes the center's depth. Swung from where a running flight is heading.
+    const from = ViewOrbitTween.pendingPivot(v);
+    const pivot = OrbitSelected.orbitPivot(center, from.sub(center), ViewOrbitTween.pendingRotation(v), rotation, true);
     const size = ViewProjection.apparentHalfHeight(v, center);
     ViewOrbitTween.to(v, pivot, rotation, size, true, animated);
   },
@@ -105,6 +112,7 @@ export const ViewSnap = {
     const wasOrtho = ViewOrbitTween.pendingOrthographic(v);
     const halfHeight = ViewProjection.pivotHalfHeight(v, ViewOrbitTween.pendingSize(v), wasOrtho);
     const size = ViewProjection.pivotSizeForHalfHeight(v, halfHeight, !wasOrtho);
-    ViewOrbitTween.to(v, v.pivot, v.rotation, size, !wasOrtho, animated);
+    // The pose a running flight is heading for, its current frame would stop it halfway.
+    ViewOrbitTween.to(v, ViewOrbitTween.pendingPivot(v), ViewOrbitTween.pendingRotation(v), size, !wasOrtho, animated);
   },
 };

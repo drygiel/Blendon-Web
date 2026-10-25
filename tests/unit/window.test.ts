@@ -65,6 +65,48 @@ describe('window model', () => {
     for (const row of D.contested) expect(D.known[row.bid]).toBe(row);
   });
 
+  it('stores nothing for a value within half the finest slider step of its default', () => {
+    const h = harness();
+    const key = 'TransformRotateSettings.AxisLength';
+    const d = Number(h.model().def(key));
+    h.model().set(key, d + 0.0003);
+    expect(key in h.state().vals).toBe(false);
+    expect(h.model().isDefault(key)).toBe(true);
+    h.model().set(key, d + 0.001);
+    expect(h.state().vals[key]).toBeCloseTo(d + 0.001, 6);
+    expect(h.model().isDefault(key)).toBe(false);
+  });
+
+  it("drops a General override row's flag with its value, so the row follows again", () => {
+    const h = harness();
+    const key = 'PanSettings.CursorWrapEnabled';
+    const src = D.followers[key];
+    const followed = h.model().val(src);
+    h.model().update((s) => ({ ovr: { ...s.ovr, [key]: true }, vals: { ...s.vals, [key]: !followed } }));
+    expect(h.model().val(key)).toBe(!followed);
+    // A stored value no longer counts once the row follows.
+    h.model().update((s) => ({ ovr: { ...s.ovr, [key]: false } }));
+    expect(h.model().val(key)).toBe(followed);
+    h.model().update((s) => ({ ovr: { ...s.ovr, [key]: true } }));
+    h.model().revert(key);
+    expect(h.model().overriding(key)).toBe(false);
+    expect(key in h.state().vals).toBe(false);
+    h.model().set(src, !followed);
+    expect(h.model().val(key)).toBe(!followed);
+  });
+
+  it("resets the Transform page's borrowed rows and leaves the tools' other forwarded settings", () => {
+    const h = harness();
+    h.model().set('TransformMoveSettings.AxisHeadFlat', !D.props['MoveGizmoSettings.AxisHeadFlat'].d);
+    h.model().set('TransformMoveSettings.SurfaceSnapEnabled', false);
+    h.model().set('TransformRotateSettings.AxisLength', 2);
+    h.model().resetPage('TransformGizmo');
+    const vals = h.state().vals;
+    expect('MoveGizmoSettings.AxisHeadFlat' in vals).toBe(false);
+    expect('TransformRotateSettings.AxisLength' in vals).toBe(false);
+    expect(vals['MoveGizmoSettings.SurfaceSnapEnabled']).toBe(false);
+  });
+
   it('switches every tool from All Tools', () => {
     const h = harness();
     h.model().set('SharedGizmoSettings.AllToolsEnabled', false);
@@ -86,6 +128,27 @@ describe('window layout', () => {
     const zoomIn = items.find((it) => it.k === 'sc' && it.sid === 'Blendon/Zoom/Zoom In');
     expect(zoomIn?.k === 'sc' && zoomIn.tip.t).toContain('<b><color=#D98E38>' + D.keymap['Blendon/Zoom/Zoom In']?.b);
     for (const it of items) if (it.k === 'sc') expect(it.tip.t, it.sid).not.toContain('{key:');
+  });
+
+  it("keeps an off feature's keys editable on the Keyboard page, under a note", () => {
+    const items = (patch: Partial<WindowState>) =>
+      layoutWindow(harness({ page: 'Keyboard', ...patch }).model()).rows.flatMap((r) =>
+        r.cells.flatMap((c) => c.items),
+      );
+    const text = (list: ReturnType<typeof items>) =>
+      list.flatMap((it) => (it.k === 'banner' ? [it.runs.map((r) => r.t).join('')] : []));
+    const zoomOff = items({ vals: { ...D.initial, 'ZoomSettings.Enabled': false } });
+    const note = (D.consts.keyboardOffNote ?? '').replace('{0}', 'Zoom');
+    expect(note).toContain('can still be changed');
+    expect(text(zoomOff)).toContain(note);
+    const rows = zoomOff.filter((it) => it.k === 'sc' && D.pageShortcuts.Zoom.includes(it.sid));
+    expect(rows.length).toBe(D.pageShortcuts.Zoom.length);
+    for (const row of rows) expect(row.dis, row.k === 'sc' ? row.sid : '').toBe(false);
+    // With Blendon off the window's own warning says it once.
+    const masterOff = items({
+      vals: { ...D.initial, 'GeneralSettings.Enabled': false, 'ZoomSettings.Enabled': false },
+    });
+    expect(text(masterOff)).not.toContain(note);
   });
 
   it('searches across all pages', () => {

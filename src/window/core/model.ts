@@ -33,6 +33,17 @@ for (const n of [
 for (const n of ['AxisHeadFlat', 'AxisForceLocalOrientation'])
   DELEGATED['TransformScaleSettings.' + n] = 'ScaleGizmoSettings.' + n;
 
+// Forwarded rows the Transform page draws (TransformGizmoPage.BorrowedRows). Its reset reverts these and leaves the
+// tools' other forwarded settings as their own pages have them.
+const TRANSFORM_BORROWED = [
+  'TransformMoveSettings.AxisHeadFlat',
+  'TransformRotateSettings.RingDepthGradientEnabled',
+  'TransformRotateSettings.AngleArcEnabled',
+  'TransformRotateSettings.AngleArcOpacity',
+  'TransformRotateSettings.DynamicOpacity',
+  'TransformScaleSettings.AxisHeadFlat',
+].map((k) => DELEGATED[k]);
+
 // Pages whose switch drives several settings classes at once.
 const PAGE_SWITCHES: Record<string, string[]> = {
   SharedGizmos: TOOLS,
@@ -43,6 +54,9 @@ const PAGE_SWITCHES: Record<string, string[]> = {
 export const pageInfo = (id: string) => D.catalog.find((p) => p.id === id) ?? D.catalog[0];
 
 const values = (n: number) => (n === 1 ? '1 value' : n + ' values');
+
+// SettingsBase.SameValue: half the finest slider step, so a difference no slider shows is no change.
+const sameNumber = (a: number, b: number) => Math.abs(a - b) < 0.0005;
 
 /** DOM handles and timers that outlive a render. */
 export interface Instance {
@@ -168,14 +182,13 @@ export class WindowModel {
   // ---- values -----------------------------------------------------------------------------------
   val(key: string): PropValue | undefined {
     key = DELEGATED[key] ?? key;
+    // General overrides: a page that follows the Defaults card shows the Defaults value, whatever it stored.
+    const follows = D.followers[key];
+    if (follows && !this.overriding(key)) return this.val(follows);
     const vals = this.st.vals;
     if (key in vals) return vals[key];
     if (key === 'SharedGizmoSettings.AllToolsEnabled') return TOOLS.every((t) => this.val(t + '.Enabled'));
-    const p = D.props[key];
-    if (!p) return undefined;
-    // General overrides: a page that follows the Defaults card shows the Defaults value.
-    const follows = D.followers[key];
-    if (follows && !this.overriding(key)) return this.val(follows);
+    if (!D.props[key]) return undefined;
     return this.def(key);
   }
 
@@ -197,7 +210,7 @@ export class WindowModel {
     // Nothing declared: the stored value is the only evidence left.
     if (!D.props[key]) return false;
     const d = this.def(key);
-    if (typeof v === 'number') return Math.abs(v - Number(d)) < 1e-6;
+    if (typeof v === 'number') return sameNumber(v, Number(d));
     // Colors are hex, a picked one may come back in another case.
     return typeof v === 'string' && typeof d === 'string' ? v.toUpperCase() === d.toUpperCase() : v === d;
   }
@@ -216,15 +229,25 @@ export class WindowModel {
       });
       return;
     }
+    // A value at its default is not stored, unless the row overrides a General one and must keep it.
+    const d = this.def(key);
+    if (typeof v === 'number' && typeof d === 'number' && !D.followers[key] && sameNumber(v, d)) {
+      this.revert(key);
+      return;
+    }
     this.update((s) => ({ vals: { ...s.vals, [key]: v } }));
   }
 
+  /** Back to the default. An override row's flag goes too, or it would override with its source's value. */
   revert(key: string) {
     key = DELEGATED[key] ?? key;
     this.update((s) => {
       const vals = { ...s.vals };
       delete vals[key];
-      return { vals };
+      if (!(key in s.ovr)) return { vals };
+      const ovr = { ...s.ovr };
+      delete ovr[key];
+      return { vals, ovr };
     });
   }
 
@@ -500,7 +523,8 @@ export class WindowModel {
 
   resetPage(page: string) {
     const owners = D.resetOwners[page] ?? [];
-    const owned = (k: string) => owners.includes(k.split('.')[0] ?? '');
+    const borrowed = page === 'TransformGizmo' ? TRANSFORM_BORROWED : [];
+    const owned = (k: string) => owners.includes(k.split('.')[0] ?? '') || borrowed.includes(k);
     // Shortcuts go back to the key the active preset gives each one.
     const preset = Keymap.preset();
     Keymap.batch(() => {

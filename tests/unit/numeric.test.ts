@@ -76,3 +76,51 @@ describe('modal numeric input limits', () => {
     expect(typed(...repeat(Alpha1, 8), KeyCode.Backspace, Alpha2)).toBe('11111112');
   });
 });
+
+describe('modal numeric hand-back', () => {
+  it('hands the drag back to the mouse with the Backspace that leaves nothing typed', () => {
+    const parser = begin();
+    let handedBack = 0;
+    parser.onRevertToMouseTransform = () => handedBack++;
+    type(parser, Alpha1, Alpha2);
+    expect(parser.state).toBe(ModalNumericState.NumericInput);
+    type(parser, KeyCode.Backspace);
+    expect(parser.state).toBe(ModalNumericState.NumericInput);
+    expect(handedBack).toBe(0);
+    type(parser, KeyCode.Backspace);
+    expect(parser.state).toBe(ModalNumericState.MouseTransforming);
+    expect(handedBack).toBe(1);
+    // Nothing typed is left, so a further press has nothing to hand back.
+    type(parser, KeyCode.Backspace);
+    expect(handedBack).toBe(1);
+    parser.reset();
+  });
+
+  it('takes the reciprocal and the sign before handing back', () => {
+    const parser = begin();
+    let handedBack = 0;
+    parser.onRevertToMouseTransform = () => handedBack++;
+    type(parser, KeyCode.Minus, KeyCode.Slash, Alpha2);
+    type(parser, KeyCode.Backspace, KeyCode.Backspace);
+    expect(parser.getAxisDisplayText(GizmoAxis.X)).toBe('-0');
+    expect(handedBack).toBe(0);
+    type(parser, KeyCode.Backspace);
+    expect(handedBack).toBe(1);
+    expect(parser.state).toBe(ModalNumericState.MouseTransforming);
+    parser.reset();
+  });
+
+  it("puts a plane handle's typed value on both of its axes", () => {
+    const parser = new ModalNumericParser();
+    parser.beginPlaneTransform(GizmoAxis.Y);
+    type(parser, Alpha2);
+    const v = parser.currentParsedVector3;
+    expect([v.x, v.y, v.z]).toEqual([2, 0, 2]);
+    parser.reset();
+    parser.beginPlaneTransform(GizmoAxis.X);
+    type(parser, Alpha5);
+    const w = parser.currentParsedVector3;
+    expect([w.x, w.y, w.z]).toEqual([0, 5, 5]);
+    parser.reset();
+  });
+});

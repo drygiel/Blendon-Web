@@ -45,14 +45,16 @@ function anyManipulation() {
   return subscribed.some((c) => c.coordinator.activeKind !== DragKind.None);
 }
 
-GizmoRegistry.modalKey = (ev) => (modalOwner ? modalOwner.numeric.processEvent(ev) : false);
+GizmoRegistry.modalKey = (ev) => GizmoController.relayModalKey(ev);
 GizmoRegistry.hasModalSession = () => modalOwner != null;
 GizmoRegistry.anyManipulation = anyManipulation;
 
+// rawType, so a release some earlier handler already used still lifts the button.
 function trackLeftButton(ev: Event) {
-  if ((ev.type === EventType.MouseDown || ev.type === EventType.MouseDrag) && ev.button === MouseButton.LeftMouse)
+  const t = ev.rawType;
+  if ((t === EventType.MouseDown || t === EventType.MouseDrag) && ev.button === MouseButton.LeftMouse)
     leftButtonDown = true;
-  else if ((ev.type === EventType.MouseUp && ev.button === MouseButton.LeftMouse) || ev.type === EventType.MouseMove)
+  else if ((t === EventType.MouseUp && ev.button === MouseButton.LeftMouse) || t === EventType.MouseMove)
     leftButtonDown = false;
 }
 
@@ -123,9 +125,22 @@ const multiple = (c: GizmoDragCoordinator) => c.snapshot.transforms.length >= 2 
 export abstract class GizmoController {
   readonly coordinator: GizmoDragCoordinator;
   readonly numeric = new ModalNumericParser();
+  // Backspace emptied the typed value. A relayed key has no pass to read the cursor in, so the next one does.
+  private mouseHandedBack = false;
 
   protected constructor(coordinator: GizmoDragCoordinator) {
     this.coordinator = coordinator;
+    coordinator.onEnded(() => (this.mouseHandedBack = false));
+    this.numeric.onRevertToMouseTransform = () => (this.mouseHandedBack = true);
+  }
+
+  /** A key a Blendon shortcut hands to the running grab. No GUI pass follows it, so the grab applies it here. */
+  static relayModalKey(ev: Event) {
+    // Held: Enter or Escape end the session inside processEvent, which clears the owner.
+    const owner = modalOwner;
+    if (!owner || !owner.numeric.processEvent(ev)) return false;
+    owner.onRelayedKey();
+    return true;
   }
 
   static get modalOwner() {
@@ -171,6 +186,19 @@ export abstract class GizmoController {
   }
 
   protected onBeforeDraw(_sceneView: SceneView) {}
+
+  /** A relayed key reached the parser: whatever it changed is applied and redrawn here. */
+  protected onRelayedKey() {}
+
+  /** Backspace emptied the typed value: drive from the cursor again at once. Always inside a GUI pass. */
+  protected resumeMouse() {}
+
+  private takeMouseBack() {
+    if (!this.mouseHandedBack) return;
+    this.mouseHandedBack = false;
+    // A digit typed since then is in charge again.
+    if (this.numeric.state === ModalNumericState.MouseTransforming) this.resumeMouse();
+  }
 
   protected subscribeSceneGui() {
     SceneView.duringSceneGui.add(this.onSceneGUI);
@@ -255,6 +283,8 @@ export abstract class GizmoController {
   }
 
   protected handleRmbCancelAndNumeric(ev: Event, applyNumeric: () => void): boolean {
+    // A relayed Backspace waited for this pass.
+    this.takeMouseBack();
     // A grab key pressed mid-drag hands this drag over to that grab.
     if (
       this.coordinator.activeKind !== DragKind.None &&
@@ -276,6 +306,7 @@ export abstract class GizmoController {
     if (this.numeric.processEvent(ev)) {
       ev.use();
       if (this.numeric.state === ModalNumericState.NumericInput) applyNumeric();
+      else this.takeMouseBack();
     }
     if (VertexPickHandle.handleRmbCancel()) return true;
     // Escape leaves pick mode, the one Blendon state that otherwise persists.
@@ -373,6 +404,18 @@ export abstract class GrabSession extends GizmoController {
   protected abstract drawSessionOverlays(sceneView: SceneView, isOwner: boolean): void;
   protected onInputPass(_sceneView: SceneView, _ev: Event) {}
 
+  // Keypad digits, minus and period are Blendon shortcuts, this is the only way they reach the grab.
+  protected override onRelayedKey() {
+    if (!this.active) return;
+    if (this.numeric.state === ModalNumericState.NumericInput) this.applyNumeric();
+    this.coordinator.activeSceneView?.repaint();
+  }
+
+  /** The same follow a mouse move runs, so the selection goes back to where the cursor puts it. */
+  protected override resumeMouse() {
+    this.followCursor();
+  }
+
   /** The shortcut fires outside a scene pass, so it leaves a request for the next pass of its view. */
   protected request(args: ShortcutArguments | SceneView | null) {
     if (ModalViewportGate.isBlocked) return;
@@ -420,8 +463,8 @@ export abstract class GrabSession extends GizmoController {
     if (this.active || !this.enabled || !blendonContextActive()) return;
     const camera = sceneView.camera;
     if (this.ownsDragKind(GizmoController.otherActiveDragKind(this))) return;
-    // Is the gesture this session joins still under a held button? Three signals cover every route in.
-    const buttonHeld = leftButtonDown || GUIUtility.hotControl !== 0 || this.inheritsHeldButton();
+    // Is the gesture this session joins still under a held button? Not hotControl: an orbit's is no held left button.
+    const buttonHeld = leftButtonDown || this.inheritsHeldButton();
     const pivotBeforeDrag = GizmoController.cancelOtherSessions(this);
     if (modalOwner || this.coordinator.activeKind !== DragKind.None) return;
     // A cancelled drag's pivot comes from the drag itself, not from where it had moved the selection.

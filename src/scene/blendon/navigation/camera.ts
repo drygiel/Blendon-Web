@@ -68,9 +68,9 @@ export const ViewProjection = {
 /** A swing about one axis plus a slide along it, joining two poses the way an orbit would. */
 export class ViewOrbitPath {
   private readonly fromPivot: Vector3;
-  private readonly toPivot: Vector3;
+  readonly toPivot: Vector3;
   private readonly fromRotation: Quaternion;
-  private readonly toRotation: Quaternion;
+  readonly toRotation: Quaternion;
   private readonly isArc: boolean;
   private readonly center: Vector3;
   private readonly startOffset: Vector3;
@@ -150,6 +150,17 @@ export const ViewOrbitTween = {
     return ViewOrbitTween.view === v ? ViewOrbitTween.toSize : v.size;
   },
 
+  // Same idea as pendingSize: where the view is heading, not the frame it's at.
+  pendingPivot(v: SceneView) {
+    const T = ViewOrbitTween;
+    return T.view === v && T.path ? T.path.toPivot : v.pivot;
+  },
+
+  pendingRotation(v: SceneView) {
+    const T = ViewOrbitTween;
+    return T.view === v && T.path ? T.path.toRotation : v.rotation;
+  },
+
   pendingOrthographic(v: SceneView) {
     const p = ViewOrbitTween.projection;
     if (!p || p.view !== v) return v.orthographic;
@@ -182,6 +193,16 @@ export const ViewOrbitTween = {
   stop() {
     EditorApplication.update.remove(step);
     ViewOrbitTween.view = null;
+  },
+
+  /** Puts the view where its flight and projection fade were heading, like Blender before a zoom, pan or orbit. */
+  land(v: SceneView) {
+    const T = ViewOrbitTween;
+    // Read first, it drops a fade that has already ended.
+    const orthographic = T.pendingOrthographic(v);
+    if (T.view !== v && T.projection?.view !== v) return false;
+    T.to(v, T.pendingPivot(v), T.pendingRotation(v), T.pendingSize(v), orthographic, false);
+    return true;
   },
 };
 

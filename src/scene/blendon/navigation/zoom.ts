@@ -7,7 +7,7 @@ import { EditorRaycastUtility, ModalViewportGate, SceneTutorial, SelectionCache 
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { ShortcutGates } from '../shortcut-gates.ts';
 import { GeneralSettings, sBool, sEnum, sNum } from '../settings.ts';
-import { ViewProjection } from './camera.ts';
+import { ViewOrbitTween, ViewProjection } from './camera.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
 export const ZoomMethod = { Continue: 0, Dolly: 1, Scale: 2 } as const;
@@ -76,6 +76,8 @@ function onSceneGUI(view: SceneView) {
   let amount = -e.delta.y;
   if (ZoomSettings.InvertDirection) amount = -amount;
   if (Mathf.Approximately(amount, 0)) return;
+  // Like Blender, a flight lands first and the notch zooms from there. The page's camera follows at once.
+  ViewOrbitTween.land(view);
   applyZoom(view, amount);
   SceneTutorial.report('ZoomWheel');
   e.use();
@@ -89,6 +91,7 @@ function requestKeyboardZoom(direction: number) {
   if (!ZoomSettings.Enabled || !ZoomSettings.KeyboardEnabled) return;
   const view = SceneView.lastActiveSceneView;
   if (!view) return;
+  ViewOrbitTween.land(view);
   if (pendingView !== view) pendingSteps = 0;
   pendingView = view;
   pendingSteps += direction;

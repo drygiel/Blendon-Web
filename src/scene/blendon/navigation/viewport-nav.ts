@@ -57,17 +57,21 @@ export const ViewportNavActions = {
   snapToView(axisIndex: number, isPositive: boolean) {
     const v = target();
     if (!canMove(v)) return;
-    // A second press onto the axis view already showing goes back to the perspective view it left.
-    if (ViewOrbitTween.pendingOrthographic(v) && ViewAlignment.isExactlyAligned(v, axisIndex, isPositive)) {
+    // A second press onto the axis view already showing goes back to the perspective view it left. Judged where
+    // the view is heading, mid-flight the live pose is a lerp frame.
+    const headedOrthographic = ViewOrbitTween.pendingOrthographic(v);
+    const headedRotation = ViewOrbitTween.pendingRotation(v);
+    if (headedOrthographic && ViewAlignment.isRotationExactlyAligned(headedRotation, axisIndex, isPositive)) {
       if (!prior) return;
       ViewOrbitTween.to(v, prior.pivot, prior.rotation, prior.size, false, ViewportNavSettings.AnimationEnabled);
       prior = null;
       SceneTutorial.report('AxisView');
       return;
     }
-    prior = ViewOrbitTween.pendingOrthographic(v)
+    // The flight's target, else a press on the way back would remember a lerp frame.
+    prior = headedOrthographic
       ? null
-      : { pivot: v.pivot, rotation: v.rotation, size: ViewOrbitTween.pendingSize(v) };
+      : { pivot: ViewOrbitTween.pendingPivot(v), rotation: headedRotation, size: ViewOrbitTween.pendingSize(v) };
     ViewSnap.to(v, axisIndex, isPositive, ViewportNavSettings.AnimationEnabled);
     SceneTutorial.report('AxisView');
   },
@@ -76,34 +80,23 @@ export const ViewportNavActions = {
     ViewSnap.toggleProjection(target(), ViewportNavSettings.AnimationEnabled);
   },
 
-  /** The signs are the drag deltas the turntable expects, opposite to where the viewpoint goes. */
+  /**
+   * The signs are the drag deltas the turntable expects, opposite to where the viewpoint goes. From where a running
+   * flight is heading: its current frame would knock quick taps off the step grid.
+   */
   orbitStep(yawSign: number, pitchSign: number) {
     const v = target();
     if (!canMove(v)) return;
     const step = ViewportNavSettings.OrbitStepDegrees;
-    const rotation = TurntableOrbit.rotate(v.rotation, new Vector2(yawSign * step, pitchSign * step), 1, 1);
-    ViewOrbitTween.to(
-      v,
-      resolvePivot(v, rotation),
-      rotation,
-      v.size,
-      v.orthographic,
-      ViewportNavSettings.AnimationEnabled,
-    );
+    const from = ViewOrbitTween.pendingRotation(v);
+    turnTo(v, TurntableOrbit.rotate(from, new Vector2(yawSign * step, pitchSign * step), 1, 1));
   },
 
   reverseView() {
     const v = target();
     if (!canMove(v)) return;
-    const rotation = Quaternion.angleAxis(180, v.rotation.mulV(Vector3.up)).mul(v.rotation);
-    ViewOrbitTween.to(
-      v,
-      resolvePivot(v, rotation),
-      rotation,
-      v.size,
-      v.orthographic,
-      ViewportNavSettings.AnimationEnabled,
-    );
+    const from = ViewOrbitTween.pendingRotation(v);
+    turnTo(v, Quaternion.angleAxis(180, from.mulV(Vector3.up)).mul(from));
   },
 
   /** False when there was no camera to look through. */
@@ -116,11 +109,26 @@ export const ViewportNavActions = {
   },
 };
 
+// Pose, size and projection all from where a running flight is heading, so a key mid-fade keeps ortho.
+function turnTo(v: SceneView, rotation: Quaternion) {
+  const orthographic = ViewOrbitTween.pendingOrthographic(v);
+  const pivot = resolvePivot(v, rotation, orthographic);
+  ViewOrbitTween.to(
+    v,
+    pivot,
+    rotation,
+    ViewOrbitTween.pendingSize(v),
+    orthographic,
+    ViewportNavSettings.AnimationEnabled,
+  );
+}
+
 /** With Orbit Selected on, key steps swing the rig about the orbit centre, as a drag would. */
-function resolvePivot(v: SceneView, rotation: Quaternion) {
-  if (!OrbitSelected.Settings.Enabled) return v.pivot;
+function resolvePivot(v: SceneView, rotation: Quaternion, orthographic: boolean) {
+  const pivot = ViewOrbitTween.pendingPivot(v);
+  if (!OrbitSelected.Settings.Enabled) return pivot;
   const center = OrbitSelected.resolveOrbitCenter(v);
-  return TurntableOrbit.pivotAround(center, v.pivot.sub(center), v.rotation, rotation);
+  return OrbitSelected.orbitPivot(center, pivot.sub(center), ViewOrbitTween.pendingRotation(v), rotation, orthographic);
 }
 
 type Binding = [id: string, fallback: string, run: () => void];

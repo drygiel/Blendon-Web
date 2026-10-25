@@ -188,7 +188,7 @@ let rmbArmed = false;
 let rmbDownPosition = Vector2.zero;
 
 function tryCandidate() {
-  return VertexSnappingUtility.tryGetGrabPoint(Event.current.mousePosition, SelectionCache.deep);
+  return VertexSnappingUtility.tryGetGrabHit(Event.current.mousePosition, SelectionCache.deep);
 }
 
 function clickedOnSelection(guiPoint: Vector2) {
@@ -217,7 +217,7 @@ export const VertexPickHandle = {
         if (ev.button === 0 && GUIUtility.hotControl === id) {
           GUIUtility.hotControl = 0;
           const settled = tryCandidate();
-          if (settled) VertexSnappingUtility.confirmPick(settled);
+          if (settled) VertexSnappingUtility.confirmPick(settled.vertex, settled.owner);
           ev.use();
         }
         break;
@@ -228,11 +228,12 @@ export const VertexPickHandle = {
         }
         break;
       case EventType.Repaint: {
-        const candidate = tryCandidate();
-        canPick = !!candidate;
-        if (candidate) VertexSnappingUtility.setHoverCandidate(candidate);
+        const hit = tryCandidate();
+        canPick = !!hit;
+        if (hit) VertexSnappingUtility.setHoverCandidate(hit.vertex, hit.owner);
         else VertexSnappingUtility.clearHoverCandidate();
-        if (candidate) {
+        if (hit) {
+          const candidate = hit.vertex;
           VertexPreviewHandle.drawCandidate(candidate);
           Handles.color = GizmoColors.VertexPickRing;
           DrawPrimitives.drawAACircle(

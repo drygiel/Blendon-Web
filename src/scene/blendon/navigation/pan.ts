@@ -7,6 +7,7 @@ import { SceneView, type SceneCamera } from '../../unity/sceneview.ts';
 import { CursorWrapTracker, EditorRaycastUtility, ModalViewportGate, SceneTutorial } from '../foundation.ts';
 import { ShortcutGates } from '../shortcut-gates.ts';
 import { GeneralSettings, sBool } from '../settings.ts';
+import { ViewOrbitTween } from './camera.ts';
 import { OrbitSelected } from './orbit-selected.ts';
 
 const ShortcutId = 'Blendon/Pan';
@@ -128,6 +129,8 @@ function onSceneGUI(view: SceneView) {
 
   const canStart = st.shortcutHeld && !st.panning && !st.cancelled && !OrbitSelected.isOrbiting;
   if ((e.type === EventType.MouseDown || e.type === EventType.MouseDrag) && canStart) {
+    // The view's flight lands first, and the pan anchors on the landed camera, which the page updates at once.
+    ViewOrbitTween.land(view);
     st.trackedButton = e.button;
     st.panning = true;
     st.hotControl = controlId;

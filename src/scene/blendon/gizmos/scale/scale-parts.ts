@@ -96,6 +96,7 @@ export class ScaleDragSession {
   private projRef = Vector3.zero;
   private startDirection = Vector3.forward;
   private startMouseDistance = 1;
+  /** (ratio - 1), dragged or typed, for the handles' slide-out and the ring's ghost. */
   ratioDelta = 0;
   vertexDrag = false;
 
@@ -191,6 +192,8 @@ export class ScaleDragSession {
       numeric.hasExplicitValue(GizmoAxis.Y) ? raw.y : 1,
       numeric.hasExplicitValue(GizmoAxis.Z) ? raw.z : 1,
     );
+    // The ghost and the slid-out handle show the typed factor, not the cursor's last ratio.
+    this.ratioDelta = numeric.currentParsedValue - 1;
     const individual = IndividualOrigins.localAxes(c, numeric);
     const pivot = c.pivotAtDragStart;
     const spread = this.spreadsPositions(transforms.length);

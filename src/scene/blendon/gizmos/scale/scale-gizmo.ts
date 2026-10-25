@@ -21,9 +21,6 @@ import { SharedGizmoSettings } from '../shared-settings.ts';
 import { ScaleDragOverlays, ScaleDragSession, ScaleMath } from './scale-parts.ts';
 import { ScaleGizmoSettings } from './settings.ts';
 
-// The applied ratio's magnitude: a mirrored scale keeps tracking instead of freezing at the floor.
-const appliedRatio = () => Math.max(Math.abs(1 + GizmoHud.totalDelta.x), ScaleMath.MinRatio);
-
 export class ScaleGizmo extends GizmoController {
   readonly settings: ScaleGizmoSettings;
   private readonly axisHandles: AxisHandle[];
@@ -78,6 +75,12 @@ export class ScaleGizmo extends GizmoController {
   protected get toolType() {
     return Tool.Scale;
   }
+
+  // The magnitude, so a mirrored scale keeps tracking instead of freezing at the floor. Typed or dragged.
+  private get appliedRatio() {
+    return Math.max(Math.abs(1 + this.session.ratioDelta), ScaleMath.MinRatio);
+  }
+
   protected get enabled() {
     return this.settings.Enabled;
   }
@@ -102,7 +105,8 @@ export class ScaleGizmo extends GizmoController {
     plane.dragStarted.add((dir1, dir2) => {
       GizmoHud.startPlaneDrag(axis1, dir1, axis2, dir2, true);
       this.session.begin(this.coordinator.pivotAtDragStart, Vector3.cross(dir1, dir2).normalized);
-      this.numeric.beginMouseTransform(null, plane.axis === GizmoAxis.X ? GizmoAxis.Z : GizmoAxis.X);
+      // A typed factor scales both axes of the plane, as S, Shift+Z, 2 does.
+      this.numeric.beginPlaneTransform(plane.axis);
     });
     plane.dragged.add(() => this.onDragged());
     plane.dragEnded.add(() => this.endDragSession());
@@ -112,6 +116,11 @@ export class ScaleGizmo extends GizmoController {
     GizmoHud.end();
     this.numeric.reset();
     this.session.endDrag();
+  }
+
+  // The ratio is read from the cursor's distance alone, so the next reading is the mouse's own answer.
+  protected override resumeMouse() {
+    this.session.apply();
   }
 
   private get ownDrag() {
@@ -248,8 +257,8 @@ export class ScaleGizmo extends GizmoController {
         ScaleGizmo.applyCapColor(active, hover, s.ScreenRingColor);
         if (active) {
           // The inner ring follows the applied ratio.
-          if (boxMode) Handles.cubeHandleCap(controlId, position, rotation, box * appliedRatio(), eventType);
-          else DrawPrimitives.drawAACircle(position, normal, inner * appliedRatio(), shared.ScreenRingThickness);
+          if (boxMode) Handles.cubeHandleCap(controlId, position, rotation, box * this.appliedRatio, eventType);
+          else DrawPrimitives.drawAACircle(position, normal, inner * this.appliedRatio, shared.ScreenRingThickness);
         } else {
           if (showOuter) DrawPrimitives.drawAACircle(position, normal, outer, shared.ScreenRingThickness);
           if (boxMode) Handles.cubeHandleCap(controlId, position, rotation, box * 1.5, eventType);
@@ -289,7 +298,7 @@ export class ScaleGizmo extends GizmoController {
       const { active, hover, visible } = ScreenRingCap.state(this.coordinator, DragKind.ScaleRing, controlId);
       if (!visible) return;
       ScaleGizmo.applyCapColor(active, hover, GizmoColors.ScreenRing);
-      if (active) half *= appliedRatio();
+      if (active) half *= this.appliedRatio;
       DrawPrimitives.drawScreenSquare(position, normal, half, SharedGizmoSettings.ScreenRingThickness);
     } else if (eventType === EventType.Layout || eventType === EventType.MouseMove)
       ScreenRingCap.hitTestSquare(controlId, position, normal, half);

@@ -36,17 +36,24 @@ let stashedOwner: Transform | null = null;
 let stashedLocal = Vector3.zero;
 let hasHover = false;
 let hover = Vector3.zero;
+let hoverOwner: Transform | null = null;
 let targetOwner: Transform | null = null;
 let targetVertex = Vector3.zero;
 // One vertex search per event and point rather than one per asker.
 let searchEvent: Event | null = null;
 let searchPoint = Vector2.zero;
 let searchKey = '';
-let searchResult: Vector3 | null = null;
+let searchResult: VertexHit | null = null;
 
-/** Unity's HandleUtility.FindNearestVertex: the screen-nearest vertex of the given objects' meshes. */
-function findNearestVertex(guiPoint: Vector2, transforms: Transform[]): Vector3 | null {
-  let best: Vector3 | null = null;
+/** A vertex and the object the search found it on. */
+export interface VertexHit {
+  vertex: Vector3;
+  owner: Transform;
+}
+
+/** Unity's HandleUtility.FindNearestVertex with its out GameObject: the screen-nearest vertex and its object. */
+function findNearestVertex(guiPoint: Vector2, transforms: Transform[]): VertexHit | null {
+  let best: VertexHit | null = null;
   let bestDist = Infinity;
   for (const t of transforms) {
     for (const v of worldVertices(t.gameObject)) {
@@ -55,23 +62,9 @@ function findNearestVertex(guiPoint: Vector2, transforms: Transform[]): Vector3 
       const d = (g.x - guiPoint.x) ** 2 + (g.y - guiPoint.y) ** 2;
       if (d < bestDist) {
         bestDist = d;
-        best = v;
+        best = { vertex: v, owner: t };
       }
     }
-  }
-  return best;
-}
-
-// The selected object whose drawn bounds hold the vertex, else the nearest one.
-function ownerOf(world: Vector3, transforms: Transform[]) {
-  let best: Transform | null = null;
-  let bestDistance = Infinity;
-  for (const t of transforms) {
-    const b = t.gameObject.bounds;
-    const d = b ? b.sqrDistance(world) : t.position.sub(world).sqrMagnitude;
-    if (d >= bestDistance) continue;
-    bestDistance = d;
-    best = t;
   }
   return best;
 }
@@ -80,6 +73,7 @@ function dropRepick() {
   repicking = false;
   stashedOwner = null;
   hasHover = false;
+  hoverOwner = null;
 }
 
 function setTargetSnap(on: boolean) {
@@ -117,7 +111,7 @@ function beginRepick() {
 function endRepick() {
   if (!repicking) return;
   if (!pickOwner) {
-    if (hasHover) VertexSnappingUtility.confirmPick(hover);
+    if (hasHover) VertexSnappingUtility.confirmPick(hover, hoverOwner);
     // Nothing settled: the pick the hold set aside stands.
     if (!pickOwner && stashedOwner) {
       pickOwner = stashedOwner;
@@ -180,16 +174,19 @@ export const VertexSnappingUtility = {
     return pickOwner ? pickOwner.transformPoint(pickLocal) : Vector3.zero;
   },
 
-  setHoverCandidate(world: Vector3) {
+  /** owner: the object the search found the vertex on. */
+  setHoverCandidate(world: Vector3, owner: Transform | null) {
     hasHover = true;
     hover = world;
+    hoverOwner = owner;
   },
   clearHoverCandidate() {
     hasHover = false;
+    hoverOwner = null;
   },
 
-  confirmPick(world: Vector3) {
-    const owner = ownerOf(world, SelectionCache.deep);
+  /** The gizmo stands on it from now on, riding the object the search found it on. */
+  confirmPick(world: Vector3, owner: Transform | null) {
     if (!owner) return;
     pickOwner = owner;
     pickLocal = owner.inverseTransformPoint(world);
@@ -219,11 +216,11 @@ export const VertexSnappingUtility = {
     }
     if (!Camera.current) return null;
     const others = EditorRaycastUtility.pickableTransformsExcept(SelectionCache.transforms);
-    const vertex = others.length ? findNearestVertex(Event.current.mousePosition, others) : null;
-    if (vertex) {
-      targetVertex = vertex;
-      targetOwner = ownerOf(vertex, others);
-      return vertex;
+    const hit = others.length ? findNearestVertex(Event.current.mousePosition, others) : null;
+    if (hit) {
+      targetVertex = hit.vertex;
+      targetOwner = hit.owner;
+      return hit.vertex;
     }
     VertexSnappingUtility.clearTarget();
     return null;
@@ -238,14 +235,19 @@ export const VertexSnappingUtility = {
     snapPressTurnedOn = false;
   },
 
-  tryGetNearestOwnVertex(guiPoint: Vector2, transforms: Transform[]): Vector3 | null {
+  tryGetNearestOwnVertex(guiPoint: Vector2, transforms: Transform[]): VertexHit | null {
     if (!transforms.length || !Camera.current) return null;
     return findNearestVertex(guiPoint, transforms);
   },
 
   /** The point a drag would pick up: the settled pick, else the selection's vertex nearest the cursor. */
   tryGetGrabPoint(guiPoint: Vector2, transforms: Transform[]): Vector3 | null {
-    if (VertexSnappingUtility.hasPick) return VertexSnappingUtility.pickedPoint;
+    return VertexSnappingUtility.tryGetGrabHit(guiPoint, transforms)?.vertex ?? null;
+  },
+
+  /** The same with the object the point sits on. */
+  tryGetGrabHit(guiPoint: Vector2, transforms: Transform[]): VertexHit | null {
+    if (pickOwner) return { vertex: VertexSnappingUtility.pickedPoint, owner: pickOwner };
     const key = transforms.map((t) => t.gameObject.id).join(',');
     if (searchEvent === Event.current && searchPoint.equals(guiPoint) && searchKey === key) return searchResult;
     searchEvent = Event.current;

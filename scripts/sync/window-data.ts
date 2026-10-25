@@ -598,6 +598,7 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     supportLinkText: need('OverviewPage.SupportLinkText'),
     supportTipKey: need('SupportInfo.TipKey'),
     keyboardIntro: need('KeyboardPage.Intro'),
+    keyboardOffNote: need('KeyboardPage.OffNote'),
     appearanceTip: need('FoldBands.AppearanceTooltip'),
     contestedLinkHint: need('OverviewContestedTable.LinkHint'),
     gizmoPresetMark: need('GizmoAppearancePresets.ChangedMark'),

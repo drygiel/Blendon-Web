@@ -54,6 +54,20 @@ function inScene(go: GameObject) {
   }
 }
 
+// An empty entry is a deliberate deselect, not a dead one.
+const isDead = (objects: GameObject[]) => objects.length > 0 && !objects.some(inScene);
+
+// Entries whose objects are all gone are passed over within the press. Without a live one nothing moves.
+function step(direction: number) {
+  for (let i = selectionIndex + direction; i >= 0 && i < selectionEntries.length; i += direction) {
+    if (isDead(selectionEntries[i])) continue;
+    selectionIndex = i;
+    applySelection(selectionEntries[i]);
+    return true;
+  }
+  return false;
+}
+
 function applySelection(objects: GameObject[]) {
   const alive = objects.filter(inScene);
   navigating = true;
@@ -91,15 +105,20 @@ export const SelectionHistory = {
   },
 
   moveBack() {
-    if (!SelectionHistorySettings.Enabled || selectionIndex <= 0) return;
-    applySelection(selectionEntries[--selectionIndex]);
+    if (!SelectionHistorySettings.Enabled || !step(-1)) return;
     SceneTutorial.reportShortcut(SelectionHistory.BackShortcutId);
   },
 
   moveForward() {
-    if (!SelectionHistorySettings.Enabled || selectionIndex >= selectionEntries.length - 1) return;
-    applySelection(selectionEntries[++selectionIndex]);
+    if (!SelectionHistorySettings.Enabled || !step(1)) return;
     SceneTutorial.reportShortcut(SelectionHistory.ForwardShortcutId);
+  },
+
+  /** A scene that replaces the open one starts the history over, its old objects are gone. */
+  clear() {
+    selectionEntries.length = 0;
+    selectionIndex = -1;
+    pending = null;
   },
 };
 

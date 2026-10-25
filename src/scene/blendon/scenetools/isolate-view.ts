@@ -35,7 +35,8 @@ export const IsolateView = {
     SceneVisibilityManager.isolate(selection, IsolateViewSettings.IncludeChildren);
     view.repaint();
     if (!IsolateViewSettings.FrameOnIsolate) return;
-    if (FrameSelectedSettings.Enabled) FrameSelected.run();
+    // Blendon framing when on, so it uses the same animation settings, but never a step of its press cycle.
+    if (FrameSelectedSettings.Enabled) FrameSelected.frameSelection(view);
     else unityFrameSelected(view);
   },
 };

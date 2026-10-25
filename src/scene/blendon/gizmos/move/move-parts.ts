@@ -226,7 +226,7 @@ export class MoveManualConstraint {
       this.anchored = true;
       let dist = this.freeDistance;
       const gap = this.tryVertexGap();
-      if (gap) dist = VertexGrab.distanceAlongAxis(gap, t.axisDir, t.axisId);
+      if (gap) dist = VertexGrab.distanceAlongAxis(gap, t.axisDir);
       else dist = this.snap.snapAlong(origin, t.axisDir, dist);
       delta = t.axisDir.mul(dist);
       local = t.axisId.unit.mul(dist);
@@ -248,7 +248,7 @@ export class MoveManualConstraint {
       this.anchored = true;
       let [a, b] = [this.freeA, this.freeB];
       const gap = this.tryVertexGap();
-      if (gap) [a, b] = VertexGrab.distancesAcrossPlane(gap, t.planeDir1, t.planeDir2, t.planeAxis1, t.planeAxis2);
+      if (gap) [a, b] = VertexGrab.distancesAcrossPlane(gap, t.planeDir1, t.planeDir2);
       else [a, b] = this.snap.snapPlane(origin, t.planeDir1, t.planeDir2, a, b);
       delta = t.planeDir1.mul(a).add(t.planeDir2.mul(b));
       local = t.planeAxis1.unit.mul(a).add(t.planeAxis2.unit.mul(b));

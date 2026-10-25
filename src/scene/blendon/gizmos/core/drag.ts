@@ -3,13 +3,14 @@ import { Selection, SelectionMode, Undo } from '../../../unity/editor.ts';
 import { HandleUtility } from '../../../unity/handles.ts';
 import { Event, EventType, GUIUtility } from '../../../unity/imgui.ts';
 import { Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
-import type { GameObject, Transform } from '../../../unity/scene.ts';
+import type { Transform } from '../../../unity/scene.ts';
 import { SceneView, type SceneCamera } from '../../../unity/sceneview.ts';
 import { CursorWrapTracker, TransformTraits, TutorialTransform } from '../../foundation.ts';
 import { GizmoAxis } from '../axis.ts';
 import { GizmoRenderer } from '../rendering.ts';
 import { SharedGizmoSettings } from '../shared-settings.ts';
 import { VertexSnappingUtility } from '../vertex-snapping.ts';
+import { ClickSelection } from './click-selection.ts';
 
 export const DragKind = {
   None: 0,
@@ -66,13 +67,15 @@ export class DragGate {
     this.travelDistance += d;
   }
 
+  /** Under the threshold it was a click: select the way the Scene view does and, if that changes, revert the nudge. */
   endHandleDrag(revertTransforms: () => void) {
     if (!SharedGizmoSettings.ClickSelectEnabled) return;
     if (this.travelDistance >= DragGate.Threshold) return;
-    const picked = HandleUtility.pickGameObject(Event.current.mousePosition, false) as GameObject | null;
-    if (!picked || picked === Selection.activeGameObject) return;
+    const click = Event.current;
+    const next = ClickSelection.resolve(click.mousePosition, click);
+    if (!next) return;
     revertTransforms();
-    Selection.activeGameObject = picked;
+    Selection.set(next, next[0]);
   }
 }
 
@@ -94,6 +97,11 @@ export class GizmoDragSnapshot {
     this.activeDragId = id;
   }
 
+  /** Frees the hot control only while it is this drag's: a grab has none, and an orbit beside it keeps its own. */
+  releaseHotControl() {
+    if (this.activeDragId !== 0 && GUIUtility.hotControl === this.activeDragId) GUIUtility.hotControl = 0;
+  }
+
   /** The per-frame increment of a handle's raw position, slowed while precision is held. */
   preciseDelta(id: number, raw: Vector3, changed: boolean, precisionFactor: number) {
     if (GUIUtility.hotControl !== id) {
@@ -109,10 +117,6 @@ export class GizmoDragSnapshot {
     const inc = raw.sub(this.rawPrev);
     this.rawPrev = raw;
     return inc.mul(SharedGizmoSettings.PrecisionHeld ? precisionFactor : 1);
-  }
-
-  rebaseRaw(raw: Vector3) {
-    this.rawPrev = raw;
   }
 
   startCapture() {
@@ -151,7 +155,7 @@ export class GizmoDragSnapshot {
   }
 
   cancel() {
-    GUIUtility.hotControl = 0;
+    this.releaseHotControl();
     this.activeDragId = 0;
     if (this.recorded && this.undoGroup >= 0) Undo.revertAllDownToGroup(this.undoGroup);
     // Anything a handle wrote without Record is put back directly.
@@ -192,6 +196,7 @@ export class GizmoDragCoordinator {
   activeSceneView: SceneView | null = null;
   activeViewNormal = Vector3.forward;
   private cancelled = new Set<() => void>();
+  private ended = new Set<() => void>();
 
   get vertexModeActive() {
     return this.activeKind !== DragKind.None ? this.vertexSnapAtDragStart : VertexSnappingUtility.isActive;
@@ -203,6 +208,11 @@ export class GizmoDragCoordinator {
 
   onCancelled(cb: () => void) {
     this.cancelled.add(cb);
+  }
+
+  /** Every end of a drag: released, confirmed or cancelled. */
+  onEnded(cb: () => void) {
+    this.ended.add(cb);
   }
 
   /** selfDrivenCursor: a buttonless grab advances the tracker from MouseMove itself. */
@@ -245,6 +255,7 @@ export class GizmoDragCoordinator {
     this.activeSceneView = null;
     this.wrap.end();
     VertexSnappingUtility.clearTarget();
+    for (const cb of this.ended) cb();
   }
 
   retarget(kind: DragKind, axis: GizmoAxis) {
@@ -254,8 +265,8 @@ export class GizmoDragCoordinator {
   }
 
   forceRelease() {
+    this.snapshot.releaseHotControl();
     this.snapshot.setActiveDragId(0);
-    GUIUtility.hotControl = 0;
     this.end();
   }
 
@@ -266,6 +277,7 @@ export class GizmoDragCoordinator {
     this.activeSceneView = null;
     this.wrap.end();
     VertexSnappingUtility.clearTarget();
+    for (const cb of this.ended) cb();
     for (const cb of this.cancelled) cb();
   }
 

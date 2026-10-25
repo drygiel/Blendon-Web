@@ -130,6 +130,7 @@ export class AxisHandle {
   private target = Vector3.zero;
 
   readonly dragStarted = new Signal<[Vector3]>();
+  /** A move drag's whole travel from the press, zero without a lattice (a scale drag). */
   readonly dragged = new Signal<[Vector3]>();
   readonly dragEnded = new Signal();
 
@@ -205,17 +206,11 @@ export class AxisHandle {
             this.coordinator.wrap.projectionMousePosition,
             this.coordinator.vertexSnapAtDragStart,
           );
-          this.freeDistance = VertexGrab.distanceAlongAxis(
-            vertex.sub(carried).sub(this.dragPivot),
-            this.dragDirection,
-            this.axis,
-          );
+          this.freeDistance = VertexGrab.distanceAlongAxis(vertex.sub(carried).sub(this.dragPivot), this.dragDirection);
           // Keeps the reading in step so releasing V continues from the vertex.
           const reading = this.tryAxisReading();
           if (reading != null) this.freeReading = reading;
           this.target = this.dragPivot.add(this.dragDirection.mul(this.freeDistance));
-          // The target is absolute; the step onto it starts from where the objects actually are.
-          snapshot.rebaseRaw(position);
         } else {
           this.hasSnapVertex = false;
           const reading = this.tryAxisReading();
@@ -260,8 +255,17 @@ export class AxisHandle {
       this.dragEnded.invoke();
       this.coordinator.clickGate.endHandleDrag(() => snapshot.cancel());
     }
-    if (GUIUtility.hotControl === id && moved) this.dragged.invoke(delta);
+    if (GUIUtility.hotControl === id && moved) this.dragged.invoke(moveSnap.valid ? this.offset : Vector3.zero);
     return delta;
+  }
+
+  /** Where the tracker puts the pivot now, from the drag start. */
+  get offset() {
+    return this.target.sub(this.dragPivot);
+  }
+
+  get isDragged() {
+    return this.coordinator.activeKind === this.kind && this.coordinator.activeAxis === this.axis;
   }
 
   // A mid-drag X/Y/Z press can leave this handle hot while another constraint drives.

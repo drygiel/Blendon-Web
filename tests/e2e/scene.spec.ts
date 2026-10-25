@@ -226,6 +226,52 @@ test('grabs the selection by a typed distance and undoes it', async ({ page }) =
   await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before!.x, 4);
 });
 
+test('one Backspace over the last typed digit hands a grab back to the cursor', async ({ page }) => {
+  const view = await openScene(page);
+  await view.focus();
+  const start = (await positionOf(page, 'Cube'))!;
+  const from = await pagePointOf(page, 'Cube');
+  await page.mouse.move(from.x, from.y);
+  await page.keyboard.press('g');
+  await page.mouse.move(from.x + 60, from.y + 10, { steps: 4 });
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).not.toBeCloseTo(start.x, 2);
+  const followed = (await positionOf(page, 'Cube'))!;
+  await page.keyboard.press('3');
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(start.x + 3, 3);
+  // The press that leaves nothing typed puts the Cube back where the cursor holds it, with no mouse move.
+  await page.keyboard.press('Backspace');
+  await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(followed.x, 3);
+  expect((await positionOf(page, 'Cube'))!.z).toBeCloseTo(followed.z, 3);
+  await page.keyboard.press('Escape');
+});
+
+test('a box over bare floor ticks no box-select task, one over the cubes does', async ({ page }) => {
+  const view = await openScene(page);
+  await expect(view).toBeFocused();
+  const cube = await pagePointOf(page, 'Cube');
+  // The floor between the camera and the Cube stays empty.
+  const from = { x: cube.x - 15, y: cube.y + 70 };
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 30, from.y + 20, { steps: 4 });
+  await page.mouse.up();
+  await expect.poll(() => selectionNames(page)).toEqual([]);
+  const title = TUTORIAL_TASKS.find((t) => t.id === 'select.box')!.title;
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  const row = page.locator('#try .uw .tutr', { hasText: title });
+  await expect(row).toBeVisible();
+  await expect(row.locator('.tutbox.done')).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  const cube1 = await pagePointOf(page, 'Cube (1)');
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(cube1.x + 10, cube1.y + 10, { steps: 6 });
+  await page.mouse.up();
+  await expect.poll(() => selectionNames(page)).not.toEqual([]);
+  await page.getByRole('tab', { name: 'Blendon', exact: true }).click();
+  await expect(row.locator('.tutbox.done')).toBeVisible();
+});
+
 test('the click that confirms a grab selects nothing', async ({ page }) => {
   await openScene(page);
   expect(await selectionNames(page)).toEqual(['Cube']);
@@ -329,6 +375,24 @@ test('orbits with the middle mouse button', async ({ page }) => {
   for (let i = 1; i <= 10; i++) await page.mouse.move(x + i * 12, y + i * 3);
   await page.mouse.up({ button: 'middle' });
   await expect.poll(() => viewRotation(page)).not.toEqual(before);
+});
+
+test('an orbit drag lands a running view flight first and turns from where it was heading', async ({ page }) => {
+  const view = await openScene(page);
+  await view.focus();
+  const box = (await view.boundingBox())!;
+  const at = { x: box.x + box.width * 0.5, y: box.y + box.height * 0.6 };
+  await page.mouse.move(at.x, at.y);
+  // Top flies there over a third of a second, the drag starts right after the key.
+  await page.keyboard.press('Numpad7');
+  await page.mouse.down({ button: 'middle' });
+  await page.mouse.move(at.x + 80, at.y, { steps: 5 });
+  await page.mouse.up({ button: 'middle' });
+  // A sideways turntable drag keeps the landed pitch: still straight down.
+  const r = await viewRotation(page);
+  const [x, y, z, w] = r;
+  const forwardY = 2 * (y * z - w * x);
+  expect(forwardY).toBeLessThan(-0.999);
 });
 
 test("a middle click without a drag focuses on the clicked surface like the Editor's Focus", async ({ page }) => {

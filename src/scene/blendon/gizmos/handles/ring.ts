@@ -94,13 +94,16 @@ export const RingGeometry = {
   },
 };
 
-/** Cursor-angle bookkeeping for "rotate to cursor": the screen sweep blended with the plane angle. */
+/** Cursor-angle bookkeeping for "rotate to cursor": the screen sweep plus a share of the plane angle's lead. */
 export class RingAngleTracker {
   private prevMouse = Vector2.zero;
   private prevAngle = 0;
   // Which side of the ring plane's screen horizon the cursor was on.
   private prevRayCos = 0;
   private hasPrevAngle = false;
+  // Plane sweep minus screen sweep since the plane angle last became readable, and the share of it handed out.
+  private planeLead = 0;
+  private leadGiven = 0;
 
   anchor(position: Vector3, axis: Vector3, refDir: Vector3, mouse: Vector2) {
     const a = RingGeometry.tryAbsoluteAngle(position, axis, refDir, mouse);
@@ -108,8 +111,10 @@ export class RingAngleTracker {
     this.prevAngle = a ?? 0;
     this.prevRayCos = RingGeometry.rayAxisCosine(axis, mouse);
     this.prevMouse = mouse;
+    this.planeLead = this.leadGiven = 0;
   }
 
+  /** Both sweeps and the share depend only on where the cursor is, so leaving a pixel and coming back adds nothing. */
   frameDelta(position: Vector3, axis: Vector3, refDir: Vector3, radius: number, viewDir: Vector3, current: Vector2) {
     const screenDelta = RingGeometry.incrementalRingAngleDelta(
       position,
@@ -124,13 +129,35 @@ export class RingAngleTracker {
     const angle = RingGeometry.tryAbsoluteAngle(position, axis, refDir, current);
     // A previous frame without an angle, or a jump across the horizon, would diff against something unrelated.
     const usable = angle != null && this.hasPrevAngle && rayCos * this.prevRayCos > 0;
-    const weight = usable ? RingGeometry.planeAngleWeight(rayCos) : 0;
     const planeDelta = usable ? Mathf.DeltaAngle(this.prevAngle, angle) : 0;
     if (angle != null) this.prevAngle = angle;
     this.prevRayCos = rayCos;
     this.hasPrevAngle = angle != null;
-    return Mathf.Lerp(screenDelta, planeDelta, weight);
+    // What was handed out stays, the lead starts over from the next readable frame.
+    if (!usable) {
+      this.planeLead = this.leadGiven = 0;
+      return screenDelta;
+    }
+    this.planeLead += planeDelta - screenDelta;
+    const given = ringWeight(position, axis, radius, current) * this.planeLead;
+    const delta = screenDelta + (given - this.leadGiven);
+    this.leadGiven = given;
+    return delta;
   }
+}
+
+// Read on the ring, not at the cursor: a weight that changed along a radius would turn the ring on a straight move.
+function ringWeight(position: Vector3, axis: Vector3, radius: number, mouse: Vector2) {
+  const camera = GizmoRenderer.currentCamera();
+  if (!camera) return 0;
+  const ray = HandleUtility.guiPointToWorldRay(mouse);
+  const [hit, enter] = new Plane(axis, position).raycast(ray);
+  if (!hit) return 0;
+  const outward = ray.getPoint(enter).sub(position);
+  if (outward.sqrMagnitude < 1e-8) return 0;
+  const onRing = position.add(outward.normalized.mul(radius));
+  if (!camera.orthographic && Vector3.dot(onRing.sub(camera.position), camera.forward) <= 0) return 0;
+  return RingGeometry.planeAngleWeight(RingGeometry.rayAxisCosine(axis, HandleUtility.worldToGUIPoint(onRing)));
 }
 
 function drawArcWedge(
@@ -506,9 +533,6 @@ export class RotationRingHandle {
   }
 }
 
-// How much brighter the fill sits while look-at is armed.
-const LookAtOpacityBoost = 1.1;
-
 export class TrackballHandle {
   private readonly coordinator: GizmoDragCoordinator;
   private appliedPitch = 0;
@@ -556,7 +580,8 @@ export class TrackballHandle {
         const hover = !active && GUIUtility.hotControl === 0 && HandleUtility.nearestControl === id;
         let alpha = 0.01;
         if (hover) alpha = Math.min(settings.TrackballOpacity * 1.5, 0.3);
-        else if (lookAtArmed) alpha = Math.min(settings.TrackballOpacity * LookAtOpacityBoost, 0.1);
+        // Armed look-at shows a dim fill, never above hover.
+        else if (lookAtArmed) alpha = Math.min(settings.TrackballOpacity, 0.1);
         Handles.color = withOpacity(GizmoColors.TrackBall, alpha);
         DrawPrimitives.drawAASolidDisc(position, GizmoRenderer.cameraNormal(), radius);
         break;

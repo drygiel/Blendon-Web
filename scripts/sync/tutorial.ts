@@ -31,6 +31,8 @@ const unescape = (s: string) => s.replace(/\\(.)/g, (_, c: string) => (c === 'n'
 // site plays: the package leaves those clips out and the plugin shows the still. Its site copy is the picture's size.
 const TUTORIAL_CLIPS = 'Tutorial';
 const ownClipOut = (name: string) => 'plugin/video/tutorial/' + name + '.webm';
+// Clips the plugin keeps after dropping their task (select.group), so the orphan check lets them be.
+const RETIRED_CLIPS = new Set(['Grouping']);
 
 // Same public names the settings window's data uses, so both share one copy of each file.
 const tipOut = (image: string) =>
@@ -316,7 +318,8 @@ export function buildTutorialData(paths: { editor: string; icons: string; video:
   const orphans = existsSync(ownDir)
     ? readdirSync(ownDir)
         .filter((n) => n.endsWith(SITE_CLIP))
-        .filter((n) => !used.has(ownClipOut(n.slice(0, -SITE_CLIP.length))))
+        .map((n) => n.slice(0, -SITE_CLIP.length))
+        .filter((n) => !RETIRED_CLIPS.has(n) && !used.has(ownClipOut(n)))
     : [];
   if (orphans.length) throw new Error('Tutorial clips no task shows: ' + orphans.join(', '));
   const ids = new Set<string>();
