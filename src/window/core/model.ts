@@ -363,9 +363,9 @@ export class WindowModel {
     return Keymap.preset();
   }
 
-  /** One batch of writes; the same preset again is a no-op. */
+  /** One batch of writes. The lit preset applies again, putting back every pair swapped since. */
   applyKeyboardPreset(preset: KeyboardPreset) {
-    if (preset !== this.keyboardPreset()) Keymap.applyPreset(preset);
+    Keymap.applyPreset(preset);
   }
 
   // ---- folds ------------------------------------------------------------------------------------

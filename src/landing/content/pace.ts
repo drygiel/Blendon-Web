@@ -7,7 +7,7 @@ export interface ContestedKey {
   keys: KeyTokens;
   blendon: string;
   unity: string;
-  /** Where one click moves Unity's command on the Blendon preset, or a note when Blendon's own takes over. */
+  /** Where the Blendon preset moves Unity's command, or a note when Blendon's own takes over. */
   unityTo: KeyTokens | string;
   /** Where Blendon's command goes on the Unity preset, or a note when it has no key or keeps its own. */
   blendonTo: KeyTokens | string;
@@ -25,7 +25,7 @@ export const CONTESTED_KEYS: ContestedKey[] = [
   {
     id: 'Blendon/Move/Grab',
     keys: ['G'],
-    blendon: 'Grab',
+    blendon: 'Grab Move',
     unity: 'Cycle Tool Modes',
     unityTo: ['Shift', '~+', 'G'],
     blendonTo: ['Shift', '~+', 'G'],
@@ -33,7 +33,7 @@ export const CONTESTED_KEYS: ContestedKey[] = [
   {
     id: 'Blendon/Rotate/Grab',
     keys: ['R'],
-    blendon: 'Rotate Grab',
+    blendon: 'Grab Rotate',
     unity: 'Scale tool',
     unityTo: ['Shift', '~+', 'R'],
     blendonTo: ['Shift', '~+', 'R'],
@@ -41,10 +41,10 @@ export const CONTESTED_KEYS: ContestedKey[] = [
   {
     id: 'Blendon/Scale/Grab',
     keys: ['S'],
-    blendon: 'Scale Grab',
+    blendon: 'Grab Scale',
     unity: 'Show Tool Settings',
     unityTo: ['Alt', '~+', 'S'],
-    blendonTo: "Scale Grab has no key there, Alt+S is ProBuilder's",
+    blendonTo: "Grab Scale has no key there, Alt+S is ProBuilder's",
   },
   {
     id: 'Blendon/Pie Menus/Draw Mode',

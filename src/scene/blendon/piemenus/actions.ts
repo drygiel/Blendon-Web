@@ -224,7 +224,8 @@ ResetActions.all = [
 
 let spawnPoint: Vector3 | null = null;
 
-// The surface under the cursor, else the camera-facing plane through the pivot.
+// The surface under the cursor, else (sky) the camera-facing plane through the pivot. The demo's floor is a
+// surface here, so it already stands in for the plugin's ground at Y = 0.
 function resolveSpawn(view: SceneView, guiPoint: Vector2) {
   const hit = EditorRaycastUtility.tryGetHitPoint(guiPoint);
   if (hit) return hit.point;
@@ -262,9 +263,10 @@ export const SpawnPlacement = {
     Selection.set([go], go);
     if (spawnPoint) {
       go.transform.position = spawnPoint;
-      // Lifts a centre-pivoted primitive so its base, not its centre, meets the point.
+      // The bottom of the mesh onto the point, whatever the pivot.
       const b = go.bounds;
-      if (PieMenuSettings.PlaceOnFloor && b) go.transform.position = spawnPoint.add(new Vector3(0, b.extents.y, 0));
+      if (PieMenuSettings.PlaceOnFloor && b)
+        go.transform.position = spawnPoint.add(new Vector3(0, spawnPoint.y - b.min.y, 0));
     }
     Undo.setCurrentGroupName('Create ' + go.name);
   },

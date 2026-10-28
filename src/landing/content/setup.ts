@@ -22,7 +22,7 @@ export const SETTINGS_SLIDES: SettingsSlide[] = [
   {
     title: 'Blendon',
     sub: 'What Blendon does, what is switched on, and the keys it answers to',
-    desc: "The start page. A master switch, three feature presets that only switch features, and the keyboard preset that decides who keeps a contested key. Clashes are listed side by side: Blendon keeps Grab on G, and one click moves Unity's Cycle Tool Modes to Shift+G.",
+    desc: "The start page. A master switch, three feature presets that only switch features, and the keyboard preset that decides who keeps a contested key. Clashes are listed side by side: the Blendon preset keeps Grab Move on G and moves Unity's Cycle Tool Modes to Shift+G, and one click on a row swaps the pair.",
     chips: ['Master switch', 'Full · Essentials · Tools Only', 'Blendon / Unity keys'],
     image: slideOverview,
   },

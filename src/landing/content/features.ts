@@ -100,8 +100,8 @@ export const FEATURES: Feature[] = [
     id: 'scale',
     group: 'gizmos',
     title: 'Scale',
-    keys: ['R'],
-    desc: "Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context R alone starts the Rotate Grab; in other windows and tool contexts, and on the Unity keyboard preset, R is the Scale tool.",
+    keys: ['Shift', '~+', 'R'],
+    desc: "Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context R alone starts the Grab Rotate, and the Blendon keyboard preset moves the Scale tool to Shift+R; the Unity keyboard preset leaves R to the Scale tool and moves the grab there instead.",
     clip: 'Scale',
   },
   {

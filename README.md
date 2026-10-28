@@ -124,8 +124,8 @@ Rings that follow the cursor, a trackball and an angle arc. Hold <kbd>Alt</kbd> 
 <tr>
 <td width="50%" valign="top">
 <img src=".github/readme/Scale.webp" alt="Scale" width="100%">
-<br><b>Scale</b> &nbsp; <kbd>R</kbd><br>
-Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context <kbd>R</kbd> alone starts a grab rotate; in other windows and tool contexts, and on the Unity keyboard preset, <kbd>R</kbd> is the Scale tool.
+<br><b>Scale</b> &nbsp; <kbd>Shift</kbd>+<kbd>R</kbd><br>
+Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context <kbd>R</kbd> alone starts the rotate grab, and the Blendon keyboard preset moves the Scale tool to <kbd>Shift</kbd>+<kbd>R</kbd>; the Unity keyboard preset leaves <kbd>R</kbd> to the Scale tool and moves the grab there instead.
 </td>
 <td width="50%" valign="top">
 <img src=".github/readme/Transform.webp" alt="Transform" width="100%">
@@ -197,7 +197,7 @@ Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align a
 <td width="50%" valign="top">
 <img src="public/plugin/tips/Overview_KeyboardBlendon.webp" alt="Keyboard presets" width="100%">
 <br><b>Keyboard presets</b><br>
-<b>Blendon</b> answers the Blender keys in the Scene view and writes nothing but the right-click menu's handover, which it gives back when the Editor closes; Unity's commands on them keep working everywhere else, and one click moves most of them aside. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead.
+<b>Blendon</b> keeps the Blender keys and moves Unity's commands on them one modifier aside, so both work in the Scene view. <b>Unity</b> leaves the Editor's keys alone and moves Blendon's instead. One click on a row of the table swaps that pair alone.
 </td>
 </tr>
 </table>

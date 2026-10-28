@@ -8,7 +8,7 @@ import { iconStyle } from '../core/icons.ts';
 import { capsWidth, rich } from '../core/text.ts';
 import { clamp, M, PAL } from '../core/util.ts';
 import { KEY_END, KEY_OPEN, presetKey } from '../../plugin/keys.ts';
-import type { ContestedRow as Row, KeyboardPreset, Keys, Tip } from '../../plugin/schema.ts';
+import type { ContestState, ContestedRow as Row, KeyboardPreset, Keys, Tip } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
 import type { TipSource } from '../core/state.ts';
 import { Caps, Runs } from './common.tsx';
@@ -276,7 +276,7 @@ function rowKeys(key: (row: Row) => string) {
 
 function blenderCard() {
   const grab = D.known['Blendon/Move/Grab'];
-  const covered = grab ? ', like ' + UNITY_OPEN + grab.ul + UNITY_END + ' on ' + keyText(grab.key) : '';
+  const moved = grab ? ', like ' + UNITY_OPEN + grab.ul + UNITY_END + ' to ' + keyText(grab.editorAlt) : '';
   return (
     TITLE_OPEN +
     'Blendon Keys' +
@@ -289,11 +289,11 @@ function blenderCard() {
     SECTION +
     "THE EDITOR'S COMMANDS" +
     SECTION_END +
-    "Wait in the Scene View while Blendon's feature is on" +
-    covered +
-    '. The table below moves one aside.' +
+    'Move one modifier aside' +
+    moved +
+    ', so they work in the Scene View too. The table below gives any one its key back.' +
     NOTE +
-    'Nothing is written to your shortcut profile' +
+    "Written to your shortcut profile. On Unity's read-only Default, Blendon offers a copy" +
     END
   );
 }
@@ -308,6 +308,7 @@ function unityCard() {
     'BLENDON MOVES TO' +
     SECTION_END +
     rowKeys((row) => row.blendonAlt) +
+    ' The table below gives any one its key back.' +
     NOTE +
     "Written to your shortcut profile. On Unity's read-only Default, Blendon offers a copy" +
     END
@@ -335,8 +336,8 @@ export function KeyboardPresets({ it }: { it: ItemOf<'kbPreset'> }) {
     <div className={base.cls}>
       <Segs segs={segs} />
       <div className="prn">
-        Decides who answers the keys Blendon and the Editor both want. Blender keys write nothing: the Editor&apos;s
-        command is only covered in the Scene View while the feature is on.
+        Decides who gets the keys Blendon and the Editor both want, the other side moves one modifier aside. The button
+        on a row below swaps just that pair.
       </div>
       <div className="kbl">
         <span className="nlead">Want to tune keys one by one? Use </span>
@@ -354,27 +355,36 @@ export function KeyboardPresets({ it }: { it: ItemOf<'kbPreset'> }) {
   );
 }
 
-const MOVE_TIP = (r: Row) =>
-  `Put the Editor's "${r.ul}" on ${r.editorAlt}, so it works in the Scene View too. Blendon keeps ${r.key}.`;
 const RESET_TIP = "Give the Editor's command its own key back. Blendon covers it again.";
 
-/** Move a covered command aside, or give a moved one its key back. Only listed rows get here. */
-function RowAction({ r, state }: { r: Row; state: string }) {
+// OverviewContestedTable.ActionTipFor.
+function actionTip(r: Row, state: ContestState): string {
+  const theirs = `the Editor's "${r.ul}"`;
+  const ours = `Blendon's "${r.bl}"`;
+  if (state === 'Covered')
+    return `Put ${theirs} on ${r.editorAlt}, so it works in the Scene View too. Blendon keeps ${r.key}.`;
+  if (state === 'Moved' && r.replaces) return RESET_TIP;
+  if (state === 'Moved')
+    return `Swap: ${theirs} takes ${r.key} back, ${ours} ${r.blendonAlt ? 'moves to ' + r.blendonAlt : 'is left without a key'}.`;
+  return `Swap: ${ours} takes ${r.key} back, ${theirs} moves to ${r.editorAlt}.`;
+}
+
+/** Swaps the pair: a moved command takes its key back, anything else gives it to Blendon. Only listed rows. */
+function RowAction({ r, state }: { r: Row; state: ContestState }) {
   const app = useApp();
-  const move = state === 'Covered';
-  const tip = useTip({ t: move ? MOVE_TIP(r) : RESET_TIP, native: true });
+  const back = state === 'Moved';
+  const tip = useTip({ t: actionTip(r, state), native: true });
   return (
     <button
       className="ctb"
       onClick={() => {
         app.dismissTip();
-        if (move) Keymap.move(r);
-        else Keymap.giveBack(r);
+        Keymap.act(r, state);
       }}
-      aria-label={move ? 'Move aside' : 'Reset'}
+      aria-label={back ? 'Reset' : 'Move aside'}
       {...tip}
     >
-      {move ? '↪' : '↺'}
+      {back ? '↺' : '↪'}
     </button>
   );
 }

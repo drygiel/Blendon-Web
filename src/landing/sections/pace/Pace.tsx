@@ -7,17 +7,7 @@ import table from '../../ui/Table.module.scss';
 import styles from './Pace.module.scss';
 
 /** One preset's column: what the key does there, and where the other command goes. */
-function Owner({
-  does,
-  other,
-  to,
-  after,
-}: {
-  does: string;
-  other: string;
-  to: ContestedKey['unityTo'];
-  after?: string;
-}) {
+function Owner({ does, other, to }: { does: string; other: string; to: ContestedKey['unityTo'] }) {
   return (
     <>
       <span className={styles.does}>{does}</span>
@@ -27,7 +17,6 @@ function Owner({
         ) : (
           <>
             {other} → <Keys tokens={to} size="sm" />
-            {after}
           </>
         )}
       </span>
@@ -45,7 +34,7 @@ export function Pace() {
             Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
           </>
         }
-        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys, or just Esc, only moves the right-click from Unity's menu to Blendon's while Blendon runs, and back when the Editor closes. Keep Unity keys moves Blendon's contested keys one modifier aside. Pick a preset any time on the Overview page of Tools → Blendon."
+        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys, the default, keeps Blender's keys, moves the Editor's commands on them one modifier aside and gives the right-click to Blendon's menu while Blendon runs; on Unity's read-only Default profile it makes an editable copy first, so nothing else needs setting up. Keep Unity keys moves Blendon's contested keys aside instead, and Skip, or just Esc, changes nothing. Pick a preset any time on the Overview page of Tools → Blendon."
       />
 
       <div className={table.panel} {...plotPart('above')}>
@@ -65,7 +54,7 @@ export function Pace() {
                   <Keys tokens={row.keys} />
                 </th>
                 <td data-label="Blendon preset">
-                  <Owner does={row.blendon} other={row.unity} to={row.unityTo} after="in one click" />
+                  <Owner does={row.blendon} other={row.unity} to={row.unityTo} />
                 </td>
                 <td data-label="Unity preset">
                   <Owner does={row.unity} other={row.blendon} to={row.blendonTo} />
@@ -76,8 +65,8 @@ export function Pace() {
         </table>
         <p className={table.note}>
           Neither preset is a profile of its own: both work on whatever profile you are on, and keys you tune stay put,
-          apart from the contested ones a preset moves. In the Scene view a covered Editor command waits, the settings
-          window lists each one, and one click there moves it one modifier aside.
+          apart from the contested ones a preset moves. The settings window lists every contested pair, and one click on
+          a row swaps just that pair, so the two never share a key.
         </p>
       </div>
 

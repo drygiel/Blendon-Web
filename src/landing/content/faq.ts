@@ -33,7 +33,7 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: 'Does it touch my project, my builds or version control?',
-    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs and pie menus to a file in your user settings folder. Your active Shortcut Manager profile holds only keys you change, the Unity preset's keys if you pick it, and the Editor's right-click menu, which Blendon sets aside while it runs and gives back when the Editor closes. Profiles are shared by your projects, so a project without Blendon opened while a Blendon one runs, or after one crashed, has no Scene view right-click menu until a Blendon project closes normally and it is reopened. Prepare Uninstall gives it back everywhere. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
+    a: "Beyond its own folder, no. Blendon is Editor-only and adds nothing to player builds. Settings go to EditorPrefs and pie menus to a file in your user settings folder. Your active Shortcut Manager profile holds only keys you change, the keys of the keyboard preset you pick, and the Editor's right-click menu, which Blendon sets aside while it runs and gives back when the Editor closes. Profiles are shared by your projects, so a project without Blendon opened while a Blendon one runs, or after one crashed, has no Scene view right-click menu until a Blendon project closes normally and it is reopened. Prepare Uninstall gives it back everywhere. Editing a key on Unity's read-only Default profile asks first, then makes an editable Default copy.",
   },
   {
     q: 'Can I undo what it does?',

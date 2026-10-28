@@ -2616,7 +2616,7 @@
   },
   "PieMenuSettings.PlaceOnFloor": {
    "l": "Place On Floor",
-   "t": "<size=14><b>Place On Floor</b></size>\nObjects created from a pie rest on the point you clicked, instead of sinking halfway in.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nThe new object is lifted by half its height.\n\n<size=9><color=#92929A>Applies to Add Object items in any pie</color></size>",
+   "t": "<size=14><b>Place On Floor</b></size>\nObjects created from a pie rest on the point you clicked, instead of sinking halfway in.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nThe new object moves so the bottom of its mesh touches the point, whatever its pivot. Over empty ground the point is at Y = 0.\n\n<size=9><color=#92929A>Applies to Add Object items in any pie</color></size>",
    "i": "Tips/PieMenus/PlaceOnFloor.png",
    "d": true,
    "k": "Boolean"
@@ -9436,7 +9436,7 @@
   "resetTip": "Put every setting on this page back to its default. On a gizmo page that is the picked look preset's value",
   "resetAllTip": "<b>Reset All Pages</b>\nRestores every Blendon setting on every page, shortcuts included, to what the plugin ships with, the Blender gizmo look included.",
   "masterOffNote": "<b>Blendon is off.</b>  Every feature below is dormant and its keys belong to the Editor, so the Editor behaves as if the plugin were not installed. Nothing has been lost - switch it back on and every setting is where you left it.",
-  "layoutTooltip": "<b>Keyboard Presets</b>\nWho answers the keys Blendon and the Editor both want.\n\n<b><color=#4FA8E8>Blendon</color></b> - Blender's keys for grab, rotate, scale and orbit answer in the Scene View, the Editor's commands on them wait there.\n<b><color=#4FA8E8>Unity</color></b> - the Editor keeps its keys, Blendon's move one modifier aside.\n\n<size=9><color=#92929A>Works on any shortcut profile. Your other keys are left alone</color></size>",
+  "layoutTooltip": "<b>Keyboard Presets</b>\nWho gets the keys Blendon and the Editor both want. The other side moves one modifier aside.\n\n<b><color=#4FA8E8>Blendon</color></b> - Blender's keys for grab, rotate, scale and orbit answer in the Scene View, the Editor's commands on them move aside.\n<b><color=#4FA8E8>Unity</color></b> - the Editor keeps its keys, Blendon's move one modifier aside.\n\n<size=9><color=#92929A>Picking one sets every row of the table again. Your other keys are left alone</color></size>",
   "tutorialStartOverTip": "<size=14><b>Start Over</b></size>\nUn-tick every task and start again from the first one.\n\n<size=9><b><color=#92929A>KEPT</color></b></size>\nPer machine, not per project, so a gesture learned once stays learned. <b><color=#4FA8E8>Reset All Pages</color></b> leaves it alone.",
   "tutorialStartOverImage": "Tips/Overview/TutorialProgress.png",
   "tutorialRestartTitle": "Start the tutorial over?",
@@ -9467,29 +9467,29 @@
    "uid": "Tools/Cycle Tool Modes",
    "ul": "Cycle Tool Modes",
    "bid": "Blendon/Move/Grab",
-   "bl": "Grab",
+   "bl": "Grab Move",
    "key": "G",
    "replaces": false,
    "blendonAlt": "Shift+G",
    "editorAlt": "Shift+G",
    "cards": {
     "Covered": {
-     "t": "<size=14><b>Grab vs Cycle Tool Modes</b></size>\nBoth want <b><color=#D98E38>G</color></b>. In the <b><color=#4FA8E8>Scene View</color></b> Blendon's answers while it is on, switched off the key is the Editor's again.\n\n<size=9><b><color=#92929A>MOVE</color></b></size>\nPuts the Editor's command on <b><color=#D98E38>Shift+G</color></b>, so it works in the Scene View too. Done once, Blendon doesn't keep it there</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Move vs Cycle Tool Modes</b></size>\nBoth want <b><color=#D98E38>G</color></b>. In the <b><color=#4FA8E8>Scene View</color></b> Blendon's answers while it is on, switched off the key is the Editor's again.\n\n<size=9><b><color=#92929A>MOVE</color></b></size>\nPuts the Editor's command on <b><color=#D98E38>Shift+G</color></b>, so it works in the Scene View too. Done once, Blendon doesn't keep it there</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Replaced": {
-     "t": "<size=14><b>Grab vs Cycle Tool Modes</b></size>\nBoth want <b><color=#D98E38>G</color></b>. Blendon's does the Editor's job, so it answers the key in the <b><color=#4FA8E8>Scene View</color></b> while it is on</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Move vs Cycle Tool Modes</b></size>\nBoth want <b><color=#D98E38>G</color></b>. Blendon's does the Editor's job, so it answers the key in the <b><color=#4FA8E8>Scene View</color></b> while it is on</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Grab vs Cycle Tool Modes</b></size>\nThe Editor's command is on <b><color=#D98E38>Shift+G</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>G</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Move vs Cycle Tool Modes</b></size>\nBlendon keeps <b><color=#D98E38>G</color></b>, the Editor's command is on <b><color=#D98E38>Shift+G</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>G</color></b> back and puts Blendon's on <b><color=#D98E38>Shift+G</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Grab vs Cycle Tool Modes</b></size>\nThe Editor's command is on {key:Tools/Cycle Tool Modes}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>G</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Grab Move vs Cycle Tool Modes</b></size>\nBlendon keeps <b><color=#D98E38>G</color></b>, the Editor's command is on {key:Tools/Cycle Tool Modes}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>G</color></b> back and puts Blendon's on <b><color=#D98E38>Shift+G</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Grab vs Cycle Tool Modes</b></size>\nBlendon's is on <b><color=#D98E38>G</color></b> or switched off, so the Editor keeps <b><color=#D98E38>G</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Move vs Cycle Tool Modes</b></size>\nThe Editor keeps <b><color=#D98E38>G</color></b>, Blendon's is on <b><color=#D98E38>G</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>G</color></b> back and puts the Editor's command on <b><color=#D98E38>Shift+G</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Grab vs Cycle Tool Modes</b></size>\nBlendon's is on {key:Blendon/Move/Grab} or switched off, so the Editor keeps <b><color=#D98E38>G</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Grab Move vs Cycle Tool Modes</b></size>\nThe Editor keeps <b><color=#D98E38>G</color></b>, Blendon's is on {key:Blendon/Move/Grab}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>G</color></b> back and puts the Editor's command on <b><color=#D98E38>Shift+G</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9497,29 +9497,29 @@
    "uid": "Tools/Scale",
    "ul": "Scale Tool",
    "bid": "Blendon/Rotate/Grab",
-   "bl": "Grab",
+   "bl": "Grab Rotate",
    "key": "R",
    "replaces": false,
    "blendonAlt": "Shift+R",
    "editorAlt": "Shift+R",
    "cards": {
     "Covered": {
-     "t": "<size=14><b>Grab vs Scale Tool</b></size>\nBoth want <b><color=#D98E38>R</color></b>. In the <b><color=#4FA8E8>Scene View</color></b> Blendon's answers while it is on, switched off the key is the Editor's again.\n\n<size=9><b><color=#92929A>MOVE</color></b></size>\nPuts the Editor's command on <b><color=#D98E38>Shift+R</color></b>, so it works in the Scene View too. Done once, Blendon doesn't keep it there</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Rotate vs Scale Tool</b></size>\nBoth want <b><color=#D98E38>R</color></b>. In the <b><color=#4FA8E8>Scene View</color></b> Blendon's answers while it is on, switched off the key is the Editor's again.\n\n<size=9><b><color=#92929A>MOVE</color></b></size>\nPuts the Editor's command on <b><color=#D98E38>Shift+R</color></b>, so it works in the Scene View too. Done once, Blendon doesn't keep it there</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Replaced": {
-     "t": "<size=14><b>Grab vs Scale Tool</b></size>\nBoth want <b><color=#D98E38>R</color></b>. Blendon's does the Editor's job, so it answers the key in the <b><color=#4FA8E8>Scene View</color></b> while it is on</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Rotate vs Scale Tool</b></size>\nBoth want <b><color=#D98E38>R</color></b>. Blendon's does the Editor's job, so it answers the key in the <b><color=#4FA8E8>Scene View</color></b> while it is on</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Grab vs Scale Tool</b></size>\nThe Editor's command is on <b><color=#D98E38>Shift+R</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>R</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Rotate vs Scale Tool</b></size>\nBlendon keeps <b><color=#D98E38>R</color></b>, the Editor's command is on <b><color=#D98E38>Shift+R</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>R</color></b> back and puts Blendon's on <b><color=#D98E38>Shift+R</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Grab vs Scale Tool</b></size>\nThe Editor's command is on {key:Tools/Scale}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>R</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Grab Rotate vs Scale Tool</b></size>\nBlendon keeps <b><color=#D98E38>R</color></b>, the Editor's command is on {key:Tools/Scale}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>R</color></b> back and puts Blendon's on <b><color=#D98E38>Shift+R</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Grab vs Scale Tool</b></size>\nBlendon's is on <b><color=#D98E38>R</color></b> or switched off, so the Editor keeps <b><color=#D98E38>R</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Rotate vs Scale Tool</b></size>\nThe Editor keeps <b><color=#D98E38>R</color></b>, Blendon's is on <b><color=#D98E38>R</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>R</color></b> back and puts the Editor's command on <b><color=#D98E38>Shift+R</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Grab vs Scale Tool</b></size>\nBlendon's is on {key:Blendon/Rotate/Grab} or switched off, so the Editor keeps <b><color=#D98E38>R</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Grab Rotate vs Scale Tool</b></size>\nThe Editor keeps <b><color=#D98E38>R</color></b>, Blendon's is on {key:Blendon/Rotate/Grab}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>R</color></b> back and puts the Editor's command on <b><color=#D98E38>Shift+R</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9527,29 +9527,29 @@
    "uid": "Overlays/Show Tool Settings",
    "ul": "Show Tool Settings",
    "bid": "Blendon/Scale/Grab",
-   "bl": "Grab",
+   "bl": "Grab Scale",
    "key": "S",
    "replaces": false,
    "blendonAlt": "",
    "editorAlt": "Alt+S",
    "cards": {
     "Covered": {
-     "t": "<size=14><b>Grab vs Show Tool Settings</b></size>\nBoth want <b><color=#D98E38>S</color></b>. In the <b><color=#4FA8E8>Scene View</color></b> Blendon's answers while it is on, switched off the key is the Editor's again.\n\n<size=9><b><color=#92929A>MOVE</color></b></size>\nPuts the Editor's command on <b><color=#D98E38>Alt+S</color></b>, so it works in the Scene View too. Done once, Blendon doesn't keep it there</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Scale vs Show Tool Settings</b></size>\nBoth want <b><color=#D98E38>S</color></b>. In the <b><color=#4FA8E8>Scene View</color></b> Blendon's answers while it is on, switched off the key is the Editor's again.\n\n<size=9><b><color=#92929A>MOVE</color></b></size>\nPuts the Editor's command on <b><color=#D98E38>Alt+S</color></b>, so it works in the Scene View too. Done once, Blendon doesn't keep it there</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Replaced": {
-     "t": "<size=14><b>Grab vs Show Tool Settings</b></size>\nBoth want <b><color=#D98E38>S</color></b>. Blendon's does the Editor's job, so it answers the key in the <b><color=#4FA8E8>Scene View</color></b> while it is on</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Scale vs Show Tool Settings</b></size>\nBoth want <b><color=#D98E38>S</color></b>. Blendon's does the Editor's job, so it answers the key in the <b><color=#4FA8E8>Scene View</color></b> while it is on</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Grab vs Show Tool Settings</b></size>\nThe Editor's command is on <b><color=#D98E38>Alt+S</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>S</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Scale vs Show Tool Settings</b></size>\nBlendon keeps <b><color=#D98E38>S</color></b>, the Editor's command is on <b><color=#D98E38>Alt+S</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>S</color></b> back and leaves Blendon's without a key</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Grab vs Show Tool Settings</b></size>\nThe Editor's command is on {key:Overlays/Show Tool Settings}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>S</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Grab Scale vs Show Tool Settings</b></size>\nBlendon keeps <b><color=#D98E38>S</color></b>, the Editor's command is on {key:Overlays/Show Tool Settings}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>S</color></b> back and leaves Blendon's without a key</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Grab vs Show Tool Settings</b></size>\nBlendon's is on <b><color=#D98E38>S</color></b> or switched off, so the Editor keeps <b><color=#D98E38>S</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Grab Scale vs Show Tool Settings</b></size>\nThe Editor keeps <b><color=#D98E38>S</color></b>, Blendon's is on <b><color=#D98E38>S</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>S</color></b> back and puts the Editor's command on <b><color=#D98E38>Alt+S</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Grab vs Show Tool Settings</b></size>\nBlendon's is on {key:Blendon/Scale/Grab} or switched off, so the Editor keeps <b><color=#D98E38>S</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Grab Scale vs Show Tool Settings</b></size>\nThe Editor keeps <b><color=#D98E38>S</color></b>, Blendon's is on {key:Blendon/Scale/Grab}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>S</color></b> back and puts the Editor's command on <b><color=#D98E38>Alt+S</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9572,14 +9572,14 @@
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nThe Editor's command is on <b><color=#D98E38>Ctrl+Num 5</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Ctrl+Num 1</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nBlendon keeps <b><color=#D98E38>Ctrl+Num 1</color></b>, the Editor's command is on <b><color=#D98E38>Ctrl+Num 5</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Ctrl+Num 1</color></b> back and puts Blendon's on <b><color=#D98E38>Ctrl+Num 5</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nThe Editor's command is on {key:URP/Decal: Handle changing size stretching UV}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Ctrl+Num 1</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nBlendon keeps <b><color=#D98E38>Ctrl+Num 1</color></b>, the Editor's command is on {key:URP/Decal: Handle changing size stretching UV}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Ctrl+Num 1</color></b> back and puts Blendon's on <b><color=#D98E38>Ctrl+Num 5</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nBlendon's is on <b><color=#D98E38>Ctrl+Num 1</color></b> or switched off, so the Editor keeps <b><color=#D98E38>Ctrl+Num 1</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nThe Editor keeps <b><color=#D98E38>Ctrl+Num 1</color></b>, Blendon's is on <b><color=#D98E38>Ctrl+Num 1</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Ctrl+Num 1</color></b> back and puts the Editor's command on <b><color=#D98E38>Ctrl+Num 5</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nBlendon's is on {key:Blendon/Numpad Views/Back} or switched off, so the Editor keeps <b><color=#D98E38>Ctrl+Num 1</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Back vs Decal: Stretch UV</b></size>\nThe Editor keeps <b><color=#D98E38>Ctrl+Num 1</color></b>, Blendon's is on {key:Blendon/Numpad Views/Back}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Ctrl+Num 1</color></b> back and puts the Editor's command on <b><color=#D98E38>Ctrl+Num 5</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9602,14 +9602,14 @@
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nThe Editor's command is on <b><color=#D98E38>Ctrl+Num 6</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Ctrl+Num 3</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nBlendon keeps <b><color=#D98E38>Ctrl+Num 3</color></b>, the Editor's command is on <b><color=#D98E38>Ctrl+Num 6</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Ctrl+Num 3</color></b> back and puts Blendon's on <b><color=#D98E38>Ctrl+Num 6</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nThe Editor's command is on {key:URP/Decal: Handle changing pivot position and UVs}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Ctrl+Num 3</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nBlendon keeps <b><color=#D98E38>Ctrl+Num 3</color></b>, the Editor's command is on {key:URP/Decal: Handle changing pivot position and UVs}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Ctrl+Num 3</color></b> back and puts Blendon's on <b><color=#D98E38>Ctrl+Num 6</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nBlendon's is on <b><color=#D98E38>Ctrl+Num 3</color></b> or switched off, so the Editor keeps <b><color=#D98E38>Ctrl+Num 3</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nThe Editor keeps <b><color=#D98E38>Ctrl+Num 3</color></b>, Blendon's is on <b><color=#D98E38>Ctrl+Num 3</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Ctrl+Num 3</color></b> back and puts the Editor's command on <b><color=#D98E38>Ctrl+Num 6</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nBlendon's is on {key:Blendon/Numpad Views/Left} or switched off, so the Editor keeps <b><color=#D98E38>Ctrl+Num 3</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Left vs Decal: Pivot & UVs</b></size>\nThe Editor keeps <b><color=#D98E38>Ctrl+Num 3</color></b>, Blendon's is on {key:Blendon/Numpad Views/Left}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Ctrl+Num 3</color></b> back and puts the Editor's command on <b><color=#D98E38>Ctrl+Num 6</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9662,14 +9662,14 @@
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nThe Editor's command is on <b><color=#D98E38>Ctrl+`</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>`</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nBlendon keeps <b><color=#D98E38>`</color></b>, the Editor's command is on <b><color=#D98E38>Ctrl+`</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>`</color></b> back and puts Blendon's on <b><color=#D98E38>Ctrl+`</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nThe Editor's command is on {key:Overlays/Show Overlay Menu}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>`</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nBlendon keeps <b><color=#D98E38>`</color></b>, the Editor's command is on {key:Overlays/Show Overlay Menu}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>`</color></b> back and puts Blendon's on <b><color=#D98E38>Ctrl+`</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nBlendon's is on <b><color=#D98E38>`</color></b> or switched off, so the Editor keeps <b><color=#D98E38>`</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nThe Editor keeps <b><color=#D98E38>`</color></b>, Blendon's is on <b><color=#D98E38>`</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>`</color></b> back and puts the Editor's command on <b><color=#D98E38>Ctrl+`</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nBlendon's is on {key:Blendon/Pie Menus/View} or switched off, so the Editor keeps <b><color=#D98E38>`</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>View Pie vs Show Overlay Menu</b></size>\nThe Editor keeps <b><color=#D98E38>`</color></b>, Blendon's is on {key:Blendon/Pie Menus/View}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>`</color></b> back and puts the Editor's command on <b><color=#D98E38>Ctrl+`</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9692,14 +9692,14 @@
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nThe Editor's command is on <b><color=#D98E38>Alt+Z</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Z</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nBlendon keeps <b><color=#D98E38>Z</color></b>, the Editor's command is on <b><color=#D98E38>Alt+Z</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Z</color></b> back and puts Blendon's on <b><color=#D98E38>Alt+Z</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nThe Editor's command is on {key:Tools/Toggle Pivot Position}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Z</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nBlendon keeps <b><color=#D98E38>Z</color></b>, the Editor's command is on {key:Tools/Toggle Pivot Position}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Z</color></b> back and puts Blendon's on <b><color=#D98E38>Alt+Z</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nBlendon's is on <b><color=#D98E38>Z</color></b> or switched off, so the Editor keeps <b><color=#D98E38>Z</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nThe Editor keeps <b><color=#D98E38>Z</color></b>, Blendon's is on <b><color=#D98E38>Z</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Z</color></b> back and puts the Editor's command on <b><color=#D98E38>Alt+Z</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nBlendon's is on {key:Blendon/Pie Menus/Draw Mode} or switched off, so the Editor keeps <b><color=#D98E38>Z</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Draw Mode Pie vs Toggle Pivot Position</b></size>\nThe Editor keeps <b><color=#D98E38>Z</color></b>, Blendon's is on {key:Blendon/Pie Menus/Draw Mode}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Z</color></b> back and puts the Editor's command on <b><color=#D98E38>Alt+Z</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },
@@ -9722,14 +9722,14 @@
      "i": "Tips/Overview/ContestedKey.png"
     },
     "Moved": {
-     "t": "<size=14><b>Tools Pie vs View Tool</b></size>\nThe Editor's command is on <b><color=#D98E38>Alt+Q</color></b>, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Q</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Tools Pie vs View Tool</b></size>\nBlendon keeps <b><color=#D98E38>Q</color></b>, the Editor's command is on <b><color=#D98E38>Alt+Q</color></b>, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Q</color></b> back and puts Blendon's on <b><color=#D98E38>Alt+Q</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Tools Pie vs View Tool</b></size>\nThe Editor's command is on {key:Tools/View}, so both work.\n\n<size=9><b><color=#92929A>RESET</color></b></size>\nGives it <b><color=#D98E38>Q</color></b> back, Blendon covers it again in the Scene View</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Tools Pie vs View Tool</b></size>\nBlendon keeps <b><color=#D98E38>Q</color></b>, the Editor's command is on {key:Tools/View}, so both work.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives the Editor's command <b><color=#D98E38>Q</color></b> back and puts Blendon's on <b><color=#D98E38>Alt+Q</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     },
     "Free": {
-     "t": "<size=14><b>Tools Pie vs View Tool</b></size>\nBlendon's is on <b><color=#D98E38>Q</color></b> or switched off, so the Editor keeps <b><color=#D98E38>Q</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
+     "t": "<size=14><b>Tools Pie vs View Tool</b></size>\nThe Editor keeps <b><color=#D98E38>Q</color></b>, Blendon's is on <b><color=#D98E38>Q</color></b>.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Q</color></b> back and puts the Editor's command on <b><color=#D98E38>Alt+Q</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>",
      "i": "Tips/Overview/ContestedKey.png",
-     "src": "<size=14><b>Tools Pie vs View Tool</b></size>\nBlendon's is on {key:Blendon/Pie Menus/Tools} or switched off, so the Editor keeps <b><color=#D98E38>Q</color></b>. The <b><color=#4FA8E8>Unity</color></b> keyboard preset moves Blendon's side this way</color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
+     "src": "<size=14><b>Tools Pie vs View Tool</b></size>\nThe Editor keeps <b><color=#D98E38>Q</color></b>, Blendon's is on {key:Blendon/Pie Menus/Tools}.\n\n<size=9><b><color=#92929A>SWAP</color></b></size>\nGives Blendon's <b><color=#D98E38>Q</color></b> back and puts the Editor's command on <b><color=#D98E38>Alt+Q</color></b></color></size>\n\n<size=9><color=#92929A>Click a name to open it: Blendon's on the Keyboard page, the Editor's in Unity's Shortcuts window</color></size>"
     }
    }
   },

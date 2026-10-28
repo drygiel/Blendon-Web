@@ -823,9 +823,21 @@ async function openOverview(page: Page) {
   return win;
 }
 
-/** A row of the Overview's covered-commands table, by its Editor command (Blendon's three grabs all read Grab). */
+/** A row of the Overview's contested-keys table, by its Editor command. */
 const contestedRow = (page: Page, command: string) =>
   page.locator('#try .uw .ct').filter({ has: page.locator('.ctu', { hasText: new RegExp(`^${command}$`) }) });
+
+/**
+ * G covered again, as on a profile nobody set up: the row's swap gives G to Cycle Tool Modes, and Reset All Pages
+ * puts Grab Move back on the preset's G without moving the Editor's command.
+ */
+async function coverCycleToolModes(page: Page) {
+  const win = await openOverview(page);
+  await contestedRow(page, 'Cycle Tool Modes').getByRole('button', { name: 'Reset', exact: true }).click();
+  await win.getByRole('button', { name: /Reset All Pages/ }).click();
+  await win.locator('.dlg').getByRole('button', { name: 'Reset All', exact: true }).click();
+  await expect(contestedRow(page, 'Cycle Tool Modes').getByRole('button', { name: 'Move aside' })).toBeVisible();
+}
 
 async function toScene(page: Page) {
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
@@ -835,18 +847,17 @@ async function toScene(page: Page) {
 test('the first press of a key that covers an Editor command explains it once', async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
-  // The page starts with the command moved aside; Reset gives it G back, so G covers it.
-  await openOverview(page);
-  await contestedRow(page, 'Cycle Tool Modes').getByRole('button', { name: 'Reset', exact: true }).click();
+  // The page starts with the command moved aside.
+  await coverCycleToolModes(page);
   await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   const card = view.getByRole('status');
   await expect(card).toBeVisible();
   // Grab answers in Blendon's tool context, the Editor's command everywhere else.
-  await expect(card).toContainText("Grabin Blendon's tool context");
+  await expect(card).toContainText("Grab Movein Blendon's tool context");
   await expect(card).toContainText('Cycle Tool Modeseverywhere else');
-  // Grab's name is the link to its row on the Keyboard page.
-  await card.getByRole('button', { name: 'Grab', exact: true }).click();
+  // Grab Move's name is the link to its row on the Keyboard page.
+  await card.getByRole('button', { name: 'Grab Move', exact: true }).click();
   await expect(page.locator('#try .uw [data-hl="true"]')).toBeVisible();
   await expect(card).toHaveCount(0);
   await page.getByRole('tab', { name: 'Scene', exact: true }).click();
@@ -861,8 +872,7 @@ test('with the tutorial on, the tip card sits just above the badge and makes way
   const view = await openScene(page);
   // Started, so the badge's line names a task and has a hover card.
   await view.getByRole('button', { name: 'Blendon Tutorial' }).click();
-  await openOverview(page);
-  await contestedRow(page, 'Cycle Tool Modes').getByRole('button', { name: 'Reset', exact: true }).click();
+  await coverCycleToolModes(page);
   await toScene(page);
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   const card = view.getByRole('status').filter({ hasText: 'Cycle Tool Modes' });
@@ -893,7 +903,7 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   await win.locator('.si[aria-label="Move"]').click();
   await win.getByRole('button', { name: 'Enable Move' }).click();
   await win.locator('.si[aria-label="Blendon"]').click();
-  // Free: nothing is covered, so there is nothing to move and the row goes.
+  // A switched-off feature has no pair to swap, so its row goes.
   await expect(contestedRow(page, 'Scale Tool')).toBeVisible();
   await expect(grab).toHaveCount(0);
 
@@ -907,13 +917,12 @@ test("with Move switched off, G is the Editor's Cycle Tool Modes again", async (
   await expect(gameObjectContext(page)).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('the page starts with Cycle Tool Modes on Shift+G, Reset gives it G back and Move moves it again', async ({
-  page,
-}) => {
+test('the page starts with Cycle Tool Modes on Shift+G, and the row swaps the pair both ways', async ({ page }) => {
   const view = await openScene(page);
   await view.getByRole('button', { name: 'Skip the tutorial' }).click();
   await openOverview(page);
   const grab = contestedRow(page, 'Cycle Tool Modes');
+  const blendonKey = grab.locator('.ctk').nth(0);
   const editorKey = grab.locator('.ctk').nth(1);
   await expect(editorKey).toHaveText('ShiftG');
   await expect(grab.getByRole('button', { name: 'Reset', exact: true })).toBeVisible();
@@ -930,17 +939,19 @@ test('the page starts with Cycle Tool Modes on Shift+G, Reset gives it G back an
   await page.keyboard.press('b');
   for (const key of ['g', 'x', '1', 'Enter']) await page.keyboard.press(key);
   await expect.poll(async () => (await positionOf(page, 'Cube'))!.x).toBeCloseTo(before + 1, 4);
-  // Grab's line first, then Cycle Tool Modes on Shift+G with the key it had before.
+  // Grab Move's line first, then Cycle Tool Modes on Shift+G with the key it had before.
   const card = view.getByRole('status');
-  await expect(card.getByRole('button', { name: 'Grab', exact: true })).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Grab Move', exact: true })).toBeVisible();
   await expect(card.getByText('Cycle Tool Modes', { exact: true })).toBeVisible();
   await expect(card).toContainText('Shift+GCycle Tool ModeswasG');
 
   await openOverview(page);
   await grab.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(editorKey).toHaveText('G');
+  await expect(blendonKey).toHaveText('ShiftG');
   await grab.getByRole('button', { name: 'Move aside', exact: true }).click();
   await expect(editorKey).toHaveText('ShiftG');
+  await expect(blendonKey).toHaveText('G');
 });
 
 test('the Unity preset puts Grab on Shift+G and the menu on Alt+right-click', async ({ page }) => {
@@ -949,8 +960,10 @@ test('the Unity preset puts Grab on Shift+G and the menu on Alt+right-click', as
   const win = await openOverview(page);
   await win.locator('.it-kbPreset').getByRole('button', { name: 'Unity', exact: true }).click();
   await expect(win.locator('.it-kbPreset .seg.sel')).toHaveText('Unity');
-  // Every contested key is the Editor's again, so the table has nothing to offer. Its Keyboard link stays.
-  await expect(win.locator('.ct')).toHaveCount(0);
+  // Every contested key is the Editor's again, and each row offers to swap it back.
+  const grab = contestedRow(page, 'Cycle Tool Modes');
+  await expect(grab.locator('.ctk').nth(1)).toHaveText('G');
+  await expect(grab.getByRole('button', { name: 'Move aside', exact: true })).toBeVisible();
   await win.locator('.plb', { hasText: 'Open' }).first().click();
   await expect(win.locator('.htitle')).toHaveText('Keyboard');
 

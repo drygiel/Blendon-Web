@@ -1,5 +1,5 @@
 // The page's one shortcut profile, shared by the settings window and the Scene view (SC-2). Every shortcut has
-// the key it declares unless the user changed it: a rebind, a keyboard preset and a Move are all the user's keys.
+// the key it declares unless the user changed it: a rebind, a keyboard preset and a swap are all the user's keys.
 // A switched-off feature writes nothing, its gate just shuts and the Editor's command hears the key again.
 import { TipResolver, type TokenSource } from '../plugin/keys.ts';
 import type { ContestedRow, ContestState, KeyboardPreset } from '../plugin/schema.ts';
@@ -219,14 +219,28 @@ export const Keymap = {
     }
   },
 
-  /** Puts every contested Blendon shortcut on the preset's key. The Blendon preset only clears. */
+  /** Gives every contested key to one side and moves the other one modifier aside. */
   applyPreset(preset: KeyboardPreset) {
     Keymap.batch(() => {
       for (const row of D.contested) {
+        // A switched-off feature doesn't answer its key, so its Editor command has nothing to give way to.
+        if (!row.replaces && (preset === 'Unity' || switchedOn(row.bid))) {
+          Keymap.giveKey(row, preset);
+          continue;
+        }
         Keymap.restore(row.bid, preset);
         // The Unity keys give the Editor its keys back.
         if (preset === 'Unity') giveBackLanding(row);
       }
+    });
+  },
+
+  /** ShortcutPresets.GiveKey: the owner keeps the Blender key, the other side goes to its alternative. */
+  giveKey(row: ContestedRow, owner: KeyboardPreset) {
+    Keymap.batch(() => {
+      Keymap.restore(row.bid, owner);
+      if (owner === 'Unity') Keymap.clear(row.uid);
+      else if (Keymap.binding(row.uid) !== row.editorAlt) Keymap.rebind(row.uid, row.editorAlt);
     });
   },
 
@@ -237,13 +251,13 @@ export const Keymap = {
     changed();
   },
 
-  /** The page's first profile, once the data is in: every row the table lists with a Move already moved. */
+  /** The page's first profile, once the data is in: the first run's Blendon keys, every covered command moved. */
   start() {
     if (started) return;
     started = true;
     Keymap.batch(() => {
       for (const row of D.contested)
-        if (row.editorAlt && Keymap.contestState(row, firstValues) === 'Covered') Keymap.move(row);
+        if (!row.replaces && Keymap.contestState(row, firstValues) === 'Covered') Keymap.giveKey(row, 'Blendon');
     });
   },
 
@@ -273,10 +287,13 @@ export const Keymap = {
     return row.replaces ? 'Replaced' : 'Covered';
   },
 
-  /** OverviewContestedTable.Listed: only rows with a button. The Editor's menu follows ours on its own. */
+  /**
+   * OverviewContestedTable.Listed: every pair whose feature is on. A replaced command has nothing to swap, so only
+   * one moved by hand shows, and the Editor's menu follows ours on its own.
+   */
   listed(row: ContestedRow, r: GateReader = sharedSettings): boolean {
-    const state = Keymap.contestState(row, r);
-    return row.uid !== MENU && (state === 'Covered' || state === 'Moved');
+    if (row.replaces) return row.uid !== MENU && Keymap.contestState(row, r) === 'Moved';
+    return switchedOn(row.bid, r);
   },
 
   /** ShortcutTips.Read: what the first press of Blendon's key has to tell. */
@@ -286,14 +303,11 @@ export const Keymap = {
     return Keymap.binding(row.uid, r) ? 'Moved' : 'Unset';
   },
 
-  /** Move: the Editor's command onto its alternative, once. Nothing keeps it there. */
-  move(row: ContestedRow) {
-    if (row.editorAlt) Keymap.rebind(row.uid, row.editorAlt);
-  },
-
-  /** Reset: the Editor's command gets its own key back, and Blendon covers it again. */
-  giveBack(row: ContestedRow) {
-    Keymap.clear(row.uid);
+  /** OverviewContestedTable.Act, the row's button: swaps the pair, a replaced command only gets its key back. */
+  act(row: ContestedRow, state: ContestState) {
+    if (state !== 'Moved') Keymap.giveKey(row, 'Blendon');
+    else if (row.replaces) Keymap.clear(row.uid);
+    else Keymap.giveKey(row, 'Unity');
   },
 
   /** Cards' tokens against these keys and a reader's settings. */

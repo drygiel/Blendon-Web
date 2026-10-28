@@ -41,19 +41,47 @@ beforeAll(async () => {
 afterEach(() => Keymap.reset());
 
 describe('keyboard presets', () => {
-  it('are read off the keys, with nothing written for Blendon', () => {
+  it('are read off the keys, and each moves the other side aside', () => {
     expect(Keymap.preset()).toBe('Blendon');
     expect(Keymap.binding(GRAB)).toBe('G');
     Keymap.applyPreset('Unity');
     expect(Keymap.preset()).toBe('Unity');
     expect(Keymap.binding(GRAB)).toBe('Shift+G');
+    expect(Keymap.binding(CYCLE)).toBe('G');
     expect(Keymap.binding('Blendon/Context Menu')).toBe('Alt+Mouse 1');
     // One key tuned by hand doesn't flip the preset.
     Keymap.rebind('Blendon/Rotate/Grab', 'R');
     expect(Keymap.preset()).toBe('Unity');
     Keymap.applyPreset('Blendon');
     expect(Keymap.binding(GRAB)).toBe('G');
+    expect(Keymap.binding(CYCLE)).toBe('Shift+G');
     expect(Keymap.isModified('Blendon/Rotate/Grab')).toBe(false);
+  });
+
+  it('set a row swapped on its own back, the lit preset too', () => {
+    Keymap.applyPreset('Blendon');
+    Keymap.act(row(GRAB), 'Moved');
+    expect(Keymap.binding(CYCLE)).toBe('G');
+    Keymap.applyPreset('Blendon');
+    expect(Keymap.binding(GRAB)).toBe('G');
+    expect(Keymap.binding(CYCLE)).toBe('Shift+G');
+  });
+
+  it("leave a switched-off feature's Editor command on its key", () => {
+    // The preset reads the window's live switches. Unset values fall back to the defaults.
+    const window = (off: string[]) => ({
+      val: (k: string) => (off.includes(k) ? false : undefined),
+      shortcut: (id: string) => Keymap.binding(id) ?? '',
+      pieOn: (p: string) => !!D.pies.find((x) => x.id === p)?.enabled,
+    });
+    SharedSettings.publish(window(['MoveGizmoSettings.Enabled']));
+    try {
+      Keymap.applyPreset('Blendon');
+    } finally {
+      SharedSettings.publish(window([]));
+    }
+    expect(Keymap.binding(CYCLE)).toBe('G');
+    expect(Keymap.binding('Tools/Scale')).toBe('Shift+R');
   });
 
   it('judge "modified" against the active preset', () => {
@@ -78,15 +106,29 @@ describe('contested rows', () => {
   it('move through Covered, Moved and Free from the switches and the keys', () => {
     const on = settings();
     expect(Keymap.contestState(row(GRAB), on)).toBe('Covered');
-    Keymap.move(row(GRAB));
+    Keymap.act(row(GRAB), 'Covered');
     expect(Keymap.binding(CYCLE)).toBe('Shift+G');
     expect(Keymap.contestState(row(GRAB), on)).toBe('Moved');
-    Keymap.giveBack(row(GRAB));
+    Keymap.act(row(GRAB), 'Moved');
     expect(Keymap.binding(CYCLE)).toBe('G');
+    expect(Keymap.binding(GRAB)).toBe('Shift+G');
+    expect(Keymap.contestState(row(GRAB), on)).toBe('Free');
+    Keymap.act(row(GRAB), 'Free');
+    expect(Keymap.binding(GRAB)).toBe('G');
+    expect(Keymap.binding(CYCLE)).toBe('Shift+G');
+    Keymap.reset();
     expect(Keymap.contestState(row(GRAB), settings({ 'MoveGizmoSettings.Enabled': false }))).toBe('Free');
     expect(Keymap.contestState(row(GRAB), settings({ 'GeneralSettings.Enabled': false }))).toBe('Free');
     Keymap.applyPreset('Unity');
     expect(Keymap.contestState(row(GRAB), on)).toBe('Free');
+  });
+
+  it('leave Grab Scale without a key when its Editor command takes S back', () => {
+    const scale = row('Blendon/Scale/Grab');
+    Keymap.applyPreset('Blendon');
+    Keymap.act(scale, 'Moved');
+    expect(Keymap.binding(scale.bid)).toBe('');
+    expect(Keymap.binding(scale.uid)).toBe('S');
   });
 
   it("replace where Blendon does the Editor command's job", () => {
@@ -101,12 +143,19 @@ describe('contested rows', () => {
     expect(Keymap.binding(MENU, settings())).toBe('Mouse 1');
   });
 
-  it('are listed only with a button to press', () => {
+  it('are listed while their feature is on, a replaced one only once moved by hand', () => {
     const on = settings();
     expect(Keymap.listed(row(GRAB), on)).toBe(true);
-    Keymap.move(row(GRAB));
+    Keymap.act(row(GRAB), 'Covered');
     expect(Keymap.listed(row(GRAB), on)).toBe(true);
-    expect(Keymap.listed(row('Blendon/All Tools/Vertex Snap'), on)).toBe(false);
+    Keymap.applyPreset('Unity');
+    expect(Keymap.listed(row(GRAB), on)).toBe(true);
+    const snap = row('Blendon/All Tools/Vertex Snap');
+    expect(Keymap.listed(snap, on)).toBe(false);
+    Keymap.rebind(snap.uid, 'Alt+V');
+    expect(Keymap.listed(snap, on)).toBe(true);
+    Keymap.act(snap, 'Moved');
+    expect(Keymap.binding(snap.uid)).toBe('V');
     expect(Keymap.listed(row('Blendon/Context Menu'), on)).toBe(false);
     // A key given to the Editor's menu by hand still has no button, the handover would fight it.
     Keymap.rebind(MENU, 'Alt+M');
@@ -115,7 +164,7 @@ describe('contested rows', () => {
   });
 
   it('go home under the Unity keys when moved where ours lands', () => {
-    Keymap.move(row(GRAB));
+    Keymap.giveKey(row(GRAB), 'Blendon');
     expect(Keymap.binding(CYCLE)).toBe('Shift+G');
     Keymap.applyPreset('Unity');
     expect(Keymap.binding(GRAB)).toBe('Shift+G');
@@ -141,8 +190,8 @@ describe('contested rows', () => {
     // The Blendon preset is still the one in force, nothing of ours moved.
     expect(Keymap.preset()).toBe('Blendon');
     expect(Keymap.binding(GRAB)).toBe('G');
-    // Once only: a row given back stays given back.
-    Keymap.giveBack(row(GRAB));
+    // Once only: a row swapped back stays swapped.
+    Keymap.act(row(GRAB), 'Moved');
     Keymap.start();
     expect(Keymap.binding(CYCLE)).toBe('G');
     PlaygroundEvents.emit('reset');
@@ -151,7 +200,7 @@ describe('contested rows', () => {
 
   it('tell the shortcut tip what to say', () => {
     expect(Keymap.tipStory(row(GRAB))).toBe('Covered');
-    Keymap.move(row(GRAB));
+    Keymap.giveKey(row(GRAB), 'Blendon');
     expect(Keymap.tipStory(row(GRAB))).toBe('Moved');
     expect(Keymap.tipStory(row('Blendon/Context Menu'), settings())).toBe('Unset');
     Keymap.applyPreset('Unity');
@@ -182,9 +231,8 @@ describe('gates', () => {
     expect(Keymap.needsContext('Blendon/Orbit Selected')).toBe(false);
     const shading = row('Blendon/Pie Menus/Draw Mode');
     expect(Keymap.needsContext(shading.bid)).toBe(true);
-    Keymap.move(shading);
+    Keymap.giveKey(shading, 'Blendon');
     expect(Keymap.needsContext(shading.bid)).toBe(false);
-    Keymap.giveBack(shading);
     Keymap.applyPreset('Unity');
     expect(Keymap.needsContext(shading.bid)).toBe(false);
   });
@@ -201,7 +249,7 @@ describe('gates', () => {
     expect(Keymap.needsContext('Blendon/Box Select/Select Parent', hierarchyOnly)).toBe(true);
     // Off the Editor's key the Draw Mode pie answers everywhere, unless its page keeps it to the context.
     const shading = row('Blendon/Pie Menus/Draw Mode');
-    Keymap.move(shading);
+    Keymap.giveKey(shading, 'Blendon');
     expect(Keymap.needsContext(shading.bid)).toBe(false);
     expect(Keymap.needsContext(shading.bid, piesOnly)).toBe(true);
   });
@@ -221,7 +269,7 @@ describe('live cards', () => {
   it("follow the Editor's command in a moved row's card", () => {
     const card = row(GRAB).cards.Moved.src!;
     const tips = new TipResolver(Keymap.tokens(() => ({ ...settings(), version: 0 })));
-    Keymap.move(row(GRAB));
+    Keymap.giveKey(row(GRAB), 'Blendon');
     expect(tips.resolve(card)).toContain(key('Shift+G'));
   });
 });
@@ -261,13 +309,14 @@ describe('the Scene view', () => {
     set({});
   });
 
-  it('runs a moved command on its new key and gives it back on Reset', () => {
+  it('runs a moved command on its new key, and the swap back trades the two keys', () => {
     expect(answers('Shift+G')).toBeNull();
-    Keymap.move(row(GRAB));
+    Keymap.act(row(GRAB), 'Covered');
     expect(answers('Shift+G')).toBe(CYCLE);
     expect(answers('G')).toBe(GRAB);
-    Keymap.giveBack(row(GRAB));
-    expect(answers('Shift+G')).toBeNull();
+    Keymap.act(row(GRAB), 'Moved');
+    expect(answers('Shift+G')).toBe(GRAB);
+    expect(answers('G')).toBe(CYCLE);
   });
 
   it("doesn't move the Editor's command on its own", () => {
@@ -305,7 +354,7 @@ describe('the window', () => {
 
   it('keeps the preset and the moved commands through Reset All Pages', () => {
     Keymap.applyPreset('Unity');
-    Keymap.move(row('Blendon/Numpad Views/Back'));
+    Keymap.rebind(row('Blendon/Numpad Views/Back').uid, 'Ctrl+Num 5');
     Keymap.rebind(GRAB, 'H');
     harness().model().resetAll();
     expect(Keymap.binding(GRAB)).toBe('Shift+G');

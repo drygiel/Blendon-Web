@@ -29,13 +29,12 @@ const known = (id: string): Known | undefined => {
 const binding = (tokens: KeyTokens) => tokens.filter((t) => !t.startsWith('~')).join('+');
 
 describe('landing keys', () => {
-  it('leaves the Scale tool on its own key on the Blendon preset', () => {
+  it('moves the Scale tool one modifier aside on the Blendon preset only', () => {
     const k = known('Blendon/Rotate/Grab');
-    expect(k?.editorKey).toBeTruthy();
-    expect(binding(FEATURES.find((f) => f.id === 'scale')?.keys ?? [])).toBe(k?.editorKey);
-    // Grab Rotate only covers it in the Scene view, so both presets show the same key.
+    expect(k?.editorAlt).toBeTruthy();
+    expect(binding(FEATURES.find((f) => f.id === 'scale')?.keys ?? [])).toBe(k?.editorAlt);
     const row = SHORTCUTS.find(([action]) => action === 'Scale tool');
-    expect(binding(row?.[1] ?? [])).toBe(k?.editorKey);
+    expect(binding(row?.[1] ?? [])).toBe(k?.editorAlt);
     expect(binding(row?.[2] ?? [])).toBe(k?.editorKey);
   });
 
