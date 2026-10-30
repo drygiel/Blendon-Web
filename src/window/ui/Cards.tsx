@@ -42,11 +42,12 @@ function Segs({ segs }: { segs: Seg[] }) {
 }
 
 function Presets({ segs, note, className }: { segs: Seg[]; note: string; className: string }) {
+  const app = useApp();
   return (
     <div className={className}>
       {className.includes('stack-prs') && <div className="hrule" />}
       <div className="prh">
-        <span style={iconStyle('d_Preset.Context', 14, PAL.text2)} />
+        <span style={iconStyle('d_Preset.Context', 14, app.skin(PAL.text2))} />
         <span>Presets</span>
       </div>
       <Segs segs={segs} />
@@ -82,7 +83,7 @@ export function MasterCard({ it }: { it: ItemOf<'master'> }) {
   const sw = (
     <>
       <span className="mtile">
-        <span style={iconStyle(it.icon, 18, '#87B8DE')} />
+        <span style={iconStyle(it.icon, 18, app.skin('#87B8DE'))} />
       </span>
       <div className="mtx">
         <div className="mt">{it.title}</div>
@@ -241,7 +242,7 @@ export function OverviewMaster({ it }: { it: ItemOf<'ovMaster'> }) {
       <div className="ovdiv" />
       <div className="ovr2">
         <div className="prh">
-          <span style={iconStyle('d_Preset.Context', 14, PAL.text2)} />
+          <span style={iconStyle('d_Preset.Context', 14, app.skin(PAL.text2))} />
           <span>Presets</span>
         </div>
         <Segs segs={segs} />

@@ -453,12 +453,30 @@ function withChildren(list: GameObject[]) {
   return [...out];
 }
 
+/** Each object with the meshes under it, objects with none left out. */
+function groups(list: GameObject[]) {
+  return list.map((go) => withChildren([go])).filter((g) => g.length > 0);
+}
+
+/** The Editor outlines a selection as one shape; these groups get the lines it leaves out between them. */
+function selectionLines(): GameObject[][] | null {
+  if (!BoxSelectSettings.Enabled || !BoxSelectSettings.SelectionLinesBetweenObjects) return null;
+  const out = groups(Selection.objects.filter((go) => go.visible))
+    .map((g) => g.filter((go) => go.visible))
+    .filter((g) => g.length > 0);
+  // Lines only go between objects.
+  return out.length < 2 ? null : out;
+}
+
 function highlightSets(selects: GameObject[], deselects: GameObject[]): HighlightSets | null {
   if (!selects.length && !deselects.length) return null;
   const style = BoxSelectSettings.HighlightStyle;
   return {
     selects: withChildren(selects),
     deselects: withChildren(deselects),
+    selectGroups: groups(selects),
+    deselectGroups: groups(deselects),
+    separate: BoxSelectSettings.HighlightSeparateOutlines,
     markers: [...selects, ...deselects].filter((go) => !withChildren([go]).length),
     markerOf: new Set(deselects),
     selectColor: rgba(BoxSelectSettings.HighlightColor),
@@ -739,7 +757,7 @@ function drawMarkers(view: SceneView, sets: HighlightSets) {
 // ---- Install -----------------------------------------------------------------------------------------------
 
 /** The selection arithmetic, for the tests. */
-export const BoxSelectResolver = { plan, marked, readout };
+export const BoxSelectResolver = { plan, marked, readout, highlightSets, selectionLines };
 
 export const BoxSelect = {
   VisibleOnlyShortcutId,
@@ -752,6 +770,7 @@ export const BoxSelect = {
   cancel,
 
   install() {
+    SceneView.selectionLines = selectionLines;
     SceneView.beforeSceneGui.add(onBeforeSceneGui);
     SceneView.duringSceneGui.add(onDuringSceneGui);
     EditorApplication.focusChanged.add((has) => {

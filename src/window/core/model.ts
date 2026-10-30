@@ -7,7 +7,9 @@ import type { ContestedRow, KeyboardPreset, PropValue, SceneMenuExtra } from '..
 import { D } from '../../plugin/window-data.ts';
 import { SceneTutorial } from '../../scene/blendon/foundation.ts';
 import type { DialogState, FrameStep, MenuItem, StatePatch, TipSource, WindowState } from './state.ts';
+import { STICKY_KEY, StickyBar } from './sticky-bar.ts';
 import { rich } from './text.ts';
+import { asTheme, skin, THEME_KEY, type SettingsTheme } from './theme.ts';
 import { clamp, M } from './util.ts';
 
 const TOOLS = ['MoveGizmoSettings', 'RotateGizmoSettings', 'ScaleGizmoSettings', 'TransformGizmoSettings'];
@@ -62,6 +64,7 @@ const sameNumber = (a: number, b: number) => Math.abs(a - b) < 0.0005;
 export interface Instance {
   host: HTMLElement | null;
   win: HTMLElement | null;
+  content: HTMLElement | null;
   scroll: HTMLElement | null;
   thumb: HTMLElement | null;
   track: HTMLElement | null;
@@ -91,14 +94,20 @@ export interface Instance {
   settingsVersion: number;
   /** The values, overrides and pie switches the version was last bumped for. */
   seen: [unknown, unknown, unknown];
+  bar: StickyBar;
+  barLast: number;
+  /** The header height last written to the page, so an idle frame writes nothing. */
+  barDrawn: number;
 }
 
-type DomKey = 'host' | 'win' | 'scroll' | 'thumb' | 'track' | 'hthumb' | 'htrack' | 'sscroll' | 'sthumb' | 'strack';
+type DomKey =
+  'host' | 'win' | 'content' | 'scroll' | 'thumb' | 'track' | 'hthumb' | 'htrack' | 'sscroll' | 'sthumb' | 'strack';
 
 export function newInstance(): Instance {
   return {
     host: null,
     win: null,
+    content: null,
     scroll: null,
     thumb: null,
     track: null,
@@ -121,6 +130,9 @@ export function newInstance(): Instance {
     tips: null,
     settingsVersion: 0,
     seen: [null, null, null],
+    bar: new StickyBar(),
+    barLast: 0,
+    barDrawn: M.headerH,
   };
 }
 
@@ -177,6 +189,16 @@ export class WindowModel {
   /** The fixed gizmo yaw of the capture-comparison hook. */
   fixGizmoYaw(yaw: number) {
     this.inst.gizmoYaw = yaw;
+  }
+
+  /** GeneralSettings.SettingsTheme: Unity is the editor's (dark) skin, Light and Dark the window's own. */
+  get theme(): SettingsTheme {
+    return asTheme(this.val(THEME_KEY));
+  }
+
+  /** A colour the site has as the dark skin's, in the window's theme. */
+  skin(hex: string): string {
+    return skin(hex, this.theme);
   }
 
   // ---- values -----------------------------------------------------------------------------------
@@ -559,6 +581,7 @@ export class WindowModel {
   // ---- navigation -------------------------------------------------------------------------------
   goTo(page: string, hl?: string) {
     this.dismissTip();
+    if (page !== this.st.page) this.resetBar();
     this.update({ page, search: '', hl: hl ?? null, menu: null });
     // A request from another part of the page may render a few frames later, so the marked row is waited for.
     const scrollTo = (tries: number) =>
@@ -571,6 +594,7 @@ export class WindowModel {
         // offset is measured against the scroller rather than read from offsetTop.
         const top = el ? scroll.scrollTop + el.getBoundingClientRect().top - scroll.getBoundingClientRect().top : 0;
         scroll.scrollTop = el ? Math.max(0, top - (scroll.clientHeight - el.offsetHeight) / 2) : 0;
+        this.inst.bar.sync(scroll.scrollTop);
         this.syncScrollbars();
       });
     scrollTo(10);
@@ -732,6 +756,61 @@ export class WindowModel {
     if (this.inst.move) window.removeEventListener('pointermove', this.inst.move);
     if (this.inst.up) window.removeEventListener('pointerup', this.inst.up);
     this.inst.move = this.inst.up = null;
+  }
+
+  // ---- sticky bar --------------------------------------------------------------------------------
+  private barInput(scrollY: number) {
+    return {
+      enabled: this.val(STICKY_KEY) !== false,
+      scrollY,
+      searching: this.st.search.length > 0,
+      searchFocused: this.st.searchFocus,
+      dragging: !!this.inst.move,
+    };
+  }
+
+  /** One frame of the slide; the scroll moves with the bar so the rows stay put. */
+  stepBar(now: number, instant: boolean) {
+    const i = this.inst;
+    const dt = i.barLast ? clamp((now - i.barLast) / 1000, 0, 0.05) : 0;
+    i.barLast = now;
+    const scroll = i.scroll;
+    if (!scroll) return;
+    // The page keeps whole pixels; the bar's own fractional scroll stops the rounding adding up over a slide.
+    const y = Math.abs(scroll.scrollTop - i.bar.lastScrollY) < 1 ? i.bar.lastScrollY : scroll.scrollTop;
+    const delta = i.bar.step(dt, this.barInput(y), instant);
+    if (delta) {
+      scroll.scrollTop = y + delta;
+      i.bar.sync(Math.abs(scroll.scrollTop - (y + delta)) < 1 ? y + delta : scroll.scrollTop);
+    }
+    this.drawBar();
+  }
+
+  /** A scroll the user made: down past a bar hides it, any way up brings it back. */
+  scrolled() {
+    const el = this.inst.scroll;
+    // Under a pixel is the rounding of the bar's own compensation, not a scroll.
+    if (!el || Math.abs(el.scrollTop - this.inst.bar.lastScrollY) < 1) return;
+    const input = this.barInput(el.scrollTop);
+    this.inst.bar.track(el.scrollTop, input.enabled, input.dragging);
+  }
+
+  resetBar() {
+    this.inst.bar.reset(0);
+    this.drawBar();
+  }
+
+  /** Straight to the page, not through a render: the slide runs every frame. */
+  private drawBar() {
+    const i = this.inst;
+    const h = i.bar.height;
+    const rest = h === M.headerH;
+    // A render that changes the class list drops the clip, so that is checked too.
+    if (!i.content || (h === i.barDrawn && i.content.classList.contains('sliding') !== rest)) return;
+    i.barDrawn = h;
+    i.content.classList.toggle('sliding', !rest);
+    if (rest) i.content.style.removeProperty('--hb');
+    else i.content.style.setProperty('--hb', h + 'px');
   }
 
   // ---- custom scrollbars (thumb geometry written straight to the thumb's style) -----------------

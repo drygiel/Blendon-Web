@@ -6,8 +6,8 @@
     left: 0;
     top: 0;
     bottom: 0;
-    background: #2b2b2b;
-    border-right: 1px solid #212121;
+    background: var(--w-sunken, #2b2b2b);
+    border-right: 1px solid var(--w-border, #212121);
   }
   .slist {
     position: relative;
@@ -36,7 +36,7 @@
     padding-left: 14px;
     font-size: 9.143px;
     font-weight: 700;
-    color: #808080;
+    color: var(--w-caption, #808080);
     white-space: nowrap;
     overflow: hidden;
   }
@@ -54,7 +54,7 @@
     right: 8px;
     top: 4px;
     height: 1px;
-    background: rgba(255, 255, 255, 0.055);
+    background: var(--w-rule, rgba(255, 255, 255, 0.055));
   }
   .si {
     position: relative;
@@ -73,10 +73,10 @@
     border-radius: 4px;
   }
   .si:hover .pill {
-    background: rgba(255, 255, 255, 0.045);
+    background: var(--w-hover, rgba(255, 255, 255, 0.045));
   }
   .si.sel .pill {
-    background: #46607c;
+    background: var(--w-brand, #46607c);
   }
   .si .sic {
     position: absolute;
@@ -113,7 +113,7 @@
     top: 0;
     line-height: 32px;
     font-size: 12px;
-    color: #a6a6a6;
+    color: var(--w-text2, #a6a6a6);
     overflow: hidden;
   }
   .si.ind .stx {
@@ -165,16 +165,16 @@
     bottom: 0;
     height: 26px;
     width: 100%;
-    background: #2b2b2b !important;
-    border: 1px solid #212121 !important;
+    background: var(--w-sunken, #2b2b2b) !important;
+    border: 1px solid var(--w-border, #212121) !important;
     border-radius: 5px;
-    color: #a6a6a6 !important;
+    color: var(--w-text2, #a6a6a6) !important;
     font-size: 10.857px !important;
     font-weight: 700 !important;
     text-align: center !important;
   }
   .sfoot:hover {
-    background: #383838 !important;
+    background: var(--w-ground, #383838) !important;
   }
   .split {
     position: absolute;

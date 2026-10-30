@@ -4,7 +4,7 @@
   .it-note {
     display: block;
     font-size: 10.286px;
-    color: #808080;
+    color: var(--w-caption, #808080);
     white-space: pre-wrap;
     line-height: 1.2125;
     padding: 0 2px;
@@ -17,12 +17,12 @@
     margin-top: 2px;
     margin-bottom: 10px;
     border-radius: 6px;
-    border: 1px solid #212121;
-    background: #3f3f3f;
+    border: 1px solid var(--w-info-border, #212121);
+    background: var(--w-info-fill, #3f3f3f);
     padding: 10px 11px 10px 44px;
     font-size: 10.857px;
     line-height: 13px;
-    color: #d1dbe8;
+    color: var(--w-info-text, #d1dbe8);
   }
   .btx {
     display: block;
@@ -30,9 +30,9 @@
     padding-right: 3.5px;
   }
   .bn.warn {
-    background: rgba(71, 48, 18, 0.55);
-    border-color: rgba(255, 158, 41, 0.32);
-    color: #ffc76b;
+    background: var(--w-warn-fill, rgba(71, 48, 18, 0.55));
+    border-color: var(--w-warn-border, rgba(255, 158, 41, 0.32));
+    color: var(--w-warn-text, #ffc76b);
   }
   .bn.ind {
     margin-left: var(--li);
@@ -50,7 +50,7 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #46607c;
+    background: var(--w-brand, #46607c);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -69,7 +69,7 @@
     height: 7px;
   }
   .bn.warn .bdg {
-    background: #b8700f;
+    background: var(--w-warn-badge, #b8700f);
     flex-direction: column-reverse;
   }
   .blk {
@@ -90,19 +90,19 @@
     min-width: 60px;
     padding: 0 4px;
     border-radius: 5px;
-    background: #484848 !important;
-    border: 1px solid #303030 !important;
+    background: var(--w-ghost, #484848) !important;
+    border: 1px solid var(--w-ghost-border, #303030) !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
     font-size: 10.857px;
-    color: #ababab !important;
+    color: var(--w-ghost-mini, #ababab) !important;
     cursor: pointer !important;
   }
   .plb:hover {
-    background: #585858 !important;
-    color: #d9d9d9 !important;
+    background: var(--w-ghost-hover, #585858) !important;
+    color: var(--w-text, #d9d9d9) !important;
   }
   .plb .pli {
     opacity: 0.68;
@@ -153,9 +153,9 @@
     height: 22px;
     padding: 0 10px;
     border-radius: 5px;
-    background: #585858 !important;
-    border: 1px solid #303030 !important;
-    color: #eeeeee !important;
+    background: var(--w-btn, #585858) !important;
+    border: 1px solid var(--w-btn-border, #303030) !important;
+    color: var(--w-btn-text, #eeeeee) !important;
     font-size: 10.857px !important;
     white-space: pre;
     cursor: pointer !important;
@@ -166,13 +166,13 @@
     gap: 4px;
   }
   .nb:hover {
-    background: #676767 !important;
+    background: var(--w-btn-hover, #676767) !important;
   }
   .nb.pri {
-    background: #46607c !important;
+    background: var(--w-brand, #46607c) !important;
   }
   .nb.pri:hover {
-    background: #597089 !important;
+    background: var(--w-brand-hover, #597089) !important;
   }
   .it-action .nb {
     min-width: 50%;

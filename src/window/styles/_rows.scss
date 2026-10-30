@@ -21,8 +21,8 @@
     grid-column: 1 / -1;
   }
   .cell.boxed {
-    background: #3f3f3f;
-    border: 1px solid #212121;
+    background: var(--w-card, #3f3f3f);
+    border: 1px solid var(--w-border, #212121);
     border-radius: 6px;
     padding: 9px 9px 15px;
   }
@@ -41,9 +41,9 @@
   // Fold (Appearance) and section cards are drawn as stacked row segments.
   .row.in-fold,
   .row.in-card {
-    background: #2b2b2b;
-    border-left: 1px solid #212121;
-    border-right: 1px solid #212121;
+    background: var(--w-well, #2b2b2b);
+    border-left: 1px solid var(--w-border, #212121);
+    border-right: 1px solid var(--w-border, #212121);
     padding-left: 20px;
     padding-right: 20px;
   }
@@ -62,11 +62,11 @@
     background: var(--acc);
   }
   .row.wfirst {
-    border-top: 1px solid #212121;
+    border-top: 1px solid var(--w-border, #212121);
     border-radius: 6px 6px 0 0;
   }
   .row.wlast {
-    border-bottom: 1px solid #212121;
+    border-bottom: 1px solid var(--w-border, #212121);
     border-radius: 0 0 6px 6px;
     padding-bottom: 18px;
     margin-bottom: 4px;
@@ -103,8 +103,8 @@
     height: 29px;
     margin: 0 -20px;
     padding: 6px 20px 5px;
-    background: #4a4a4a;
-    border-bottom: 1px solid #212121;
+    background: var(--w-raised, #4a4a4a);
+    border-bottom: 1px solid var(--w-border, #212121);
     border-radius: 5px 5px 0 0;
     display: flex;
     align-items: center;
@@ -112,7 +112,7 @@
     margin-bottom: 4px;
   }
   .fh:hover {
-    background: #545454;
+    background: var(--w-raised-hover, #545454);
   }
   .row.shut .fh {
     border-radius: 5px;
@@ -126,18 +126,18 @@
     width: 16px;
     height: 16px;
     border-radius: 4px;
-    background: #2b2b2b;
-    border: 1px solid #212121;
+    background: var(--w-sunken, #2b2b2b);
+    border: 1px solid var(--w-border, #212121);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 10.286px;
     line-height: 1;
-    color: #808080;
+    color: var(--w-caption, #808080);
     margin-right: 6px;
   }
   .fh:hover .fbox {
-    color: #d9d9d9;
+    color: var(--w-text, #d9d9d9);
   }
   .fic {
     flex: none;
@@ -147,12 +147,12 @@
     margin-left: 6px;
     font-size: 10.286px;
     font-weight: 700;
-    color: #d9d9d9;
+    color: var(--w-text, #d9d9d9);
     flex: 1;
   }
   .fcnt {
     font-size: 10.286px;
-    color: #808080;
+    color: var(--w-caption, #808080);
     width: 90px;
     text-align: right;
   }
@@ -177,7 +177,7 @@
     font-weight: 700;
   }
   .chl.lk:hover {
-    color: #d9d9d9 !important;
+    color: var(--w-text, #d9d9d9) !important;
     text-decoration: underline;
     text-underline-offset: 3px;
   }

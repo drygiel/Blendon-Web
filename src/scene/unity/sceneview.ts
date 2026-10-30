@@ -221,6 +221,8 @@ export class SceneView {
   static readonly duringSceneGui = new Hook<SceneView>();
   static lastActiveSceneView: SceneView | null = null;
   static currentDrawingSceneView: SceneView | null = null;
+  /** Set by Box Select: the selection's groups for Lines Between Objects, or null while it draws none. */
+  static selectionLines: (() => GameObject[][] | null) | null = null;
   static get sceneViews() {
     return SceneView.lastActiveSceneView ? [SceneView.lastActiveSceneView] : [];
   }

@@ -144,6 +144,12 @@ export const BoxSelectSettings = {
   get HighlightOutlineWidth() {
     return Mathf.Clamp(sNum(B + 'HighlightOutlineWidth', 2.1), 0.5, 3);
   },
+  get HighlightSeparateOutlines() {
+    return sBool(B + 'HighlightSeparateOutlines', true);
+  },
+  get SelectionLinesBetweenObjects() {
+    return sBool(B + 'SelectionLinesBetweenObjects', false);
+  },
   get HighlightOccludedOpacity() {
     return Mathf.Clamp01(sNum(B + 'HighlightOccludedOpacity', 0.5));
   },

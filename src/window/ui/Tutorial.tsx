@@ -23,7 +23,8 @@ import { iconStyle } from '../core/icons.ts';
 import { pageInfo, type WindowModel } from '../core/model.ts';
 import type { TipSource } from '../core/state.ts';
 import { TutorialPageAnimation, type RowLook } from '../core/tutorial-anim.ts';
-import { clamp, rgba, tinted } from '../core/util.ts';
+import { mul, tones } from '../core/theme.ts';
+import { clamp, hexToRgb, rgba, tinted } from '../core/util.ts';
 import { Switch } from './Cards.tsx';
 import { Caps } from './common.tsx';
 import { useApp, useTip } from './context.ts';
@@ -32,11 +33,14 @@ import { itemBase } from './item-base.ts';
 const ShowKey = 'GeneralSettings.ShowTutorial';
 const ContentPadding = 12;
 
-// Palette.Tutorial* and the text colours, dark skin.
-const TextPrimary = [217, 217, 217];
-const TextSecondary = [166, 166, 166];
+// Palette.Tutorial* and the text colours, dark skin; Light trades them for the light skin's.
+const TextPrimary = '#D9D9D9';
+const TextSecondary = '#A6A6A6';
 const DoneText = '#9BDDAB';
 const Caption = '#808080';
+const Progress = '#ED8C26';
+
+const rgbOf = (hex: string) => hexToRgb(hex).slice(0, 3);
 
 const mix = (a: number[], b: number[], t: number) =>
   `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
@@ -101,6 +105,7 @@ function scrollIntoView(app: WindowModel, el: HTMLElement) {
   y = clamp(y, 0, Math.max(0, scroll.scrollHeight - scroll.clientHeight));
   if (Math.abs(y - scroll.scrollTop) < 0.5) return;
   scroll.scrollTop = y;
+  app.inst.bar.sync(scroll.scrollTop);
   app.syncScrollbars();
 }
 
@@ -248,18 +253,29 @@ function TaskRow({
     }
   });
 
-  const color = look.done ? DoneText : skipped ? rgba(Caption, 0.5) : mix(TextSecondary, TextPrimary, open);
+  const light = app.theme === 'Light';
+  const color = look.done
+    ? app.skin(DoneText)
+    : skipped
+      ? rgba(app.skin(Caption), 0.5)
+      : mix(rgbOf(app.skin(TextSecondary)), rgbOf(app.skin(TextPrimary)), open);
+  const [doneWash, doneFlash] = light ? [0.09, 0.3] : [0.06, 0.3];
   const ground: CSSProperties = look.done
-    ? { background: `rgba(82,217,115,${(0.06 + 0.24 * look.flash).toFixed(3)})` }
+    ? {
+        background: `rgba(${light ? '32,121,54' : '82,217,115'},${(doneWash + (doneFlash - doneWash) * look.flash).toFixed(3)})`,
+      }
     : open > 0
-      ? { background: `rgba(255,255,255,${(0.045 * open).toFixed(4)})` }
+      ? { background: `rgba(${light ? '0,0,0' : '255,255,255'},${((light ? 0.07 : 0.045) * open).toFixed(4)})` }
       : {};
+  // The box rim turns from TutorialBoxBorder to the progress orange as the row opens.
+  const [rim, rimA] = light ? [[0, 0, 0], 0.35] : [[255, 255, 255], 0.26];
+  const orange = rgbOf(app.skin(Progress));
   const box: CSSProperties = look.done
     ? { transform: `scale(${look.pop})` }
     : {
         borderColor:
           open > 0
-            ? `rgba(${Math.round(255 + (237 - 255) * open)},${Math.round(255 + (140 - 255) * open)},${Math.round(255 + (38 - 255) * open)},${(0.26 + 0.74 * open).toFixed(3)})`
+            ? `rgba(${rim.map((v, i) => Math.round(v + ((orange[i] ?? 0) - v) * open)).join(',')},${(rimA + (1 - rimA) * open).toFixed(3)})`
             : undefined,
         opacity: skipped ? 0.5 : undefined,
       };
@@ -337,7 +353,7 @@ function TutorialHeaderCard({ it }: { it: ItemOf<'tutHeader'> }) {
     <div className={base.cls + ' tuth'}>
       <div className="msw" {...switchTip}>
         <span className="mtile">
-          <span style={iconStyle(info.icon, 18, '#87B8DE')} />
+          <span style={iconStyle(info.icon, 18, app.skin('#87B8DE'))} />
         </span>
         <div className="mtx">
           <div className="mt">{info.label}</div>
@@ -410,7 +426,7 @@ function ContextNote() {
         {'The tasks need the Blendon tool context. Switch to it with '}
         <span
           className="blk"
-          style={{ color: pageInfo('Overview').accent }}
+          style={{ color: app.skin(pageInfo('Overview').accent) }}
           onClick={() => app.goTo('Overview', ToggleContextId)}
         >
           Toggle Blendon
@@ -423,23 +439,26 @@ function ContextNote() {
 
 /** One chapter's section card: its tasks, their keys, and a tick per task done. */
 export function TutorialChapter({ it }: { it: ItemOf<'tutChapter'> }) {
+  const app = useApp();
   useTutorialFrame();
   const chapter = TutorialCurriculum[it.index];
   const { done, total } = TutorialProgress.count(chapter);
   const complete = done >= total;
   const current = TutorialProgress.currentId;
+  const accent = app.skin(chapter.accent);
+  const mini = tones(app.theme)?.mini;
   return (
-    <div className={'tutc' + (it.dis ? ' dis' : '')} style={{ '--acc': rgba(chapter.accent, 0.55) } as CSSProperties}>
+    <div className={'tutc' + (it.dis ? ' dis' : '')} style={{ '--acc': rgba(accent, 0.55) } as CSSProperties}>
       <div className="tutch">
-        <span className="chtile" style={{ background: rgba(chapter.accent, 0.16) }}>
-          <span style={iconStyle(chapter.iconName, 11, chapter.accent)} />
+        <span className="chtile" style={{ background: rgba(accent, 0.16) }}>
+          <span style={iconStyle(chapter.iconName, 11, accent)} />
         </span>
-        <span className="chl" style={{ color: tinted(chapter.accent) }}>
+        <span className="chl" style={{ color: mini ? mul(accent, mini) : tinted(accent) }}>
           {chapter.title.toUpperCase()}
         </span>
         <span className="tutsub">{chapter.subtitle}</span>
         {complete && <span className="tutbox done">✓</span>}
-        <span className="tutcount" style={complete ? { color: DoneText } : undefined}>
+        <span className="tutcount" style={complete ? { color: app.skin(DoneText) } : undefined}>
           {done}/{total}
         </span>
       </div>

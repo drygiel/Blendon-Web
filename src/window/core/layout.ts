@@ -3,6 +3,7 @@ import type { CatalogPage } from '../../plugin/schema.ts';
 import { D } from '../../plugin/window-data.ts';
 import { Builder, type Row } from './builder.ts';
 import type { WindowModel } from './model.ts';
+import type { SettingsTheme } from './theme.ts';
 import { clamp, M, MIN_QUERY } from './util.ts';
 
 export interface SideEntry {
@@ -40,6 +41,9 @@ export interface WindowLayout {
   showReset: boolean;
   showResetAll: boolean;
   footerTip: boolean;
+  /** GeneralSettings.ShowResetBar: off drops the whole strip, tip and reset alike, and the list runs to the bottom. */
+  resetBar: boolean;
+  theme: SettingsTheme;
 }
 
 function drawPage(b: Builder, page: string) {
@@ -178,6 +182,8 @@ export function layoutWindow(app: WindowModel): WindowLayout {
     page,
     showReset: showReset && !isOverview,
     showResetAll: isOverview && !searching,
+    resetBar: app.val('GeneralSettings.ShowResetBar') !== false,
+    theme: app.theme,
     footerTip: contentW - M.chromePad * 2 - (showReset ? (isOverview ? 132 : 142) + M.chromePad : 0) >= 300,
   };
 }

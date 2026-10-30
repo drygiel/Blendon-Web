@@ -271,7 +271,7 @@ export class Builder {
     this.page = page;
     this.pageName = info.label;
     this.groupName = '';
-    this.accent = info.accent;
+    this.accent = this.app.skin(info.accent);
     this.pending = null;
     this.underSub = false;
     this.subCount = 0;
@@ -279,12 +279,12 @@ export class Builder {
 
   beginPage(info: (typeof D.catalog)[number]) {
     this.endWrap();
-    this.accent = info.accent;
+    this.accent = this.app.skin(info.accent);
     this.spansAll = true;
     this.pageName = info.label;
     this.groupName = '';
     this.page = info.id;
-    this.pendingPage = { label: info.label, icon: info.icon, accent: info.accent, id: info.id };
+    this.pendingPage = { label: info.label, icon: info.icon, accent: this.app.skin(info.accent), id: info.id };
     this.pending = null;
     this.underSub = false;
     this.subCount = 0;
@@ -375,7 +375,7 @@ export class Builder {
       kind: 'card',
       label: p.label.toUpperCase(),
       icon: p.icon,
-      accent: p.accent,
+      accent: this.app.skin(p.accent),
       page: p.id,
       rows: [],
       id: this.n++,
@@ -434,7 +434,7 @@ export class Builder {
         return this.fold(o[1], o[2]);
       case 'card': {
         const info = pageInfo(o[1]);
-        this.pendingCard = { label: info.label, icon: info.icon, accent: info.accent, id: info.id };
+        this.pendingCard = { label: info.label, icon: info.icon, accent: this.app.skin(info.accent), id: info.id };
         return;
       }
       case 'endcard':
@@ -444,7 +444,7 @@ export class Builder {
       case 'master':
         return this.master(o);
       case 'overview':
-        return this.overview(o[1], o[2]);
+        return this.overview(o[1], o[2], o[3]);
       case 'tog':
       case 'pop':
       case 'col':
@@ -475,7 +475,7 @@ export class Builder {
       case 'warn':
         return this.banner(true, o[1]);
       case 'ilink': {
-        const acc = pageInfo(o[4]).accent;
+        const acc = this.app.skin(pageInfo(o[4]).accent);
         this.banner(false, `${o[1]}<color=${acc}>${o[2]}</color>${o[3]}`, { page: o[4], word: o[2], accent: acc });
         return;
       }
@@ -600,8 +600,12 @@ export class Builder {
       page,
       text,
       icon: info.icon,
-      accent: info.accent,
-      tip: { t: `Open the <b><color=${info.accent}>${info.label}</color></b> settings page`, i: '', native: true },
+      accent: this.app.skin(info.accent),
+      tip: {
+        t: `Open the <b><color=${this.app.skin(info.accent)}>${info.label}</color></b> settings page`,
+        i: '',
+        native: true,
+      },
     });
   }
 
@@ -695,7 +699,7 @@ export class Builder {
   }
 
   // ---- overview -----------------------------------------------------------------------------------
-  overview(ops: Op[], toolContext: Op[]) {
+  overview(ops: Op[], windowLook: Op[], toolContext: Op[]) {
     const app = this.app;
     const C = D.consts;
     if (this.searching) this.op(['tog', 'GeneralSettings.Enabled']);
@@ -737,6 +741,8 @@ export class Builder {
     // Outside the switch's scope: with Blendon off, the manual and the support info are what is left to reach for.
     if (off) this.dis--;
     this.links();
+    // Outside the scope too: the window's own look works with Blendon off.
+    this.run(windowLook);
     if (off) this.dis++;
     // Toggle Blendon and Esc Keeps Context, above Export as on the plugin's page.
     this.run(toolContext);
@@ -750,7 +756,7 @@ export class Builder {
         b: { text: 'Import Settings', tip: tipOf(C.importTip ?? '', 'Tips/Overview/ImportSettings.png') },
       });
     }
-    this.pendingCard = { label: 'Defaults', icon: 'd_Settings', accent: '#9EA8B8', id: 'Overview' };
+    this.pendingCard = { label: 'Defaults', icon: 'd_Settings', accent: this.app.skin('#9EA8B8'), id: 'Overview' };
     this.run(ops);
     this.pendingCard = null;
     if (this.wrap?.group) this.endWrap();

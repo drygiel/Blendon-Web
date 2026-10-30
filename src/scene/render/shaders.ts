@@ -171,6 +171,32 @@ void main() {
   gl_FragColor = best / 16.0;
 }`;
 
+// What both highlight passes share: one layer's colour from its fill and rim coverage, selects over deselects.
+const HIGHLIGHT_LAYERS = /* glsl */ `
+uniform float uWidth;
+uniform vec4 uSelect;
+uniform vec4 uDeselect;
+uniform float uOccluded;
+uniform float uFill;
+uniform float uOutline;
+uniform float uAlpha;
+varying vec2 vUv;
+
+vec4 layer(vec3 color, float fillAlpha, float vis, float occ, float rimVis, float rimOcc) {
+  rimVis *= uOutline;
+  rimOcc *= uOutline * uOccluded;
+  float rim = rimVis + rimOcc * (1.0 - rimVis);
+  float fill = uFill * fillAlpha * (step(0.5, vis) + step(0.5, occ) * (1.0 - step(0.5, vis)) * uOccluded);
+  return vec4(color, max(rim, fill));
+}
+
+vec4 overDeselects(vec4 s, vec4 u) {
+  float a = s.a + u.a * (1.0 - s.a);
+  if (a <= 0.0) return vec4(0.0);
+  vec3 c = (s.rgb * s.a + u.rgb * u.a * (1.0 - s.a)) / a;
+  return vec4(c, a * uAlpha);
+}`;
+
 /**
  * Box Select highlight: what a release selects (r visible, g hidden) and deselects (b visible, a hidden).
  * Each rim grows from its own part and is cut back by the whole silhouette, the hidden one fainter;
@@ -181,22 +207,11 @@ uniform sampler2D uMask;
 uniform sampler2D uDist;
 uniform vec2 uTexel;
 uniform float uR;
-uniform float uWidth;
-uniform vec4 uSelect;
-uniform vec4 uDeselect;
-uniform float uOccluded;
-uniform float uFill;
-uniform float uOutline;
-uniform float uAlpha;
-varying vec2 vUv;
+${HIGHLIGHT_LAYERS}
 
-vec4 layer(vec3 color, float fillAlpha, float vis, float occ, float dVis, float dOcc) {
-  float inside = max(step(0.5, vis), step(0.5, occ));
-  float rimVis = clamp(uWidth + 0.5 - dVis, 0.0, 1.0) * (1.0 - inside) * uOutline;
-  float rimOcc = clamp(uWidth + 0.5 - dOcc, 0.0, 1.0) * (1.0 - inside) * uOutline * uOccluded;
-  float rim = rimVis + rimOcc * (1.0 - rimVis);
-  float fill = uFill * fillAlpha * (step(0.5, vis) + step(0.5, occ) * (1.0 - step(0.5, vis)) * uOccluded);
-  return vec4(color, max(rim, fill));
+vec2 rims(float vis, float occ, float dVis, float dOcc) {
+  float outside = 1.0 - max(step(0.5, vis), step(0.5, occ));
+  return vec2(clamp(uWidth + 0.5 - dVis, 0.0, 1.0), clamp(uWidth + 0.5 - dOcc, 0.0, 1.0)) * outside;
 }
 
 void main() {
@@ -208,11 +223,101 @@ void main() {
     d = min(d, sqrt(dx * dx + fj * fj));
   }
   vec4 m = texture2D(uMask, vUv);
-  vec4 s = layer(uSelect.rgb, uSelect.a, m.r, m.g, d.r, d.g);
-  vec4 u = layer(uDeselect.rgb, uDeselect.a, m.b, m.a, d.b, d.a);
-  float a = s.a + u.a * (1.0 - s.a);
+  vec2 rs = rims(m.r, m.g, d.r, d.g);
+  vec2 ru = rims(m.b, m.a, d.b, d.a);
+  vec4 o = overDeselects(
+    layer(uSelect.rgb, uSelect.a, m.r, m.g, rs.x, rs.y),
+    layer(uDeselect.rgb, uDeselect.a, m.b, m.a, ru.x, ru.y)
+  );
+  if (o.a <= 0.0) discard;
+  gl_FragColor = o;
+  #include <colorspace_fragment>
+}`;
+
+/** An object's id in r and g, with b set on its front faces only: a back face hides what is behind, never outlines. */
+export const OBJECT_ID_FRAG = /* glsl */ `
+uniform vec2 uId;
+void main() {
+  gl_FragColor = vec4(uId, gl_FrontFacing ? 1.0 : 0.0, 1.0);
+}`;
+
+// Per pixel, how far the nearest front face of a nearer other object is: x where it shows, y where it is hidden.
+// The ids carry their own depth, so a hidden part of one object still finds its neighbours.
+const OBJECT_EDGE = /* glsl */ `
+uniform vec2 uTexel;
+uniform int uReach;
+
+float objectAt(vec4 c) {
+  return floor(c.r * 255.0 + 0.5) + floor(c.g * 255.0 + 0.5) * 256.0;
+}
+
+vec2 objectEdge(sampler2D ids, sampler2D depth, sampler2D mask, vec4 channel, bool inner, float width) {
+  vec2 best = vec2(16.0);
+  float self = objectAt(texture2D(ids, vUv));
+  // Outside every object is the outer contour, left to whoever draws it.
+  if (inner && self < 0.5) return best;
+  float selfDepth = texture2D(depth, vUv).r;
+  for (int j = -uReach; j <= uReach; j++)
+    for (int i = -uReach; i <= uReach; i++) {
+      float d = length(vec2(float(i), float(j)));
+      if (d > width + 0.5 || d >= max(best.x, best.y)) continue;
+      vec2 uv = vUv + vec2(float(i), float(j)) * uTexel;
+      vec4 other = texture2D(ids, uv);
+      if (other.b < 0.5 || abs(objectAt(other) - self) < 0.5) continue;
+      if (self > 0.5 && texture2D(depth, uv).r >= selfDepth) continue;
+      if (dot(texture2D(mask, uv), channel) > 0.5) best.x = min(best.x, d);
+      else best.y = min(best.y, d);
+    }
+  return best;
+}`;
+
+/**
+ * Box Select highlight with Separate Outlines: each marked object rims itself, also over a farther marked one.
+ * Fills and visibility still come from the mask; selects and deselects each have their own ids.
+ */
+export const HIGHLIGHT_SEPARATE_FRAG = /* glsl */ `
+uniform sampler2D uMask;
+uniform sampler2D uSelectIds;
+uniform sampler2D uSelectDepth;
+uniform sampler2D uDeselectIds;
+uniform sampler2D uDeselectDepth;
+uniform vec2 uLayers;
+${HIGHLIGHT_LAYERS}
+${OBJECT_EDGE}
+
+vec2 rims(vec2 d) {
+  return clamp(uWidth + 0.5 - d, 0.0, 1.0);
+}
+
+void main() {
+  vec4 m = texture2D(uMask, vUv);
+  vec2 ds = vec2(16.0), du = vec2(16.0);
+  if (uLayers.x > 0.5) ds = objectEdge(uSelectIds, uSelectDepth, uMask, vec4(1.0, 0.0, 0.0, 0.0), false, uWidth);
+  if (uLayers.y > 0.5) du = objectEdge(uDeselectIds, uDeselectDepth, uMask, vec4(0.0, 0.0, 1.0, 0.0), false, uWidth);
+  vec2 rs = rims(ds);
+  vec2 ru = rims(du);
+  vec4 o = overDeselects(
+    layer(uSelect.rgb, uSelect.a, m.r, m.g, rs.x, rs.y),
+    layer(uDeselect.rgb, uDeselect.a, m.b, m.a, ru.x, ru.y)
+  );
+  if (o.a <= 0.0) discard;
+  gl_FragColor = o;
+  #include <colorspace_fragment>
+}`;
+
+/** Lines Between Objects: the selection's inner lines, where one selected object's edge lies over another. */
+export const SELECTION_LINES_FRAG = /* glsl */ `
+uniform sampler2D uIds;
+uniform sampler2D uDepth;
+uniform float uWidth;
+uniform vec3 uColor;
+varying vec2 vUv;
+${OBJECT_EDGE}
+
+void main() {
+  vec2 d = objectEdge(uIds, uDepth, uIds, vec4(0.0), true, uWidth);
+  float a = clamp(uWidth + 0.5 - min(d.x, d.y), 0.0, 1.0);
   if (a <= 0.0) discard;
-  vec3 c = (s.rgb * s.a + u.rgb * u.a * (1.0 - s.a)) / a;
-  gl_FragColor = vec4(c, a * uAlpha);
+  gl_FragColor = vec4(uColor, a);
   #include <colorspace_fragment>
 }`;

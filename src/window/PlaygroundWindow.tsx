@@ -133,6 +133,14 @@ export default function PlaygroundWindow() {
         search: q.get('s') ?? '',
         sideW: q.get('sw') ? Number(q.get('sw')) : null,
       });
+    // ?set=GeneralSettings.SettingsTheme:Light, repeatable: a value written as the window would store it.
+    for (const pair of q.getAll('set')) {
+      const at = pair.indexOf(':');
+      if (at < 1) continue;
+      const raw = pair.slice(at + 1);
+      const value = raw === 'true' ? true : raw === 'false' ? false : raw !== '' && !isNaN(+raw) ? +raw : raw;
+      latest.current.app.set(pair.slice(0, at), value);
+    }
 
     const measure = () => latest.current.app.measure();
     const ro = new ResizeObserver(measure);
@@ -153,6 +161,7 @@ export default function PlaygroundWindow() {
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       drawGizmos(latest.current.app, now, !latest.current.reduced);
+      latest.current.app.stepBar(now, latest.current.reduced);
     };
     raf = requestAnimationFrame(tick);
 

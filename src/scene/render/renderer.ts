@@ -11,9 +11,12 @@ import {
   GRID_FRAG,
   GRID_VERT,
   HIGHLIGHT_FRAG,
+  HIGHLIGHT_SEPARATE_FRAG,
+  OBJECT_ID_FRAG,
   OUTLINE_FRAG,
   POST_FRAG,
   QUAD_VERT,
+  SELECTION_LINES_FRAG,
 } from './shaders.ts';
 import { applySkyEnvironment } from './sky.ts';
 import { techMaterials, techTile, type TechMaterials } from './tech-surface.ts';
@@ -86,12 +89,19 @@ export interface OutlineSets {
   selected: GameObject[];
   children: GameObject[];
   highlight: HighlightSets | null;
+  /** Box Select's Lines Between Objects: each selected object with the meshes under it, or null when off. */
+  lines: GameObject[][] | null;
 }
 
 /** Box Select's preview: what a release selects and deselects, children's meshes included. */
 export interface HighlightSets {
   selects: GameObject[];
   deselects: GameObject[];
+  /** The same meshes grouped by marked object, for Separate Outlines. */
+  selectGroups: GameObject[][];
+  deselectGroups: GameObject[][];
+  /** Every marked object outlined on its own instead of one shape round them all. */
+  separate: boolean;
   /** Marked objects with no mesh anywhere under them, drawn as squares by Box Select itself. */
   markers: GameObject[];
   markerOf: Set<GameObject>;
@@ -116,6 +126,17 @@ export interface IdCapture {
 }
 
 const colorUniform = () => ({ value: new THREE.Vector4() });
+
+/** Ids and depth of the objects an outline separates; no MSAA, a resolve would blend two ids into a third. */
+const idsTarget = () =>
+  new THREE.WebGLRenderTarget(1, 1, {
+    minFilter: THREE.NearestFilter,
+    magFilter: THREE.NearestFilter,
+    depthTexture: new THREE.DepthTexture(1, 1),
+  });
+
+/** Samples either way a rim of this width reaches, capped like the distance passes. */
+const reachOf = (width: number) => Math.min(8, Math.ceil(width + 0.5));
 
 export class SceneRenderer {
   readonly renderer: THREE.WebGLRenderer;
@@ -148,6 +169,14 @@ export class SceneRenderer {
     maskMaterial(THREE.LessEqualDepth, [0, 0, 1, 0]),
     maskMaterial(THREE.GreaterDepth, [0, 0, 0, 1]),
   ];
+  private readonly hlSepMat: THREE.ShaderMaterial;
+  private readonly hlSepScene = new THREE.Scene();
+  // Selects' ids, also the selection lines' before the highlight draws.
+  private readonly idsA = idsTarget();
+  private readonly idsB = idsTarget();
+  private readonly objectIdMats: THREE.ShaderMaterial[] = [];
+  private readonly linesMat: THREE.ShaderMaterial;
+  private readonly linesScene = new THREE.Scene();
   private readonly idTarget = new THREE.WebGLRenderTarget(1, 1);
   private readonly idMat = new THREE.ShaderMaterial({
     uniforms: { uId: colorUniform() },
@@ -335,6 +364,42 @@ export class SceneRenderer {
         uAlpha: { value: 1 },
       },
     });
+    this.hlSepMat = new THREE.ShaderMaterial({
+      vertexShader: QUAD_VERT,
+      fragmentShader: HIGHLIGHT_SEPARATE_FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        // Shared with the merged pass, so one write sets both.
+        ...pick(this.hlMat.uniforms, ['uWidth', 'uSelect', 'uDeselect', 'uOccluded', 'uFill', 'uOutline', 'uAlpha']),
+        uMask: { value: this.hlMask.texture },
+        uTexel: { value: texel },
+        uReach: { value: 3 },
+        uSelectIds: { value: this.idsA.texture },
+        uSelectDepth: { value: this.idsA.depthTexture },
+        uDeselectIds: { value: this.idsB.texture },
+        uDeselectDepth: { value: this.idsB.depthTexture },
+        uLayers: { value: new THREE.Vector2() },
+      },
+    });
+    this.linesMat = new THREE.ShaderMaterial({
+      vertexShader: QUAD_VERT,
+      fragmentShader: SELECTION_LINES_FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uIds: { value: this.idsA.texture },
+        uDepth: { value: this.idsA.depthTexture },
+        uTexel: { value: texel },
+        uReach: { value: 3 },
+        uWidth: { value: 2 },
+        uColor: this.outlineMat.uniforms.uSelected,
+      },
+    });
+    this.hlSepScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.hlSepMat));
+    this.linesScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.linesMat));
     this.hlDistScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.hlDistMat));
     this.hlScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.hlMat));
     this.quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.outlineMat));
@@ -352,12 +417,16 @@ export class SceneRenderer {
     this.hlMask.setSize(w, h);
     this.hlDist.setSize(w, h);
     this.idTarget.setSize(w, h);
+    this.idsA.setSize(w, h);
+    this.idsB.setSize(w, h);
     this.dpr = dpr;
     (this.outlineMat.uniforms.uTexel.value as THREE.Vector2).set(1 / w, 1 / h);
     // Unity's outline is two points wide whatever the display scale.
     const rim = 2 * dpr;
     this.outlineMat.uniforms.uWidth.value = rim;
     this.outlineMat.uniforms.uR.value = this.distMat.uniforms.uR.value = Math.min(8, Math.ceil(rim + 1));
+    this.linesMat.uniforms.uWidth.value = rim;
+    this.linesMat.uniforms.uReach.value = reachOf(rim);
   }
 
   private sync() {
@@ -561,6 +630,12 @@ export class SceneRenderer {
       r.setRenderTarget(null);
       r.render(this.quadScene, this.quadCam);
     }
+    // Under the box's highlight, which draws next.
+    if (outline.lines) {
+      this.renderIds(cam, this.idsA, outline.lines);
+      r.setRenderTarget(null);
+      r.render(this.linesScene, this.quadCam);
+    }
     if (outline.highlight) this.renderHighlight(outline.highlight, cam);
   }
 
@@ -610,6 +685,33 @@ export class SceneRenderer {
     return used;
   }
 
+  /** One id per group, every mesh in it sharing it, so a group's own parts never outline each other. */
+  private renderIds(cam: THREE.Camera, target: THREE.WebGLRenderTarget, groups: GameObject[][]) {
+    const r = this.renderer;
+    r.setRenderTarget(target);
+    r.setClearColor(0x000000, 0);
+    r.clear(true, true, false);
+    const draws: [GameObject, THREE.Material][] = [];
+    groups.forEach((group, i) => {
+      for (const go of group) if (go.mesh && go.visible) draws.push([go, this.objectIdMat(i + 1)]);
+    });
+    this.renderOnly(cam, draws);
+    this.restoreSurfaces();
+  }
+
+  private objectIdMat(id: number) {
+    let mat = this.objectIdMats[id];
+    if (mat) return mat;
+    mat = new THREE.ShaderMaterial({
+      uniforms: { uId: { value: new THREE.Vector2((id & 255) / 255, ((id >> 8) & 255) / 255) } },
+      vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: OBJECT_ID_FRAG,
+      side: THREE.DoubleSide,
+    });
+    this.objectIdMats[id] = mat;
+    return mat;
+  }
+
   private renderHighlight(h: HighlightSets, cam: THREE.Camera) {
     const r = this.renderer;
     const visible = [...this.entries.values()].filter((e) => e.go.visible).map((e) => e.go);
@@ -634,10 +736,27 @@ export class SceneRenderer {
     u.uFill.value = h.fill ? 1 : 0;
     u.uOutline.value = h.outline ? 1 : 0;
     u.uAlpha.value = h.alpha;
+    if (h.separate && h.outline) {
+      this.renderSeparate(h, cam);
+      return;
+    }
     r.setRenderTarget(this.hlDist);
     r.render(this.hlDistScene, this.quadCam);
     r.setRenderTarget(null);
     r.render(this.hlScene, this.quadCam);
+  }
+
+  /** Separate Outlines: each layer's ids, then one pass for both layers' rims over the mask's fills. */
+  private renderSeparate(h: HighlightSets, cam: THREE.Camera) {
+    const u = this.hlSepMat.uniforms;
+    u.uReach.value = reachOf(u.uWidth.value as number);
+    const selects = h.selectGroups.length > 0,
+      deselects = h.deselectGroups.length > 0;
+    (u.uLayers.value as THREE.Vector2).set(selects ? 1 : 0, deselects ? 1 : 0);
+    if (selects) this.renderIds(cam, this.idsA, h.selectGroups);
+    if (deselects) this.renderIds(cam, this.idsB, h.deselectGroups);
+    this.renderer.setRenderTarget(null);
+    this.renderer.render(this.hlSepScene, this.quadCam);
   }
 
   /** Box Select's Visible Only read of the view: which object owns each pixel, ground and hidden ones aside. */
@@ -681,6 +800,9 @@ export class SceneRenderer {
     this.hlMask.dispose();
     this.hlDist.dispose();
     this.idTarget.dispose();
+    this.idsA.dispose();
+    this.idsB.dispose();
+    for (const m of this.objectIdMats) m?.dispose();
   }
 }
 
@@ -702,6 +824,10 @@ function maskMaterial(depthFunc: THREE.DepthModes, channel: [number, number, num
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -4,
   });
+}
+
+function pick<T extends object>(from: T, keys: (keyof T)[]) {
+  return Object.fromEntries(keys.map((k) => [k, from[k]])) as Partial<T>;
 }
 
 function setColumns(m: THREE.Matrix3, a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) {

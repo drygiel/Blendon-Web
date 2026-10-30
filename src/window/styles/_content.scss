@@ -5,15 +5,16 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    background: #383838;
+    background: var(--w-ground, #383838);
   }
   .hdr {
     position: absolute;
     left: 0;
     right: 0;
-    top: 0;
+    // --hb: the sticky bar's animated height, written by the window's frame loop.
+    top: calc(var(--hb, 60px) - 60px);
     height: 60px;
-    border-bottom: 1px solid #212121;
+    border-bottom: 1px solid var(--w-border, #212121);
   }
   .badge {
     position: absolute;
@@ -37,7 +38,7 @@
     line-height: 19px;
     font-size: 14.857px;
     font-weight: 700;
-    color: #d9d9d9;
+    color: var(--w-text, #d9d9d9);
     white-space: nowrap;
     overflow: hidden;
   }
@@ -45,7 +46,7 @@
     height: 15px;
     line-height: 15px;
     font-size: 10.857px;
-    color: #a6a6a6;
+    color: var(--w-text2, #a6a6a6);
     white-space: nowrap;
     overflow: hidden;
   }
@@ -55,12 +56,12 @@
     top: 16px;
     height: 28px;
     border-radius: 14px;
-    background: #2b2b2b;
-    border: 1px solid #212121;
+    background: var(--w-sunken, #2b2b2b);
+    border: 1px solid var(--w-border, #212121);
     cursor: text;
   }
   .sbox.foc {
-    border-color: #46607c;
+    border-color: var(--w-brand, #46607c);
   }
   .smag {
     position: absolute;
@@ -78,8 +79,8 @@
     background: none;
     padding: 0;
     font-size: 10.857px;
-    color: #d9d9d9;
-    caret-color: #d9d9d9;
+    color: var(--w-text, #d9d9d9);
+    caret-color: var(--w-text, #d9d9d9);
   }
   .sph {
     position: absolute;
@@ -87,7 +88,7 @@
     top: 0;
     line-height: 26px;
     font-size: 10.857px;
-    color: #808080;
+    color: var(--w-caption, #808080);
     pointer-events: none;
   }
   .sclr {
@@ -109,8 +110,15 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 60px;
+    top: var(--hb, 60px);
     bottom: 46px;
+  }
+  // The sliding header would show over the tab bar. Only then, a clip at rest would shift the edge pixels.
+  .content.sliding {
+    overflow: hidden;
+  }
+  .content.nofoot .view {
+    bottom: 0;
   }
   .scroll {
     position: absolute;
@@ -188,7 +196,7 @@
     right: 0;
     bottom: 0;
     height: 46px;
-    border-top: 1px solid #212121;
+    border-top: 1px solid var(--w-border, #212121);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -203,15 +211,15 @@
     overflow: hidden;
     white-space: nowrap;
     font-size: 10.286px;
-    color: #808080;
+    color: var(--w-caption, #808080);
   }
   .bulb {
     flex: none;
     width: 17px;
     height: 17px;
     border-radius: 50%;
-    background: #4a4a4a;
-    border: 1px solid #212121;
+    background: var(--w-raised, #4a4a4a);
+    border: 1px solid var(--w-border, #212121);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -227,24 +235,25 @@
     height: 26px;
     padding: 0 18px 1px;
     border-radius: 5px;
-    background: #46607c !important;
-    border: 1px solid #303030 !important;
-    color: #eeeeee !important;
+    background: var(--w-brand, #46607c) !important;
+    border: 1px solid var(--w-btn-border, #303030) !important;
+    color: var(--w-btn-text, #eeeeee) !important;
     font-size: 10.857px !important;
     white-space: pre;
     text-align: center !important;
     cursor: pointer !important;
   }
   .rbtn:hover {
-    background: #597089 !important;
+    background: var(--w-brand-hover, #597089) !important;
   }
   .rbtn:active {
-    background: #3c5269 !important;
+    background: var(--w-brand-press, #3c5269) !important;
   }
   .rbtn.danger {
-    background: #654240 !important;
+    background: var(--w-danger, #654240) !important;
+    color: var(--w-danger-text, #eeeeee) !important;
   }
   .rbtn.danger:hover {
-    background: #7a4d4a !important;
+    background: var(--w-danger-hover, #7a4d4a) !important;
   }
 }

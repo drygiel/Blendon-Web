@@ -172,6 +172,7 @@ export class SceneHost {
       selected: selected.filter((o) => o.mesh),
       children: children.filter((o) => o.mesh),
       highlight: this.view.highlight,
+      lines: SceneView.selectionLines?.() ?? null,
     };
   }
 

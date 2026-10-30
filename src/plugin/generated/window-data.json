@@ -240,6 +240,7 @@
   "d_EventTrigger Icon": "plugin/icons/icon_d_EventTrigger_Icon.png",
   "d_EyeDropper.Large": "plugin/icons/icon_d_EyeDropper.Large.png",
   "d_Folder Icon": "plugin/icons/icon_d_Folder_Icon.png",
+  "d_GUISkin Icon": "plugin/icons/icon_d_GUISkin_Icon.png",
   "d_GameObject Icon": "plugin/icons/icon_d_GameObject_Icon.png",
   "d_Grid.BoxTool@2x": "plugin/icons/icon_d_Grid.BoxTool_at_2x.png",
   "d_Grid.PaintTool": "plugin/icons/icon_d_Grid.PaintTool.png",
@@ -247,6 +248,7 @@
   "d_Keyboard": "plugin/icons/icon_d_Keyboard.png",
   "d_MoveTool": "plugin/icons/icon_d_MoveTool.png",
   "d_NetworkStartPosition Icon": "plugin/icons/icon_d_NetworkStartPosition_Icon.png",
+  "d_PreMatCube": "plugin/icons/icon_d_PreMatCube.png",
   "d_PreMatSphere": "plugin/icons/icon_d_PreMatSphere.png",
   "d_Prefab On Icon": "plugin/icons/icon_d_Prefab_On_Icon.png",
   "d_Preset.Context": "plugin/icons/icon_d_Preset.Context.png",
@@ -313,6 +315,41 @@
    "l": "Esc Keeps Context",
    "t": "<size=14><b>Esc Keeps Context</b></size>\nPressing <b><color=#D98E38>Esc</color></b> in the <b><color=#3DB892>Scene View</color></b> never drops you out of Blendon's tools.\n\n<size=9><b><color=#92929A>ON</color></b></size>\n<b><color=#D98E38>Esc</color></b> still cancels a grab, a typed value or a menu. The tool context stays on <b>Game Object (Blendon)</b>.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nUnity's own way: <b><color=#D98E38>Esc</color></b> switches to the <b>Game Object</b> context and Unity's Move, Rotate and Scale. Pick <b>Game Object (Blendon)</b> again to come back.\n\n<size=9><color=#92929A>Picking Game Object by hand still works</color></size>",
    "i": "Tips/Overview/EscKeepsContext.png",
+   "d": true,
+   "k": "Boolean"
+  },
+  "GeneralSettings.SettingsTheme": {
+   "l": "Settings Theme",
+   "t": "<size=14><b>Settings Theme</b></size>\nThe look of this settings window alone.\n\n<size=9><b><color=#92929A>UNITY</color></b></size>\nFollows the Editor skin, dark or light.\n\n<size=9><b><color=#92929A>LIGHT / DARK</color></b></size>\nHolds that side of the palette no matter which skin the Editor uses.\n\n<size=9><color=#92929A>Only this window. The Scene View, gizmos and pie menus are left alone</color></size>",
+   "i": "",
+   "d": "Unity",
+   "k": "SettingsTheme",
+   "o": [
+    [
+     "Unity",
+     "Unity"
+    ],
+    [
+     "Light",
+     "Light"
+    ],
+    [
+     "Dark",
+     "Dark"
+    ]
+   ]
+  },
+  "GeneralSettings.ShowResetBar": {
+   "l": "Show Reset Bar",
+   "t": "<size=14><b>Show Reset Bar</b></size>\nThe strip along the bottom of this window, holding a shortcut tip and the page's reset button.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nEvery page keeps its <b>Reset to Defaults</b> one click away, and this page its <b>Reset All Pages</b>.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe strip is gone and the settings list runs to the window's bottom edge.\n\n<size=9><color=#92929A>Switch it back on to reach the reset buttons again</color></size>",
+   "i": "",
+   "d": true,
+   "k": "Boolean"
+  },
+  "GeneralSettings.StickySearchBar": {
+   "l": "Sticky Search Bar",
+   "t": "<size=14><b>Sticky Search Bar</b></size>\nHands the header's room to the list while you read.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nScrolling down slides the title bar and its search box out of the way. Any scroll up brings them straight back.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nThe bar keeps its place at the top at all times.\n\n<size=9><color=#92929A>The bar always shows at the top of a page, and stays while you search</color></size>",
+   "i": "",
    "d": true,
    "k": "Boolean"
   },
@@ -2420,6 +2457,20 @@
    "i": "Tips/BoxSelect/OutlineWidth.png",
    "d": 2.1,
    "k": "Single"
+  },
+  "BoxSelectSettings.HighlightSeparateOutlines": {
+   "l": "Separate Outlines",
+   "t": "<size=14><b>Separate Outlines</b></size>\nGive every marked object its own outline, also where it overlaps another one.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nA cube standing on a plane keeps its own line. The nearer object's line runs over the farther one.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nOne line around all marked objects together. Objects in front of each other merge into one shape.\n\n<size=9><color=#92929A>Used by the Outline and Both styles</color></size>",
+   "i": "Tips/BoxSelect/SeparateOutlines.png",
+   "d": true,
+   "k": "Boolean"
+  },
+  "BoxSelectSettings.SelectionLinesBetweenObjects": {
+   "l": "Lines Between Objects",
+   "t": "<size=14><b>Lines Between Objects</b></size>\nAdds the lines the Editor's selection outline leaves out, between selected objects.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nA selected cube on a selected plane keeps its own line after you release the box, and after any other way of selecting.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nOnly the Editor's outline, one line around everything selected.\n\n<size=9><color=#92929A>Uses the Editor's Selected Outline color. Costs a little on every <b><color=#3DB892>Scene View</color></b> repaint while two or more objects are selected</color></size>",
+   "i": "Tips/BoxSelect/SelectionOutline.png",
+   "d": false,
+   "k": "Boolean"
   },
   "BoxSelectSettings.HighlightOccludedOpacity": {
    "l": "Occluded Opacity",
@@ -7397,6 +7448,10 @@
             "BoxSelectSettings.HighlightOutlineWidth",
             0.5,
             3
+           ],
+           [
+            "tog",
+            "BoxSelectSettings.HighlightSeparateOutlines"
            ]
           ]
          ],
@@ -7415,6 +7470,17 @@
           "BoxSelectSettings.DeselectHighlightColor"
          ]
         ]
+       ],
+       [
+        "sub",
+        "Selection Outline",
+        "d_PreMatCube",
+        15,
+        0
+       ],
+       [
+        "tog",
+        "BoxSelectSettings.SelectionLinesBetweenObjects"
        ],
        [
         "sub",
@@ -7934,6 +8000,27 @@
      [
       "col",
       "GeneralSettings.OutlineColor"
+     ]
+    ],
+    [
+     [
+      "sub",
+      "Settings Window",
+      "d_GUISkin Icon",
+      15,
+      0
+     ],
+     [
+      "pop",
+      "GeneralSettings.SettingsTheme"
+     ],
+     [
+      "tog",
+      "GeneralSettings.ShowResetBar"
+     ],
+     [
+      "tog",
+      "GeneralSettings.StickySearchBar"
      ]
     ],
     [
@@ -10644,6 +10731,8 @@
   "Tips/BoxSelect/SelectChildren.png": "plugin/tips/BoxSelect_SelectChildren.webp",
   "Tips/BoxSelect/SelectParent.png": "plugin/tips/BoxSelect_SelectParent.webp",
   "Tips/BoxSelect/SelectPrefabRoots.png": "plugin/tips/BoxSelect_SelectPrefabRoots.webp",
+  "Tips/BoxSelect/SelectionOutline.png": "plugin/tips/BoxSelect_SelectionOutline.webp",
+  "Tips/BoxSelect/SeparateOutlines.png": "plugin/tips/BoxSelect_SeparateOutlines.webp",
   "Tips/BoxSelect/VisibleOnly.png": "plugin/tips/BoxSelect_VisibleOnly.webp",
   "Tips/BoxSelect/WhileDragging.png": "plugin/tips/BoxSelect_WhileDragging.webp",
   "Tips/ContextMenu/AddObject.png": "plugin/tips/ContextMenu_AddObject.webp",
@@ -10870,6 +10959,8 @@
   "Tips/BoxSelect/SelectChildren.png": "640 / 360",
   "Tips/BoxSelect/SelectParent.png": "640 / 360",
   "Tips/BoxSelect/SelectPrefabRoots.png": "640 / 360",
+  "Tips/BoxSelect/SelectionOutline.png": "640 / 360",
+  "Tips/BoxSelect/SeparateOutlines.png": "640 / 360",
   "Tips/BoxSelect/VisibleOnly.png": "640 / 360",
   "Tips/BoxSelect/WhileDragging.png": "640 / 360",
   "Tips/ContextMenu/AddObject.png": "640 / 360",

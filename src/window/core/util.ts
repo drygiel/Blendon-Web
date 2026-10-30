@@ -25,7 +25,7 @@ export const M = {
   contentPad: 12,
   sb: 14,
   sideItem: 32,
-  sideRail: 30,
+  sideRail: 28,
   sideGroup: 16,
   sidePadT: 5,
   sidePadB: 5,
@@ -36,7 +36,7 @@ export const M = {
   sideCollapsed: 34,
   sideFooter: 26,
   minContent: 400,
-  railGap: 9,
+  railGap: 8,
   labelW: 180,
   gridBreak: 760,
   gutter: 18,
@@ -139,15 +139,15 @@ export function brighten(hex: string): string {
   return `rgb(${Math.round((rr + m0) * 255)},${Math.round((gg + m0) * 255)},${Math.round((bb + m0) * 255)})`;
 }
 
-/** ButtonPlate.Accented: the capture plate tint. */
-export function accented(hex: string): string {
+/** ButtonPlate.Accented: the capture plate tint, over the theme's button fill. */
+export function accented(hex: string, buttonFill = '#585858'): string {
   const a = hexToRgb(hex)
     .slice(0, 3)
     .map((x) => x / 255);
   const gray = 0.299 * (a[0] ?? 0) + 0.587 * (a[1] ?? 0) + 0.114 * (a[2] ?? 0);
   const muted = a.map((x) => x + (gray - x) * 0.6);
-  const base = 0x58 / 255;
-  let f = muted.map((x) => base + (x - base) * 0.35);
+  const base = hexToRgb(buttonFill).map((x) => x / 255);
+  let f = muted.map((x, i) => (base[i] ?? 0) + (x - (base[i] ?? 0)) * 0.35);
   const l = 0.299 * (f[0] ?? 0) + 0.587 * (f[1] ?? 0) + 0.114 * (f[2] ?? 0);
   if (l > 0.38) f = f.map((x) => (x * 0.38) / l);
   return `rgba(${f.map((x) => Math.round(x * 255)).join(',')},0.88)`;

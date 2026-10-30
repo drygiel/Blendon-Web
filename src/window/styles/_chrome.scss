@@ -55,7 +55,9 @@
     background: #c4c4c4;
     border-radius: 1px;
   }
+  // Holds the theme's custom properties, so menus, dialogs and the pie editor keep the editor skin.
   .ubody {
+    color: var(--w-label, #c4c4c4);
     position: absolute;
     left: 0;
     right: 0;

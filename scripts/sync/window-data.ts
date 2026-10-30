@@ -570,10 +570,12 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
     facts,
     models: { general: 'GeneralSettings' },
   });
-  const toolContext: Op[] =
-    out.guard('C# page Overview', () => convert(overviewCtx, parse(OVERVIEW_COPY.join('\n')), () => undefined)) ?? [];
+  const copied = (lines: string[]): Op[] =>
+    out.guard('C# page Overview', () => convert(overviewCtx, parse(lines.join('\n')), () => undefined)) ?? [];
+  const windowLook = copied(WINDOW_COPY);
+  const toolContext = copied(OVERVIEW_COPY);
   checkOverviewCopy(paths.editor, out);
-  pages.Overview = [['overview', page('Overview', 'OverviewDefaults'), toolContext]];
+  pages.Overview = [['overview', page('Overview', 'OverviewDefaults'), windowLook, toolContext]];
 
   // ---- constants ----
   const consts: Record<string, string> = {
@@ -1018,7 +1020,13 @@ export function buildWindowData(paths: PluginPaths, out: Problems, extraIcons: s
   return { data, assets };
 }
 
-// OverviewPage's statements the sync copies by hand, in draw order.
+// OverviewPage's statements the sync copies by hand, in draw order: the window's look, then the tool context.
+const WINDOW_COPY = [
+  's.SubLabel("Settings Window", "d_GUISkin Icon");',
+  's.EnumPopup(GeneralSettings.Instance.SettingsThemeSetting);',
+  's.Toggle(general.ShowResetBarSetting);',
+  's.Toggle(general.StickySearchBarSetting);',
+];
 const OVERVIEW_COPY = [
   's.SubLabel("Tool Context", "d_Transform Icon");',
   's.ShortcutField(general.ToggleContextShortcutSetting);',
@@ -1030,10 +1038,11 @@ function checkOverviewCopy(editorDir: string, out: Problems): void {
   const file = walkFiles(editorDir).find((f) => basename(f) === 'OverviewPage.cs');
   if (!file) return out.add('OverviewPage.cs: not found');
   const code = stripComments(readFileSync(file, 'utf8')).replace(/\s+/g, ' ');
+  const copy = [...WINDOW_COPY, ...OVERVIEW_COPY];
   let at = 0;
-  for (const statement of OVERVIEW_COPY) {
+  for (const statement of copy) {
     const i = code.indexOf(statement, at);
-    if (i < 0) return out.add('OverviewPage.cs no longer draws, in this order: ' + OVERVIEW_COPY.join(' '));
+    if (i < 0) return out.add('OverviewPage.cs no longer draws, in this order: ' + copy.join(' '));
     at = i + statement.length;
   }
 }

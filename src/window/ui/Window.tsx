@@ -4,6 +4,7 @@ import type { Row } from '../core/builder.ts';
 import { iconStyle } from '../core/icons.ts';
 import { type SideEntry, type WindowLayout } from '../core/layout.ts';
 import { type WindowModel, pageInfo } from '../core/model.ts';
+import { mul, themeVars, tones } from '../core/theme.ts';
 import { D } from '../../plugin/window-data.ts';
 import { IS_MAC } from '../../scene/unity/imgui.ts';
 import { M, PAL, badgeFill, brighten, rgba, tinted } from '../core/util.ts';
@@ -29,6 +30,7 @@ function SideItem({ s, collapsed, searching }: { s: SideEntry; collapsed: boolea
     native: true,
   };
   const ind = p.indent && !collapsed;
+  const accent = app.skin(p.accent);
   return (
     <button
       className={'si' + (s.selected ? ' sel' : '') + (enabled ? '' : ' off') + (ind ? ' ind' : '')}
@@ -38,11 +40,14 @@ function SideItem({ s, collapsed, searching }: { s: SideEntry; collapsed: boolea
       aria-label={p.label}
     >
       <span className="pill" />
-      <span className="sic idle" style={iconStyle(p.icon, 16, null, 0.561)} />
-      <span className="sic hov" style={iconStyle(p.icon, 16, p.accent)} />
-      <span className="sic selc" style={iconStyle(p.icon, 16, brighten(p.accent))} />
+      <span
+        className="sic idle"
+        style={app.theme === 'Unity' ? iconStyle(p.icon, 16, null, 0.561) : iconStyle(p.icon, 16, app.skin('#8F8F8F'))}
+      />
+      <span className="sic hov" style={iconStyle(p.icon, 16, accent)} />
+      <span className="sic selc" style={iconStyle(p.icon, 16, brighten(accent))} />
       <span className="stx">{p.label}</span>
-      <span className="sbadge" style={{ color: matches > 0 ? p.accent : PAL.caption }}>
+      <span className="sbadge" style={{ color: matches > 0 ? accent : app.skin(PAL.caption) }}>
         {searching ? (matches > 0 ? String(matches) : '–') : ''}
       </span>
     </button>
@@ -125,7 +130,9 @@ function CardHead({ row }: { row: Row }) {
   const w = row.wrap!;
   const accent = w.accent;
   const tip = useTip(w.group ? null : { t: `Open the ${pageInfo(w.page ?? '').label} settings page`, native: true });
-  const color: CSSProperties = { color: tinted(accent) };
+  // The caption is a miniBoldLabel tinted with the accent; a forced theme repaints that label first.
+  const mini = tones(app.theme)?.mini;
+  const color: CSSProperties = { color: mini ? mul(accent, mini) : tinted(accent) };
   return (
     <div className="ch">
       <span className="chtile" style={{ background: rgba(accent, 0.16) }}>
@@ -200,7 +207,10 @@ function Header({ L }: { L: WindowLayout }) {
     : info.summary;
   return (
     <div className="hdr">
-      <span className="badge" style={{ background: L.searching ? PAL.brand : badgeFill(info.accent) }}>
+      <span
+        className="badge"
+        style={{ background: L.searching ? app.skin(PAL.brand) : badgeFill(app.skin(info.accent)) }}
+      >
         <span style={iconStyle(L.searching ? 'd_Search Icon' : info.icon, 15, '#FFFFFF')} />
       </span>
       <div className="htx" style={{ right: L.showSearch ? L.searchW + M.chromePad + L.rOff : L.rOff }}>
@@ -209,7 +219,7 @@ function Header({ L }: { L: WindowLayout }) {
       </div>
       {L.showSearch && (
         <label className={'sbox' + (st.searchFocus ? ' foc' : '')} style={{ width: L.searchW, right: L.rOff }}>
-          <span className="smag" style={iconStyle('d_Search Icon', 13, PAL.caption)} />
+          <span className="smag" style={iconStyle('d_Search Icon', 13, app.skin(PAL.caption))} />
           <input
             className="sin"
             type="text"
@@ -306,6 +316,8 @@ function Overlays() {
   const { tip, menu, dlg } = app.st;
   const tipStyle: CSSProperties | undefined = tip
     ? {
+        // The rich card is the window's own drawing; the one-line tooltip is the Editor's.
+        ...(tip.rich ? themeVars(app.theme) : null),
         left: tip.measured ? tip.x : -9999,
         top: tip.measured ? tip.y : 0,
         ...(tip.rich ? { width: tip.w } : { maxWidth: 360 }),
@@ -453,7 +465,7 @@ function WindowFrame({ app, L }: WindowProps) {
           <i />
         </span>
       </div>
-      <div className="ubody">
+      <div className={'ubody' + (L.theme === 'Light' ? ' light' : '')} style={themeVars(L.theme)}>
         <div className="side" style={{ width: L.sideW }}>
           <div className="slist" style={{ height: L.listH }}>
             <div className="sscroll" ref={app.attach('sscroll')} onScroll={() => app.syncScrollbars()}>
@@ -497,13 +509,18 @@ function WindowFrame({ app, L }: WindowProps) {
           onPointerDown={(e) => app.splitDrag(e)}
           onDoubleClick={() => app.update({ sideCollapsed: !st.sideCollapsed })}
         />
-        <div className="content" style={{ left: L.sideW + 1, width: L.contentW }}>
+        <div
+          className={'content' + (L.resetBar ? '' : ' nofoot')}
+          ref={app.attach('content')}
+          style={{ left: L.sideW + 1, width: L.contentW }}
+        >
           <Header L={L} />
           <div className={'view' + (L.scrollsX ? ' hx' : '')}>
             <div
               className="scroll"
               ref={app.attach('scroll')}
               onScroll={() => {
+                app.scrolled();
                 app.syncScrollbars();
                 app.dismissTip();
               }}
@@ -530,7 +547,7 @@ function WindowFrame({ app, L }: WindowProps) {
               thumb={app.attach('hthumb')}
             />
           </div>
-          <Footer L={L} />
+          {L.resetBar && <Footer L={L} />}
         </div>
       </div>
       <Overlays />

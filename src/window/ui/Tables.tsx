@@ -40,7 +40,7 @@ export function FeatureRow({ it }: { it: ItemOf<'frow'> }) {
         >
           <Check />
         </button>
-        <span className={'fi' + (enabled ? '' : ' off')} style={iconStyle(page.icon, 16, page.accent)} />
+        <span className={'fi' + (enabled ? '' : ' off')} style={iconStyle(page.icon, 16, app.skin(page.accent))} />
         <span className="ftt lk" data-off={!enabled} onClick={() => app.goTo(it.page)}>
           {page.label}
         </span>
@@ -76,7 +76,7 @@ export function FeaturePie({ it }: { it: ItemOf<'fpie'> }) {
         >
           <Check />
         </button>
-        <span className={'fi sm' + (live ? '' : ' off')} style={iconStyle(pie.icon, 14, '#598CF2')} />
+        <span className={'fi sm' + (live ? '' : ' off')} style={iconStyle(pie.icon, 14, app.skin('#598CF2'))} />
         <span className={'ft2' + (live ? '' : ' muted') + ' lk'} onClick={() => app.editPie(pie.id)} {...tip}>
           {pie.title}
         </span>

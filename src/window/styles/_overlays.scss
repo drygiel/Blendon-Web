@@ -7,8 +7,8 @@
     position: absolute;
     z-index: 40;
     padding: 8px;
-    background: #212124;
-    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: var(--w-notice, #212124);
+    border: 1px solid var(--w-notice-border, rgba(255, 255, 255, 0.13));
     border-radius: 6px;
     pointer-events: none;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
@@ -16,7 +16,7 @@
   .rtx {
     font-size: 12px;
     line-height: 1.2125;
-    color: #c4c4c4;
+    color: var(--w-label, #c4c4c4);
     white-space: pre-wrap;
     word-wrap: break-word;
   }
