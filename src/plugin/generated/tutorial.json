@@ -105,7 +105,7 @@
     {
      "id": "nav.frame",
      "title": "Frame the cube",
-     "hint": "The new cube is selected, so this fills the view with it. Press again to step through bounds, pivot and close.",
+     "hint": "The new cube is selected, so this turns the view to it. Press again to step to its pivot, close in and go back.",
      "picture": "plugin/headers/FrameSelected_Header.webp",
      "clip": "plugin/video/FrameSelected.webm",
      "aspect": "640 / 360",
@@ -622,7 +622,7 @@
   },
   {
    "title": "Selecting",
-   "subtitle": "Boxes, groups and the hierarchy",
+   "subtitle": "Boxes, parents and the hierarchy",
    "icon": "d_RectTool",
    "accent": "#4CD9A6",
    "tasks": [
@@ -655,11 +655,11 @@
     {
      "id": "select.parent",
      "title": "Step up to the parent",
-     "hint": "Select a cube in the group, or the one under the pivot you kept, then step up: what holds it is selected instead.",
+     "hint": "Select the cube under the pivot you kept, then step up: what holds it is selected instead.",
      "picture": "plugin/tips/BoxSelect_SelectParent.webp",
      "clip": "plugin/video/tutorial/SelectParent.webm",
      "aspect": "640 / 360",
-     "needs": "Select a cube under the group or the pivot first",
+     "needs": "Select a cube under the pivot you kept first",
      "kind": "shortcut",
      "page": "BoxSelect",
      "ids": [
@@ -676,7 +676,7 @@
      "picture": "plugin/tips/BoxSelect_SelectChildren.webp",
      "clip": "plugin/video/tutorial/SelectChildren.webm",
      "aspect": "640 / 360",
-     "needs": "Select the group or the pivot first",
+     "needs": "Select the pivot you kept first",
      "kind": "shortcut",
      "page": "BoxSelect",
      "ids": [
@@ -693,7 +693,7 @@
      "picture": "plugin/tips/BoxSelect_ClickSelectsParent.webp",
      "clip": "plugin/video/tutorial/ClickSelectsParent.webm",
      "aspect": "640 / 360",
-     "needs": "Select a cube under the group or the pivot first",
+     "needs": "Select a cube under the pivot you kept first",
      "kind": "gesture",
      "page": "BoxSelect",
      "signal": "ClickSelectedParent",
