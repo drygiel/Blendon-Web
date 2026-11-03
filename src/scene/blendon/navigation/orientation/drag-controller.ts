@@ -169,7 +169,7 @@ export class OrientationGizmoElement {
       anyDragging = true;
       this.dragStartRotation = v.rotation;
       this.dragStartPivot = v.pivot;
-      this.orbitCenter = OrbitSelected.resolveOrbitCenter(v);
+      this.orbitCenter = OrbitSelected.turnCenter(v, this.dragStartPivot);
     }
     const o = OrbitSelectedSettings;
     const rotation = TurntableOrbit.rotate(

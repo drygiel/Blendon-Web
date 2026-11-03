@@ -5,6 +5,7 @@ import {
   EditorApplication,
   eventShortcutModifiers,
   Selection,
+  SelectionMode,
   ShortcutManager,
   ShortcutModifiers,
   Undo,
@@ -157,13 +158,13 @@ const Catalog: CatalogGroup[] = [
     name: 'ResetTransform',
     on: () => SceneMenuSettings.ResetTransform,
     entries: () => {
-      const t = Selection.transforms;
+      const t = ResetActions.targets();
       const p = ResetActions.applies(t, true, false, false);
       const r = ResetActions.applies(t, false, true, false);
       const s = ResetActions.applies(t, false, false, true);
       const any = p || r || s;
       const reset = (pp: boolean, rr: boolean, ss: boolean) => () =>
-        ResetActions.apply(Selection.transforms, pp, rr, ss);
+        ResetActions.apply(ResetActions.targets(), pp, rr, ss);
       return [
         entry(
           Group.Transform,
@@ -253,7 +254,7 @@ const Catalog: CatalogGroup[] = [
           'Unparent',
           'd_FolderOpened Icon',
           unparent,
-          Selection.transforms.some((t) => !!t.parent),
+          Selection.getTransforms(SelectionMode.Unfiltered).some((t) => !!t.parent),
         ),
       ),
   },
@@ -424,9 +425,11 @@ function group() {
   Selection.set([parent], parent, false);
 }
 
+// Blender's Clear Parent: every selected object, children too, keeps its world pose.
 function unparent() {
   Undo.incrementCurrentGroup();
-  for (const t of Selection.transforms) if (t.parent) Undo.setTransformParent(t, null, 'Unparent');
+  for (const t of Selection.getTransforms(SelectionMode.Unfiltered))
+    if (t.parent) Undo.setTransformParent(t, null, 'Unparent');
 }
 
 // ---- open, close, run ----
@@ -645,6 +648,8 @@ export const SceneMenu = {
       activate(k, row, columns > 0 ? panel.columnAt(row, p, columns) : -1);
       return;
     }
+    // A typed name is kept, the click only closes the menu.
+    if (MenuField.renaming) SceneMenu.commitRename();
     SceneMenu.close();
   },
 

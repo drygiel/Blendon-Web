@@ -272,7 +272,12 @@ const MODIFIER_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AltGraph'
 // Held-and-dragged shortcuts. A keyboard key gives them no button to drag with.
 const MOUSE_ONLY_IDS = new Set(['Blendon/Orbit Selected', 'Blendon/Orbit Selected/Quick Roll', 'Blendon/Pan']);
 
+// Shortcuts with no context. Unity refuses a left or right click on them.
+const GLOBAL_IDS = new Set(['Blendon/Toggle Blendon']);
+
 const CAPTURE_TIP = 'Click, then press the key combination (or a non-left mouse button) to bind. Esc cancels.';
+const GLOBAL_CAPTURE_TIP =
+  'Click, then press the key combination (or a middle or side mouse button) to bind. Esc cancels.';
 const MOUSE_CAPTURE_TIP =
   'Click, then press a mouse button to bind. The left one needs Shift, Ctrl or Alt. Esc cancels.';
 
@@ -284,11 +289,14 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
   const binding = app.shortcut(id);
   const capturing = app.st.capturing === id;
   const mouseOnly = MOUSE_ONLY_IDS.has(id);
+  const isGlobal = GLOBAL_IDS.has(id);
   const canRestore = live && app.shortcutChanged(id);
   const canClear = live && !!binding;
   const tip = useTip(it.tip);
   const plateTip = useTip({
-    t: (binding ? `<b>${binding}</b>\n\n` : '') + (mouseOnly ? MOUSE_CAPTURE_TIP : CAPTURE_TIP),
+    t:
+      (binding ? `<b>${binding}</b>\n\n` : '') +
+      (mouseOnly ? MOUSE_CAPTURE_TIP : isGlobal ? GLOBAL_CAPTURE_TIP : CAPTURE_TIP),
     native: true,
   });
   const restoreTip = useTip({ t: D.consts.restoreTip ?? '', native: true });
@@ -297,7 +305,7 @@ export function ShortcutField({ it }: { it: ItemOf<'sc'> }) {
     if (!live) return;
     // A bare left click selects in the Scene View, so it never binds. With a modifier it does, on a drag row only.
     const modified = e.ctrlKey || e.metaKey || e.altKey || e.shiftKey;
-    if (capturing && (e.button > 0 || (mouseOnly && modified))) {
+    if (capturing && !(isGlobal && (e.button === 0 || e.button === 2)) && (e.button > 0 || (mouseOnly && modified))) {
       e.preventDefault();
       const b = bindingFromEvent(e, e.button === 2 ? 1 : e.button === 1 ? 2 : e.button);
       if (b) app.setShortcut(id, b);

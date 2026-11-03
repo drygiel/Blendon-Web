@@ -5,6 +5,7 @@ import {
   PivotMode as UnityPivotMode,
   PivotRotation,
   Selection,
+  SelectionMode,
   Tool,
   Tools,
   Undo,
@@ -14,7 +15,7 @@ import { Plane, Quaternion, Vector3, type Vector2 } from '../../unity/math.ts';
 import { primitiveMesh, type PrimitiveType } from '../../unity/primitives.ts';
 import { GameObject, Scene, type Transform } from '../../unity/scene.ts';
 import type { SceneView } from '../../unity/sceneview.ts';
-import { EditorRaycastUtility, SelectionCache } from '../foundation.ts';
+import { EditorRaycastUtility } from '../foundation.ts';
 import { GizmoVisibility } from '../gizmos/core/visibility.ts';
 import { PivotModes, SharedGizmoSettings, type PivotMode } from '../gizmos/shared-settings.ts';
 import { ViewportNavActions } from '../navigation/viewport-nav.ts';
@@ -205,12 +206,15 @@ export const ResetActions = {
 
   applies: (targets: Transform[], p: boolean, r: boolean, s: boolean) => targets.some((t) => !atRest(t, p, r, s)),
 
+  /** Every selected transform, children too: a local reset doesn't ride with the parent. */
+  targets: () => Selection.getTransforms(SelectionMode.Editable | SelectionMode.ExcludePrefab),
+
   all: [] as PieAction[],
 };
 
 const reset = (name: string, p: boolean, r: boolean, s: boolean, icon: string) =>
-  new PieAction('Reset', name, icon, () => ResetActions.apply(SelectionCache.transforms, p, r, s), {
-    isEnabled: () => ResetActions.applies(SelectionCache.transforms, p, r, s),
+  new PieAction('Reset', name, icon, () => ResetActions.apply(ResetActions.targets(), p, r, s), {
+    isEnabled: () => ResetActions.applies(ResetActions.targets(), p, r, s),
   });
 
 ResetActions.all = [

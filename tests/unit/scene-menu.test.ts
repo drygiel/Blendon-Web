@@ -60,6 +60,30 @@ describe('scene menu content', () => {
   });
 });
 
+describe('scene menu search', () => {
+  it("finds Blendon's own entries by their folder, which has no Editor path", () => {
+    const folder = new MenuNode('Blendon/Reset', 'Reset', null);
+    const position = new MenuNode('Blendon/Reset/Position', 'Position', null);
+    position.command = () => {};
+    folder.children.push(position);
+    const extras = [{ group: Group.Transform, node: folder, prepend: false }];
+    const snapshot = captureEditorMenu();
+    const session = new MenuSession(
+      new SceneView(),
+      new Vector2(100, 100),
+      snapshot,
+      buildModel(snapshot, true, extras),
+      'Cube',
+      true,
+      false,
+    );
+    session.place('', true);
+    session.refilter('reset/pos');
+    const hits = session.root.rows.filter((r) => r.kind === 'item').map((r) => r.text + r.node!.label);
+    expect(hits).toEqual(['Reset > Position']);
+  });
+});
+
 describe('edit commands', () => {
   it('deletes with one undo step that puts the object back in place', () => {
     EditorEdit.delete();

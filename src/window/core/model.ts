@@ -337,16 +337,16 @@ export class WindowModel {
     return Keymap.isModified(id, this.gates);
   }
 
+  // Only a key captured by hand counts for the tutorial's rebind task, not a clear or a restore.
   setShortcut(id: string, binding: string) {
     Keymap.rebind(id, binding);
     this.update({ capturing: null });
-    SceneTutorial.report('ShortcutRebound');
+    if (binding) SceneTutorial.report('ShortcutRebound');
   }
 
   restoreShortcut(id: string) {
     Keymap.restore(id);
     this.update({ capturing: null });
-    SceneTutorial.report('ShortcutRebound');
   }
 
   /** Whether a shortcut's feature is switched on, whatever the tool context. */
@@ -380,7 +380,7 @@ export class WindowModel {
   }
 
   // ---- keyboard presets -------------------------------------------------------------------------
-  /** Read off the keys, nothing stored. */
+  /** Read off the keys, a tie goes to the preset picked last. */
   keyboardPreset(): KeyboardPreset {
     return Keymap.preset();
   }

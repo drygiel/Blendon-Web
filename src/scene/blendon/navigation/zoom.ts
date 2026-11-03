@@ -116,6 +116,7 @@ function applyZoom(view: SceneView, amount: number) {
   // Needed even without an anchor, to keep the zoom rate constant at the cursor's depth.
   const cursorPoint = EditorRaycastUtility.getScreenPoint();
   const target = anchor(view, cursorPoint);
+  const pivotBefore = view.pivot;
   switch (effectiveMethod(ZoomSettings.Method, view.orthographic)) {
     case ZoomMethod.Dolly:
       applyDolly(view, amount, target);
@@ -126,6 +127,7 @@ function applyZoom(view: SceneView, amount: number) {
     default:
       applyScale(view, target, cursorPoint, notchFactor(ZoomSettings.Speed, Mathf.Sign(amount)));
   }
+  OrbitSelected.followPivotShift(view, view.pivot.sub(pivotBefore));
 }
 
 /** The point that stays put on screen. Null zooms toward the middle of the view. */

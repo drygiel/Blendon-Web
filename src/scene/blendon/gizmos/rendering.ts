@@ -116,8 +116,8 @@ export const GizmoRenderer = {
 
 // viewDir points camera->gizmo, so the camera is on dir's positive side when their dot is negative.
 function clampAxisOffset(dir: Vector3, viewDir: Vector3, planeOffset: number, planeSize: number) {
-  const sign = Vector3.dot(dir, viewDir) <= 0 ? 1 : -1;
-  return Math.max(planeOffset, sign * planeSize);
+  if (planeOffset >= planeSize) return planeOffset;
+  return Vector3.dot(dir, viewDir) <= 0 ? planeSize : -planeSize;
 }
 
 /** The camera pose plane handles clamp against, held for the whole navigation gesture. */

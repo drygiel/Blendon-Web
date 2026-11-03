@@ -84,6 +84,50 @@ describe('keyboard presets', () => {
     expect(Keymap.binding('Tools/Scale')).toBe('Shift+R');
   });
 
+  it("give a switched-off feature's moved Editor command its key back, and move it again once on", () => {
+    const window = (off: string[]) => ({
+      val: (k: string) => (off.includes(k) ? false : undefined),
+      shortcut: (id: string) => Keymap.binding(id) ?? '',
+      pieOn: (p: string) => !!D.pies.find((x) => x.id === p)?.enabled,
+    });
+    try {
+      Keymap.giveKey(row(GRAB), 'Blendon');
+      SharedSettings.publish(window(['MoveGizmoSettings.Enabled']));
+      expect(Keymap.binding(CYCLE)).toBe('G');
+      expect(Keymap.changedFromDefault(CYCLE)).toBe(false);
+      SharedSettings.publish(window([]));
+      expect(Keymap.binding(CYCLE)).toBe('Shift+G');
+      // The master switch takes the same path.
+      SharedSettings.publish(window(['GeneralSettings.Enabled']));
+      expect(Keymap.binding(CYCLE)).toBe('G');
+      // A key tuned by hand meanwhile stays.
+      Keymap.rebind(CYCLE, 'H');
+      SharedSettings.publish(window([]));
+      expect(Keymap.binding(CYCLE)).toBe('H');
+      // So does one whose Blendon shortcut gave way meanwhile.
+      Keymap.giveKey(row(GRAB), 'Blendon');
+      SharedSettings.publish(window(['MoveGizmoSettings.Enabled']));
+      Keymap.applyPreset('Unity');
+      SharedSettings.publish(window([]));
+      expect(Keymap.binding(CYCLE)).toBe('G');
+      expect(Keymap.binding(GRAB)).toBe('Shift+G');
+    } finally {
+      SharedSettings.publish(window([]));
+    }
+  });
+
+  it('give a tie to the preset picked last', () => {
+    const tie = () => {
+      for (const r of D.contested) if (r.blendonAlt !== r.key) Keymap.rebind(r.bid, 'F12');
+    };
+    Keymap.applyPreset('Unity');
+    tie();
+    expect(Keymap.preset()).toBe('Unity');
+    Keymap.applyPreset('Blendon');
+    tie();
+    expect(Keymap.preset()).toBe('Blendon');
+  });
+
   it('judge "modified" against the active preset', () => {
     Keymap.applyPreset('Unity');
     expect(Keymap.isModified(GRAB)).toBe(false);

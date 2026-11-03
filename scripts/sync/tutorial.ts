@@ -289,14 +289,15 @@ export function buildTutorialData(paths: { editor: string; icons: string; video:
           task.availableWhen = { reason: literal(a[1]) };
           break;
         case 'Otherwise': {
+          // (keys, hint, picture, on), a way with no gate is always there.
           const way: TutorialWay = {
-            gate: gateOf(a[0] ?? ''),
-            keys: keysOf(a[1] ?? ''),
-            text: literal(a[2]),
+            gate: a[3] ? gateOf(a[3]) : 'Always',
+            keys: keysOf(a[0] ?? ''),
+            text: literal(a[1]),
             picture: '',
             aspect: '',
           };
-          way.picture = picture(literal(a[3]), (aspect) => (way.aspect = aspect));
+          way.picture = picture(literal(a[2]), (aspect) => (way.aspect = aspect));
           (task.otherwise ??= []).push(way);
           break;
         }

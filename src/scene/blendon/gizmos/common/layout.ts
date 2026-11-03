@@ -1,8 +1,8 @@
 // AxisBasis, HandleLayout, ScreenRingCap and GizmoToolsOverride: the small pieces every gizmo lays itself out with.
 import { Tools } from '../../../unity/editor.ts';
 import { HandleUtility } from '../../../unity/handles.ts';
-import { GUIUtility } from '../../../unity/imgui.ts';
-import { Quaternion, Vector3 } from '../../../unity/math.ts';
+import { Event, GUIUtility } from '../../../unity/imgui.ts';
+import { Quaternion, Vector2, Vector3 } from '../../../unity/math.ts';
 import type { SceneCamera } from '../../../unity/sceneview.ts';
 import { GizmoAxis } from '../axis.ts';
 import { DragKind, type GizmoDragCoordinator } from '../core/drag.ts';
@@ -106,6 +106,17 @@ export const ScreenRingCap = {
   drawShape(position: Vector3, normal: Vector3, radius: number, thickness: number, square: boolean) {
     if (square) DrawPrimitives.drawScreenSquare(position, normal, radius, thickness);
     else DrawPrimitives.drawAACircle(position, normal, radius, thickness);
+  },
+
+  /**
+   * Cursor distance from the pivot minus the circle's radius, in pixels, negative inside. Unlike distanceToCircle,
+   * which is 0 on and inside, its absolute value is the distance to the line alone.
+   */
+  pixelsPastCircle(position: Vector3, radius: number) {
+    const center = HandleUtility.worldToGUIPoint(position);
+    const right = GizmoRenderer.currentCamera()?.right ?? Vector3.right;
+    const radiusPx = Vector2.distance(center, HandleUtility.worldToGUIPoint(position.add(right.mul(radius))));
+    return Vector2.distance(Event.current.mousePosition, center) - radiusPx;
   },
 
   hitTestCircle(controlId: number, position: Vector3, radius: number) {

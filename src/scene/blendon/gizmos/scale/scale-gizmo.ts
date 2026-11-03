@@ -269,16 +269,15 @@ export class ScaleGizmo extends GizmoController {
       case EventType.Layout:
       case EventType.MouseMove:
         if (showOuter) {
-          // DistanceToCircle is 0 inside too, so the outer line distance is measured explicitly.
-          const center = HandleUtility.worldToGUIPoint(position);
-          const right = GizmoRenderer.currentCamera()?.right ?? Vector3.right;
-          const outerPx = Vector2.distance(center, HandleUtility.worldToGUIPoint(position.add(right.mul(outer))));
-          const cursor = Vector2.distance(Event.current.mousePosition, center);
-          HandleUtility.addControl(controlId, Math.abs(cursor - outerPx));
+          const pastOuter = ScreenRingCap.pixelsPastCircle(position, outer);
+          HandleUtility.addControl(controlId, Math.abs(pastOuter));
           // Inside the outer ring it is the 5 px default that only a direct axis/plane hover beats.
-          if (cursor < outerPx) HandleUtility.addControl(controlId, 5);
+          if (pastOuter < 0) HandleUtility.addControl(controlId, 5);
         }
         if (boxMode) Handles.cubeHandleCap(controlId, position, rotation, box, eventType);
+        // In the Transform tool the inside belongs to the free-move ring, so only the line picks.
+        else if (!s.OuterRingInteractive)
+          HandleUtility.addControl(controlId, Math.abs(ScreenRingCap.pixelsPastCircle(position, inner)));
         else ScreenRingCap.hitTestCircle(controlId, position, inner);
         break;
     }

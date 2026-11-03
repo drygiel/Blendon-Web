@@ -1,7 +1,7 @@
 // Pan: Shift + middle-mouse drag, keeping the grabbed point pixel-exactly under the cursor.
 import { EditorApplication, ShortcutManager, ShortcutStage, type ShortcutArguments } from '../../unity/editor.ts';
 import { EditorGUIUtility, HandleUtility, MouseCursor } from '../../unity/handles.ts';
-import { Event, EventType, FocusType, GUIUtility, MouseButton } from '../../unity/imgui.ts';
+import { Event, EventType, FocusType, GUIUtility, KeyCode, MouseButton } from '../../unity/imgui.ts';
 import { Plane, Rect, Vector2, Vector3 } from '../../unity/math.ts';
 import { SceneView, type SceneCamera } from '../../unity/sceneview.ts';
 import { CursorWrapTracker, EditorRaycastUtility, ModalViewportGate, SceneTutorial } from '../foundation.ts';
@@ -40,6 +40,8 @@ const st = {
   anchorScreen: Vector2.zero,
   startPivot: Vector3.zero,
   cancelled: false,
+  // A right press eaten mid-pan, so drags then report the right button.
+  rightPressIgnored: false,
 };
 
 export const Pan = {
@@ -113,16 +115,23 @@ function onSceneGUI(view: SceneView) {
 
   if (e.type === EventType.Layout && (st.shortcutHeld || st.panning)) HandleUtility.addDefaultControl(controlId);
 
+  // Esc or RMB cancels and restores the view. rawType, since a press outside the view would read as a normal end.
+  const rightPress = e.rawType === EventType.MouseDown && e.button === MouseButton.RightMouse;
   if (
     st.panning &&
-    e.rawType === EventType.MouseDown &&
-    e.button === MouseButton.RightMouse &&
-    GeneralSettings.RmbCancelEnabled
+    ((e.type === EventType.KeyDown && e.keyCode === KeyCode.Escape) || (rightPress && GeneralSettings.RmbCancelEnabled))
   ) {
     st.cancelled = true;
     endPan();
     view.pivot = st.startPivot;
     view.repaint();
+    e.use();
+    return;
+  }
+
+  // Cancel off: eat the whole right click, as the orbit does.
+  if (st.panning && OrbitSelected.isRightClickPart(e)) {
+    st.rightPressIgnored ||= rightPress;
     e.use();
     return;
   }
@@ -142,7 +151,7 @@ function onSceneGUI(view: SceneView) {
     e.type === EventType.MouseDrag &&
     st.panning &&
     GUIUtility.hotControl === st.hotControl &&
-    e.button === st.trackedButton
+    (e.button === st.trackedButton || (st.rightPressIgnored && e.button === MouseButton.RightMouse))
   ) {
     panning(view, e.delta);
     e.use();
@@ -155,6 +164,7 @@ function onSceneGUI(view: SceneView) {
 function endPan() {
   st.panning = false;
   st.trackedButton = -1;
+  st.rightPressIgnored = false;
   if (GUIUtility.hotControl === st.hotControl) GUIUtility.hotControl = 0;
   Pan.endPanSession();
 }

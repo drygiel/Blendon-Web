@@ -148,7 +148,6 @@ function handle(def: PieDef, args: ShortcutArguments) {
 // ---- Shift+Z: into Wireframe and back out to whatever was showing ----
 
 const WireframeShortcutId = 'Blendon/Pie Menus/Toggle Wireframe';
-const previous = new WeakMap<SceneView, ShadingMode>();
 
 function toggleWireframe(args: ShortcutArguments) {
   if (!WireframeToggleSettings.Enabled) return;
@@ -157,13 +156,8 @@ function toggleWireframe(args: ShortcutArguments) {
   if (ViewportGesture.busy) return;
   const view = (args.context as SceneView | null) ?? SceneView.lastActiveSceneView;
   if (!view) return;
-  const current = ShadingModes.current(view);
-  if (current === ShadingMode.Wireframe) {
-    ShadingModes.apply(view, previous.get(view) ?? ShadingMode.Shaded);
-  } else {
-    previous.set(view, current);
-    ShadingModes.apply(view, ShadingMode.Wireframe);
-  }
+  const wire = ShadingModes.current(view) === ShadingMode.Wireframe;
+  ShadingModes.apply(view, wire ? ShadingModes.previous(view) : ShadingMode.Wireframe);
   ShortcutTips.note(WireframeShortcutId);
   SceneTutorial.reportShortcut(WireframeShortcutId);
 }

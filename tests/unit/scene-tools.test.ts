@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ViewOrbitTween } from '../../src/scene/blendon/navigation/camera.ts';
 import { ViewportNavActions } from '../../src/scene/blendon/navigation/viewport-nav.ts';
 import { FrameSelected } from '../../src/scene/blendon/scenetools/frame-selected.ts';
+import { FrameSelectedSettings } from '../../src/scene/blendon/scenetools/settings.ts';
 import { SelectionHistory } from '../../src/scene/blendon/scenetools/history.ts';
 import { SnapToFloor } from '../../src/scene/blendon/scenetools/snap-to-floor.ts';
 import { Prefs, Selection } from '../../src/scene/unity/editor.ts';
@@ -59,6 +60,15 @@ describe('Snap to Floor', () => {
     expect(snap(crate).y).toBeCloseTo(1, 4);
   });
 
+  it('casts from the bottom of a body that hangs above its pivot', () => {
+    // Table top at y = 0.5, the pivot sits inside the table, the body above it.
+    box(scene, 'Table', Vector3.zero, v(2, 1, 2));
+    const thing = new GameObject(scene, 'Thing');
+    thing.transform.localPosition = v(0, 0.2, 0);
+    box(scene, 'Body', v(0, 1, 0), Vector3.one, thing);
+    expect(snap(thing).y).toBeCloseTo(0, 4);
+  });
+
   it('takes no support from a neighbour the footprint only touches', () => {
     box(scene, 'Wall', v(0, 1, 0), v(2, 3, 2));
     const crate = box(scene, 'Crate', v(1.5, 4, 0));
@@ -84,6 +94,15 @@ describe('Frame Selected outside its cycle', () => {
     expect(fit?.size).toBeCloseTo(Math.sqrt(3), 6);
     expect(FrameSelected.tryFitBounds(new Bounds(v(0, 0, 0), Vector3.zero))?.size).toBeCloseTo(Math.sqrt(0.75), 6);
     expect(FrameSelected.tryFitBounds(null)).toBeNull();
+  });
+
+  it('runs the default cycle when every step is off', () => {
+    Prefs.local.set('FrameSelectedSettings.SequenceText', '-SelectionCenter,-ActivePivot,-ZoomIn,-BackToStart');
+    try {
+      expect(FrameSelectedSettings.Cycle).toHaveLength(4);
+    } finally {
+      Prefs.local.clear();
+    }
   });
 });
 
@@ -112,6 +131,28 @@ describe('a running view flight', () => {
     ViewportNavActions.orbitStep(1, 0);
     const heading = ViewOrbitTween.pendingRotation(view);
     expect(Quaternion.angle(heading, Quaternion.identity)).toBeCloseTo(2 * 15, 3);
+  });
+
+  it('steps about the selection only while Orbit Selected works, else about the pivot', () => {
+    const scene = new Scene();
+    Scene.current = scene;
+    const target = box(scene, 'Target', v(5, 0, 0));
+    Selection.set([target], target, false);
+    const view = new SceneView();
+    const pivotAfterStep = () => {
+      ViewOrbitTween.stop();
+      view.lookAtDirect(Vector3.zero, Quaternion.identity, 5);
+      ViewportNavActions.orbitStep(1, 0);
+      return ViewOrbitTween.pendingPivot(view);
+    };
+    try {
+      expect(pivotAfterStep().magnitude).toBeGreaterThan(0.1);
+      Prefs.local.set('OrbitSelectedSettings.Enabled', false);
+      expect(pivotAfterStep().magnitude).toBeLessThan(1e-4);
+    } finally {
+      Prefs.local.clear();
+      Selection.set([], null, false);
+    }
   });
 });
 

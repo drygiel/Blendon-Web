@@ -171,7 +171,7 @@ export const LookAtRotation = {
 
 /**
  * An X/Y/Z press re-pointed the drag: the angle so far carries over to the new axis, as in the R grab and Blender.
- * Precision and rotate snap work as in a ring drag.
+ * Precision, rotate snap and Rotate To Cursor work as in a ring drag.
  */
 export class RotateManualTracking {
   private readonly coordinator: GizmoDragCoordinator;
@@ -180,6 +180,7 @@ export class RotateManualTracking {
   private readonly lookAtDriving: () => boolean;
   private readonly applyAngle: (a: number) => void;
   private readonly applyNumeric: () => void;
+  private readonly rotateToCursor: () => boolean;
   // Angle so far at the last axis key, for the next re-seed. Null re-seeds from the ring, after look-at.
   private carried: number | null = null;
   private dragOriginMouse = Vector2.zero;
@@ -200,6 +201,7 @@ export class RotateManualTracking {
     lookAtDriving: () => boolean,
     applyAngle: (a: number) => void,
     applyNumeric: () => void,
+    rotateToCursor: () => boolean,
   ) {
     this.coordinator = coordinator;
     this.ringForAxis = ringForAxis;
@@ -207,6 +209,7 @@ export class RotateManualTracking {
     this.lookAtDriving = lookAtDriving;
     this.applyAngle = applyAngle;
     this.applyNumeric = applyNumeric;
+    this.rotateToCursor = rotateToCursor;
     // Every end path, so a lock from this drag can't freeze the rings of the next one.
     coordinator.onEnded(() => this.clearSession());
   }
@@ -304,11 +307,19 @@ export class RotateManualTracking {
       this.trackedAxis = c.activeAxis;
       this.trackedAxisDir = axisDir;
       this.tracker.anchor(pivot, axisDir, this.refDir, current);
+      this.tracker.aimLinear(pivot, axisDir, this.refDir, this.ringRadius());
     }
-    const viewDir = GizmoRenderer.computeViewDir(pivot, GizmoRenderer.currentCamera());
-    this.totalAngle +=
-      this.tracker.frameDelta(pivot, axisDir, this.refDir, this.ringRadius(), viewDir, current) *
-      RotateSnap.precisionScale;
+    const frameDelta = this.rotateToCursor()
+      ? this.tracker.frameDelta(
+          pivot,
+          axisDir,
+          this.refDir,
+          this.ringRadius(),
+          GizmoRenderer.computeViewDir(pivot, GizmoRenderer.currentCamera()),
+          current,
+        )
+      : this.tracker.linearDelta(current);
+    this.totalAngle += frameDelta * RotateSnap.precisionScale;
     const angle = RotateSnap.snap(this.totalAngle);
     this.mouseAngle = angle;
     GizmoHud.setAbsoluteDelta(angle);

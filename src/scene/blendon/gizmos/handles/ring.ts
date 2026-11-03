@@ -104,6 +104,9 @@ export class RingAngleTracker {
   // Plane sweep minus screen sweep since the plane angle last became readable, and the share of it handed out.
   private planeLead = 0;
   private leadGiven = 0;
+  // Unity-style linear drag: the screen axis the tangent at the zero direction mostly runs along, signed scale.
+  private linearOnX = true;
+  private linearDegPerPixel = 1;
 
   anchor(position: Vector3, axis: Vector3, refDir: Vector3, mouse: Vector2) {
     const a = RingGeometry.tryAbsoluteAngle(position, axis, refDir, mouse);
@@ -112,6 +115,24 @@ export class RingAngleTracker {
     this.prevRayCos = RingGeometry.rayAxisCosine(axis, mouse);
     this.prevMouse = mouse;
     this.planeLead = this.leadGiven = 0;
+  }
+
+  /** Aims linearDelta along the ring's tangent at refDir. */
+  aimLinear(position: Vector3, axis: Vector3, refDir: Vector3, radius: number) {
+    const tangent = Vector3.cross(axis, refDir).normalized;
+    const center = HandleUtility.worldToGUIPoint(position);
+    const tv = HandleUtility.worldToGUIPoint(position.add(tangent.mul(radius))).sub(center);
+    this.linearOnX = Math.abs(tv.x) >= Math.abs(tv.y);
+    const comp = this.linearOnX ? tv.x : tv.y;
+    const sign = Math.abs(comp) > 1e-4 ? Mathf.Sign(comp) : 1;
+    this.linearDegPerPixel = sign * (180 / (2 * Math.max(tv.magnitude, 1)));
+  }
+
+  /** Linear frame delta (deg): only how far the mouse moves along that screen axis counts. */
+  linearDelta(current: Vector2) {
+    const raw = this.linearOnX ? current.x - this.prevMouse.x : current.y - this.prevMouse.y;
+    this.prevMouse = current;
+    return raw * this.linearDegPerPixel;
   }
 
   /** Both sweeps and the share depend only on where the cursor is, so leaving a pixel and coming back adds nothing. */
@@ -300,11 +321,6 @@ export class RotationRingHandle {
   private dragAxis = Vector3.up;
   private dragAxisColor = Color.white;
   private dragRadius = 1;
-  // The linear (not rotate-to-cursor) mode, locked at the press.
-  private linearAxisIsScreenX = true;
-  private linearDegPerPixel = 1;
-  private linearSign = 1;
-  private prevRingMousePos = Vector2.zero;
   private totalAngle = 0;
   private readonly tracker = new RingAngleTracker();
   private viewDir = Vector3.forward;
@@ -439,36 +455,16 @@ export class RotationRingHandle {
       const d = hit.sub(position);
       if (d.sqrMagnitude > 1e-8) this.refDir = d.normalized;
     }
-    this.prevRingMousePos = c.wrap.virtualMousePosition;
-    this.tracker.anchor(position, axis, this.refDir, this.prevRingMousePos);
-    // The linear mode drives off whichever screen axis the ring's tangent mostly runs along at the press.
-    const tangent = Vector3.cross(axis, this.refDir).normalized;
-    const center = HandleUtility.worldToGUIPoint(position);
-    const tv = HandleUtility.worldToGUIPoint(position.add(tangent.mul(radius))).sub(center);
-    this.linearAxisIsScreenX = Math.abs(tv.x) >= Math.abs(tv.y);
-    const comp = this.linearAxisIsScreenX ? tv.x : tv.y;
-    this.linearSign = Math.abs(comp) > 1e-4 ? Mathf.Sign(comp) : 1;
-    this.linearDegPerPixel = 180 / (2 * Math.max(tv.magnitude, 1));
+    this.tracker.anchor(position, axis, this.refDir, c.wrap.virtualMousePosition);
+    this.tracker.aimLinear(position, axis, this.refDir, radius);
     this.dragStarted.invoke(axis);
   }
 
   private updateRingDrag(position: Vector3, settings: RotateGizmoSettings) {
     const current = this.coordinator.wrap.virtualMousePosition;
-    let frameDelta: number;
-    if (settings.RotateToCursorEnabled)
-      frameDelta = this.tracker.frameDelta(
-        position,
-        this.dragAxis,
-        this.refDir,
-        this.dragRadius,
-        this.viewDir,
-        current,
-      );
-    else {
-      const raw = this.linearAxisIsScreenX ? current.x - this.prevRingMousePos.x : current.y - this.prevRingMousePos.y;
-      frameDelta = raw * this.linearSign * this.linearDegPerPixel;
-    }
-    this.prevRingMousePos = current;
+    const frameDelta = settings.RotateToCursorEnabled
+      ? this.tracker.frameDelta(position, this.dragAxis, this.refDir, this.dragRadius, this.viewDir, current)
+      : this.tracker.linearDelta(current);
     this.totalAngle += frameDelta * RotateSnap.precisionScale;
     this.appliedAngle = RotateSnap.snap(this.totalAngle);
     this.dragged.invoke(this.dragAxis, this.appliedAngle);
@@ -491,7 +487,6 @@ export class RotationRingHandle {
     const current = this.coordinator.wrap.virtualMousePosition;
     this.totalAngle = angle;
     this.appliedAngle = angle;
-    this.prevRingMousePos = current;
     this.tracker.anchor(this.coordinator.pivotAtDragStart, this.dragAxis, this.refDir, current);
   }
 

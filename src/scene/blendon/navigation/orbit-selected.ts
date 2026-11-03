@@ -130,8 +130,10 @@ const ctx = {
   startOffset: Vector3.zero,
   startRotation: Quaternion.identity,
   isValid: false,
+  view: null as SceneView | null,
 
   capture(view: SceneView, targets: Transform[]) {
+    ctx.view = view;
     ctx.center = VertexSnappingUtility.hasPick
       ? VertexSnappingUtility.pickedPoint
       : targets.length === 0
@@ -161,9 +163,31 @@ export const OrbitSelected = {
   RollShortcutId,
   Settings: OrbitSelectedSettings,
   AxisViewRotations,
+  isRightClickPart,
 
   get isOrbiting() {
     return input.isActive;
+  },
+
+  /** Orbit Selected answers here. Key steps and the gizmo follow it, else they turn about the view pivot. */
+  get active() {
+    return OrbitSelectedSettings.Enabled && ShortcutGates.allows(OrbitSelectedSettings.ContextOnly);
+  },
+
+  /** resolveOrbitCenter while Orbit Selected is active, else the pivot given. */
+  turnCenter(view: SceneView, pivot: Vector3) {
+    return OrbitSelected.active ? OrbitSelected.resolveOrbitCenter(view) : pivot;
+  },
+
+  /**
+   * A wheel zoom mid-orbit moved the pivot. The drag rebuilds the pivot from its start, so it takes the shift along,
+   * else the next move throws the view back.
+   */
+  followPivotShift(view: SceneView, shift: Vector3) {
+    if (!input.isActive || st.isPanning || QuickRoll.isRolling || view !== ctx.view) return;
+    // Unlike a reseat it keeps an ortho pivot's depth.
+    const delta = view.rotation.mul(Quaternion.inverse(ctx.startRotation));
+    ctx.startOffset = ctx.startOffset.add(Quaternion.inverse(delta).mulV(shift));
   },
 
   /** The point a drag, the gizmo's axis snap and the numpad steps all swing about. */
@@ -303,11 +327,7 @@ function onSceneGUI(view: SceneView) {
   if (e.type === EventType.MouseMove && (clutchHeld || input.isActive)) forceReleaseStuckDrag();
 
   // Outside Blendon's context the middle click may be the Editor's Focus.
-  if (
-    !OrbitSelectedSettings.Enabled ||
-    !ShortcutGates.allows(OrbitSelectedSettings.ContextOnly) ||
-    ModalViewportGate.isBlocked
-  ) {
+  if (!OrbitSelected.active || ModalViewportGate.isBlocked) {
     if (input.isActive) stopOrbitDrag(view, controlId);
     return;
   }
@@ -565,9 +585,9 @@ function stopOrbitDrag(view: SceneView, controlId: number) {
   view.repaint();
 }
 
-// Only meaningful when the centre is the point raycast under the cursor (nothing selected).
+// Only with nothing selected: the point under the cursor with Depth on, else the view pivot.
 function drawPivotDot() {
-  if (SelectionCache.count > 0 || !OrbitSelectedSettings.Depth) return;
+  if (SelectionCache.count > 0) return;
   let color = GizmoColors.CenterDot;
   if (EditorRaycastUtility.isOccluded(ctx.center, Camera.current)) color = withFade(color, 0.5);
   Handles.color = color;

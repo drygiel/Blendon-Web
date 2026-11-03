@@ -302,20 +302,23 @@ export class MenuSession {
   }
 }
 
-function crumb(node: MenuNode) {
+function crumb(node: MenuNode, folder: string) {
   const item = node.item;
   if (item) return item.folderPath ? item.folderPath.replace(/\//g, ' > ') + ' > ' : '';
-  return node.caption ? node.caption + ' > ' : '';
+  return folder.replace(/\//g, ' > ');
 }
 
-function match(rows: MenuRow[], node: MenuNode, iconFrom: MenuNode, search: string) {
+/** folder is "Reset/"-style, carried down for Blendon's entries, which have no Editor path. */
+function match(rows: MenuRow[], node: MenuNode, iconFrom: MenuNode, search: string, folder = '') {
   if (node.isFolder) {
-    for (const c of node.children) match(rows, c, c.hasIcon ? c : iconFrom, search);
+    for (const c of node.children) match(rows, c, c.hasIcon ? c : iconFrom, search, folder + node.label + '/');
     return;
   }
-  const path = node.item?.path ?? node.label;
+  // A caption stands in for a folder.
+  const parent = !node.item && !folder && node.caption ? node.caption + '/' : folder;
+  const path = node.item?.path ?? parent + node.label;
   if (!path.toLowerCase().includes(search.toLowerCase())) return;
-  rows.push({ kind: 'item', node, text: crumb(node), iconFrom: iconFrom.hasIcon ? iconFrom : undefined });
+  rows.push({ kind: 'item', node, text: crumb(node, parent), iconFrom: iconFrom.hasIcon ? iconFrom : undefined });
 }
 
 function addNodes(rows: MenuRow[], nodes: MenuNode[]) {

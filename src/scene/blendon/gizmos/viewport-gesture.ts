@@ -1,6 +1,8 @@
 // ViewportGesture: the two questions every Scene view shortcut asks before it acts.
 import { EventModifiers, Event, EventType, IS_MAC } from '../../unity/imgui.ts';
 import { ShortcutManager, ShortcutModifiers, type KeyCombination } from '../../unity/editor.ts';
+import type { Vector2 } from '../../unity/math.ts';
+import type { GameObject } from '../../unity/scene.ts';
 import { ModalViewportGate } from '../foundation.ts';
 
 /** Filled in by GizmoController: the modal grab owning the view, if any. */
@@ -24,6 +26,9 @@ export const ViewportGesture = {
   get busy() {
     return ModalViewportGate.isBlocked || GizmoRegistry.hasModalSession();
   },
+
+  /** Filled in by ClickSelectParent: what a still click on a gizmo handle selects instead, if it walks up. */
+  handleClickWalk: (() => null) as (position: Vector2) => GameObject[] | null,
 
   /** Offers this shortcut's keys to a running grab; true when the grab took them. */
   claimed(shortcutId: string) {

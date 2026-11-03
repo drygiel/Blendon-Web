@@ -208,6 +208,27 @@ function applyView(state: ViewState) {
   lastSeen = state;
 }
 
+// False when there is no entry that way. An entry that would leave the view where it is gets skipped.
+function moveBy(step: number) {
+  const v = SceneView.lastActiveSceneView;
+  if (!v) return false;
+  const heading: ViewState = {
+    pivot: ViewOrbitTween.pendingPivot(v),
+    rotation: ViewOrbitTween.pendingRotation(v).normalized,
+    size: ViewOrbitTween.pendingSize(v),
+    orthographic: ViewOrbitTween.pendingOrthographic(v),
+  };
+  for (let i = viewIndex + step; i >= 0 && i < viewEntries.length; i += step) {
+    // A rotation-locked view keeps its facing. Pivot, size and projection still go back.
+    const target = v.isRotationLocked ? { ...viewEntries[i], rotation: heading.rotation } : viewEntries[i];
+    if (same(target, heading)) continue;
+    viewIndex = i;
+    applyView(target);
+    return true;
+  }
+  return false;
+}
+
 export const ViewHistory = {
   BackShortcutId: 'Blendon/Navigation History/View Back',
   ForwardShortcutId: 'Blendon/Navigation History/View Forward',
@@ -230,14 +251,10 @@ export const ViewHistory = {
   },
 
   moveBack() {
-    if (!ViewHistorySettings.Enabled || viewIndex <= 0) return;
-    applyView(viewEntries[--viewIndex]);
-    SceneTutorial.reportShortcut(ViewHistory.BackShortcutId);
+    if (ViewHistorySettings.Enabled && moveBy(-1)) SceneTutorial.reportShortcut(ViewHistory.BackShortcutId);
   },
 
   moveForward() {
-    if (!ViewHistorySettings.Enabled || viewIndex >= viewEntries.length - 1) return;
-    applyView(viewEntries[++viewIndex]);
-    SceneTutorial.reportShortcut(ViewHistory.ForwardShortcutId);
+    if (ViewHistorySettings.Enabled && moveBy(1)) SceneTutorial.reportShortcut(ViewHistory.ForwardShortcutId);
   },
 };

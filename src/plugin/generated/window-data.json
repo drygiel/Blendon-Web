@@ -292,7 +292,7 @@
  "props": {
   "GeneralSettings.Enabled": {
    "l": "Enable Blendon",
-   "t": "<size=14><b>Blendon</b></size>\nSwitch every Blendon feature on or off at once.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nEvery feature sleeps and its keys go back to the Editor, as if Blendon were not installed.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nEach feature follows its own switch in the list below.\n\n<size=9><color=#92929A>Nothing is lost while it is off</color></size>",
+   "t": "<size=14><b>Blendon</b></size>\nSwitch every Blendon feature on or off at once.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nEvery feature sleeps and its keys go back to the Editor, as if Blendon were not installed. Editor commands the Blendon keys moved aside get their own keys back too.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nEach feature follows its own switch in the list below. Those commands move aside again, unless you changed their key meanwhile.\n\n<size=9><color=#92929A>Nothing is lost while it is off</color></size>",
    "i": "Tips/Overview/MasterSwitch.png",
    "d": true,
    "k": "Boolean"
@@ -306,7 +306,7 @@
   },
   "GeneralSettings.ShowShortcutTips": {
    "l": "Shortcut Tips",
-   "t": "<size=14><b>Shortcut Tips</b></size>\nExplain a key the first time you press it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nWhen one of Blendon's keys took over an Editor command, or two commands share it, a card in the <b><color=#3DB892>Scene View</color></b> names both and where to change them.\n\n<size=9><color=#92929A>Once per key per session. Armed again whenever a binding changes</color></size>",
+   "t": "<size=14><b>Shortcut Tips</b></size>\nExplain a key the first time you press it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nWhen one of Blendon's keys took over an Editor command, or two commands share it, a card in the <b><color=#3DB892>Scene View</color></b> names both and where to change them.\n\n<size=9><color=#92929A>Once per key per session. Armed again when its key, or a command it clashes with, is rebound</color></size>",
    "i": "Tips/Overview/ShortcutTips.png",
    "d": true,
    "k": "Boolean"
@@ -714,7 +714,7 @@
   },
   "ZoomSettings.Method": {
    "l": "Method",
-   "t": "<size=14><b>Zoom Method</b></size>\nHow a scroll turns into zoom, as in Blender.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scale</b> - one even step per notch, toward the <b><color=#4FA8E8>Zoom To</color></b> point. The default\n<color=#92929A>•</color> <b>Dolly</b> - flies the camera forward along its view\n<color=#92929A>•</color> <b>Continue</b> - scroll faster to zoom further\n\n<size=9><color=#92929A>Blender: Preferences > Navigation > Zoom Method</color></size>",
+   "t": "<size=14><b>Zoom Method</b></size>\nHow a scroll turns into zoom, as in Blender.\n\n<size=9><b><color=#92929A>OPTIONS</color></b></size>\n<color=#92929A>•</color> <b>Scale</b> - one even step per notch, toward the <b><color=#4FA8E8>Zoom To</color></b> point. The default\n<color=#92929A>•</color> <b>Dolly</b> - flies the camera toward the <b><color=#4FA8E8>Zoom To</color></b> point\n<color=#92929A>•</color> <b>Continue</b> - scroll faster to zoom further\n\n<size=9><color=#92929A>Blender: Preferences > Navigation > Zoom Method</color></size>",
    "i": "Tips/Zoom/Method.png",
    "d": "Scale",
    "k": "ZoomMethod",
@@ -1817,7 +1817,7 @@
    "l": "Offset",
    "t": "<size=14><b>Plane Handle Offset</b></size>\nHow far out from the center the plane handles sit.",
    "i": "Tips/Move/PlaneOffset.png",
-   "d": 0.01,
+   "d": 0.3,
    "k": "Single"
   },
   "TransformMoveSettings.PlaneShape": {
@@ -2149,10 +2149,10 @@
   },
   "SnapToFloorSettings.SurfaceLayers": {
    "l": "Surface Layers",
-   "t": "<size=14><b>Surface Layers</b></size>\nWhich <b><color=#3DB892>Layers</color></b> count as something to land on.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nObjects pass through surfaces on unticked layers and land on the first ticked one, or on the terrain or the ground plane at <b>Y = 0</b> when none is there.",
+   "t": "<size=14><b>Surface Layers</b></size>\nWhich <b><color=#3DB892>Layers</color></b> count as something to land on.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nObjects pass through surfaces on unticked layers and land on the first ticked one, or on the terrain or the ground plane at <b>Y = 0</b> when none is there.\n\n<size=9><color=#92929A>Kept by layer name, so it means the same in every project. A layer added later counts until you untick it.</color></size>",
    "i": "Tips/SnapToFloor/SurfaceLayers.png",
-   "d": -1,
-   "k": "Int32"
+   "d": "",
+   "k": "String"
   },
   "SnapToFloorSettings.AlignToSurface": {
    "l": "Align to Surface",
@@ -2557,9 +2557,9 @@
   },
   "ViewHistorySettings.Enabled": {
    "l": "Enable",
-   "t": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n<b><color=#D98E38>Shift+Mouse 3</color></b> - back\n<b><color=#D98E38>Shift+Mouse 4</color></b> - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>",
+   "t": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n<b><color=#D98E38>Shift+Mouse 3</color></b> - back\n<b><color=#D98E38>Shift+Mouse 4</color></b> - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. In 2D or with the rotation locked, a step never turns the view. Off frees both buttons for the Editor</color></size>",
    "i": "Tips/NavigationHistory/ViewHistory.png",
-   "src": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/View Back} - back\n{key:Blendon/Navigation History/View Forward} - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>",
+   "src": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/View Back} - back\n{key:Blendon/Navigation History/View Forward} - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. In 2D or with the rotation locked, a step never turns the view. Off frees both buttons for the Editor</color></size>",
    "d": true,
    "k": "Boolean"
   },
@@ -2625,7 +2625,7 @@
   },
   "PieMenuSettings.Threshold": {
    "l": "Deadzone",
-   "t": "<size=14><b>Deadzone</b></size>\nHow far the cursor must move from the center before it points at an item.\n\n<size=9><b><color=#92929A>EXAMPLES</color></b></size>\n<b>12</b> - a small nudge is enough\n<b>40</b> - forgiving, for a shaky hand\n\n<size=9><color=#92929A>Let go inside it and the menu closes without running anything</color></size>",
+   "t": "<size=14><b>Deadzone</b></size>\nHow far the cursor must move from the center before it points at an item. It stays under 3/4 of the <b>Radius</b>, so a small ring keeps every item in reach.\n\n<size=9><b><color=#92929A>EXAMPLES</color></b></size>\n<b>12</b> - a small nudge is enough\n<b>40</b> - forgiving, for a shaky hand\n\n<size=9><color=#92929A>Let go inside it and the menu closes without running anything</color></size>",
    "i": "Tips/PieMenus/Deadzone.png",
    "d": 12,
    "k": "Single"
@@ -2667,7 +2667,7 @@
   },
   "PieMenuSettings.PlaceOnFloor": {
    "l": "Place On Floor",
-   "t": "<size=14><b>Place On Floor</b></size>\nObjects created from a pie rest on the point you clicked, instead of sinking halfway in.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nThe new object moves so the bottom of its mesh touches the point, whatever its pivot. Over empty ground the point is at Y = 0.\n\n<size=9><color=#92929A>Applies to Add Object items in any pie</color></size>",
+   "t": "<size=14><b>Place On Floor</b></size>\nObjects created from a pie or the Context Menu's <b>Add</b> rest on the point you clicked, instead of sinking halfway in.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nThe new object moves so the bottom of its mesh touches the point, whatever its pivot. Over empty ground the point is at Y = 0.\n\n<size=9><color=#92929A>Applies to Add Object items in any pie and to the Context Menu's Add, so it stays on with the pies off</color></size>",
    "i": "Tips/PieMenus/PlaceOnFloor.png",
    "d": true,
    "k": "Boolean"
@@ -2777,7 +2777,7 @@
   },
   "SceneMenuSettings.AddObject": {
    "l": "Add Object",
-   "t": "<size=14><b>Add Object</b></size>\nAn <b>Add</b> submenu: empty, primitives, light, camera, particles.\n\n<size=9><b><color=#92929A>WHERE IT LANDS</color></b></size>\nWhere you right-clicked: on the surface under the cursor, or on the grid.\n\n<size=9><color=#92929A>Placed the same way as the Add Object pie</color></size>",
+   "t": "<size=14><b>Add Object</b></size>\nAn <b>Add</b> submenu: empty, primitives, light, camera, particles.\n\n<size=9><b><color=#92929A>WHERE IT LANDS</color></b></size>\nWhere you right-clicked: on the surface under the cursor, or on the grid.\n\n<size=9><color=#92929A>Placed the same way as the Add Object pie, <b>Place On Floor</b> on the Pie Menus page included</color></size>",
    "i": "Tips/ContextMenu/AddObject.png",
    "d": true,
    "k": "Boolean"
@@ -2798,9 +2798,9 @@
   },
   "SceneMenuSettings.SnapToFloor": {
    "l": "Snap to Floor",
-   "t": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, <b><color=#D98E38>End</color></b>.",
+   "t": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, <b><color=#D98E38>End</color></b>.\n\n<size=9><color=#92929A>Greyed while the Snap to Floor page is off</color></size>",
    "i": "Tips/ContextMenu/SnapToFloor.png",
-   "src": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, {key:Blendon/Snap to Floor}.",
+   "src": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, {key:Blendon/Snap to Floor}.\n\n<size=9><color=#92929A>Greyed while the Snap to Floor page is off</color></size>",
    "d": true,
    "k": "Boolean"
   },
@@ -4800,7 +4800,37 @@
         "The modifier is None, so nothing slows a drag down or halves its snap increment. Pick a key here, or switch Precision Mode off."
        ]
       ],
-      null
+      [
+       [
+        "if",
+        [
+         "&&",
+         [
+          "v",
+          "SharedGizmoSettings.PrecisionModeEnabled"
+         ],
+         [
+          "==",
+          [
+           "v",
+           "SharedGizmoSettings.PrecisionModifier"
+          ],
+          [
+           "c",
+           "Action"
+          ]
+         ]
+        ],
+        [
+         [
+          "note",
+          "The Editor's snap key too, so a drag with it also snaps or stops snapping.",
+          "While Ctrl (Cmd on macOS) is held the Editor turns its snapping the other way, and Blendon's tools follow it. Pick another key to keep the two apart."
+         ]
+        ],
+        null
+       ]
+      ]
      ],
      [
       "sld",
@@ -4837,7 +4867,30 @@
       "Both gestures read the key during the same drag, so holding it engages them together. Give one of them a key of its own - here, or on the page the other lives on."
      ]
     ],
-    null
+    [
+     [
+      "if",
+      [
+       "==",
+       [
+        "v",
+        "SharedGizmoSettings.AimModifier"
+       ],
+       [
+        "c",
+        "Action"
+       ]
+      ],
+      [
+       [
+        "note",
+        "The Editor's snap key too, so a drag with it also snaps or stops snapping.",
+        "While Ctrl (Cmd on macOS) is held the Editor turns its snapping the other way, and Blendon's tools follow it. Pick another key to keep the two apart."
+       ]
+      ],
+      null
+     ]
+    ]
    ],
    [
     "sub",
@@ -6938,15 +6991,8 @@
      [
       "if",
       [
-       "==",
-       [
-        "v",
-        "SnapToFloorSettings.SurfaceLayers"
-       ],
-       [
-        "c",
-        0
-       ]
+       "v",
+       "SnapToFloorSettings.SurfaceMask"
       ],
       [
        [
@@ -7239,6 +7285,34 @@
       "d_scenepicking_pickable",
       15,
       0
+     ],
+     [
+      "if",
+      [
+       "v",
+       "BoxSelectSettings.Enabled"
+      ],
+      [
+       [
+        "if",
+        [
+         "!",
+         [
+          "f",
+          "anyTool"
+         ]
+        ],
+        [
+         [
+          "note",
+          "Every transform tool is off, so Blendon's context only comes on with its key.",
+          "Blendon switches to its tool context by itself only while Move, Rotate, Scale or Transform is on. With all four off this tool stays silent until you press Toggle Blendon."
+         ]
+        ],
+        null
+       ]
+      ],
+      null
      ],
      [
       "tog",
@@ -7635,11 +7709,49 @@
      [
       "tog",
       "PieMenuSettings.ShowAccelerators"
-     ],
+     ]
+    ]
+   ],
+   [
+    "dis",
+    [
+     "!",
+     [
+      "||",
+      [
+       "v",
+       "PieMenuSettings.Enabled"
+      ],
+      [
+       "&&",
+       [
+        "v",
+        "SceneMenuSettings.Enabled"
+       ],
+       [
+        "v",
+        "SceneMenuSettings.AddObject"
+       ]
+      ]
+     ]
+    ],
+    [
      [
       "tog",
       "PieMenuSettings.PlaceOnFloor"
-     ],
+     ]
+    ]
+   ],
+   [
+    "dis",
+    [
+     "!",
+     [
+      "v",
+      "PieMenuSettings.Enabled"
+     ]
+    ],
+    [
      [
       "fold",
       "Appearance",
@@ -7735,8 +7847,15 @@
      [
       "if",
       [
-       "v",
-       "PieMenuSettings.ContextOnly"
+       "&&",
+       [
+        "v",
+        "PieMenuSettings.Enabled"
+       ],
+       [
+        "v",
+        "PieMenuSettings.ContextOnly"
+       ]
       ],
       [
        [
@@ -7855,6 +7974,31 @@
      ],
      [
       "extras"
+     ],
+     [
+      "if",
+      [
+       "&&",
+       [
+        "v",
+        "SceneMenuSettings.SnapToFloor"
+       ],
+       [
+        "!",
+        [
+         "v",
+         "SnapToFloorSettings.Enabled"
+        ]
+       ]
+      ],
+      [
+       [
+        "note",
+        "Snap to Floor is off on its own page, so its entry stays greyed.",
+        "The entry runs Blendon's Snap to Floor, which has no Editor counterpart to fall back on. Switch the Snap to Floor page on to use it from the menu."
+       ]
+      ],
+      null
      ]
     ]
    ]
@@ -9410,7 +9554,7 @@
  },
  "switchTips": {
   "GeneralSettings": {
-   "t": "<size=14><b>Blendon</b></size>\nSwitch every Blendon feature on or off at once.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nEvery feature sleeps and its keys go back to the Editor, as if Blendon were not installed.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nEach feature follows its own switch in the list below.\n\n<size=9><color=#92929A>Nothing is lost while it is off</color></size>",
+   "t": "<size=14><b>Blendon</b></size>\nSwitch every Blendon feature on or off at once.\n\n<size=9><b><color=#92929A>OFF</color></b></size>\nEvery feature sleeps and its keys go back to the Editor, as if Blendon were not installed. Editor commands the Blendon keys moved aside get their own keys back too.\n\n<size=9><b><color=#92929A>ON</color></b></size>\nEach feature follows its own switch in the list below. Those commands move aside again, unless you changed their key meanwhile.\n\n<size=9><color=#92929A>Nothing is lost while it is off</color></size>",
    "i": "Tips/Overview/MasterSwitch.png"
   },
   "OrbitSelectedSettings": {
@@ -9501,9 +9645,9 @@
    "src": "<size=14><b>Selection History</b></size>\nStep back and forward through what you selected, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/Selection Back} - back\n{key:Blendon/Navigation History/Selection Forward} - forward, the side buttons of most mice\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>"
   },
   "ViewHistorySettings": {
-   "t": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n<b><color=#D98E38>Shift+Mouse 3</color></b> - back\n<b><color=#D98E38>Shift+Mouse 4</color></b> - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>",
+   "t": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n<b><color=#D98E38>Shift+Mouse 3</color></b> - back\n<b><color=#D98E38>Shift+Mouse 4</color></b> - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. In 2D or with the rotation locked, a step never turns the view. Off frees both buttons for the Editor</color></size>",
    "i": "Tips/NavigationHistory/ViewHistory.png",
-   "src": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/View Back} - back\n{key:Blendon/Navigation History/View Forward} - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. Off frees both buttons for the Editor</color></size>"
+   "src": "<size=14><b>View History</b></size>\nStep back and forward through camera views, like a browser.\n\n<size=9><b><color=#92929A>BUTTONS</color></b></size>\n{key:Blendon/Navigation History/View Back} - back\n{key:Blendon/Navigation History/View Forward} - forward\n\n<size=9><color=#92929A>Keeps up to 100 steps. In 2D or with the rotation locked, a step never turns the view. Off frees both buttons for the Editor</color></size>"
   },
   "PieMenuSettings": {
    "t": "<size=14><b>Pie Menus</b></size>\nBlender's radial menus: hold a key, flick toward an item, let go.\n\n<size=9><b><color=#92929A>TWO WAYS</color></b></size>\n<b>Flick</b>  hold the key, move toward an item, release\n<b>Tap</b>  press and release quickly: the menu stays open for a click\n\n<size=9><color=#92929A>Off frees every menu's key, built-in and custom. The menus are listed at the bottom of this page</color></size>",
@@ -9532,7 +9676,7 @@
   "tutorialChooseNote": "Click to do this one next. Once it is done, the tutorial picks up where it was",
   "tutorialBadgeLabel": "Blendon Tutorial",
   "tutorialBadgeCloseTip": "Skip the tutorial - its checklist stays in Blendon's settings",
-  "tipsShownTip": "<size=14><b>Show Tips Again</b></size>\nArm every <b><color=#4FA8E8>Shortcut Tip</color></b> again, so the next press of each key explains itself once more.\n\n<size=9><color=#92929A>Tips also re-arm when a binding changes, and when the Editor restarts</color></size>",
+  "tipsShownTip": "<size=14><b>Show Tips Again</b></size>\nArm every <b><color=#4FA8E8>Shortcut Tip</color></b> again, so the next press of each key explains itself once more.\n\n<size=9><color=#92929A>Tips also re-arm when one of their keys, or a command they clash with, is rebound, and when the Editor restarts</color></size>",
   "ioTooltip": "Back up or restore every Blendon setting, shortcut binding and pie menu in one file.",
   "exportTip": "<size=14><b>Export Settings</b></size>\nSave every Blendon setting, shortcut and pie menu to one JSON file.\n\n<size=9><b><color=#92929A>USE IT FOR</color></b></size>\n<color=#92929A>•</color> a backup of your setup\n<color=#92929A>•</color> carrying it to another machine, then <b><color=#4FA8E8>Import Settings</color></b> there",
   "importTip": "<size=14><b>Import Settings</b></size>\nLoad an exported file and replace every Blendon setting, shortcut and pie menu with it.\n\n<size=9><b><color=#92929A>HOW</color></b></size>\nPick a file made by <b><color=#4FA8E8>Export Settings</color></b>. Blendon asks before it replaces anything.\n\n<size=9><color=#92929A>There is no undo, so export first if you may want today's setup back</color></size>",
@@ -10410,7 +10554,7 @@
    "prop": "SceneMenuSettings.AddObject",
    "inline": null,
    "tip": {
-    "t": "<size=14><b>Add Object</b></size>\nAn <b>Add</b> submenu: empty, primitives, light, camera, particles.\n\n<size=9><b><color=#92929A>WHERE IT LANDS</color></b></size>\nWhere you right-clicked: on the surface under the cursor, or on the grid.\n\n<size=9><color=#92929A>Placed the same way as the Add Object pie</color></size>",
+    "t": "<size=14><b>Add Object</b></size>\nAn <b>Add</b> submenu: empty, primitives, light, camera, particles.\n\n<size=9><b><color=#92929A>WHERE IT LANDS</color></b></size>\nWhere you right-clicked: on the surface under the cursor, or on the grid.\n\n<size=9><color=#92929A>Placed the same way as the Add Object pie, <b>Place On Floor</b> on the Pie Menus page included</color></size>",
     "i": "Tips/ContextMenu/AddObject.png"
    },
    "inlineTip": {
@@ -10440,9 +10584,9 @@
    "prop": "SceneMenuSettings.SnapToFloor",
    "inline": null,
    "tip": {
-    "t": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, <b><color=#D98E38>End</color></b>.",
+    "t": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, <b><color=#D98E38>End</color></b>.\n\n<size=9><color=#92929A>Greyed while the Snap to Floor page is off</color></size>",
     "i": "Tips/ContextMenu/SnapToFloor.png",
-    "src": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, {key:Blendon/Snap to Floor}."
+    "src": "<size=14><b>Snap to Floor</b></size>\nDrop the selection onto the surface below it.\n\n<size=9><b><color=#92929A>SAME AS</color></b></size>\nBlendon's <b><color=#4FA8E8>Snap to Floor</color></b> key, {key:Blendon/Snap to Floor}.\n\n<size=9><color=#92929A>Greyed while the Snap to Floor page is off</color></size>"
    },
    "inlineTip": {
     "t": "",
@@ -11254,7 +11398,7 @@
     "TransformMoveSettings.PlaneEnabled": false,
     "TransformMoveSettings.PlaneShape": "Rectangle",
     "TransformMoveSettings.PlaneSize": 0.09,
-    "TransformMoveSettings.PlaneOffset": 0.01,
+    "TransformMoveSettings.PlaneOffset": 0.3,
     "TransformMoveSettings.PlaneOutlineThickness": 0.686,
     "TransformMoveSettings.ScreenRingEnabled": true,
     "TransformMoveSettings.ScreenRingRadius": 0.166,

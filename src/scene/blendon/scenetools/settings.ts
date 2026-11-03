@@ -32,20 +32,26 @@ export const FrameSelectedSettings = {
     const text = FrameSelectedSettings.SequenceText;
     if (text === parsedText) return cycle;
     parsedText = text;
-    // A leading '-' keeps a step's place in the order while leaving it out of the cycle.
-    const seen = new Set<number>();
-    const out: FrameSelectedStep[] = [];
-    for (const token of text.split(',')) {
-      const on = token.length > 0 && token[0] !== '-';
-      const step = StepNames.indexOf(on ? token : token.replace(/^-+/, ''));
-      if (step < 0 || seen.has(step)) continue;
-      seen.add(step);
-      if (on) out.push(step as FrameSelectedStep);
-    }
-    cycle = out;
+    // The page never lets the last step go. A hand edit can, and the key must not go dead.
+    const out = parseCycle(text);
+    cycle = out.length ? out : parseCycle(StepNames.join(','));
     return cycle;
   },
 };
+
+// A leading '-' keeps a step's place in the order while leaving it out of the cycle.
+function parseCycle(text: string) {
+  const seen = new Set<number>();
+  const out: FrameSelectedStep[] = [];
+  for (const token of text.split(',')) {
+    const on = token.length > 0 && token[0] !== '-';
+    const step = StepNames.indexOf(on ? token : token.replace(/^-+/, ''));
+    if (step < 0 || seen.has(step)) continue;
+    seen.add(step);
+    if (on) out.push(step as FrameSelectedStep);
+  }
+  return out;
+}
 
 export const SnapDirection = { Down: 0, Up: 1 } as const;
 

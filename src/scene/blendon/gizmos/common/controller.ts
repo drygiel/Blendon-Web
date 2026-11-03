@@ -304,6 +304,8 @@ export abstract class GizmoController {
       return true;
     }
     if (this.numeric.processEvent(ev)) {
+      // Before use(), which turns the type to Used.
+      if (ev.type === EventType.KeyDown) this.coordinator.clickGate.markKeyed();
       ev.use();
       if (this.numeric.state === ModalNumericState.NumericInput) applyNumeric();
       else this.takeMouseBack();

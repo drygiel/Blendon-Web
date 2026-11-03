@@ -16,7 +16,7 @@ import type {
   WindowDataFile,
 } from '../../src/plugin/schema.ts';
 import type { AssetPlan } from './assets.ts';
-import { drawMethods, parse, splitArgs, stripComments, type Stmt } from './csharp.ts';
+import { drawMethods, flattenParts, parse, splitArgs, stripComments, type Stmt } from './csharp.ts';
 import { type DumpCard, type DumpKeys, loadDump, type Model1, type Problems, toTip } from './dump.ts';
 import { convert, Ctx, type Helper, type Helpers, PAGE_OWNER, type PropFacts } from './ops.ts';
 
@@ -1037,7 +1037,7 @@ const OVERVIEW_COPY = [
 function checkOverviewCopy(editorDir: string, out: Problems): void {
   const file = walkFiles(editorDir).find((f) => basename(f) === 'OverviewPage.cs');
   if (!file) return out.add('OverviewPage.cs: not found');
-  const code = stripComments(readFileSync(file, 'utf8')).replace(/\s+/g, ' ');
+  const code = flattenParts(stripComments(readFileSync(file, 'utf8'))).replace(/\s+/g, ' ');
   const copy = [...WINDOW_COPY, ...OVERVIEW_COPY];
   let at = 0;
   for (const statement of copy) {

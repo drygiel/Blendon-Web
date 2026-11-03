@@ -204,6 +204,13 @@ export function cond(ctx: Ctx, expr: string): Cond {
     // GeneralSettings.ColorsEditable is Enabled under another name.
     if (/^(?:\w+\.)?ColorsEditable$/.test(t)) return ['v', 'GeneralSettings.Enabled'];
     if (/^(?:\w+\.)?AnyToolEnabled$/.test(t)) return ['f', 'anyTool'];
+    // SpawnPlacement.PlaceOnFloorUsed: the pies, or the Context Menu's Add (SceneMenu fills SceneMenuAdds in).
+    if (t === 'SpawnPlacement.PlaceOnFloorUsed')
+      return [
+        '||',
+        ['v', 'PieMenuSettings.Enabled'],
+        ['&&', ['v', 'SceneMenuSettings.Enabled'], ['v', 'SceneMenuSettings.AddObject']],
+      ];
     if (t.endsWith('.SupportsBounds()'))
       return ['f', 'supportsBounds', ['v', ctx.prop(t.slice(0, -'.SupportsBounds()'.length))]];
     if (t.endsWith('.WrapsAtEdge()'))
@@ -409,6 +416,15 @@ function callOps(ctx: Ctx, fn: string, args: string[], text: string, helpers: He
         ['if', ['&&', ['v', prop], ['!', ['f', 'anyTool']]], [['note', note, tip]], null],
       ];
     }
+    case 's.ContextNote':
+      return [
+        [
+          'if',
+          ['!', ['f', 'anyTool']],
+          [['note', ctx.constant('SettingsControls.NoContextNote'), ctx.constant('SettingsControls.NoContextTip')]],
+          null,
+        ],
+      ];
     case 's.ShortcutField':
       if (args.length === 1) {
         // A key row declared on the page: its label and card are the setting's, its shortcut the dump's.

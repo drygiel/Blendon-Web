@@ -4,12 +4,23 @@ import { EditorApplication, Selection, ShortcutManager, Tool, Tools, Undo } from
 import { HandleUtility } from '../../unity/handles.ts';
 import { Event, EventModifiers, EventType, GUIUtility } from '../../unity/imgui.ts';
 import { Vector2 } from '../../unity/math.ts';
-import type { GameObject } from '../../unity/scene.ts';
+import type { GameObject, Transform } from '../../unity/scene.ts';
 import { SceneView } from '../../unity/sceneview.ts';
 import { SceneTutorial, ShortcutTips } from '../foundation.ts';
 import { ViewportGesture } from '../gizmos/viewport-gesture.ts';
 import { blendonContextActive } from '../tool-context.ts';
 import { BoxSelectSettings } from './settings.ts';
+
+// One the Scene view hides (Hide, Isolate) is never a step's target.
+function isHidden(t: Transform) {
+  return t.gameObject.scene.isHidden(t.gameObject);
+}
+
+/** The parent a step up may select, none when the Scene view hides it. */
+function parentOf(t: Transform) {
+  const parent = t.parent;
+  return parent && !isHidden(parent) ? parent : null;
+}
 
 // Selection.objects makes its first entry active, so the lead goes to the front.
 function commit(next: GameObject[], lead: GameObject | null, undoName: string) {
@@ -65,12 +76,13 @@ export const HierarchyWalk = {
       let moved = false;
       if (down) {
         for (const child of go.transform.children) {
+          if (isHidden(child)) continue;
           take(child.gameObject);
           if (!moved && go === active) lead = child.gameObject;
           moved = true;
         }
-      } else if (go.transform.parent) {
-        const parent = go.transform.parent.gameObject;
+      } else if (parentOf(go.transform)) {
+        const parent = parentOf(go.transform)!.gameObject;
         take(parent);
         if (go === active) lead = parent;
         moved = true;
@@ -88,12 +100,13 @@ export const HierarchyWalk = {
     if (selected.length === 0) return;
     const next: GameObject[] = [];
     for (const go of selected)
-      for (const t of go.transform.walk()) if (!next.includes(t.gameObject)) next.push(t.gameObject);
+      for (const t of go.transform.walk())
+        if ((t === go.transform || !isHidden(t)) && !next.includes(t.gameObject)) next.push(t.gameObject);
     commit(next, Selection.activeGameObject, 'Select Hierarchy');
   },
 
-  canStepDown: () => Selection.gameObjects.some((go) => go.transform.children.length > 0),
-  canStepUp: () => Selection.gameObjects.some((go) => !!go.transform.parent),
+  canStepDown: () => Selection.gameObjects.some((go) => go.transform.children.some((c) => !isHidden(c))),
+  canStepUp: () => Selection.gameObjects.some((go) => !!parentOf(go.transform)),
 };
 
 // Further than this between press and release is a drag, not a click.
@@ -127,19 +140,15 @@ export const ClickSelectParent = {
       const previous = selectedAtPress;
       pressView = null;
       selectedAtPress = null;
-      if (!previous || handleHeld || (e.modifiers & HeldKeys) !== 0) return;
-      if (!BoxSelectSettings.Enabled || !BoxSelectSettings.ClickSelectsParent) return;
+      // A handle's still click comes back through handleClickWalk.
+      if (handleHeld) return;
       // Unity's own picking outside Blendon's context.
       if (!blendonContextActive()) return;
       if (e.mousePosition.sub(pressAt).sqrMagnitude > ClickSlop * ClickSlop) return;
       if (Tools.current === Tool.View || Tools.viewToolActive) return;
-      // Only a click on the selected object, or on something under it, walks up.
-      const hit = HandleUtility.pickGameObject(e.mousePosition, false) as GameObject | null;
-      if (!hit || !hit.transform.isChildOf(previous.transform)) return;
-      // Past the top the walk wraps to the object under the cursor, so the parts below stay reachable.
-      const next = previous.transform.parent?.gameObject ?? hit;
-      // Before the selection moves, a task's needs read the object that was clicked.
-      if (previous.transform.parent) SceneTutorial.report('ClickSelectedParent');
+      const hit = hitUnder(previous, e.mousePosition, e.modifiers);
+      if (!hit) return;
+      const next = nextOf(previous!, hit);
       Selection.activeGameObject = next;
       // The Editor's own pick may land after this event; only that pick is overridden.
       EditorApplication.delayCall(() => {
@@ -147,5 +156,31 @@ export const ClickSelectParent = {
         if (active !== next && active === hit) Selection.activeGameObject = next;
       });
     });
+    ViewportGesture.handleClickWalk = onHandleClick;
   },
 };
+
+// The gizmos hand a still click on a handle to the pick, so it walks like a click beside the handle.
+function onHandleClick(position: Vector2): GameObject[] | null {
+  const previous = Selection.count === 1 ? Selection.activeGameObject : null;
+  const hit = hitUnder(previous, position, Event.current.modifiers);
+  if (!hit) return null;
+  const next = nextOf(previous!, hit);
+  return next === previous ? null : [next];
+}
+
+// Only a click on the selected object, or on something under it, walks up.
+function hitUnder(previous: GameObject | null, position: Vector2, modifiers: number) {
+  if (!previous || (modifiers & HeldKeys) !== 0) return null;
+  if (!BoxSelectSettings.Enabled || !BoxSelectSettings.ClickSelectsParent) return null;
+  const hit = HandleUtility.pickGameObject(position, false) as GameObject | null;
+  return hit && hit.transform.isChildOf(previous.transform) ? hit : null;
+}
+
+// Past the top the walk wraps to the object under the cursor, so the parts below stay reachable.
+function nextOf(previous: GameObject, hit: GameObject) {
+  const parent = parentOf(previous.transform);
+  // Before the selection moves, a task's needs read the object that was clicked.
+  if (parent) SceneTutorial.report('ClickSelectedParent');
+  return parent?.gameObject ?? hit;
+}

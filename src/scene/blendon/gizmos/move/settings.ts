@@ -52,7 +52,7 @@ export class TransformMoveSettings extends MoveGizmoSettings {
       planeEnabled: false,
       axisLength: 1.15,
       axisOffset: 1,
-      planeOffset: 0.01,
+      planeOffset: 0.3,
       planeSize: 0.09,
     });
     this.standalone = standalone;

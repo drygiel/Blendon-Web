@@ -244,14 +244,9 @@ class Visibility {
       this.boxes.set(id, Rect.minMax(x0 / s, (height - 1 - y1) / s, (x1 + 1) / s, (height - y0) / s));
   }
 
-  /** Ids (index + 1) whose visible pixels the rect touches, or wholly holds. */
-  hits(rect: Rect, fullyEnclosed: boolean) {
+  /** Ids (index + 1) whose visible pixels the rect touches. */
+  hits(rect: Rect) {
     const out = new Set<number>();
-    if (fullyEnclosed) {
-      for (const [id, b] of this.boxes)
-        if (b.xMin >= rect.xMin && b.xMax <= rect.xMax && b.yMin >= rect.yMin && b.yMax <= rect.yMax) out.add(id);
-      return out;
-    }
     const { width, height, data, scale } = this.cap;
     const x0 = Math.max(0, Math.floor(rect.xMin * scale)),
       x1 = Math.min(width - 1, Math.ceil(rect.xMax * scale));
@@ -322,8 +317,13 @@ class Drag {
     const vis = BoxSelectSettings.VisibleOnly ? this.visibilityRead() : null;
     let hits: GameObject[];
     if (vis) {
-      const ids = vis.hits(rect, enclosed);
+      const ids = vis.hits(rect);
       hits = this.candidates.filter((_, i) => ids.has(i + 1));
+      // The visible part stops at a wall or the view edge, so it can't vouch for the whole object.
+      if (enclosed) {
+        const whole = new Set(this.picker.pick(rect, true));
+        hits = hits.filter((go) => whole.has(go));
+      }
     } else hits = this.picker.pick(rect, enclosed);
     return sortByDistance(hits, this.view, rect.center);
   }
@@ -446,10 +446,11 @@ function present(d: Drag) {
 
 const rgba = (c: Color): [number, number, number, number] => [c.r, c.g, c.b, c.a];
 
-/** Children too, as the Editor outlines a selected object's children. */
+/** Children too, as the Editor outlines a selected object's children. Only what the view draws. */
 function withChildren(list: GameObject[]) {
   const out = new Set<GameObject>();
-  for (const go of list) for (const t of go.transform.walk()) if (t.gameObject.mesh) out.add(t.gameObject);
+  for (const go of list)
+    for (const t of go.transform.walk()) if (t.gameObject.mesh && t.gameObject.visible) out.add(t.gameObject);
   return [...out];
 }
 
@@ -461,9 +462,7 @@ function groups(list: GameObject[]) {
 /** The Editor outlines a selection as one shape; these groups get the lines it leaves out between them. */
 function selectionLines(): GameObject[][] | null {
   if (!BoxSelectSettings.Enabled || !BoxSelectSettings.SelectionLinesBetweenObjects) return null;
-  const out = groups(Selection.objects.filter((go) => go.visible))
-    .map((g) => g.filter((go) => go.visible))
-    .filter((g) => g.length > 0);
+  const out = groups(Selection.objects.filter((go) => go.visible));
   // Lines only go between objects.
   return out.length < 2 ? null : out;
 }

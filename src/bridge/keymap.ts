@@ -1,6 +1,7 @@
 // The page's one shortcut profile, shared by the settings window and the Scene view (SC-2). Every shortcut has
 // the key it declares unless the user changed it: a rebind, a keyboard preset and a swap are all the user's keys.
-// A switched-off feature writes nothing, its gate just shuts and the Editor's command hears the key again.
+// A switched-off feature shuts its gate and gives the Editor back the command the Blender keys moved off its key;
+// switched on again it moves that command aside again.
 import { TipResolver, type TokenSource } from '../plugin/keys.ts';
 import type { ContestedRow, ContestState, KeyboardPreset } from '../plugin/schema.ts';
 import { D } from '../plugin/window-data.ts';
@@ -22,6 +23,7 @@ const MENU = 'Scene View/Menu';
 const OUR_MENU = 'Blendon/Context Menu';
 // Selection and View History share this folder, the View half's leaves start with "View ".
 const HISTORY = 'Blendon/Navigation History/';
+const WIREFRAME = 'Blendon/Pie Menus/Toggle Wireframe';
 const TOOLS = ['MoveGizmoSettings', 'RotateGizmoSettings', 'ScaleGizmoSettings', 'TransformGizmoSettings'];
 // HierarchyWalk's keys, which Box Select's Hierarchy Keys switch can shut on their own.
 const HIERARCHY = new Set([
@@ -39,6 +41,10 @@ let started = false;
 const listeners = new Set<() => void>();
 let pageOf: Map<string, string> | null = null;
 let pieOf: Map<string, string> | null = null;
+// ShortcutPresets.GivenBack: Unity ids a switched-off feature gave their own key back.
+let givenBack = new Set<string>();
+// Only a tie in the preset reads it, the keys decide everything else.
+let unityPicked = false;
 
 function changed() {
   version++;
@@ -85,7 +91,7 @@ export function switchedOn(id: string, r: GateReader = sharedSettings): boolean 
   if (!id.startsWith('Blendon/') || !flag(r, 'GeneralSettings.Enabled')) return false;
   const on = (cls: string) => flag(r, cls + '.Enabled');
   if (id === OUR_MENU) return on('SceneMenuSettings');
-  if (id === 'Blendon/Pie Menus/Toggle Wireframe') return on('WireframeToggleSettings');
+  if (id === WIREFRAME) return on('WireframeToggleSettings');
   if (id.startsWith(HISTORY)) return on(id.startsWith(HISTORY + 'View ') ? 'ViewHistorySettings' : 'HistorySettings');
   if (id.startsWith('Blendon/Pie Menus/')) {
     pieOf ??= new Map(D.pies.map((p) => [p.sid, p.id]));
@@ -158,7 +164,10 @@ export const Keymap = {
     return b !== undefined && b !== declared(id);
   },
 
-  /** ShortcutPresets.Active: read off the keys, Unity when most contested shortcuts sit on their Unity key. */
+  /**
+   * ShortcutPresets.Active: read off the keys, Unity when most contested shortcuts sit on their Unity key, a tie goes
+   * to the preset picked last.
+   */
   preset(): KeyboardPreset {
     let blendon = 0;
     let unity = 0;
@@ -169,7 +178,7 @@ export const Keymap = {
       if (live === row.blendonAlt) unity++;
       else if (live === row.key) blendon++;
     }
-    return unity > blendon ? 'Unity' : 'Blendon';
+    return unity > blendon || (unity === blendon && unityPicked) ? 'Unity' : 'Blendon';
   },
 
   /** The key a preset gives a shortcut, the baseline for "modified" and restore. */
@@ -233,6 +242,7 @@ export const Keymap = {
         if (preset === 'Unity') giveBackLanding(row);
       }
     });
+    unityPicked = preset === 'Unity';
   },
 
   /** ShortcutPresets.GiveKey: the owner keeps the Blender key, the other side goes to its alternative. */
@@ -244,8 +254,32 @@ export const Keymap = {
     });
   },
 
+  /**
+   * SettingsBase.SyncShortcuts over every page: a switched-on feature moves aside again what it gave back, unless that
+   * command's key changed since or ours sits on its Unity key; a switched-off one gives back the command it moved.
+   */
+  syncSwitches(r: GateReader = sharedSettings) {
+    if (!D) return;
+    Keymap.batch(() => {
+      // On moves first, so a gate shut only on a covered key sees where the key ends.
+      for (const row of D.contested) {
+        if (row.replaces || !switchedOn(row.bid, r) || !givenBack.delete(row.uid)) continue;
+        if (Keymap.changedFromDefault(row.uid, r) || Keymap.binding(row.bid, r) === row.blendonAlt) continue;
+        Keymap.rebind(row.uid, row.editorAlt);
+      }
+      for (const row of D.contested) {
+        if (row.replaces || givenBack.has(row.uid) || switchedOn(row.bid, r)) continue;
+        if (Keymap.binding(row.uid, r) !== row.editorAlt || !(row.uid in overrides)) continue;
+        Keymap.clear(row.uid);
+        givenBack.add(row.uid);
+      }
+    });
+  },
+
   /** No user key left, which is the Blendon preset. */
   reset() {
+    givenBack = new Set();
+    unityPicked = false;
     if (!Object.keys(overrides).length) return;
     overrides = {};
     changed();
@@ -273,7 +307,8 @@ export const Keymap = {
   needsContext(id: string, r: GateReader = sharedSettings): boolean {
     // A page's Blendon Context Only keeps every key it covers to the context.
     const only = D.contextOnly[id];
-    if (only && flag(r, only)) return true;
+    // The pies' switch is greyed with the pies off, so it can't hold Toggle Wireframe then.
+    if (only && flag(r, only) && (id !== WIREFRAME || flag(r, 'PieMenuSettings.Enabled'))) return true;
     const need = D.contextNeed[id];
     return need === 'Always' || (need === 'WhenCovering' && Keymap.covers(id, r));
   },
@@ -335,6 +370,9 @@ let shared: TipResolver | null = null;
 export function sharedTips(): TipResolver {
   return (shared ??= new TipResolver(Keymap.tokens(() => sharedSettings)));
 }
+
+// A switch moved in the window.
+SharedSettings.subscribe(() => Keymap.syncSwitches());
 
 // The dock's reset goes back to the page's first profile, the moves included.
 PlaygroundEvents.on('reset', () =>

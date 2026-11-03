@@ -10,6 +10,7 @@ import { GizmoAxis } from '../axis.ts';
 import { GizmoRenderer } from '../rendering.ts';
 import { SharedGizmoSettings } from '../shared-settings.ts';
 import { VertexSnappingUtility } from '../vertex-snapping.ts';
+import { ViewportGesture } from '../viewport-gesture.ts';
 import { ClickSelection } from './click-selection.ts';
 
 export const DragKind = {
@@ -58,9 +59,17 @@ function handleOf(kind: DragKind) {
 export class DragGate {
   static readonly Threshold = 2;
   travelDistance = 0;
+  /** A key went into the drag (value, axis, space), so even a still press was meant as one. */
+  keyed = false;
 
   reset() {
     this.travelDistance = 0;
+    this.keyed = false;
+  }
+
+  /** Every key the drag's parser consumes. */
+  markKeyed() {
+    this.keyed = true;
   }
 
   accumulateTravel(d: number) {
@@ -70,9 +79,10 @@ export class DragGate {
   /** Under the threshold it was a click: select the way the Scene view does and, if that changes, revert the nudge. */
   endHandleDrag(revertTransforms: () => void) {
     if (!SharedGizmoSettings.ClickSelectEnabled) return;
-    if (this.travelDistance >= DragGate.Threshold) return;
+    if (this.keyed || this.travelDistance >= DragGate.Threshold) return;
     const click = Event.current;
-    const next = ClickSelection.resolve(click.mousePosition, click);
+    const next =
+      ViewportGesture.handleClickWalk(click.mousePosition) ?? ClickSelection.resolve(click.mousePosition, click);
     if (!next) return;
     revertTransforms();
     Selection.set(next, next[0]);

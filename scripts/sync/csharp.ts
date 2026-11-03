@@ -93,9 +93,15 @@ function matchClose(masked: string, open: number, o = '{', c = '}'): number {
   throw new Error('Unbalanced ' + o + c);
 }
 
+// Pages call the controls' parts (s.Fields.Toggle, s.MasterHeader.Draw), the ops keep one flat name per call.
+const PART = /\bs\.(?:Chrome|Fields|Banners|Shortcuts|Actions|Folds|Marks)\./g;
+
+export const flattenParts = (code: string): string =>
+  code.replace(PART, 's.').replace(/\bs\.MasterHeader\.Draw\(/g, 's.MasterHeader(');
+
 /** Every Draw* method (void or bool) in a source file, with the class it is declared in. */
 export function drawMethods(source: string): MethodSource[] {
-  const text = stripComments(source);
+  const text = flattenParts(stripComments(source));
   const masked = mask(text);
   const classes: { name: string; start: number; end: number }[] = [];
   for (const m of masked.matchAll(/\bclass\s+(\w+)[^{;]*\{/g)) {

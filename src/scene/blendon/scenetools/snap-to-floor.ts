@@ -62,7 +62,7 @@ function animate(target: Transform, from: Vector3, to: Vector3) {
 
 // A surface this steep stays level, tilting onto it would slide the object far along the cast.
 const MinAlignCosine = 0.1;
-// Start a bit behind the pivot so a surface level with it still hits.
+// Start a bit behind the cast start so a surface level with it still hits.
 const RayBackoff = 0.1;
 // Share of the footprint, per side.
 const CornerInset = 0.02;
@@ -118,11 +118,25 @@ function buildSamples(root: Transform, dir: Vector3, offsets: Vector3[]) {
   return samples;
 }
 
+// Level with the pivot, but never outside the body's span along the cast. A pivot under the mesh would start the
+// rays below the table the mesh hangs over.
+function castStart(pivot: Vector3, dir: Vector3, offsets: Vector3[]) {
+  if (!offsets.length) return pivot;
+  let trail = Infinity;
+  let lead = -Infinity;
+  for (const o of offsets) {
+    const along = Vector3.dot(o, dir);
+    trail = Math.min(trail, along);
+    lead = Math.max(lead, along);
+  }
+  return pivot.add(dir.mul(Mathf.Clamp(0, trail, lead)));
+}
+
 // One cast per sample, the nearest hit wins, so the object rests on the first thing any part of it touches.
-function findSurface(ignore: Transform[], pivot: Vector3, dir: Vector3, samples: Vector3[]) {
+function findSurface(ignore: Transform[], start: Vector3, dir: Vector3, samples: Vector3[]) {
   let best: { point: Vector3; normal: Vector3; distance: number } | null = null;
   for (const sample of samples) {
-    const hit = EditorRaycastUtility.raycast(new Ray(pivot.add(sample).sub(dir.mul(RayBackoff)), dir), ignore);
+    const hit = EditorRaycastUtility.raycast(new Ray(start.add(sample).sub(dir.mul(RayBackoff)), dir), ignore);
     if (hit && (!best || hit.distance < best.distance)) best = hit;
   }
   let point: Vector3;
@@ -130,9 +144,9 @@ function findSurface(ignore: Transform[], pivot: Vector3, dir: Vector3, samples:
   if (best) [point, normal] = [best.point, best.normal];
   else {
     // The demo's floor is the terrain here. Past it the bare Y = 0 plane counts only along the cast.
-    const startHeight = pivot.y - dir.y * RayBackoff;
+    const startHeight = start.y - dir.y * RayBackoff;
     if (-startHeight * dir.y < 0) return null;
-    [point, normal] = [new Vector3(pivot.x, 0, pivot.z), Vector3.up];
+    [point, normal] = [new Vector3(start.x, 0, start.z), Vector3.up];
   }
   // The normal faces the cast like a real surface, so an upward cast meets the ground's underside.
   if (Vector3.dot(normal, dir) > 0) normal = normal.neg();
@@ -167,7 +181,7 @@ export const SnapToFloor = {
     for (const root of roots) {
       const start = root.position;
       const offsets = collectOffsets(root);
-      const hit = findSurface(roots, start, dir, buildSamples(root, dir, offsets));
+      const hit = findSurface(roots, castStart(start, dir, offsets), dir, buildSamples(root, dir, offsets));
       if (!hit) {
         skipped++;
         continue;

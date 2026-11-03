@@ -81,7 +81,7 @@ export class PieMenuController {
     // cursor, so the hand still rests where the key was pressed.
     if (cursor.sub(this.initCenter).sqrMagnitude > PieLayout.ClickThresholdSquared) this.dragStyle = true;
     const confirm = PieMenuSettings.ConfirmThreshold;
-    if (confirm > 0 && this.distance >= PieMenuSettings.Threshold + confirm) {
+    if (confirm > 0 && this.distance >= PieMenuSettings.Deadzone + confirm) {
       this.gestureEndWait = true;
       this.gestureLastPosition = cursor;
       this.gestureCheckedAt = now();
@@ -146,7 +146,7 @@ export class PieMenuController {
     const offset = this.cursor.sub(origin);
     this.distance = offset.magnitude;
     if (this.distance > 1e-6) this.pieDirection = RadialDirections.toMath(offset.div(this.distance));
-    this.invalidDirection = !this.aimed || this.distance < PieMenuSettings.Threshold;
+    this.invalidDirection = !this.aimed || this.distance < PieMenuSettings.Deadzone;
     this.highlighted = PieLayout.select(this.data, this.pieDirection, this.invalidDirection);
   }
 }

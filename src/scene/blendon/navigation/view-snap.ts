@@ -71,14 +71,16 @@ const upHint = (axisIndex: number, isPositive: boolean) =>
   axisIndex !== WorldAxes.UpAxis ? Vector3.up : isPositive ? Vector3.forward : Vector3.back;
 
 export const ViewSnap = {
-  /** Onto an axis looking back down it, orbiting about the selection at the same apparent scale. */
+  /** Onto an axis looking back down it, orbiting like a key step at the same apparent scale. */
   to(v: SceneView | null, axisIndex: number, isPositive: boolean, animated: boolean) {
     if (!canMove(v) || axisIndex < 0 || axisIndex >= 3) return;
     const axis = WorldAxes.signed(axisIndex, isPositive);
     const rotation = Quaternion.lookRotation(axis.neg(), upHint(axisIndex, isPositive));
-    const center = OrbitSelected.resolveOrbitCenter(v);
-    // Lands ortho, so the pivot takes the center's depth. Swung from where a running flight is heading.
+    // Swung from where a running flight is heading. About the selection like a drag, with Orbit Selected off
+    // about the pivot like the other keys.
     const from = ViewOrbitTween.pendingPivot(v);
+    const center = OrbitSelected.turnCenter(v, from);
+    // Lands ortho, so the pivot takes the center's depth.
     const pivot = OrbitSelected.orbitPivot(center, from.sub(center), ViewOrbitTween.pendingRotation(v), rotation, true);
     const size = ViewProjection.apparentHalfHeight(v, center);
     ViewOrbitTween.to(v, pivot, rotation, size, true, animated);

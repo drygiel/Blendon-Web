@@ -6,8 +6,14 @@ import { DrawCameraMode, type SceneView } from '../../unity/sceneview.ts';
 export const ShadingMode = { Wireframe: 0, WireframeShaded: 1, Unlit: 2, Shaded: 3 } as const;
 export type ShadingMode = (typeof ShadingMode)[keyof typeof ShadingMode];
 
+// What Shift+Z goes back to, per view.
+const previous = new WeakMap<SceneView, ShadingMode>();
+
 export const ShadingModes = {
   apply(view: SceneView, mode: ShadingMode) {
+    // Every way into Wireframe, the pie's too, sets where Shift+Z goes back to.
+    const was = ShadingModes.current(view);
+    if (mode === ShadingMode.Wireframe && was !== ShadingMode.Wireframe) previous.set(view, was);
     view.drawMode =
       mode === ShadingMode.Wireframe
         ? DrawCameraMode.Wireframe
@@ -17,6 +23,11 @@ export const ShadingModes = {
     // Wireframe touches nothing else, so leaving it and coming back loses nothing.
     if (mode !== ShadingMode.Wireframe) view.sceneLighting = mode !== ShadingMode.Unlit;
     view.repaint();
+  },
+
+  /** The mode shown before Wireframe, Shaded if unknown. */
+  previous(view: SceneView): ShadingMode {
+    return previous.get(view) ?? ShadingMode.Shaded;
   },
 
   current(view: SceneView): ShadingMode {

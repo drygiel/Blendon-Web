@@ -1038,8 +1038,8 @@ test("with Blendon off, the Editor's own navigation, keys, menu and gizmo come b
   await page.keyboard.up('Alt');
   expect(await viewRotation(page)).not.toEqual(before);
 
-  // The Editor's Scale tool answers on Shift+R, where the page starts it, not Blendon's rotate grab.
-  await page.keyboard.press('Shift+r');
+  // The Editor's Scale tool, which the page starts on Shift+R, gets its own R back, not Blendon's rotate grab.
+  await page.keyboard.press('r');
   await expect(view.getByRole('button', { name: 'Scale Tool' })).toHaveAttribute('aria-pressed', 'true');
 
   // A right click opens the Editor's own menu.

@@ -13,6 +13,10 @@ export const PieMenuSettings = {
   get Threshold() {
     return sNum(K + 'Threshold', 12);
   },
+  /** Pills start on the radius, so a deadzone past 3/4 of it would swallow the nearest ones on a small ring. */
+  get Deadzone() {
+    return Math.min(PieMenuSettings.Threshold, PieMenuSettings.Radius * 0.75);
+  },
   get ConfirmThreshold() {
     return sNum(K + 'ConfirmThreshold', 0);
   },

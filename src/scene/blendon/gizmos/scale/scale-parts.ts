@@ -103,6 +103,7 @@ export class ScaleDragSession {
   constructor(coordinator: GizmoDragCoordinator, numeric: ModalNumericParser) {
     this.coordinator = coordinator;
     this.numeric = numeric;
+    numeric.noDigitsValue = 1;
   }
 
   begin(gizmoPos: Vector3, projRef: Vector3) {

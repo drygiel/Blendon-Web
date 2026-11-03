@@ -54,6 +54,7 @@ export class RotateGizmo extends GizmoController {
       () => this.lookAt.driving,
       (angle) => this.applyAxisRotation(angle, this.manual.axisDir),
       () => this.applyNumericRotation(),
+      () => this.settings.RotateToCursorEnabled,
     );
     this.lookAt = new RotateLookAt(coordinator, () => this.resumeNativeDrag());
     for (const r of [...this.rings, this.screenRing]) this.wireRing(r);

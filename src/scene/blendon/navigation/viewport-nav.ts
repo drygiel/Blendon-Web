@@ -51,7 +51,24 @@ const ticked = (id: string, run: () => unknown) => {
 };
 const canMove = (v: SceneView | null): v is SceneView => !!v && !v.isRotationLocked;
 
-let prior: { pivot: Vector3; rotation: Quaternion; size: number } | null = null;
+// The axis view the press went to is kept with it: leaving that view drops the way back.
+let prior: { pivot: Vector3; rotation: Quaternion; size: number; axis: number; isPositive: boolean } | null = null;
+
+/**
+ * Forgets the way back once the view left its axis view another way (orbit, gizmo, Alt snap). On every pass, not a
+ * tick: leaving the view repaints it, and an idle page draws no frames.
+ */
+function dropLeftPrior(v: SceneView) {
+  // Pending, so the flight onto the axis is not mistaken for leaving it.
+  if (
+    prior &&
+    !(
+      ViewOrbitTween.pendingOrthographic(v) &&
+      ViewAlignment.isRotationExactlyAligned(ViewOrbitTween.pendingRotation(v), prior.axis, prior.isPositive)
+    )
+  )
+    prior = null;
+}
 
 export const ViewportNavActions = {
   snapToView(axisIndex: number, isPositive: boolean) {
@@ -71,7 +88,13 @@ export const ViewportNavActions = {
     // The flight's target, else a press on the way back would remember a lerp frame.
     prior = headedOrthographic
       ? null
-      : { pivot: ViewOrbitTween.pendingPivot(v), rotation: headedRotation, size: ViewOrbitTween.pendingSize(v) };
+      : {
+          pivot: ViewOrbitTween.pendingPivot(v),
+          rotation: headedRotation,
+          size: ViewOrbitTween.pendingSize(v),
+          axis: axisIndex,
+          isPositive,
+        };
     ViewSnap.to(v, axisIndex, isPositive, ViewportNavSettings.AnimationEnabled);
     SceneTutorial.report('AxisView');
   },
@@ -123,11 +146,10 @@ function turnTo(v: SceneView, rotation: Quaternion) {
   );
 }
 
-/** With Orbit Selected on, key steps swing the rig about the orbit centre, as a drag would. */
+/** While Orbit Selected answers, key steps swing the rig about the orbit centre, as a drag would. */
 function resolvePivot(v: SceneView, rotation: Quaternion, orthographic: boolean) {
   const pivot = ViewOrbitTween.pendingPivot(v);
-  if (!OrbitSelected.Settings.Enabled) return pivot;
-  const center = OrbitSelected.resolveOrbitCenter(v);
+  const center = OrbitSelected.turnCenter(v, pivot);
   return OrbitSelected.orbitPivot(center, pivot.sub(center), ViewOrbitTween.pendingRotation(v), rotation, orthographic);
 }
 
@@ -187,5 +209,6 @@ export const ViewportNav = {
       ],
     ];
     for (const [id, fallback, run] of bindings) ShortcutManager.register(id, () => void run(), false, fallback);
+    SceneView.duringSceneGui.add(dropLeftPrior);
   },
 };

@@ -94,9 +94,10 @@ class AxisBuffer {
     return true;
   }
 
-  resolve() {
+  /** noDigits: what the sign and reciprocal act on while no digit is typed. */
+  resolve(noDigits = 0) {
     if (this.isEmpty) return 0;
-    let v = parseFloat(this.text || '0');
+    let v = this.text ? parseFloat(this.text) : noDigits;
     if (!Number.isFinite(v)) v = 0;
     if (this.isReciprocal) v = Mathf.Approximately(v, 0) ? 0 : 1 / v;
     return this.isNegative ? -v : v;
@@ -113,6 +114,8 @@ export class ModalNumericParser {
   private readonly buffer = new AxisBuffer();
   private defaultAxis = GizmoAxis.X;
   private lastAxisKeyIndex = -1;
+  // Last key pressed and not yet released. Key repeat resends it, and each X would step the cycle again.
+  private heldKey: number = KeyCode.None;
   private _state: number = ModalNumericState.Idle;
   private step: number = SpaceStep.Unconstrained;
   currentActiveSpace: number = TransformSpace.Global;
@@ -125,6 +128,8 @@ export class ModalNumericParser {
   onCancel: (() => void) | null = null;
   onRevertToMouseTransform: (() => void) | null = null;
   onConstraintChanged: (() => void) | null = null;
+  /** What a sign or reciprocal with no digits resolves against. Scale sets 1, so a lone '-' mirrors as in Blender. */
+  noDigitsValue = 0;
 
   static get anyNumericInput() {
     return typing !== null;
@@ -144,13 +149,13 @@ export class ModalNumericParser {
   }
 
   get currentParsedVector3() {
-    const v = this.buffer.resolve();
+    const v = this.buffer.resolve(this.noDigitsValue);
     const m = this.activeMask;
     return new Vector3(m.includesX ? v : 0, m.includesY ? v : 0, m.includesZ ? v : 0);
   }
 
   get currentParsedValue() {
-    return this.buffer.resolve();
+    return this.buffer.resolve(this.noDigitsValue);
   }
 
   resolveDeferredIsLocal() {
@@ -173,7 +178,7 @@ export class ModalNumericParser {
 
   getAxisDisplayText(axis: GizmoAxis) {
     if (!this.activeMask.includes(axis) || this.buffer.isEmpty) return '';
-    let text = this.buffer.text || '0';
+    let text = this.buffer.text || String(this.noDigitsValue);
     if (this.buffer.isReciprocal) text = '1/' + text;
     return this.buffer.isNegative ? '-' + text : text;
   }
@@ -217,6 +222,7 @@ export class ModalNumericParser {
     this.activeMask = AxisConstraintMask.single(GizmoAxis.X);
     this.defaultAxis = GizmoAxis.X;
     this.lastAxisKeyIndex = -1;
+    this.heldKey = KeyCode.None;
     this.step = SpaceStep.Unconstrained;
     this.buffer.clear();
   }
@@ -224,6 +230,7 @@ export class ModalNumericParser {
   processEvent(ev: Event): boolean {
     if (this.state === ModalNumericState.Idle) return false;
     if (ev.type === EventType.KeyDown) return this.processKeyDown(ev);
+    if (ev.rawType === EventType.KeyUp && ev.keyCode === this.heldKey) this.heldKey = KeyCode.None;
     if (ev.rawType !== EventType.MouseDown) return false;
     if (ev.button === MouseButton.LeftMouse) {
       this.confirm();
@@ -237,6 +244,10 @@ export class ModalNumericParser {
   }
 
   private processKeyDown(ev: Event) {
+    // Any other key stops the repeat. A keyCode-less KeyDown is only the typed character.
+    const repeat = ev.keyCode !== KeyCode.None && ev.keyCode === this.heldKey;
+    if (ev.keyCode !== KeyCode.None) this.heldKey = ev.keyCode;
+    if (repeat && (ev.keyCode === KeyCode.X || ev.keyCode === KeyCode.Y || ev.keyCode === KeyCode.Z)) return true;
     const exclude = ModifierKeys.isHeld(SharedGizmoSettings.AxisExcludeModifier, ev);
     switch (ev.keyCode) {
       case KeyCode.X:

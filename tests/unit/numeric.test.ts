@@ -123,4 +123,40 @@ describe('modal numeric hand-back', () => {
     expect([w.x, w.y, w.z]).toEqual([0, 5, 5]);
     parser.reset();
   });
+
+  it('resolves a sign or reciprocal with no digits against the value set for it', () => {
+    const parser = begin();
+    type(parser, KeyCode.Minus);
+    expect(parser.currentParsedValue).toBe(-0);
+    parser.reset();
+    parser.noDigitsValue = 1;
+    parser.beginMouseTransform(GizmoAxis.X);
+    type(parser, KeyCode.Minus);
+    expect(parser.currentParsedValue).toBe(-1);
+    expect(parser.getAxisDisplayText(GizmoAxis.X)).toBe('-1');
+    type(parser, Alpha2);
+    expect(parser.currentParsedValue).toBe(-2);
+    parser.reset();
+  });
+});
+
+describe('modal numeric axis keys', () => {
+  it('step the constraint once while an axis key is held', () => {
+    const parser = begin();
+    parser.canReleaseConstraint = true;
+    const up = (code: number) => {
+      const ev = new Event(EventType.KeyUp);
+      ev.keyCode = code;
+      parser.processEvent(ev);
+    };
+    type(parser, KeyCode.Y);
+    const held = parser.currentActiveSpace;
+    type(parser, KeyCode.Y, KeyCode.Y);
+    expect(parser.currentActiveSpace).toBe(held);
+    expect(parser.isActiveAxis(GizmoAxis.Y)).toBe(true);
+    up(KeyCode.Y);
+    type(parser, KeyCode.Y);
+    expect(parser.currentActiveSpace).not.toBe(held);
+    parser.reset();
+  });
 });
