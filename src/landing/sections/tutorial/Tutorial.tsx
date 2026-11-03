@@ -65,10 +65,10 @@ export function Tutorial() {
             Never touched Blender? <em>The Scene view teaches you.</em>
           </SectionTitle>
           <Lead>
-            You build a small scene while you learn: a floor, a cube, then a second one to snap against the first. A
-            badge in the corner of the Scene view names the next task, and the whole checklist waits on its own page in
-            Blendon&apos;s settings. A task ticks off only when you actually perform it, in any order. Progress follows
-            you across projects.
+            You build a small scene as you learn: a floor, a cube, then a second cube snapped against the first. A badge
+            in the corner of the Scene view names the next task, and the full checklist has its own page in
+            Blendon&apos;s settings. Tasks tick off only when you do them, in any order, and progress follows you across
+            projects.
           </Lead>
           <div className={styles.stats} data-reveal="rise">
             <span className={styles.stat}>

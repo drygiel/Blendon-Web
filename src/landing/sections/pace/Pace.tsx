@@ -34,7 +34,7 @@ export function Pace() {
             Keep your Unity habits. <em>Pick up Blender&apos;s at your own pace.</em>
           </>
         }
-        lead="On first load Blendon asks one question: which keys it may take. Use Blendon keys, the default, keeps Blender's keys, moves the Editor's commands on them one modifier aside and gives the right-click to Blendon's menu while Blendon runs; on Unity's read-only Default profile it makes an editable copy first, so nothing else needs setting up. Keep Unity keys moves Blendon's contested keys aside instead, and Skip, or just Esc, changes nothing. Pick a preset any time on the Overview page of Tools → Blendon."
+        lead="On first load Blendon asks which keys it may take. Use Blendon keys, the default, keeps Blender's keys, moves the Editor's commands on them one modifier aside and, while Blendon runs, gives the right-click to Blendon's menu. On Unity's read-only Default profile it first makes an editable copy. Keep Unity keys moves Blendon's contested keys aside instead. Skip, or Esc, changes nothing. Change the keyboard preset any time on the Overview page of Tools → Blendon."
       />
 
       <div className={table.panel} {...plotPart('above')}>
@@ -64,9 +64,9 @@ export function Pace() {
           </tbody>
         </table>
         <p className={table.note}>
-          Neither preset is a profile of its own: both work on whatever profile you are on, and keys you tune stay put,
-          apart from the contested ones a preset moves. The settings window lists every contested pair, and one click on
-          a row swaps just that pair, so the two never share a key.
+          Neither preset is a profile: both work on your current profile, and keys you tune stay put unless a preset
+          moves them as contested. One click on a row in the settings window swaps just that pair, so the two never
+          share a key.
         </p>
       </div>
 
@@ -77,8 +77,8 @@ export function Pace() {
           </InfoCard>
         ))}
         <InfoCard label="The way back" title="One switch" accent>
-          The master switch turns every Blendon key off and hands each Unity command back, your settings and keys kept
-          for when it comes back on. The Editor then behaves as if Blendon were not installed.
+          The master switch turns every Blendon key off and gives each Unity command back, as if Blendon were not
+          installed. Your settings and keys stay for when it is back on.
         </InfoCard>
       </CardGrid>
     </Section>

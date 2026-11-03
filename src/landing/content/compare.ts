@@ -24,7 +24,7 @@ export const COMPARISON: Comparison[] = [
   {
     task: 'Move something exactly 2 m',
     unity: 'Drag a handle, then fix the number in the Inspector',
-    blendon: 'Grab, pick the axis, type the distance. No handle, no Inspector',
+    blendon: 'Grab, pick the axis, type the distance',
     keys: ['G', 'X', '2', 'Enter'],
   },
   {

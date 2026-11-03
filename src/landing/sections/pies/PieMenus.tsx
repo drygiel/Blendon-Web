@@ -27,7 +27,7 @@ import styles from './PieMenus.module.scss';
 const iconUrl = (name: string) => publicUrl(`scene/icons/${name}.png`);
 const CARDS = [
   ['Build your own', 'A visual editor makes new pies from Blendon actions or any menu command, on any key.'],
-  ['Numbered items', 'While a pie is open, the top-row or keypad number runs its item directly.'],
+  ['Numbered items', "While a pie is open, an item's number on the top row or keypad runs it."],
   [
     'State at a glance',
     "The active tool, draw mode or snap toggle is tinted blue. Items that can't run are greyed in place, so the ring never shifts.",
@@ -104,7 +104,7 @@ export function PieMenus() {
             Eight pies. <em>One key each.</em>
           </>
         }
-        lead="Hold the key, flick toward an item and let go. Or tap it and the menu stays open for a click. Selection is by angle alone, so a flick far past an item still picks it. Point anywhere around the ring below and click."
+        lead="Hold the key, flick toward an item and let go, or tap the key to keep the menu open for a click. Only the angle counts, so a flick far past an item still picks it. Point anywhere around the ring below and click."
       />
 
       <div className={styles.explorer}>

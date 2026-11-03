@@ -80,7 +80,7 @@ export const PIES: PieDemo[] = [
     items: ['Position', 'Scale', 'Rotation', 'All'],
     icons: ['d_MoveTool', 'd_ScaleTool', 'd_RotateTool', 'd_TransformTool'],
     active: -1,
-    note: 'Resets the local transform of every selected object, fully undoable',
+    note: 'Resets the local transform of every selected object',
   },
   {
     id: 'view',

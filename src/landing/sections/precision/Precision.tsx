@@ -16,13 +16,13 @@ const WHILE_DRAGGING: [KeyTokens, string][] = [
   [['Shift', '~+', 'X'], 'Lock the plane of the other two axes.'],
   [['0–9', '.'], 'Type the value. The mouse stops driving the transform.'],
   [['-'], 'Toggle the sign.'],
-  [['Backspace'], 'Delete a digit. Deleting the last one hands control back to the mouse.'],
+  [['Backspace'], 'Delete a digit. With none left, the mouse takes over again.'],
   [['Enter', 'Mouse 0'], 'Confirm.'],
   [['Esc', 'Mouse 1'], 'Cancel and restore the pre-drag transform.'],
 ];
 
 const MODIFIERS: [KeyTokens, string, string][] = [
-  [['Shift'], 'Precision drag', 'Slows any drag down for fine placement.'],
+  [['Shift'], 'Precision drag', 'Slows any drag for fine placement.'],
   [['Ctrl'], 'Snap ticks', "Steps from tick to tick with Unity's grid, rotation and scale snapping."],
   [['Alt'], 'Surface snap & look-at', 'Move drops onto the surface under the cursor. Rotate aims at it.'],
   [
@@ -42,8 +42,7 @@ export function Precision() {
         </SectionTitle>
         <Lead>
           Press G, R or S anywhere in the Scene view and the selection follows the cursor. Constrain with X, Y or Z,
-          type an exact value, confirm with Enter. Typing works mid-drag on any gizmo handle too, and right-click puts
-          everything back.
+          type a value, press Enter. Typing also works mid-drag on any gizmo handle.
         </Lead>
       </div>
 

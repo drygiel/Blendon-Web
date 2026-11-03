@@ -30,10 +30,9 @@ export function Shortcuts() {
             Every key, <em>on one sheet.</em>
           </SectionTitle>
           <Lead>
-            The keys each keyboard preset gives, all but the wheel, the box drag and Shift+right-click rebindable from
-            Blendon&apos;s settings window or Unity&apos;s Edit → Shortcuts (Unity → Shortcuts on macOS). On the Unity
-            preset the Editor keeps its own and the contested ones move. On macOS, Ctrl and Alt read Cmd and Option,
-            apart from the View pie&apos;s Ctrl+`.
+            All keys but the wheel, the box drag and Shift+right-click can be rebound in Blendon&apos;s settings window
+            or Unity&apos;s Edit → Shortcuts (Unity → Shortcuts on macOS). On macOS the View pie&apos;s Ctrl+` keeps
+            Ctrl.
           </Lead>
         </div>
         <div className={styles.presets} role="group" aria-label="Keyboard preset" data-reveal="rise">

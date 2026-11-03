@@ -89,13 +89,13 @@ export const CONTESTED_KEYS: ContestedKey[] = [
 ];
 
 export const FEATURE_PRESETS: [string, string][] = [
-  ['Full', 'Every feature on. Your tuning, your keys and your shortcut profile are kept.'],
+  ['Full', 'Every feature on, with your tuning, keys and shortcut profile kept.'],
   [
     'Essentials',
     'Navigation and the transform gizmos, with their grab and vertex-snap keys. Pies, numpad views, the context menu and scene tools stay off, and Unity keeps their keys.',
   ],
   [
     'Tools Only',
-    'Just the Move, Rotate, Scale and Transform gizmos, with their grab and vertex-snap keys. Everything else stays off, and Unity keeps every other key.',
+    'Only the Move, Rotate, Scale and Transform gizmos, with their grab and vertex-snap keys. Everything else stays off, and Unity keeps every other key.',
   ],
 ];

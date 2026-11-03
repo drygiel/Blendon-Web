@@ -18,7 +18,7 @@ export function Compare() {
             Same Scene view. <em>Fewer detours.</em>
           </>
         }
-        lead="Never used Blender? This is what changes in an ordinary working day, next to how Unity does it out of the box."
+        lead="Never used Blender? Here is what changes in a normal working day."
       />
       <div className={table.panel} {...plotAnchor('compare-table')}>
         <table className={table.table} style={{ '--first-col': '25%' } as CSSProperties}>

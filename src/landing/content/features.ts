@@ -37,7 +37,7 @@ export const FEATURES: Feature[] = [
     group: 'nav',
     title: 'Orbit Selected',
     keys: ['Mouse 2', '~drag'],
-    desc: 'Orbit around the selection. Hold Alt to snap to a world axis, flick Alt+Mouse 2 to roll 90°.',
+    desc: 'Orbits the selection. Alt snaps to a world axis, an Alt+Mouse 2 flick rolls 90°.',
     clip: 'OrbitSelected',
   },
   {
@@ -53,7 +53,7 @@ export const FEATURES: Feature[] = [
     group: 'nav',
     title: 'Zoom',
     keys: ['Scroll'],
-    desc: "Blender's Scale, Dolly and Continue methods, toward the cursor. Numpad + and − step it from the keyboard.",
+    desc: "Blender's Scale, Dolly and Continue methods, toward the cursor. Numpad + and − step it.",
     clip: 'Zoom',
   },
   {
@@ -77,7 +77,7 @@ export const FEATURES: Feature[] = [
     group: 'nav',
     title: 'View History',
     keys: ['Shift', '~+', 'Mouse 3', 'Mouse 4'],
-    desc: 'Back and forward through camera positions, like a browser. Selections get the same, without Shift.',
+    desc: 'Back and forward through camera positions, like a browser. Without Shift, through selections.',
     clip: 'ViewHistory',
   },
   {
@@ -93,7 +93,7 @@ export const FEATURES: Feature[] = [
     group: 'gizmos',
     title: 'Rotate',
     keys: ['E'],
-    desc: 'Rings that follow the cursor, a trackball and an angle arc. Hold Alt on a ring, or during the R grab, to aim the selection at a surface.',
+    desc: 'Rings that follow the cursor, a trackball and an angle arc. Alt on a ring, or during the R grab, aims the selection at a surface.',
     clip: 'Rotate',
   },
   {
@@ -101,7 +101,7 @@ export const FEATURES: Feature[] = [
     group: 'gizmos',
     title: 'Scale',
     keys: ['Shift', '~+', 'R'],
-    desc: "Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context R alone starts the Grab Rotate, and the Blendon keyboard preset moves the Scale tool to Shift+R; the Unity keyboard preset leaves R to the Scale tool and moves the grab there instead.",
+    desc: "Box-tipped axes, plane handles and a uniform-scale circle, with Blender's Global/Local behavior. In Blendon's tool context R starts Grab Rotate, so the Blendon keyboard preset puts the Scale tool on Shift+R.",
     clip: 'Scale',
   },
   {
@@ -109,7 +109,7 @@ export const FEATURES: Feature[] = [
     group: 'gizmos',
     title: 'Transform',
     keys: ['Y'],
-    desc: "All three in one, nested so they never fight. Every gizmo honors Local/Global and Blendon's pivot modes, works with multi-selection and grid snapping, and cancels on right-click.",
+    desc: "All three in one, nested so they never fight. Every gizmo works with Local/Global, Blendon's pivot modes, multi-selection and grid snapping.",
     clip: 'Transform',
   },
   {
@@ -117,7 +117,7 @@ export const FEATURES: Feature[] = [
     group: 'gizmos',
     title: 'Drag feedback',
     keys: ['Ctrl', 'Shift'],
-    desc: 'Live readout, drag ghost, constraint line and snap ticks. Hold Ctrl to step from tick to tick, Shift for a slow, precise drag.',
+    desc: 'Live readout, drag ghost, constraint line and snap ticks. Ctrl steps from tick to tick, Shift slows the drag.',
     clip: 'AllTools',
   },
   {
@@ -125,7 +125,7 @@ export const FEATURES: Feature[] = [
     group: 'tools',
     title: 'Box Select',
     keys: ['Mouse 0', '~drag'],
-    desc: 'Selects everything the box touches, tested against real triangles. C includes hidden objects, Space moves the box.',
+    desc: 'Selects everything the box touches. C includes hidden objects, Space moves the box.',
     clip: 'BoxSelect',
   },
   {
@@ -141,7 +141,7 @@ export const FEATURES: Feature[] = [
     group: 'tools',
     title: 'Isolate View',
     keys: ['Num /'],
-    desc: 'Hides everything but the selection. Press again to bring the scene back.',
+    desc: 'Hides everything but the selection until you press it again.',
     clip: 'IsolateView',
   },
   {
@@ -157,7 +157,7 @@ export const FEATURES: Feature[] = [
     group: 'menus',
     title: 'Pie Menus',
     keys: ['Z', 'Q', 'Shift', '~+', 'A'],
-    desc: 'Hold, flick, let go, or tap to keep it open. Eight built-in pies, plus a visual editor for your own that can run any menu command.',
+    desc: 'Hold, flick, let go, or tap to keep it open. Eight built-in pies, and a visual editor for your own that can run any menu command.',
     clip: 'PieMenus',
   },
   {
@@ -165,7 +165,7 @@ export const FEATURES: Feature[] = [
     group: 'menus',
     title: 'Context Menu',
     keys: ['Mouse 1'],
-    desc: "Searchable, holds every entry Unity's menu has, plus Add, Snap to Floor, Align and Copy Transform. Shift+Mouse 1 opens Unity's own. On the Unity keyboard preset it moves to Alt+Mouse 1.",
+    desc: "Searchable, with every entry of Unity's menu plus Add, Snap to Floor, Align and Copy Transform. Shift+Mouse 1 opens Unity's own.",
     clip: 'ContextMenu',
   },
 ];

@@ -5,7 +5,7 @@ import { Section, SectionIntro } from '../../ui/Section.tsx';
 import styles from './UnderTheHood.module.scss';
 
 const SPECS = [
-  ['EDITOR-ONLY', 'Adds nothing to player builds. No runtime components, Editor assemblies only.'],
+  ['EDITOR-ONLY', 'Nothing in player builds: Editor assemblies only, no runtime components.'],
   ['PRIVATE', 'No network requests, no analytics, no extra packages installed.'],
   ['OPTIONAL', "Every feature switches off on its own. Each gizmo falls back to Unity's."],
   ['OPEN', 'Full C# source included, plus an illustrated PDF manual.'],
@@ -20,8 +20,8 @@ const COLUMNS: [string, ReactNode[]][] = [
       'Unity 6000.0 or newer',
       'Built-in Render Pipeline, URP or HDRP',
       'Windows, macOS or Linux',
-      'A middle mouse button for orbit and pan. On a trackpad, rebind both in Tools → Blendon → Settings',
-      'A numeric keypad, only for the keypad defaults (Numpad Views, Frame Selected, Isolate View, keyboard zoom), all rebindable',
+      'A middle mouse button for orbit and pan, rebindable for a trackpad',
+      'A numeric keypad, only for the keypad defaults, all rebindable',
     ],
   ],
   [
@@ -30,7 +30,7 @@ const COLUMNS: [string, ReactNode[]][] = [
       <>
         <Code>EditorPrefs</Code> for settings
       </>,
-      'Your active Shortcut Manager profile, only for keys you change, the keys of the keyboard preset you pick and, while Blendon runs, the right-click menu',
+      "Your active Shortcut Manager profile: keys you change, your preset's keys and, while Blendon runs, the right-click menu",
       <>
         <Code>Blendon/PieMenus.json</Code> in your user settings folder
       </>,
