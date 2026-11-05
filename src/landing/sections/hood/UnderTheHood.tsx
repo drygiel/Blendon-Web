@@ -6,7 +6,7 @@ import styles from './UnderTheHood.module.scss';
 
 const SPECS = [
   ['EDITOR-ONLY', 'Nothing in player builds: Editor assemblies only, no runtime components.'],
-  ['PRIVATE', 'No network requests, no analytics, no extra packages installed.'],
+  ['PRIVATE', 'No analytics, no extra packages. One daily update check, off with a switch.'],
   ['OPTIONAL', "Every feature switches off on its own. Each gizmo falls back to Unity's."],
   ['OPEN', 'Full C# source included, plus an illustrated PDF manual.'],
 ] as const;
