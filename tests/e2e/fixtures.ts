@@ -1,6 +1,22 @@
-import { test as base } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 
 export { expect, type Page } from '@playwright/test';
+
+/**
+ * Off Chromium, CI's WebGL is missing (Firefox) or software-rendered slow enough to stall the page (WebKit).
+ * For tests about the settings window: the Scene view falls back to its poster there.
+ */
+export async function noWebGlOffChromium(page: Page, browserName: string) {
+  if (browserName === 'chromium') return;
+  await page.addInitScript(() => {
+    type Canvas = { prototype: { getContext: (this: unknown, id: string, ...rest: unknown[]) => unknown } };
+    const proto = (globalThis as unknown as { HTMLCanvasElement: Canvas }).HTMLCanvasElement.prototype;
+    const getContext = proto.getContext;
+    proto.getContext = function (id, ...rest) {
+      return id.startsWith('webgl') ? null : getContext.call(this, id, ...rest);
+    };
+  });
+}
 
 // CI's WebKit composites in software and freezes (or crashes) while a reveal's blur still runs: the "rise"
 // transition and the "stagger" rise keyframes. No test is about that blur, so WebKit runs without it.

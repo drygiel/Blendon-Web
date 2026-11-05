@@ -1,5 +1,5 @@
 import type { Locator } from '@playwright/test';
-import { expect, type Page, test } from './fixtures.ts';
+import { expect, noWebGlOffChromium, type Page, test } from './fixtures.ts';
 
 // Settings Window section of the Overview: the theme, the reset bar and the sticky search bar. Values go in
 // through the page's ?set= hook, the way the window stores them.
@@ -36,9 +36,10 @@ const tops = (win: Locator, ...sel: string[]) =>
     return ss.map((s) => root.querySelector(s).getBoundingClientRect().top - y0);
   }, sel);
 
-test.beforeEach(({ page }) => {
+test.beforeEach(async ({ page, browserName }) => {
   errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  await noWebGlOffChromium(page, browserName);
 });
 
 test.afterEach(() => {
@@ -98,7 +99,7 @@ test('Show Reset Bar off drops the strip and the list reaches the bottom', async
   expect(view).toBeCloseTo(content, 0);
 });
 
-/** Wheel over the list, then waits for the slide to finish. */
+/** Wheel over the list. The wait lets a slide that should not start show up; one that should is polled for. */
 async function wheel(page: Page, win: Locator, dy: number) {
   await win.locator('.scroll').hover();
   await page.mouse.wheel(0, dy);
@@ -125,28 +126,27 @@ test('the sticky bar slides away on scrolling down and back on any scroll up, wi
   // Mid-slide and after it, the rows sit where the wheel alone put them.
   await page.waitForTimeout(60);
   const [rowMid, viewMid] = await tops(win, row, '.view');
-  await page.waitForTimeout(500);
+  // The slide runs on the page's frames, which WebKit's software compositing slows to a few a second.
+  await expect.poll(() => headerShown(win)).toBeCloseTo(-60, 0);
   const [rowAfter, view, content] = await tops(win, row, '.view', '.content');
   const scrolled = rowBefore - rowAfter;
   expect(scrolled).toBeGreaterThan(200);
   expect(Math.abs(rowMid - rowAfter)).toBeLessThanOrEqual(1);
   expect(viewMid).toBeGreaterThanOrEqual(view);
-  expect(await headerShown(win)).toBeCloseTo(-60, 0);
   // The view grew by the bar and the scroll went back by as much.
   expect(view).toBeCloseTo(content, 0);
   expect(await scroll.evaluate((e) => (e as unknown as El).scrollTop)).toBeCloseTo(scrolled - 60, 0);
 
   await wheel(page, win, -40);
-  expect(await headerShown(win)).toBe(0);
+  await expect.poll(() => headerShown(win)).toBe(0);
   const [rowBack] = await tops(win, row);
   expect(rowBack - rowAfter).toBeGreaterThan(0);
 
   // A page switch starts with the bar on screen.
   await wheel(page, win, 400);
-  expect(await headerShown(win)).toBeCloseTo(-60, 0);
+  await expect.poll(() => headerShown(win)).toBeCloseTo(-60, 0);
   await win.getByRole('button', { name: 'Keyboard', exact: true }).click();
-  await page.waitForTimeout(200);
-  expect(await headerShown(win)).toBe(0);
+  await expect.poll(() => headerShown(win)).toBe(0);
 });
 
 test('the sticky bar stays while searching and when switched off', async ({ page }) => {

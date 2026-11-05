@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import type { Locator } from '@playwright/test';
 import type { TutorialData } from '../../src/plugin/tutorial.ts';
-import { expect, type Page, test } from './fixtures.ts';
+import { expect, noWebGlOffChromium, type Page, test } from './fixtures.ts';
 
 // The plugin's own tutorial texts and keys, so the checks follow its wording.
 const readJson = <T>(file: string) =>
@@ -23,17 +23,7 @@ async function openWindow(page: Page) {
 test.beforeEach(async ({ page, browserName }) => {
   errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  // Off Chromium, CI's WebGL is missing (Firefox) or software-rendered slow enough to stall the page (WebKit).
-  // These tests are about the settings window, so the Scene view falls back to its poster there.
-  if (browserName !== 'chromium')
-    await page.addInitScript(() => {
-      type Canvas = { prototype: { getContext: (this: unknown, id: string, ...rest: unknown[]) => unknown } };
-      const proto = (globalThis as unknown as { HTMLCanvasElement: Canvas }).HTMLCanvasElement.prototype;
-      const getContext = proto.getContext;
-      proto.getContext = function (id, ...rest) {
-        return id.startsWith('webgl') ? null : getContext.call(this, id, ...rest);
-      };
-    });
+  await noWebGlOffChromium(page, browserName);
   await page.goto('');
 });
 
