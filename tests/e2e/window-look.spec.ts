@@ -123,10 +123,20 @@ test('the sticky bar slides away on scrolling down and back on any scroll up, wi
   const [rowBefore] = await tops(win, row);
   await win.locator('.scroll').hover();
   await page.mouse.wheel(0, 300);
-  // Mid-slide and after it, the rows sit where the wheel alone put them.
-  await page.waitForTimeout(60);
-  const [rowMid, viewMid] = await tops(win, row, '.view');
-  // The slide runs on the page's frames, which WebKit's software compositing slows to a few a second.
+  // Mid-slide and after it, the rows sit where the wheel alone put them. The slide runs on the page's frames,
+  // which WebKit's software compositing slows to a few a second, so both moments are polled for.
+  let rowMid = 0;
+  let viewMid = 0;
+  await expect
+    .poll(
+      async () => {
+        const [hdr, content, r, v] = await tops(win, '.hdr', '.content', row, '.view');
+        [rowMid, viewMid] = [r, v];
+        return hdr - content < -0.5 && hdr - content > -59.5;
+      },
+      { intervals: [10] },
+    )
+    .toBe(true);
   await expect.poll(() => headerShown(win)).toBeCloseTo(-60, 0);
   const [rowAfter, view, content] = await tops(win, row, '.view', '.content');
   const scrolled = rowBefore - rowAfter;
